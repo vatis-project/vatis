@@ -83,18 +83,15 @@ public class SurfaceWindNode : AtisNode
                 }
                 else
                 {
-                    if (node.Direction == 0 && node.Speed == 0)
-                    {
-                        tts.Add($"Wind calm");
-                    }
-                    else
-                    {
-                        tts.Add($"Wind {node.Direction.ApplyMagVar(magVarDeg).ToString("000").NumberToSingular()} at {node.Speed.NumberToSingular()}");
-                    }
+                    tts.Add($"Wind {node.Direction.ApplyMagVar(magVarDeg).ToString("000").NumberToSingular()} at {node.Speed.NumberToSingular()}");
                 }
-
-                acars.Add($"{node.Direction.ApplyMagVar(magVarDeg):000}{node.Speed:00}{windUnitText}");
             }
+            else if (node.Direction == 0 && node.Speed == 0)
+            {
+                tts.Add("Wind calm");
+            }
+
+            acars.Add($"{node.Direction.ApplyMagVar(magVarDeg):000}{node.Speed:00}{windUnitText}");
         }
 
         // VRB10KT
