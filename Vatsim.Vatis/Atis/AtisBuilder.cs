@@ -526,7 +526,7 @@ public class AtisBuilder : IAtisBuilder
         input = Regex.Replace(input, @"\{(-?[\,0-9]+)\}", m => int.Parse(m.Groups[1].Value.Replace(",", "")).ToGroupForm());
 
         // read numbers in serial format
-        input = Regex.Replace(input, @"([+-])?([0-9]+\.?[0-9]*|\.[0-9]+)(?![^{]*\})", m => m.Value.ToSerialForm(composite.UseDecimalTerminology));
+        input = Regex.Replace(input, @"([+-])?([0-9]+\.[0-9]+|[0-9]+|\.[0-9]+)(?![^{]*\})", m => m.Value.ToSerialForm(composite.UseDecimalTerminology));
 
         input = Regex.Replace(input, @"(?<=\*)(-?[\,0-9]+)", "$1");
         input = Regex.Replace(input, @"(?<=\#)(-?[\,0-9]+)", "$1");
