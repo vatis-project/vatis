@@ -1,0 +1,74 @@
+name: Build (Linux)
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'App version (e.g. 1.0.0-beta.1)'
+        type: string
+        required: true
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+  
+    steps:
+
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/vatis-source
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          submodules: recursive
+      
+      - name: Remove dummy client auth
+        shell: bash
+        run: |
+          rm -rf Vatsim.Network/ClientAuth.cs
+      
+      - name: Clone ClientAuth
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/client-auth
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          path: Vatsim.Network/ClientAuth.cs
+      
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      
+      - name: Install Velopack
+        run: |
+          dotnet tool update -g vpk
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install build-essential
+          sudo apt install libcurl4-openssl-dev
+
+      - name: Build NativeAudio Library
+        run: |
+          mkdir -p ./NativeAudio/build
+          cd ./NativeAudio/build && cmake .. && cmake --build . --config ${{ env.BUILD_TYPE }}
+      
+      - name: Build
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          VERSION: ${{ github.event.inputs.version }}
+          AWS_ENDPOINT: ${{ secrets.AWS_ENDPOINT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          chmod +x ./Scripts/build-linux.sh
+          ./Scripts/build-linux.sh ${{ github.event.inputs.version }}

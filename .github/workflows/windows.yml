@@ -1,0 +1,86 @@
+name: Build (Windows)
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'App version (e.g. 1.0.0-beta.1)'
+        type: string
+        required: true
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+
+  build:
+
+    runs-on: windows-latest
+  
+    steps:
+
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/vatis-source
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          submodules: recursive
+      
+      - name: Remove dummy client auth
+        shell: bash
+        run: |
+          rm -rf Vatsim.Network/ClientAuth.cs
+      
+      - name: Clone ClientAuth
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/client-auth
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          path: Vatsim.Network/ClientAuth.cs
+      
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Code Signing SDK
+        run: |
+          Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile .\nuget.exe
+          .\nuget.exe install Microsoft.Windows.SDK.BuildTools -Version 10.0.22621.3233 -x
+          .\nuget.exe install Microsoft.Trusted.Signing.Client -Version 1.0.53 -x
+      
+      - name: Create TrustedSigning Metadata
+        env:
+          ENDPOINT: https://eus.codesigning.azure.net
+          CODE_SIGNING_ACCOUNT_NAME: ${{ secrets.AZURE_ACCOUNT_NAME }}
+          CERTIFICATE_PROFILE_NAME: ${{ secrets.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $metadata = @{
+            Endpoint = $env:ENDPOINT
+            CodeSigningAccountName = $env:CODE_SIGNING_ACCOUNT_NAME
+            CertificateProfileName = $env:CERTIFICATE_PROFILE_NAME
+          }
+          $metadata | ConvertTo-Json -Depth 10 | Set-Content -Path metadata.json
+      
+      - name: Install Velopack
+        run: |
+          dotnet tool update -g vpk
+
+      - name: Build NativeAudio Library
+        run: |
+          mkdir -p ./NativeAudio/build
+          cd ./NativeAudio/build && cmake .. && cmake --build . --config ${{ env.BUILD_TYPE }}
+      
+      - name: Build
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          VERSION: ${{ github.event.inputs.version }}
+          AWS_ENDPOINT: ${{ secrets.AWS_ENDPOINT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          .\Scripts\build-win.ps1 -template '.\Microsoft.Windows.SDK.BuildTools\bin\10.0.22621.0\x64\signtool.exe sign /td sha256 /fd sha256 /dlib ".\Microsoft.Trusted.Signing.Client\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf ".\metadata.json" /tr http://timestamp.acs.microsoft.com {{file...}}'

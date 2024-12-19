@@ -1,0 +1,23 @@
+name: Build vATIS
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'App version (e.g. 1.0.0-beta.1)'
+        type: string
+        required: true
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  windows:
+    uses: ./.github/workflows/windows.yml
+    secrets: inherit
+  macos:
+    uses: ./.github/workflows/macos.yml
+    secrets: inherit
+  linux:
+    uses: ./.github/workflows/linux.yml
+    secrets: inherit
