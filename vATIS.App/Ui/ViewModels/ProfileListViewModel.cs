@@ -10,6 +10,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Profiles;
@@ -24,7 +26,8 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 public class ProfileListViewModel : ReactiveViewModelBase
 {
     #region Reactive Properties
-    public ObservableCollection<ProfileViewModel> Profiles { get; } = [];
+    private readonly SourceList<ProfileViewModel> mProfileList = new();
+    public ReadOnlyObservableCollection<ProfileViewModel> Profiles { get; set; }
 
     private ProfileViewModel? mSelectedProfile;
     public ProfileViewModel? SelectedProfile
@@ -88,13 +91,19 @@ public class ProfileListViewModel : ReactiveViewModelBase
                 ShowOverlay = lifetime.Windows.Count > 1;
             };
         }
+
+        mProfileList.Connect()
+            .Sort(SortExpressionComparer<ProfileViewModel>.Ascending(i => i.Name))
+            .Bind(out var sortedProfiles)
+            .Subscribe(_ => Profiles = sortedProfiles);
+        Profiles = sortedProfiles;
     }
 
     private async Task Initialize()
     {
         foreach (var profile in await mProfileRepository.LoadAll())
         {
-            Profiles.Add(new ProfileViewModel(profile));
+            mProfileList.Add(new ProfileViewModel(profile));
         }
     }
 
@@ -149,7 +158,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
             }
 
             mProfileRepository.Delete(profile.Profile);
-            Profiles.Remove(profile);
+            mProfileList.Remove(profile);
         }
     }
 
@@ -179,7 +188,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
                     }
                     
                     var profile = new Profile { Name = context.UserValue.Trim() };
-                    Profiles.Add(new ProfileViewModel(profile));
+                    mProfileList.Add(new ProfileViewModel(profile));
                     mProfileRepository.Save(profile);
                 }
             };
@@ -203,7 +212,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
             foreach (var file in files)
             {
                 var newProfile = await mProfileRepository.Import(file);
-                Profiles.Add(new ProfileViewModel(newProfile));   
+                mProfileList.Add(new ProfileViewModel(newProfile));   
             }
         }
         catch (Exception ex)
