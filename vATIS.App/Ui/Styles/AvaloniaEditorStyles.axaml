@@ -1,0 +1,64 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:cc="clr-namespace:AvaloniaEdit.CodeCompletion;assembly=AvaloniaEdit">
+    
+    <Style Selector="ae|TextEditor">
+        <Setter Property="Background" Value="#1e1e1e"/>
+        <Setter Property="BorderBrush" Value="#646464"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Style Selector="^:focus-within">
+            <Setter Property="Background" Value="#141414"/>
+        </Style>
+    </Style>
+    <Style Selector="ae|TextEditor /template/ Border">
+        <Setter Property="CornerRadius" Value="3"/>
+    </Style>
+    
+    <Style Selector="cc|CompletionList">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="#1e1e1e" CornerRadius="3" BorderThickness="1" Padding="4" BorderBrush="#646464"
+                        IsVisible="{Binding $parent[cc:CompletionWindow].IsVisible}">
+                    <cc:CompletionListBox ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                          VerticalAlignment="Stretch" Margin="0" Padding="0"
+                                          Name="PART_ListBox" Background="{DynamicResource ThemeBackgroundBrush}"
+                                          BorderThickness="0">
+                        <cc:CompletionListBox.ItemTemplate>
+                            <DataTemplate DataType="cc:ICompletionData">
+                                <TextBlock VerticalAlignment="Center" Name="CompletionName"
+                                           Text="{Binding Text}" FontFamily="{StaticResource Monospace}"
+                                           Foreground="White" />
+                            </DataTemplate>
+                        </cc:CompletionListBox.ItemTemplate>
+                    </cc:CompletionListBox>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    
+    <Style Selector="cc|CompletionList ListBox > ListBoxItem">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Padding" Value="5, 3, 3, 3" />
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Height" Value="20"/>
+    </Style>
+
+    <Style Selector="cc|CompletionList > ListBox">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
+    </Style>
+    
+    <Style Selector="cc|CompletionTipContentControl">
+        <Setter Property="Background" Value="#1e1e1e" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="MaxHeight" Value="350" />
+        <Setter Property="MaxWidth" Value="700" />
+        <Setter Property="CornerRadius" Value="3" />
+    </Style>
+</Styles>

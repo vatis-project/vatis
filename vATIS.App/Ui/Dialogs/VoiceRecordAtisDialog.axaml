@@ -1,0 +1,103 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+        xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
+        mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="400"
+        x:Class="Vatsim.Vatis.Ui.Dialogs.VoiceRecordAtisDialog"
+        x:Name="Window"
+        Width="750" 
+        Height="400" 
+        Title="VoiceRecordAtisDialog"
+        WindowStartupLocation="CenterOwner" 
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+	<Window.Resources>
+		<converters:RecordAtisListenButtonLabelConverter x:Key="ButtonLabelConverter"/>
+	</Window.Resources>
+	<Window.Styles>
+		<Style Selector="DataValidationErrors">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<DockPanel LastChildFill="True">
+						<ContentControl DockPanel.Dock="Bottom"
+										ContentTemplate="{TemplateBinding ErrorTemplate}"
+										DataContext="{TemplateBinding Owner}"
+										Content="{Binding (DataValidationErrors.Errors)}"
+										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
+						<ContentPresenter Name="PART_ContentPresenter"
+										  Background="{TemplateBinding Background}"
+										  BorderBrush="{TemplateBinding BorderBrush}"
+										  BorderThickness="{TemplateBinding BorderThickness}"
+										  CornerRadius="{TemplateBinding CornerRadius}"
+										  ContentTemplate="{TemplateBinding ContentTemplate}"
+										  Content="{TemplateBinding Content}"
+										  Padding="{TemplateBinding Padding}"/>
+					</DockPanel>
+				</ControlTemplate>
+			</Setter>
+			<Setter Property="ErrorTemplate">
+				<DataTemplate x:DataType="{x:Type x:Object}">
+					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+						<ItemsControl.Styles>
+							<Style Selector="TextBlock">
+								<Setter Property="TextWrapping" Value="Wrap" />
+							</Style>
+						</ItemsControl.Styles>
+					</ItemsControl>
+				</DataTemplate>
+			</Setter>
+		</Style>
+	</Window.Styles>
+	<Border CornerRadius="5"
+		BorderBrush="Black"
+		BorderThickness="1"
+		Background="#323232"
+		ClipToBounds="True">
+		<Grid RowDefinitions="30,*" ClipToBounds="True">
+			<Grid x:Name="Overlay" Grid.ColumnSpan="2" Grid.RowSpan="2" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=False}">
+				<Border Background="#000000" Opacity="0.80"/>
+			</Grid>
+			<Border Background="#1e1e1e" Grid.Row="0" CornerRadius="5,5,0,0">
+				<TextBlock Text="Record ATIS" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
+			</Border>
+			<Grid Grid.Row="1" ColumnDefinitions="1*,25,1*" Margin="30">
+				<StackPanel Orientation="Vertical" Spacing="15" Grid.Column="0">
+					<StackPanel Spacing="5">
+						<TextBlock Text="Microphone Device:"/>
+						<ComboBox Classes="Dark" ItemsSource="{Binding CaptureDevices, DataType=vm:VoiceRecordAtisDialogViewModel}" SelectedItem="{Binding SelectedCaptureDevice, DataType=vm:VoiceRecordAtisDialogViewModel}" IsEnabled="{Binding DeviceSelectionEnabled, DataType=vm:VoiceRecordAtisDialogViewModel}"/>
+					</StackPanel>
+					<StackPanel Spacing="5">
+						<TextBlock Text="Playback Device:"/>
+						<ComboBox Classes="Dark" ItemsSource="{Binding PlaybackDevices, DataType=vm:VoiceRecordAtisDialogViewModel}" SelectedItem="{Binding SelectedPlaybackDevice, DataType=vm:VoiceRecordAtisDialogViewModel}" IsEnabled="{Binding DeviceSelectionEnabled, DataType=vm:VoiceRecordAtisDialogViewModel}"/>
+					</StackPanel>
+					<StackPanel Orientation="Vertical" Spacing="5" HorizontalAlignment="Left" Width="145">
+						<Grid ColumnDefinitions="145,10,100">
+							<Button Theme="{StaticResource Dark}" Command="{Binding StartRecordingCommand, DataType=vm:VoiceRecordAtisDialogViewModel}">Start Recording</Button>
+							<TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding ElapsedRecordingTime, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=00:00:00}"/>
+						</Grid>
+						<Button Theme="{StaticResource Dark}" Command="{Binding StopRecordingCommand, DataType=vm:VoiceRecordAtisDialogViewModel}">Stop Recording</Button>
+						<Button Theme="{StaticResource Dark}" Command="{Binding ListenCommand, DataType=vm:VoiceRecordAtisDialogViewModel}" Content="{Binding IsPlaybackActive, DataType=vm:VoiceRecordAtisDialogViewModel, Converter={StaticResource ButtonLabelConverter}, FallbackValue=Listen}"/>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,25,0,0">
+						<Button Width="100" Theme="{StaticResource Dark}" Command="{Binding SaveCommand, DataType=vm:VoiceRecordAtisDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Save</Button>
+						<Button Width="100" Theme="{StaticResource Dark}" Command="{Binding CancelCommand, DataType=vm:VoiceRecordAtisDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>
+					</StackPanel>
+				</StackPanel>
+				<StackPanel Grid.Column="2" Spacing="5">
+					<TextBlock Text="ATIS Script:"/>
+					<TextBox Text="{Binding AtisScript, DataType=vm:VoiceRecordAtisDialogViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="280" Theme="{StaticResource DarkTextBox}" FontFamily="{StaticResource Monospace}">
+						<Interaction.Behaviors>
+							<behaviors:TextBoxUppercaseBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+			</Grid>
+		</Grid>
+	</Border>
+</Window>

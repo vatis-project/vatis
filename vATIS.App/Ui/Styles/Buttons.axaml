@@ -1,0 +1,427 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Design.PreviewWith>
+		<Border Width="250" Background="#323232" Padding="20">
+			<StackPanel Spacing="10">
+				<Button Theme="{StaticResource Standard}" Content="Standard"/>
+				<Button Theme="{StaticResource Standard}" Content="Standard" IsEnabled="False"/>
+				<Button Theme="{StaticResource Dark}" Content="Button"/>
+				<Button Theme="{StaticResource Dark}" Content="Disabled" IsEnabled="False"/>
+				<ToggleButton Theme="{StaticResource BlueToggle}" Content="Blue Toggle"/>
+				<Button Theme="{StaticResource DarkVariable}">{wind}</Button>
+				<Button Theme="{StaticResource HyperlinkButton}">Hyperlink</Button>
+				<DropDownButton Theme="{StaticResource DarkDropDownButton}" Content="DropDown Button">
+					<DropDownButton.Flyout>
+						<MenuFlyout Placement="BottomEdgeAlignedRight">
+							<MenuItem Header="New..." />
+						</MenuFlyout>
+					</DropDownButton.Flyout>
+				</DropDownButton>
+				<StackPanel Orientation="Horizontal" Spacing="5">
+					<Button Theme="{StaticResource MinimizeButton}"/>
+					<Button Theme="{StaticResource CompactViewButton}"/>
+					<Button Theme="{StaticResource CloseButton}"/>
+					<Button Theme="{StaticResource SaveButton}"/>
+					<ToggleButton Theme="{StaticResource PinButton}"/>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+	</Design.PreviewWith>
+	
+	<SolidColorBrush x:Key="ButtonBorder" Color="#f0f6fc" Opacity="0.2" />
+	
+	<ControlTheme x:Key="DarkDropDownButton" TargetType="DropDownButton">
+		<Setter Property="HorizontalAlignment" Value="Left" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Padding" Value="10,3"/>
+		<Setter Property="CornerRadius" Value="4"/>
+		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="Background" Value="#323232"/>
+		<Setter Property="BorderBrush" Value="#646464"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="Transitions" Value="{x:Null}"/>
+		<Setter Property="RenderTransform" Value="{x:Null}"/>
+		<Setter Property="MinHeight" Value="25"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="FocusAdorner">
+			<FocusAdornerTemplate>
+				<Border BorderThickness="2"
+						BorderBrush="#768390"
+						Margin="0"/>
+			</FocusAdornerTemplate>
+		</Setter>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border x:Name="RootBorder" 
+				        Background="{TemplateBinding Background}" 
+				        BorderBrush="{TemplateBinding BorderBrush}"
+				        BorderThickness="{TemplateBinding BorderThickness}" 
+				        CornerRadius="{TemplateBinding CornerRadius}"
+				        ClipToBounds="True">
+					<Grid x:Name="InnerGrid" ColumnDefinitions="*,Auto">
+						<ContentPresenter x:Name="PART_ContentPresenter" 
+						                  Grid.Column="0" 
+						                  Content="{TemplateBinding Content}" 
+						                  ContentTemplate="{TemplateBinding ContentTemplate}"
+						                  Padding="{TemplateBinding Padding}" 
+						                  RecognizesAccessKey="True" 
+						                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+						                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+						<PathIcon x:Name="DropDownGlyph"
+						          Grid.Column="1" 
+						          UseLayoutRounding="False"
+						          IsHitTestVisible="False" 
+						          Height="12" 
+						          Width="12"
+						          Margin="0,0,10,0"
+						          Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z"
+						          HorizontalAlignment="Right"
+						          VerticalAlignment="Center"
+						          Foreground="{DynamicResource ComboBoxDropDownGlyphForeground}"/>
+					</Grid>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+		<!--  PointerOver State  -->
+		<Style Selector="^:pointerover /template/ PathIcon#DropDownGlyph">
+			<Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
+		</Style>
+
+		<Style Selector="^:pressed /template/ Border#RootBorder">
+			<Setter Property="Background" Value="#141414" />
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
+		</Style>
+		<Style Selector="^:pressed /template/ PathIcon#DropDownGlyph">
+			<Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
+		</Style>
+		
+		<Style Selector="^:flyout-open /template/ Border#RootBorder">
+			<Setter Property="Background" Value="#141414" />
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
+		</Style>
+
+		<!--  Disabled State  -->
+		<Style Selector="^:disabled /template/ Border#RootBorder">
+			<Setter Property="Background" Value="{DynamicResource ButtonBackgroundDisabled}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushDisabled}" />
+			<Setter Property="TextElement.Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+		</Style>
+		<Style Selector="^:disabled /template/ PathIcon#DropDownGlyph">
+			<Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+		</Style>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="HyperlinkButton" TargetType="Button">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<TextBlock Text="{TemplateBinding Content}" Foreground="#d9d9d9">
+					<TextBlock.Styles>
+						<Style Selector="TextBlock:pointerover">
+							<Setter Property="Foreground" Value="White"/>
+							<Setter Property="Cursor" Value="Hand"/>
+						</Style>
+					</TextBlock.Styles>
+				</TextBlock>
+			</ControlTemplate>
+		</Setter>
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="BorderThickness" Value="0"/>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="HyperlinkButtonSave" TargetType="Button">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<TextBlock Text="{TemplateBinding Content}" Foreground="Coral">
+					<TextBlock.Styles>
+						<Style Selector="TextBlock:pointerover">
+							<Setter Property="Foreground" Value="#ff9973"/>
+							<Setter Property="Cursor" Value="Hand"/>
+						</Style>
+					</TextBlock.Styles>
+				</TextBlock>
+			</ControlTemplate>
+		</Setter>
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="BorderThickness" Value="0"/>
+	</ControlTheme>
+
+	<ControlTheme x:Key="Standard" TargetType="Button">
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="Padding" Value="10,3"/>
+		<Setter Property="CornerRadius" Value="4"/>
+		<Setter Property="Foreground" Value="Black"/>
+		<Setter Property="Background" Value="White"/>
+		<Setter Property="BorderBrush" Value="#bababa"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="Transitions" Value="{x:Null}"/>
+		<Setter Property="RenderTransform" Value="{x:Null}"/>
+		<Setter Property="MinHeight" Value="23"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="FocusAdorner">
+			<FocusAdornerTemplate>
+				<Border BorderThickness="1"
+						BorderBrush="#768390"
+						Margin="0"/>
+			</FocusAdornerTemplate>
+		</Setter>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<ContentPresenter x:Name="PART_ContentPresenter"
+								  Background="{TemplateBinding Background}"
+								  BorderBrush="{TemplateBinding BorderBrush}"
+								  BorderThickness="{TemplateBinding BorderThickness}"
+								  CornerRadius="{TemplateBinding CornerRadius}"
+								  Content="{TemplateBinding Content}"
+								  ContentTemplate="{TemplateBinding ContentTemplate}"
+								  Padding="{TemplateBinding Padding}"
+								  RecognizesAccessKey="True"
+								  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+								  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+			</ControlTemplate>
+		</Setter>
+		<Style Selector="^ /template/ ContentPresenter">
+			<Setter Property="Foreground" Value="{TemplateBinding Foreground}"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="^:pointerover /template/ ContentPresenter">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Background" Value="#e0eef9"/>
+			<Setter Property="BorderBrush" Value="#006bbe"/>
+		</Style>
+		<Style Selector="^:pressed /template/ ContentPresenter">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Background" Value="#cce4f7"/>
+			<Setter Property="BorderBrush" Value="#006bbe"/>
+		</Style>
+		<Style Selector="^:disabled /template/ ContentPresenter">
+			<Setter Property="Foreground" Value="#bababa"/>
+			<Setter Property="Background" Value="#f9f9f9"/>
+			<Setter Property="BorderBrush" Value="#dcdcdc"/>
+		</Style>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="Dark" TargetType="Button">
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="Padding" Value="10,3"/>
+		<Setter Property="CornerRadius" Value="4"/>
+		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="Background" Value="#323232"/>
+		<Setter Property="BorderBrush" Value="#646464"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="Transitions" Value="{x:Null}"/>
+		<Setter Property="RenderTransform" Value="{x:Null}"/>
+		<Setter Property="MinHeight" Value="23"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="FocusAdorner">
+			<FocusAdornerTemplate>
+				<Border BorderThickness="2"
+						BorderBrush="#768390"
+						Margin="0"/>
+			</FocusAdornerTemplate>
+		</Setter>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<ContentPresenter x:Name="PART_ContentPresenter"
+								  Background="{TemplateBinding Background}"
+								  BorderBrush="{TemplateBinding BorderBrush}"
+								  BorderThickness="{TemplateBinding BorderThickness}"
+								  CornerRadius="{TemplateBinding CornerRadius}"
+								  Content="{TemplateBinding Content}"
+								  ContentTemplate="{TemplateBinding ContentTemplate}"
+								  Padding="{TemplateBinding Padding}"
+								  RecognizesAccessKey="True"
+								  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+								  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+			</ControlTemplate>
+		</Setter>
+		<Style Selector="^ /template/ ContentPresenter">
+			<Setter Property="Foreground" Value="{TemplateBinding Foreground}"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="^:pointerover /template/ ContentPresenter">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Background" Value="{TemplateBinding Background}"/>
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+		</Style>
+		<Style Selector="^:pressed /template/ ContentPresenter">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Background" Value="#141414"/>
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+		</Style>
+		<Style Selector="^:disabled /template/ ContentPresenter">
+			<Setter Property="Foreground" Value="#646464"/>
+			<Setter Property="Background" Value="{TemplateBinding Background}"/>
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+		</Style>
+	</ControlTheme>
+
+	<ControlTheme x:Key="BlueToggle" TargetType="ToggleButton">
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="Padding" Value="10,3"/>
+		<Setter Property="CornerRadius" Value="4"/>
+		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="Background" Value="#323232"/>
+		<Setter Property="BorderBrush" Value="#646464"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="Transitions" Value="{x:Null}"/>
+		<Setter Property="RenderTransform" Value="{x:Null}"/>
+		<Setter Property="MinHeight" Value="23"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="FocusAdorner">
+			<FocusAdornerTemplate>
+				<Border BorderThickness="2"
+						BorderBrush="#768390"
+						Margin="0"/>
+			</FocusAdornerTemplate>
+		</Setter>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<ContentPresenter x:Name="PART_ContentPresenter"
+								  Background="{TemplateBinding Background}"
+								  BorderBrush="{TemplateBinding BorderBrush}"
+								  BorderThickness="{TemplateBinding BorderThickness}"
+								  CornerRadius="{TemplateBinding CornerRadius}"
+								  Content="{TemplateBinding Content}"
+								  ContentTemplate="{TemplateBinding ContentTemplate}"
+								  Padding="{TemplateBinding Padding}"
+								  RecognizesAccessKey="True"
+								  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+								  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+			</ControlTemplate>
+		</Setter>
+		<Style Selector="^ /template/ ContentPresenter">
+			<Setter Property="Foreground" Value="{TemplateBinding Foreground}"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="^:pointerover /template/ ContentPresenter">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Background" Value="{TemplateBinding Background}"/>
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+		</Style>
+		<Style Selector="^:disabled /template/ ContentPresenter">
+			<Setter Property="Foreground" Value="#646464"/>
+			<Setter Property="Background" Value="{TemplateBinding Background}"/>
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+		</Style>
+		<Style Selector="^:checked /template/ ContentPresenter">
+			<Setter Property="Background" Value="#004696"/>
+			<Setter Property="BorderBrush" Value="#646464"/>
+		</Style>
+	</ControlTheme>
+
+	<ControlTheme x:Key="DarkVariable" BasedOn="{StaticResource Dark}" TargetType="Button">
+		<Setter Property="Padding" Value="6,3"/>
+		<Setter Property="FontSize" Value="12"/>
+		<Setter Property="FontFamily" Value="{StaticResource Monospace}"/>
+		<Setter Property="Focusable" Value="False"/>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="MinimizeButton" BasedOn="{StaticResource Dark}" TargetType="Button">
+		<Setter Property="Width" Value="23"/>
+		<Setter Property="Height" Value="20"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="CornerRadius" Value="100"/>
+		<Setter Property="Content">
+			<Template>
+				<Viewbox UseLayoutRounding="False" Margin="4">
+					<Line x:Name="Glyph"
+					      Stroke="White"
+					      StrokeThickness="5"
+					      StrokeLineCap="Flat"
+					      StartPoint="0,5"
+					      EndPoint="20,5" />
+				</Viewbox>
+			</Template>
+		</Setter>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="CloseButton" BasedOn="{StaticResource Dark}" TargetType="Button">
+		<Setter Property="Width" Value="23"/>
+		<Setter Property="Height" Value="20"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="Background" Value="#C0392B"/>
+		<Setter Property="BorderBrush" Value="#C0392B"/>
+		<Setter Property="CornerRadius" Value="100"/>
+		<Setter Property="FocusAdorner">
+			<FocusAdornerTemplate>
+				<Border BorderThickness="2"
+				        BorderBrush="#dc6d62"
+				        Margin="0"/>
+			</FocusAdornerTemplate>
+		</Setter>
+		<Setter Property="Content">
+			<Template>
+				<Viewbox UseLayoutRounding="True">
+					<Path x:Name="Glyph"
+					      Fill="White"
+					      Stretch="None"
+					      HorizontalAlignment="Center"
+					      VerticalAlignment="Center"
+					      FlowDirection="LeftToRight"
+					      Margin="4"
+					      Data="M7.314 5.9l3.535-3.536A1 1 0 1 0 9.435.95L5.899 4.485 2.364.95A1 1 0 1 0 .95 2.364l3.535 3.535L.95 9.435a1 1 0 1 0 1.414 1.414l3.535-3.535 3.536 3.535a1 1 0 1 0 1.414-1.414L7.314 5.899z"/>
+				</Viewbox>
+			</Template>
+		</Setter>
+		<Style Selector="^:pointerover /template/ ContentPresenter">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Background" Value="{TemplateBinding Background}"/>
+			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+		</Style>
+		<Style Selector="^:pressed /template/ ContentPresenter">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Background" Value="#dc6d62"/>
+			<Setter Property="BorderBrush" Value="#dc6d62"/>
+		</Style>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="PinButton" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
+		<Setter Property="Width" Value="23"/>
+		<Setter Property="Height" Value="20"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="CornerRadius" Value="20"/>
+		<Setter Property="Content">
+			<Template>
+				<Viewbox UseLayoutRounding="True" Margin="4">
+					<Path x:Name="Glyph"
+						  Stretch="UniformToFill"
+						  HorizontalAlignment="Center"
+						  VerticalAlignment="Center"
+						  FlowDirection="LeftToRight"
+						  Fill="White"
+						  Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z"/>
+				</Viewbox>
+			</Template>
+		</Setter>
+		<Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="#C0392B"/>
+			<Setter Property="BorderBrush" Value="#C0392B"/>
+		</Style>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="CompactViewButton" BasedOn="{StaticResource Dark}" TargetType="Button">
+		<Setter Property="Width" Value="23"/>
+		<Setter Property="Height" Value="20"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="CornerRadius" Value="20"/>
+		<Setter Property="Content">
+			<Template>
+				<Viewbox UseLayoutRounding="True" Margin="4">
+					<Path x:Name="Glyph"
+					      Stretch="UniformToFill"
+					      HorizontalAlignment="Center"
+					      VerticalAlignment="Center"
+					      Fill="White"
+					      Data="M 5.7474 345.3495 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -64.2463 0 l 156.7472 -156.7458 l -0.0007 64.2456 c 0 1.9898 0.7898 3.8969 2.197 5.304 c 1.4064 1.4064 3.3135 2.1963 5.304 2.197 l 20.0012 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 125.7483 128.8554 C 125.7483 126.8656 124.9578 124.9578 123.5514 123.5514 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 L 1.7508 121.3551 c -1.9891 0.0007 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.304 l 0.0007 20.0005 c 0 2.0704 0.84 3.9457 2.197 5.3026 c 1.3569 1.3569 3.2322 2.197 5.304 2.197 l 64.247 -0.0007 l -156.7472 156.7458 l 0.0007 -64.2456 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -20.0012 0 c -1.9884 0 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.3026 l 0 116.4944 c 0.0007 2.0711 0.84 3.9471 2.197 5.304 c 1.3569 1.3569 3.2329 2.1963 5.304 2.197 l 116.4958 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 5.7474 345.3495 z"/>
+				</Viewbox>
+			</Template>
+		</Setter>
+	</ControlTheme>
+</ResourceDictionary>

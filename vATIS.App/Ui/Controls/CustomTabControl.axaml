@@ -1,0 +1,139 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:local="clr-namespace:Vatsim.Vatis.Ui.Controls;assembly=vATIS"
+					xmlns:converters="using:Avalonia.Controls.Converters">
+
+	<Design.PreviewWith>
+		<Border Width="360" Background="#323232" Padding="20">
+			<local:CustomTabControl>
+				<local:CustomTabItem Header="KLAX" AtisLetter="G"/>
+				<local:CustomTabItem Header="KLAS"/>
+				<local:CustomTabItem Header="KSAN"/>
+				<local:CustomTabItem Header="KBUR"/>
+				<local:CustomTabItem Header="KVNY"/>
+				<local:CustomTabItem Header="KSNA"/>
+			</local:CustomTabControl>
+		</Border>
+	</Design.PreviewWith>
+	
+	<ControlTheme x:Key="{x:Type local:CustomTabControl}" TargetType="local:CustomTabControl">
+		<Setter Property="BorderBrush" Value="#646464"/>
+		<Setter Property="FocusAdorner" Value="{x:Null}"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<DockPanel>
+					<ScrollViewer
+						Theme="{StaticResource CustomTabControlScrollViewer}"
+						HorizontalScrollBarVisibility="Auto"
+						VerticalScrollBarVisibility="Disabled"
+						DockPanel.Dock="Top">
+						<ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}"/>
+					</ScrollViewer>
+					<Border Name="PART_TabControlBorder"
+							Margin="0,-1,0,0"
+							ZIndex="-100"
+							BorderBrush="{TemplateBinding BorderBrush}"
+							BorderThickness="1"
+							Background="Transparent">
+						<ContentPresenter Name="PART_SelectedContentHost"
+										  Padding="5"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Content="{TemplateBinding SelectedContent}"
+                                          ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+					</Border>
+				</DockPanel>
+			</ControlTemplate>
+		</Setter>
+	</ControlTheme>
+
+	<ControlTheme TargetType="ScrollViewer" x:Key="CustomTabControlScrollViewer">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<DockPanel>
+					<RepeatButton x:Name="ScrollLeftButton"
+								  CornerRadius="3,0,0,0"
+								  DockPanel.Dock="Left"
+								  Margin="0,-2,0,0"
+								  Foreground="White"
+								  Command="{Binding PageLeft, RelativeSource={RelativeSource TemplatedParent}}">
+						<RepeatButton.IsVisible>
+							<MultiBinding Converter="{x:Static converters:MenuScrollingVisibilityConverter.Instance}" ConverterParameter="0">
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="HorizontalScrollBarVisibility"/>
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Offset.X"/>
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Extent.Width"/>
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Viewport.Width"/>
+							</MultiBinding>
+						</RepeatButton.IsVisible>
+						<Path VerticalAlignment="Center"
+							  HorizontalAlignment="Center"
+							  Fill="{Binding #ScrollLeftButton.Foreground}"
+							  Data="M0.222099 4.6098L4.67223 0.159755C4.77515 0.0567475 4.91255 0 5.05905 0C5.20555 0 5.34295 0.0567475 5.44588 0.159755L5.7736 0.487394C5.98685 0.700889 5.98685 1.04788 5.7736 1.26105L2.03672 4.99793L5.77775 8.73895C5.88067 8.84196 5.9375 8.97928 5.9375 9.1257C5.9375 9.27228 5.88067 9.4096 5.77775 9.51269L5.45002 9.84025C5.34702 9.94325 5.2097 10 5.0632 10C4.9167 10 4.7793 9.94325 4.67637 9.84025L0.222099 5.38614C0.118929 5.2828 0.062263 5.14484 0.0625882 4.99817C0.062263 4.85094 0.118929 4.71305 0.222099 4.6098Z"
+							  Width="6"
+							  Height="10"/>
+						<RepeatButton.Styles>
+							<Style Selector="RepeatButton">
+								<Setter Property="Width" Value="28" />
+								<Setter Property="Height" Value="26" />
+								<Setter Property="Padding" Value="0" />
+								<Setter Property="Background" Value="#646464"/>
+								<Setter Property="BorderThickness" Value="0" />
+								<Setter Property="HorizontalAlignment" Value="Stretch" />
+								<Setter Property="HorizontalContentAlignment" Value="Center" />
+								<Setter Property="RenderTransform" Value="{x:Null}" />
+							</Style>
+							<Style Selector="RepeatButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Cursor" Value="Hand"/>
+								<Setter Property="Background" Value="#8b8b8b"/>
+								<Setter Property="BorderThickness" Value="0"/>
+							</Style>
+						</RepeatButton.Styles>
+					</RepeatButton>
+					<RepeatButton x:Name="ScrollRightButton"
+								  DockPanel.Dock="Right"
+								  CornerRadius="0,3,0,0"
+								  Margin="0,-2,0,0"
+								  Foreground="White"
+								  Command="{Binding PageRight, RelativeSource={RelativeSource TemplatedParent}}">
+						<RepeatButton.IsVisible>
+							<MultiBinding Converter="{x:Static converters:MenuScrollingVisibilityConverter.Instance}" ConverterParameter="100">
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="HorizontalScrollBarVisibility" />
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Offset.X" />
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Extent.Width" />
+								<Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Viewport.Width" />
+							</MultiBinding>
+						</RepeatButton.IsVisible>
+						<Path VerticalAlignment="Center"
+							  HorizontalAlignment="Center"
+							  Fill="{Binding #ScrollRightButton.Foreground}"
+							  Data="M5.7779 4.6098L1.32777 0.159755C1.22485 0.0567475 1.08745 0 0.940948 0C0.794445 0 0.657048 0.0567475 0.554122 0.159755L0.226401 0.487394C0.0131509 0.700889 0.0131509 1.04788 0.226401 1.26105L3.96328 4.99793L0.222255 8.73895C0.119329 8.84196 0.0625 8.97928 0.0625 9.1257C0.0625 9.27228 0.119329 9.4096 0.222255 9.51269L0.549976 9.84025C0.652983 9.94325 0.790299 10 0.936802 10C1.0833 10 1.2207 9.94325 1.32363 9.84025L5.7779 5.38614C5.88107 5.2828 5.93774 5.14484 5.93741 4.99817C5.93774 4.85094 5.88107 4.71305 5.7779 4.6098Z"
+							  Width="6"
+							  Height="10" />
+						<RepeatButton.Styles>
+							<Style Selector="RepeatButton">
+								<Setter Property="Width" Value="28" />
+								<Setter Property="Height" Value="26" />
+								<Setter Property="Padding" Value="0" />
+								<Setter Property="Background" Value="#646464"/>
+								<Setter Property="BorderThickness" Value="0" />
+								<Setter Property="HorizontalAlignment" Value="Stretch" />
+								<Setter Property="HorizontalContentAlignment" Value="Center" />
+								<Setter Property="RenderTransform" Value="{x:Null}" />
+							</Style>
+							<Style Selector="RepeatButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Cursor" Value="Hand"/>
+								<Setter Property="Background" Value="#8b8b8b"/>
+								<Setter Property="BorderThickness" Value="0"/>
+							</Style>
+						</RepeatButton.Styles>
+					</RepeatButton>
+					<ScrollContentPresenter Name="PART_ContentPresenter"
+													CanHorizontallyScroll="True"
+													CanVerticallyScroll="False"
+													ContentTemplate="{TemplateBinding ContentTemplate}"
+													Offset="{TemplateBinding Offset, Mode=TwoWay}"/>
+				</DockPanel>
+			</ControlTemplate>
+		</Setter>
+	</ControlTheme>
+</ResourceDictionary>

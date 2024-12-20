@@ -1,0 +1,119 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+             xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
+			 xmlns:profiles="using:Vatsim.Vatis.Profiles"
+			 xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+             xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="300"
+			 x:Class="Vatsim.Vatis.Ui.Components.AtisStationView">
+	<UserControl.Resources>
+		<converters:ConnectButtonLabelConverter x:Key="ConnectButtonLabelConverter"/>
+		<converters:ConnectButtonColorConverter x:Key="ConnectButtonColorConverter"/>
+	</UserControl.Resources>
+	<Border Background="#323232" Padding="10">
+		<Grid ColumnDefinitions="85,*,150" RowDefinitions="*,130,Auto">
+			<!--Atis Letter-->
+			<Button Name="AtisLetter" CornerRadius="3" Classes="AtisLetter" Foreground="White" Grid.Column="0" Grid.Row="0" Content="{Binding AtisLetter, DataType=vm:AtisStationViewModel, FallbackValue=A}" IsEnabled="True" FontFamily="{DynamicResource Monospace}">
+				<Interaction.Behaviors>
+					<behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, FallbackValue=False}"/>
+					<behaviors:PointerPressedEventTrigger LeftClickCommand="{Binding AcknowledgeOrIncrementAtisLetterCommand, DataType=vm:AtisStationViewModel}" RightClickCommand="{Binding DecrementAtisLetterCommand, DataType=vm:AtisStationViewModel}" />
+				</Interaction.Behaviors>
+			</Button>
+			<!--Metar/Error-->
+			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10" IsVisible="{Binding ErrorMessage, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+				<TextBlock FontFamily="{DynamicResource Monospace}" TextWrapping="Wrap" Foreground="White" FontSize="16" Text="{Binding Metar, DataType=vm:AtisStationViewModel}"/>
+			</Border>
+			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10" IsVisible="{Binding ErrorMessage, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+					<TextBlock TextWrapping="Wrap" Foreground="#CF480C" FontSize="20" Text="{Binding ErrorMessage, DataType=vm:AtisStationViewModel}"/>
+				</ScrollViewer>
+			</Border>
+			<!--Wind/Altimeter-->
+			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="2" Grid.Row="0" Margin="10,0,0,0">
+				<StackPanel Orientation="Vertical" Spacing="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<TextBlock FontFamily="{DynamicResource Monospace}" Foreground="White" FontSize="18" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding Wind, DataType=vm:AtisStationViewModel}"/>
+					<TextBlock FontFamily="{DynamicResource Monospace}" Foreground="White" FontSize="18" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}"/>
+				</StackPanel>
+			</Border>
+			<!--Airport Conditions/Notams-->
+			<Grid Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" Margin="0,5,0,0" ColumnDefinitions="2*,10,2*" RowDefinitions="Auto,*">
+				<!--Airport Conditions-->
+				<StackPanel Orientation="Horizontal" Spacing="5">
+					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:AtisStationViewModel}">AIRPORT CONDITIONS</Button>
+					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveAirportConditionsText, DataType=vm:AtisStationViewModel}">*SAVE CHANGES*</Button>
+				</StackPanel>
+				<editor:TextEditor Name="AirportConditions" Grid.Row="1" Grid.Column="0" Document="{Binding AirportConditionsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="AirportConditions_OnTextChanged">
+					<Interaction.Behaviors>
+						<behaviors:TextEditorUpperCaseBehavior/>
+						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:AtisStationViewModel}"/>
+					</Interaction.Behaviors>
+				</editor:TextEditor>
+				<!--Notams-->
+				<StackPanel Orientation="Horizontal" Spacing="5" Grid.Row="0" Grid.Column="2">
+					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:AtisStationViewModel}">NOTAMS</Button>
+					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveNotamsText, DataType=vm:AtisStationViewModel}">*SAVE CHANGES*</Button>
+				</StackPanel>
+				<editor:TextEditor Name="NotamFreeText" Grid.Row="1" Grid.Column="2" Document="{Binding NotamsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="NotamFreeText_OnTextChanged">
+					<Interaction.Behaviors>
+						<behaviors:TextEditorUpperCaseBehavior/>
+						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:AtisStationViewModel}"/>
+					</Interaction.Behaviors>
+				</editor:TextEditor>
+			</Grid>
+			<!--Bottom Toolbar-->
+			<Grid Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="2" Margin="0,10,0,0" ColumnDefinitions="120,*,120"
+			      RowDefinitions="30">
+				<Button Command="{Binding VoiceRecordAtisCommand, DataType=vm:AtisStationViewModel}" Theme="{StaticResource Dark}" Content="RECORD ATIS" Grid.Column="0" Margin="0,0,5,0"/>
+				<ComboBox Name="AtisPreset" Classes="Dark" Grid.Column="1" Margin="0,-1,0,0" ItemsSource="{Binding AtisPresetList, DataType=vm:AtisStationViewModel}" DisplayMemberBinding="{Binding Name, DataType=models:AtisPreset}" SelectedItem="{Binding SelectedAtisPreset, DataType=vm:AtisStationViewModel, Mode=OneWay}">
+					<ComboBox.Styles>
+						<Style Selector="ComboBox.Dark /template/ Grid">
+							<Setter Property="MaxHeight" Value="30"/>
+						</Style>
+					</ComboBox.Styles>
+					<Interaction.Behaviors>
+						<RoutedEventTriggerBehavior RoutedEvent="{x:Static SelectingItemsControl.SelectionChangedEvent}" SourceInteractive="AtisPreset">
+							<InvokeCommandAction Command="{Binding SelectedPresetChangedCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{Binding #AtisPreset.SelectedItem}"/>
+						</RoutedEventTriggerBehavior>
+					</Interaction.Behaviors>
+				</ComboBox>
+				<Button Grid.Column="2" Margin="5,0,0,0" Theme="{StaticResource Dark}" Content="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectButtonLabelConverter}, FallbackValue=CONNECT}" Command="{Binding NetworkConnectCommand, DataType=vm:AtisStationViewModel}" Background="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectButtonColorConverter}}" />
+			</Grid>
+		</Grid>
+	</Border>
+	<UserControl.Styles>
+		<Style Selector="Button.AtisLetter">
+			<Setter Property="FontSize" Value="60"/>
+			<Setter Property="FontWeight" Value="Medium"/>
+			<Setter Property="Background" Value="#1E1E1E"/>
+			<Setter Property="BorderBrush" Value="#646464"/>
+			<Setter Property="CornerRadius" Value="0"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Stretch"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="Transitions" Value="{x:Null}"/>
+			<Setter Property="RenderTransform" Value="{x:Null}"/>
+			<Style Selector="^:pointerover /template/ ContentPresenter">
+				<Setter Property="Background" Value="{TemplateBinding Background}"/>
+				<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+				<Setter Property="Foreground" Value="{TemplateBinding Foreground}"/>
+				<Setter Property="Cursor" Value="Hand"/>
+			</Style>
+			<Style Selector="^:pressed /template/ ContentPresenter">
+				<Setter Property="Cursor" Value="Hand"/>
+				<Setter Property="Background" Value="#141414"/>
+				<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+			</Style>
+			<Style Selector="^:disabled /template/ ContentPresenter">
+				<Setter Property="Foreground" Value="#484F58"/>
+				<Setter Property="Background" Value="#21262D"/>
+				<Setter Property="BorderBrush" Value="#464E57"/>
+			</Style>
+		</Style>
+	</UserControl.Styles>
+</UserControl>

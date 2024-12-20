@@ -1,0 +1,261 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
+             xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+             xmlns:controls="using:Vatsim.Vatis.Ui.Controls"
+             xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Vatsim.Vatis.Ui.AtisConfiguration.PresetsView">
+	<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+		<StackPanel Orientation="Vertical">
+			<Grid ColumnDefinitions="*,Auto">
+				<ComboBox Name="SelectedPreset" Grid.Column="0" Classes="Dark" Margin="0,0,10,0" ItemsSource="{Binding Presets, DataType=vm:PresetsViewModel}" SelectedItem="{Binding SelectedPreset, DataType=vm:PresetsViewModel}" SelectionChanged="SelectedPreset_OnSelectionChanged">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding}" />
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+				<StackPanel Grid.Column="1" Spacing="5" Orientation="Horizontal" VerticalAlignment="Center">
+					<DropDownButton Content="Action..." Theme="{StaticResource DarkDropDownButton}">
+						<DropDownButton.Flyout>
+							<MenuFlyout Placement="BottomEdgeAlignedRight">
+								<MenuItem Header="New..." Command="{Binding NewPresetCommand, DataType=vm:PresetsViewModel}" />
+								<MenuItem Header="Copy..." Command="{Binding CopyPresetCommand, DataType=vm:PresetsViewModel}" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+								<MenuItem Header="Rename..." Command="{Binding RenamePresetCommand, DataType=vm:PresetsViewModel}" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+								<MenuItem Header="Delete..." Command="{Binding DeletePresetCommand, DataType=vm:PresetsViewModel}" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+								<MenuItem Header="-"/>
+								<MenuItem Header="Sort Presets" IsEnabled="{Binding #SelectedPreset.Items, Converter={x:Static ObjectConverters.IsNotNull}}" Command="{Binding OpenSortPresetsDialogCommand,DataType=vm:PresetsViewModel}" />
+							</MenuFlyout>
+						</DropDownButton.Flyout>
+					</DropDownButton>
+				</StackPanel>
+			</Grid>
+			<CheckBox Name="UseExternalAtisGenerator" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
+			<StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !#UseExternalAtisGenerator.IsChecked}">
+				<TextBlock Text="ATIS Template:"/>
+				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" Document="{Binding AtisTemplateTextDocument, DataType=vm:PresetsViewModel}" WordWrap="True" Height="300" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8" TextChanged="AtisTemplate_OnTextChanged">
+					<Interaction.Behaviors>
+						<behaviors:TextEditorUpperCaseBehavior/>
+						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:PresetsViewModel}"/>
+					</Interaction.Behaviors>
+				</editor:TextEditor>
+				<WrapPanel Orientation="Horizontal" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The name of the ATIS station facility (airport name)."
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[FACILITY]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The current ATIS letter code.&#x0a;&#x0a;Aliases:&#x0a;[ATIS_LETTER], [LETTER], [ID]"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[ATIS__CODE]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="Inserts the weather elements in the following order: Surface Wind, Visibility, RVR, Present Weather, Clouds, Temperature, Dew point, Altimeter&#x0a;&#x0a;Aliases:&#x0a;[FULL_WX_STRING]"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[WX]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The observation time of the METAR&#x0a;&#x0a;Aliases:&#x0a;[OBS_TIME]"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[TIME]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The surface wind from the METAR&#x0a;&#x0a;Aliases:&#x0a;[SURFACE_WIND]"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[WIND]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The runway visual range from the METAR"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[RVR]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The prevailing visibility&#x0a;&#x0a;Aliases:&#x0a;[PREVAILING_VISIBILITY]"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[VIS]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The present weather conditions (e.g. snow, rain, hail, etc)&#x0a;&#x0a;Aliases:&#x0a;[PRESENT_WEATHER]"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[PRESENT__WX]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The reported cloud layers and heights"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[CLOUDS]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The reported temperature"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[TEMP]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The reported dew point temperature"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[DEW]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The reported pressure (altimeter)"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[PRESSURE]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The TREND forecast from the METAR"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[TREND]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="Recent weather conditions"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[RECENT__WX]
+					</Button>					
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="	Inserts the text from the free-form Airport Conditions field, followed by any selected static text options"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[ARPT__COND]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="Inserts the text from the free-form NOTAMS field, followed by any selected static text options"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[NOTAMS]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="Inserts the transition level based on the configured ranges in the Transition Level configuration (non-US ATIS only)"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[TL]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="Inserts the closing statement message"
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[CLOSING]
+					</Button>
+				</WrapPanel>
+			</StackPanel>
+			<controls:GroupBox Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}">
+				<StackPanel Orientation="Vertical" Spacing="10">
+					<StackPanel Spacing="5">
+						<TextBlock Text="URL:"/>
+						<TextBox Text="{Binding ExternalGeneratorUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							<Interaction.Behaviors>
+								<behaviors:SelectAllTextOnFocusBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+					</StackPanel>
+					<Grid ColumnDefinitions="*,5,*" RowDefinitions="*,10,*">
+						<StackPanel Spacing="5" Grid.Column="0">
+							<TextBlock Text="Arrival Runways:"/>
+							<TextBox Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxUppercaseBehavior/>
+									<behaviors:SelectAllTextOnFocusBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+						</StackPanel>
+						<StackPanel Spacing="5" Grid.Row="0" Grid.Column="2">
+							<TextBlock Text="Departure Runways:"/>
+							<TextBox Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxUppercaseBehavior/>
+									<behaviors:SelectAllTextOnFocusBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+						</StackPanel>
+						<StackPanel Spacing="5" Grid.Column="0" Grid.Row="2">
+							<TextBlock Text="Approaches In Use:"/>
+							<TextBox Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxUppercaseBehavior/>
+									<behaviors:SelectAllTextOnFocusBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+						</StackPanel>
+						<StackPanel Spacing="5" Grid.Column="2" Grid.Row="2">
+							<TextBlock Text="Remarks:"/>
+							<TextBox Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxUppercaseBehavior/>
+									<behaviors:SelectAllTextOnFocusBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+						</StackPanel>
+					</Grid>
+					<StackPanel Orientation="Vertical" Spacing="5">
+						<TextBlock Text="Sandbox:"/>
+						<Grid ColumnDefinitions="100*,5,12*,5,12*">
+							<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:PresetsViewModel}">
+								<Interaction.Behaviors>
+									<behaviors:TextBoxUppercaseBehavior/>
+								</Interaction.Behaviors>
+							</TextBox>
+							<Button Grid.Column="2" Theme="{StaticResource Dark}" Content="Fetch" Command="{Binding FetchSandboxMetarCommand, DataType=vm:PresetsViewModel}"/>
+							<Button Grid.Column="4" Theme="{StaticResource Dark}" Content="Test" Command="{Binding TestExternalGeneratorCommand, DataType=vm:PresetsViewModel}" IsEnabled="{Binding SandboxMetar, DataType=vm:PresetsViewModel, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+						</Grid>
+						<TextBox Text="{Binding ExternalGeneratorSandboxResponse, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}">
+							<Interaction.Behaviors>
+								<behaviors:TextBoxUppercaseBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+					</StackPanel>
+				</StackPanel>
+			</controls:GroupBox>
+		</StackPanel>
+	</Border>
+</UserControl>

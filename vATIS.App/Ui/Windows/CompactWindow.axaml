@@ -1,0 +1,127 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+        mc:Ignorable="d"
+		x:Name="Window"
+        x:Class="Vatsim.Vatis.Ui.Windows.CompactWindow"
+		Width="315"
+        MinHeight="100"
+        SizeToContent="Height"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+		SystemDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        Topmost="{Binding IsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}"
+		Title="vATIS">
+	<Border CornerRadius="5"
+		BorderBrush="Black"
+		BorderThickness="1"
+		Background="#323232"
+		ClipToBounds="True">
+		<Grid RowDefinitions="45,*" ClipToBounds="True">
+			<Border Background="#1e1e1e" Grid.Row="0" PointerPressed="OnPointerPressed" CornerRadius="5,5,0,0">
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+					<TextBlock VerticalAlignment="Center"
+							   Foreground="#cf480c"
+							   Margin="8,0"
+							   FontSize="24"
+							   FontFamily="{StaticResource Monospace}"
+							   Text="{Binding CurrentTime, DataType=vm:CompactWindowViewModel, FallbackValue=0000/00}" />
+					<ToggleButton Theme="{StaticResource PinButton}" Margin="0,8" Command="{Binding ToggleIsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, DataType=vm:TopMostViewModel, Mode=OneWay, Source={x:Static vm:TopMostViewModel.Instance}}" />
+					<Button Theme="{StaticResource CompactViewButton}" Margin="8,8" Command="{Binding InvokeMainWindowCommand, DataType=vm:CompactWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
+				</StackPanel>
+			</Border>
+			<Panel Grid.Row="1">
+				<ItemsRepeater ItemsSource="{Binding Stations, DataType=vm:CompactWindowViewModel}" Margin="5" IsVisible="{Binding Stations.Count, DataType=vm:CompactWindowViewModel}">
+					<ItemsRepeater.Layout>
+						<StackLayout Orientation="Vertical" Spacing="5"/>
+					</ItemsRepeater.Layout>
+					<ItemsRepeater.ItemTemplate>
+						<DataTemplate>
+							<Grid ColumnDefinitions="65,5,40,5,*,5,65" RowDefinitions="50" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+								<Border Background="#141414"
+										CornerRadius="4"
+										Grid.Column="0">
+									<Grid HorizontalAlignment="Center" VerticalAlignment="Center" RowDefinitions="*,*" ColumnDefinitions="*">
+										<TextBlock Text="{Binding Identifier, DataType=vm:AtisStationViewModel}"
+												   FontFamily="{DynamicResource Monospace}"
+												   FontSize="20"
+												   Foreground="White"
+												   TextAlignment="Center"
+												   Grid.Row="0"/>
+										<TextBlock Text="{Binding AtisTypeLabel, DataType=vm:AtisStationViewModel}"
+												   IsVisible="{Binding !IsCombinedAtis, DataType=vm:AtisStationViewModel, FallbackValue=False}"
+												   FontFamily="{DynamicResource Monospace}"
+												   FontSize="13"
+												   Foreground="Silver"
+												   TextAlignment="Center"
+												   Grid.Row="1"/>
+									</Grid>
+								</Border>
+								<Button Content="{Binding AtisLetter, DataType=vm:AtisStationViewModel}"
+										Grid.Column="2"
+										CornerRadius="3"
+										Background="#141414"
+										Foreground="Aqua"
+										FontFamily="{DynamicResource Monospace}"
+										FontSize="24"
+										BorderBrush="#141414"
+										BorderThickness="1"
+										HorizontalAlignment="Stretch"
+										VerticalAlignment="Stretch"
+										HorizontalContentAlignment="Center"
+										VerticalContentAlignment="Center"
+										Command="{Binding AcknowledgeAtisUpdateCommand, DataType=vm:AtisStationViewModel}">
+									<Button.Styles>
+										<Style Selector="Button:pointerover /template/ ContentPresenter">
+											<Setter Property="Foreground" Value="{TemplateBinding Foreground}"/>
+											<Setter Property="Background" Value="#000000"/>
+											<Setter Property="BorderBrush" Value="#000000"/>
+											<Setter Property="BorderThickness" Value="1"/>
+											<Setter Property="Cursor" Value="Hand"/>
+										</Style>
+									</Button.Styles>
+									<Interaction.Behaviors>
+										<behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}"/>
+									</Interaction.Behaviors>	
+								</Button>
+								<Border Background="#141414"
+										CornerRadius="4"
+										Grid.Column="4">
+									<TextBlock Text="{Binding Wind, DataType=vm:AtisStationViewModel, TargetNullValue=-----}"
+									           FontSize="18"
+									           FontFamily="{DynamicResource Monospace}" 
+									           Foreground="White"
+									           TextAlignment="Center"
+									           TextWrapping="Wrap"
+									           HorizontalAlignment="Center"
+									           VerticalAlignment="Center" />
+								</Border>
+								<Border Background="#141414"
+										CornerRadius="4"
+										Grid.Column="6">
+									<TextBlock Text="{Binding Altimeter, DataType=vm:AtisStationViewModel, TargetNullValue=-----}"
+											   FontFamily="{DynamicResource Monospace}"
+											   FontSize="18"
+											   TextWrapping="Wrap"
+											   Foreground="White"
+											   HorizontalAlignment="Center"
+											   VerticalAlignment="Center" />
+								</Border>
+							</Grid>
+						</DataTemplate>
+					</ItemsRepeater.ItemTemplate>
+				</ItemsRepeater>
+				<TextBlock VerticalAlignment="Center"
+						   HorizontalAlignment="Center"
+						   Foreground="White"
+						   FontSize="24"
+						   IsVisible="{Binding !Stations.Count, DataType=vm:CompactWindowViewModel, FallbackValue=False}"
+						   Text="NOT CONNECTED"/>
+			</Panel>
+		</Grid>
+	</Border>
+</Window>

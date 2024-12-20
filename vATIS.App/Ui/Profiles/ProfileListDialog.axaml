@@ -1,0 +1,86 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
+		xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+		mc:Ignorable="d"
+        x:Class="Vatsim.Vatis.Ui.Profiles.ProfileListDialog"
+        Title="vATIS Profiles" Height="375" Width="300"
+		WindowStartupLocation="CenterScreen" SystemDecorations="None"
+		Icon="/Assets/MainIcon.ico"
+		CanResize="False" 
+        Background="Transparent" 
+        TransparencyLevelHint="Transparent">
+	<Window.Resources>
+		<converters:BoolToBrushColorConverter x:Key="BoolToBrushColorConverter" TrueColor="Black" FalseColor="#646464"/>
+	</Window.Resources>
+	<Border Background="#323232" BorderBrush="{Binding ShowOverlay, DataType=vm:ProfileListViewModel, Converter={StaticResource BoolToBrushColorConverter}, FallbackValue=#646464}" BorderThickness="1" CornerRadius="5" ClipToBounds="True">
+		<Grid ClipToBounds="True">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="30"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="30"/>
+			</Grid.RowDefinitions>
+			<Grid x:Name="Overlay" Grid.RowSpan="3" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:ProfileListViewModel, FallbackValue=False}">
+				<Border Background="#000000" Opacity="0.80"/>
+			</Grid>
+			<DockPanel Grid.Row="0" VerticalAlignment="Center">
+				<Border BorderBrush="#646464" BorderThickness="0,0,0,1">
+					<TextBlock Foreground="White" Text="vATIS Profiles" Margin="5,3" />
+				</Border>
+			</DockPanel>
+			<DockPanel Grid.Row="1" Margin="10,5">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="95"/>
+					</Grid.ColumnDefinitions>
+					<Border BorderBrush="#646464" BorderThickness="1" Margin="1,3,5,3" CornerRadius="3">
+						<ListBox Name="ProfileList" Background="#1E1E1E" SelectionMode="Single" Foreground="White" Padding="2" CornerRadius="3" ItemsSource="{Binding Profiles, DataType=vm:ProfileListViewModel}" SelectedItem="{Binding SelectedProfile, DataType=vm:ProfileListViewModel}">
+							<Interaction.Behaviors>
+								<RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}" SourceInteractive="ProfileList">
+									<InvokeCommandAction IsEnabled="{Binding SelectedProfile, DataType=vm:ProfileListViewModel, Converter={x:Static ObjectConverters.IsNotNull}}" CommandParameter="{Binding SelectedProfile, DataType=vm:ProfileListViewModel}" Command="{Binding StartClientSessionCommand, DataType=vm:ProfileListViewModel}"/>
+								</RoutedEventTriggerBehavior>
+							</Interaction.Behaviors>
+							<ListBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Name, DataType=vm:ProfileViewModel}" />
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+							<ListBox.Styles>
+								<Style Selector="ListBoxItem">
+									<Setter Property="Padding" Value="5,3"/>
+									<Setter Property="VerticalAlignment" Value="Center"/>
+								</Style>
+								<Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+									<Setter Property="Background" Value="#646464" />
+									<Setter Property="Foreground" Value="White" />
+								</Style>
+								<Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+									<Setter Property="Background" Value="#0078D7" />
+									<Setter Property="Foreground" Value="White" />
+								</Style>
+							</ListBox.Styles>
+						</ListBox>
+					</Border>
+					<StackPanel Grid.Column="1" Orientation="Vertical">
+						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding ShowNewProfileDialogCommand, DataType=vm:ProfileListViewModel}">New</Button>
+						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding ImportProfileCommand, DataType=vm:ProfileListViewModel}">Import</Button>
+						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding RenameProfileCommand, DataType=vm:ProfileListViewModel}" CommandParameter="{Binding #ProfileList.SelectedItem}">Rename</Button>
+						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding ExportProfileCommand, DataType=vm:ProfileListViewModel}">Export</Button>
+						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding DeleteProfileCommand, DataType=vm:ProfileListViewModel}" CommandParameter="{Binding #ProfileList.SelectedItem}">Delete</Button>
+					</StackPanel>
+					<StackPanel Grid.Column="1" VerticalAlignment="Bottom">
+						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding ExitCommand, DataType=vm:ProfileListViewModel}">Exit</Button>
+					</StackPanel>
+				</Grid>
+			</DockPanel>
+			<DockPanel Grid.Row="2">
+				<Border BorderBrush="#646464" BorderThickness="0,1,0,0">
+					<TextBlock Foreground="White" Text="{Binding ClientVersion, DataType=vm:ProfileListViewModel}" Margin="5,3" TextAlignment="Center" VerticalAlignment="Center" />
+				</Border>
+			</DockPanel>
+		</Grid>
+	</Border>
+</Window>

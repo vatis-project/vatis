@@ -1,0 +1,15 @@
+﻿<HeaderedContentControl x:Class="Vatsim.Vatis.Ui.Controls.GroupBox"
+					   xmlns="https://github.com/avaloniaui"
+					   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<HeaderedContentControl.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<!--  default  -->
+				<ResourceInclude Source="/Ui/Controls/GroupBox/GroupBoxBasic.axaml" />
+				<!--  applied when GroupBox Theme="{StaticResource GroupBoxClassic}"  -->
+				<ResourceInclude Source="/Ui/Controls/GroupBox/GroupBoxClassic.axaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</HeaderedContentControl.Resources>
+</HeaderedContentControl>

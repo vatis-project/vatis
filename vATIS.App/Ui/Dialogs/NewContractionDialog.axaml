@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Vatsim.Vatis.Ui.Dialogs.NewContractionDialog"
+        Title="NewContractionDialog"
+        x:Name="Window"
+        Width="375" Height="315"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="None"
+        SizeToContent="Height"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+	<Window.Styles>
+		<Style Selector="DataValidationErrors">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<DockPanel LastChildFill="True">
+						<ContentControl DockPanel.Dock="Bottom"
+										ContentTemplate="{TemplateBinding ErrorTemplate}"
+										DataContext="{TemplateBinding Owner}"
+										Content="{Binding (DataValidationErrors.Errors)}"
+										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
+						<ContentPresenter Name="PART_ContentPresenter"
+										  Background="{TemplateBinding Background}"
+										  BorderBrush="{TemplateBinding BorderBrush}"
+										  BorderThickness="{TemplateBinding BorderThickness}"
+										  CornerRadius="{TemplateBinding CornerRadius}"
+										  ContentTemplate="{TemplateBinding ContentTemplate}"
+										  Content="{TemplateBinding Content}"
+										  Padding="{TemplateBinding Padding}"/>
+					</DockPanel>
+				</ControlTemplate>
+			</Setter>
+			<Setter Property="ErrorTemplate">
+				<DataTemplate x:DataType="{x:Type x:Object}">
+					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+						<ItemsControl.Styles>
+							<Style Selector="TextBlock">
+								<Setter Property="TextWrapping" Value="Wrap" />
+							</Style>
+						</ItemsControl.Styles>
+					</ItemsControl>
+				</DataTemplate>
+			</Setter>
+		</Style>
+	</Window.Styles>
+	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+		<StackPanel>
+			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent">
+				<TextBlock Text="New Contraction" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
+			</Border>
+			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
+				<StackPanel Spacing="5">
+					<TextBlock Text="Variable:"/>
+					<TextBox Theme="{StaticResource DarkTextBox}" Name="Variable" Text="{Binding Variable, DataType=vm:NewContractionDialogViewModel}" LostFocus="Variable_OnLostFocus">
+						<Interaction.Behaviors>
+							<behaviors:FocusOnAttachedToVisualTree/>
+							<behaviors:TextBoxUppercaseBehavior/>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="Text:"/>
+					<TextBox Theme="{StaticResource DarkTextBox}" Name="String" Text="{Binding Text, DataType=vm:NewContractionDialogViewModel}">
+						<Interaction.Behaviors>
+							<behaviors:TextBoxUppercaseBehavior/>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="Voice:"/>
+					<TextBox Theme="{StaticResource DarkTextBox}" Name="Spoken" Text="{Binding Spoken, DataType=vm:NewContractionDialogViewModel}">
+						<Interaction.Behaviors>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+							<behaviors:TextBoxUppercaseBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Spacing="10">
+					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding OkButtonCommand, DataType=vm:NewContractionDialogViewModel}" CommandParameter="{Binding ElementName=Window}" IsDefault="True">OK</Button>
+					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding CancelButtonCommand, DataType=vm:NewContractionDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>
+				</StackPanel>
+			</StackPanel>
+		</StackPanel>
+	</Border>
+</Window>

@@ -1,0 +1,72 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:controls="using:Vatsim.Vatis.Ui.Controls"
+					xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+                    xmlns:converter="using:Vatsim.Vatis.Ui.Converters"
+					xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels">
+	<converter:AtisLetterVisibleConverter x:Key="AtisLetterVisibleConverter"/>
+	<ControlTheme x:Key="{x:Type controls:CustomTabItem}" TargetType="controls:CustomTabItem">
+		<Setter Property="Foreground" Value="#848484"/>
+		<Setter Property="Background" Value="#323232"/>
+		<Setter Property="BorderBrush" Value="#646464"/>
+		<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+		<Setter Property="VerticalContentAlignment" Value="Stretch"/>
+		<Setter Property="Cursor" Value="Hand" />
+		<Setter Property="FontSize" Value="14" />
+		<Setter Property="FontFamily" Value="{StaticResource Monospace}"/>
+		<Setter Property="FocusAdorner" Value="{x:Null}"/>
+		<!--Prevent double left/right border-->
+		<Setter Property="Margin" Value="-1,0,0,0"/>
+
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border Name="PART_LayoutRoot"
+										Background="{TemplateBinding Background}"
+										BorderBrush="{TemplateBinding BorderBrush}"
+										BorderThickness="1"
+										Padding="5,3"
+										CornerRadius="0">
+					<StackPanel Orientation="Horizontal">		  
+						<TextBlock Name="PART_AtisIdentifier"
+								   Foreground="{TemplateBinding Foreground}"
+								   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+								   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+								   Text="{Binding TabText, DataType=vm:AtisStationViewModel}"
+								   FontFamily="{TemplateBinding FontFamily}"
+								   FontSize="{TemplateBinding FontSize}"
+								   FontWeight="{TemplateBinding FontWeight}" />
+						<TextBlock Name="PART_AtisLetter"
+								   Foreground="Aqua"
+								   FontFamily="{TemplateBinding FontFamily}"
+								   FontSize="{TemplateBinding FontSize}"
+								   FontWeight="{TemplateBinding FontWeight}"
+								   Text="{Binding AtisLetter, DataType=vm:AtisStationViewModel}"
+								   HorizontalAlignment="Left"
+								   IsVisible="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterVisibleConverter}}"
+								   Margin="5 0 0 0">
+							<Interaction.Behaviors>
+								<behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}" />
+							</Interaction.Behaviors>
+						</TextBlock>
+					</StackPanel>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+
+		<!--Selected State-->
+		<Style Selector="^:selected /template/ TextBlock#PART_AtisIdentifier">
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="Padding" Value="0,0,0,1"/>
+		</Style>
+
+		<!-- Remove bottom border of selected tab -->
+		<Style Selector="^:selected /template/ Border#PART_LayoutRoot">
+			<Setter Property="BorderThickness" Value="1,1,1,0" />
+		</Style>
+
+		<!-- Add positive left border to first tab -->
+		<Style Selector="^:nth-child(1) /template/ Border#PART_LayoutRoot">
+			<Setter Property="Margin" Value="1,0,0,0" />
+		</Style>
+	</ControlTheme>
+</ResourceDictionary>

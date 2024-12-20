@@ -1,0 +1,98 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
+		xmlns:profiles="using:Vatsim.Vatis.Profiles"
+		xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+		xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+		xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
+		mc:Ignorable="d"
+        x:Class="Vatsim.Vatis.Ui.Dialogs.NewAtisStationDialog"
+        Title="NewAtisStationDialog"
+		x:Name="Window"
+		Width="375" Height="315"
+		WindowStartupLocation="CenterOwner"
+		CanResize="False"
+		ShowInTaskbar="False"
+		SystemDecorations="None"
+		SizeToContent="Height"
+        TransparencyLevelHint="Transparent"
+		Background="Transparent">
+	<Window.Resources>
+		<converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+	</Window.Resources>
+	<Window.Styles>
+		<Style Selector="DataValidationErrors">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<DockPanel LastChildFill="True">
+						<ContentControl DockPanel.Dock="Bottom"
+										ContentTemplate="{TemplateBinding ErrorTemplate}"
+										DataContext="{TemplateBinding Owner}"
+										Content="{Binding (DataValidationErrors.Errors)}"
+										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
+						<ContentPresenter Name="PART_ContentPresenter"
+										  Background="{TemplateBinding Background}"
+										  BorderBrush="{TemplateBinding BorderBrush}"
+										  BorderThickness="{TemplateBinding BorderThickness}"
+										  CornerRadius="{TemplateBinding CornerRadius}"
+										  ContentTemplate="{TemplateBinding ContentTemplate}"
+										  Content="{TemplateBinding Content}"
+										  Padding="{TemplateBinding Padding}"/>
+					</DockPanel>
+				</ControlTemplate>
+			</Setter>
+			<Setter Property="ErrorTemplate">
+				<DataTemplate x:DataType="{x:Type x:Object}">
+					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+						<ItemsControl.Styles>
+							<Style Selector="TextBlock">
+								<Setter Property="TextWrapping" Value="Wrap" />
+							</Style>
+						</ItemsControl.Styles>
+					</ItemsControl>
+				</DataTemplate>
+			</Setter>
+		</Style>
+	</Window.Styles>
+	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+		<StackPanel>
+			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent">
+				<TextBlock Text="New ATIS Station" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
+			</Border>
+			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
+				<StackPanel Spacing="5">
+					<TextBlock Text="Airport Identifier (e.g. KLAX):"/>
+					<TextBox MaxLength="4" Theme="{StaticResource DarkTextBox}" Name="AirportIdentifier" Text="{Binding AirportIdentifier, DataType=vm:NewAtisStationDialogViewModel}">
+						<Interaction.Behaviors>
+							<behaviors:FocusOnAttachedToVisualTree/>
+							<behaviors:TextBoxUppercaseBehavior/>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="Name (e.g. Los Angeles):"/>
+					<TextBox Theme="{StaticResource DarkTextBox}" Name="StationName" Text="{Binding StationName, DataType=vm:NewAtisStationDialogViewModel}">
+						<Interaction.Behaviors>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="ATIS Type:"/>
+					<StackPanel Orientation="Horizontal" Spacing="15">
+						<RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType" Content="Combined" IsChecked="{Binding AtisType, DataType=vm:NewAtisStationDialogViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Combined}}" />
+						<RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType" Content="Departure" IsChecked="{Binding AtisType, DataType=vm:NewAtisStationDialogViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Departure}}" />
+						<RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType" Content="Arrival" IsChecked="{Binding AtisType, DataType=vm:NewAtisStationDialogViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Arrival}}" />
+					</StackPanel>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Spacing="10">
+					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding OkButtonCommand, DataType=vm:NewAtisStationDialogViewModel}" CommandParameter="{Binding ElementName=Window}" IsDefault="True">OK</Button>
+					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding CancelButtonCommand, DataType=vm:NewAtisStationDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>
+				</StackPanel>
+			</StackPanel>
+		</StackPanel>
+	</Border>
+</Window>
