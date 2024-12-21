@@ -401,3 +401,4 @@ FodyWeavers.xsd
 /NativeAudio/build
 /vATIS.App/Voice/Audio/Native
 /vATIS.App/.idea
+.DS_Store
