@@ -75,6 +75,13 @@ public class AtisStationViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref mAtisLetter, value);
     }
 
+    private bool mIsAtisLetterInputMode;
+    public bool IsAtisLetterInputMode
+    {
+        get => mIsAtisLetterInputMode;
+        set => this.RaiseAndSetIfChanged(ref mIsAtisLetterInputMode, value);
+    }
+
     private string? mMetar;
     public string? Metar
     {

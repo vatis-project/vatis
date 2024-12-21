@@ -52,7 +52,7 @@
 				</controls:CustomTabControl.ItemContainerTheme>
 				<TabControl.ContentTemplate>
 					<DataTemplate DataType="{x:Type vm:AtisStationViewModel}">
-						<components:AtisStationView DataContext="{Binding}" />
+						<components:AtisStationView ViewModel="{Binding}" />
 					</DataTemplate>
 				</TabControl.ContentTemplate>
 			</controls:CustomTabControl>

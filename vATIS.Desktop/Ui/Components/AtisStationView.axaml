@@ -17,12 +17,17 @@
 	<Border Background="#323232" Padding="10">
 		<Grid ColumnDefinitions="85,*,150" RowDefinitions="*,130,Auto">
 			<!--Atis Letter-->
-			<Button Name="AtisLetter" CornerRadius="3" Classes="AtisLetter" Foreground="White" Grid.Column="0" Grid.Row="0" Content="{Binding AtisLetter, DataType=vm:AtisStationViewModel, FallbackValue=A}" IsEnabled="True" FontFamily="{DynamicResource Monospace}">
+			<Button Name="AtisLetter" IsVisible="{Binding !IsAtisLetterInputMode, DataType=vm:AtisStationViewModel}" CornerRadius="3" Classes="AtisLetter" Foreground="White" Grid.Column="0" Grid.Row="0" Content="{Binding AtisLetter, DataType=vm:AtisStationViewModel, FallbackValue=A}" IsEnabled="True" FontFamily="{DynamicResource Monospace}">
 				<Interaction.Behaviors>
 					<behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, FallbackValue=False}"/>
-					<behaviors:PointerPressedEventTrigger LeftClickCommand="{Binding AcknowledgeOrIncrementAtisLetterCommand, DataType=vm:AtisStationViewModel}" RightClickCommand="{Binding DecrementAtisLetterCommand, DataType=vm:AtisStationViewModel}" />
 				</Interaction.Behaviors>
 			</Button>
+			<TextBox Name="TypeAtisLetter" IsVisible="{Binding IsAtisLetterInputMode, DataType=vm:AtisStationViewModel}" Grid.Column="0" Grid.Row="0" Theme="{StaticResource DarkTextBox}" Height="85" FontSize="55" FontWeight="Bold" FontFamily="{StaticResource Monospace}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MaxLength="1" AcceptsReturn="False" TextWrapping="NoWrap">
+				<Interaction.Behaviors>
+					<behaviors:TextBoxAlphaOnlyBehavior/>
+					<behaviors:TextBoxUppercaseBehavior/>
+				</Interaction.Behaviors>
+			</TextBox>
 			<!--Metar/Error-->
 			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10" IsVisible="{Binding ErrorMessage, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNullOrEmpty}}">
 				<TextBlock FontFamily="{DynamicResource Monospace}" TextWrapping="Wrap" Foreground="White" FontSize="16" Text="{Binding Metar, DataType=vm:AtisStationViewModel}"/>
