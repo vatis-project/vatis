@@ -57,10 +57,10 @@ if(APPLE)
     # Copy the built dylib to the Native folder, creating a subfolder for macOS
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/../../Desktop/Voice/Audio/Native/macos"
+            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/macos"
         COMMAND ${CMAKE_COMMAND} -E copy
             "$<TARGET_FILE:${PROJECT_NAME}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/../../Desktop/Voice/Audio/Native/macos/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/macos/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
     )
 endif()
 
@@ -73,10 +73,10 @@ if(WIN32)
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/../../Desktop/Voice/Audio/Native/win"
+            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/win"
         COMMAND ${CMAKE_COMMAND} -E copy
             "$<TARGET_FILE:${PROJECT_NAME}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/../../Desktop/Voice/Audio/Native/win/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/win/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
     )
 endif()
 
@@ -90,9 +90,9 @@ if(UNIX AND NOT APPLE)
     
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/../../Desktop/Voice/Audio/Native/lin"
+            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/lin"
         COMMAND ${CMAKE_COMMAND} -E copy
             "$<TARGET_FILE:${PROJECT_NAME}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/../../Desktop/Voice/Audio/Native/lin/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/lin/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
     )
 endif()

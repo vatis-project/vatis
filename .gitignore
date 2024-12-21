@@ -399,6 +399,5 @@ FodyWeavers.xsd
 /.idea
 /Vatsim.Network/ClientAuth.cs
 /NativeAudio/build
-/vATIS.App/Voice/Audio/Native
-/vATIS.App/.idea
+/vATIS.Desktop/Voice/Audio/Native
 .DS_Store
