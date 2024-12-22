@@ -20,6 +20,7 @@ using Vatsim.Vatis.Events;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
+using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -33,6 +34,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 public class AtisStationViewModel : ReactiveViewModelBase
 {
     private readonly IAppConfig mAppConfig;
+    private readonly IProfileRepository mProfileRepository;
     private readonly IAtisBuilder mAtisBuilder;
     private readonly AtisStation mAtisStation;
     private readonly IWindowFactory mWindowFactory;
@@ -220,7 +222,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
         IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
-        INavDataRepository navDataRepository, IAtisHubConnection atisHubConnection, ISessionManager sessionManager)
+        INavDataRepository navDataRepository, IAtisHubConnection atisHubConnection, ISessionManager sessionManager,
+        IProfileRepository profileRepository)
     {
         Id = station.Id;
         Identifier = station.Identifier;
@@ -230,6 +233,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mWindowFactory = windowFactory;
         mAtisHubConnection = atisHubConnection;
         mSessionManager = sessionManager;
+        mProfileRepository = profileRepository;
         mCancellationToken = new CancellationTokenSource();
         mAtisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
@@ -415,7 +419,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     item.Ordinal = ++idx;
                     mAtisStation.NotamDefinitions.Add(item);
                 }
-                mAppConfig.SaveConfig();
+                if (mSessionManager.CurrentProfile != null) 
+                    mProfileRepository.Save(mSessionManager.CurrentProfile);
             };
         }
 
@@ -459,7 +464,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     item.Ordinal = ++idx;
                     mAtisStation.AirportConditionDefinitions.Add(item);
                 }
-                mAppConfig.SaveConfig();
+                if (mSessionManager.CurrentProfile != null) 
+                    mProfileRepository.Save(mSessionManager.CurrentProfile);
             };
         }
 
