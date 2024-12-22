@@ -13,7 +13,6 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -176,44 +175,51 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase
         if (Owner == null)
             return;
 
-        if (Source.RowSelection?.SelectedItem is { } definition)
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
-            if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
+            if (lifetime.MainWindow == null)
+                return;
+            
+            if (Source.RowSelection?.SelectedItem is { } definition)
             {
-                vm.Title = "Edit NOTAM";
-                vm.DefinitionText = definition.Text.ToUpperInvariant();
-                vm.ContractionCompletionData = ContractionCompletionData;
-                vm.DialogResultChanged += (_, result) =>
+                var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
+                dlg.Topmost = lifetime.MainWindow.Topmost;
+                if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
                 {
-                    if (result == DialogResult.Ok)
+                    vm.Title = "Edit NOTAM";
+                    vm.DefinitionText = definition.Text.ToUpperInvariant();
+                    vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.DialogResultChanged += (_, result) =>
                     {
-                        vm.ClearAllErrors();
-        
-                        if (Definitions.Any(x => x != definition && string.Equals(x.Text,
-                                vm.TextDocument?.Text, StringComparison.InvariantCultureIgnoreCase)))
+                        if (result == DialogResult.Ok)
                         {
-                            vm.RaiseError("DataValidation", "NOTAM already exists.");
-                        }
+                            vm.ClearAllErrors();
         
-                        if (string.IsNullOrWhiteSpace(vm.TextDocument?.Text))
-                        {
-                            vm.RaiseError("DataValidation", "Text is required.");
-                        }
+                            if (Definitions.Any(x => x != definition && string.Equals(x.Text,
+                                    vm.TextDocument?.Text, StringComparison.InvariantCultureIgnoreCase)))
+                            {
+                                vm.RaiseError("DataValidation", "NOTAM already exists.");
+                            }
+        
+                            if (string.IsNullOrWhiteSpace(vm.TextDocument?.Text))
+                            {
+                                vm.RaiseError("DataValidation", "Text is required.");
+                            }
 
-                        if (vm.HasErrors)
-                            return;
+                            if (vm.HasErrors)
+                                return;
 
-                        var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault();
+                            var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault();
                         
-                        Definitions.Remove(definition);
-                        Definitions.Insert(currentIndex ?? 0,
-                            new StaticDefinition(vm.TextDocument?.Text.ToUpperInvariant() ?? string.Empty, currentIndex ?? 0,
-                                definition.Enabled));
-                        Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                    }
-                };
-                await dlg.ShowDialog(Owner);
+                            Definitions.Remove(definition);
+                            Definitions.Insert(currentIndex ?? 0,
+                                new StaticDefinition(vm.TextDocument?.Text.ToUpperInvariant() ?? string.Empty, currentIndex ?? 0,
+                                    definition.Enabled));
+                            Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
+                        }
+                    };
+                    await dlg.ShowDialog(Owner);
+                }
             }
         }
     }
@@ -223,38 +229,45 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase
         if (Owner == null)
             return;
 
-        var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
-        if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            vm.Title = "New NOTAM";
-            vm.ContractionCompletionData = ContractionCompletionData;
-            vm.DialogResultChanged += (_, result) =>
+            if (lifetime.MainWindow == null)
+                return;
+            
+            var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
+            dlg.Topmost = lifetime.MainWindow.Topmost;
+            if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
             {
-                if (result == DialogResult.Ok)
+                vm.Title = "New NOTAM";
+                vm.ContractionCompletionData = ContractionCompletionData;
+                vm.DialogResultChanged += (_, result) =>
                 {
-                    vm.ClearAllErrors();
-
-                    if (Definitions.Any(x =>
-                            string.Equals(x.Text, vm.DefinitionText, StringComparison.InvariantCultureIgnoreCase)))
+                    if (result == DialogResult.Ok)
                     {
-                        vm.RaiseError("DataValidation", "This NOTAM already exists.");
-                    }
+                        vm.ClearAllErrors();
 
-                    if (string.IsNullOrWhiteSpace(vm.DefinitionText))
-                    {
-                        vm.RaiseError("DataValidation", "Text is required.");
-                    }
+                        if (Definitions.Any(x =>
+                                string.Equals(x.Text, vm.DefinitionText, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            vm.RaiseError("DataValidation", "This NOTAM already exists.");
+                        }
 
-                    if (vm.HasErrors)
-                        return;
+                        if (string.IsNullOrWhiteSpace(vm.DefinitionText))
+                        {
+                            vm.RaiseError("DataValidation", "Text is required.");
+                        }
+
+                        if (vm.HasErrors)
+                            return;
                     
-                    Definitions.Add(new StaticDefinition(vm.DefinitionText?.Trim().ToUpperInvariant() ?? string.Empty,
-                        Definitions.Count + 1));
-                    Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                    HasDefinitions = Definitions.Count != 0;
-                }
-            };
-            await dlg.ShowDialog(Owner);
+                        Definitions.Add(new StaticDefinition(vm.DefinitionText?.Trim().ToUpperInvariant() ?? string.Empty,
+                            Definitions.Count + 1));
+                        Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
+                        HasDefinitions = Definitions.Count != 0;
+                    }
+                };
+                await dlg.ShowDialog(Owner);
+            }
         }
     }
 
