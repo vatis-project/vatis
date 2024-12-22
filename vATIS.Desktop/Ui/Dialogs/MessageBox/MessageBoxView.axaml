@@ -15,7 +15,6 @@
 		MaxHeight="500"
 		SizeToContent="WidthAndHeight"
 		ShowInTaskbar="False"
-		WindowStartupLocation="CenterOwner"
         TransparencyLevelHint="Transparent"
         Title="{Binding Caption, DataType=vm:MessageBoxViewModel}">
 	<Window.Resources>
