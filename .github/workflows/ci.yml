@@ -7,9 +7,6 @@ on:
         description: 'App version (e.g. 1.0.0-beta.1)'
         type: string
         required: true
-  push:
-    tags:
-      - "v*"
 
 jobs:
   windows:
