@@ -14,13 +14,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         InitializeComponent();
 
         ViewModel = viewModel;
-
+        ViewModel.Owner = this;
+        
         Opened += OnOpened;
         Closed += OnClosed;
     }
 
     private void OnOpened(object? sender, EventArgs e)
     {
+        ViewModel?.PopulateAtisStations();
         ViewModel?.ConnectToHub();
     }
     
