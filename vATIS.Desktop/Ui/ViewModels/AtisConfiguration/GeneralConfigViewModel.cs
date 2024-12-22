@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using ReactiveUI;
@@ -238,7 +239,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         ClearAllErrors();
         ShowDuplicateAtisTypeError = false;
 
-        if (decimal.TryParse(Frequency, out var frequency))
+        if (decimal.TryParse(Frequency, CultureInfo.InvariantCulture, out var frequency))
         {
             frequency = frequency * 1000 * 1000;
             if (frequency is < 118000000 or > 137000000)
