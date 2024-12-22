@@ -146,12 +146,12 @@ public class NetworkConnection
 
     private void OnRawDataSent(object? sender, RawDataEventArgs e)
     {
-        Log.Information(">> " + e.Data.Trim('\n').Trim('\r'));
+        Log.Debug(">> " + e.Data.Trim('\n').Trim('\r'));
     }
 
     private void OnRawDataReceived(object? sender, RawDataEventArgs e)
     {
-        Log.Information("<< " + e.Data.Trim('\n').Trim('\r'));
+        Log.Debug("<< " + e.Data.Trim('\n').Trim('\r'));
     }
 
     private void OnNetworkConnected(object? sender, NetworkEventArgs e)

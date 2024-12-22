@@ -61,6 +61,7 @@
 		<PackageReference Include="Serilog" Version="4.2.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
 		<PackageReference Include="Jab" Version="0.10.2" PrivateAssets="all" />
+		<PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0" />
 		<PackageReference Include="Slugify.Core" Version="4.0.1" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
 		<PackageReference Include="Velopack" Version="0.0.942" />

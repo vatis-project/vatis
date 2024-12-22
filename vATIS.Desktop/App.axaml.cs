@@ -16,6 +16,7 @@ using Avalonia.Threading;
 using ReactiveUI;
 using Sentry;
 using Serilog;
+using Serilog.Events;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
@@ -108,9 +109,11 @@ public class App : Application
                 }
 
                 PathProvider.SetAppDataPath(mAppDataPath);
+                
+                var arguments = ParseArguments(desktop.Args ?? []);
 
                 mServiceProvider = new ServiceProvider();
-                SetupLogging();
+                SetupLogging(arguments.ContainsKey("--debug"));
 
                 var informationalVersion = Assembly.GetEntryAssembly()
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
@@ -132,8 +135,6 @@ public class App : Application
                 desktop.MainWindow = mStartupWindow;
                 mStartupWindow.Show();
                 mStartupWindow.Activate();
-
-                var arguments = ParseArguments(desktop.Args ?? []);
 
                 _singleInstanceMutex = new Mutex(true, SINGLE_INSTANCE_ID, out var createdNew);
                 if (!createdNew)
@@ -267,10 +268,15 @@ public class App : Application
         ShowError(ex.Exception.Message);
     }
 
-    private static void SetupLogging()
+    private static void SetupLogging(bool debugMode)
     {
         var logPath = Path.Combine(PathProvider.LogsFolderPath, "Log.txt");
-        var config = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.File(logPath);
+        var config = new LoggerConfiguration().WriteTo.File(logPath, retainedFileCountLimit: 7,
+            rollingInterval: RollingInterval.Day);
+        if (debugMode)
+        {
+            config = config.WriteTo.Trace().MinimumLevel.Debug();
+        }
         Log.Logger = config.CreateLogger();
     }
 
