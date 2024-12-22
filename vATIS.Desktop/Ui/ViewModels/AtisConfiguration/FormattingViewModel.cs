@@ -1110,6 +1110,9 @@ public class FormattingViewModel : ReactiveViewModelBase
             ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(item.Key, item.Value));
         }
         
+        TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
+        TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
+        
         TransitionLevels = [];
         foreach (var item in station.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low))
         {
@@ -1502,6 +1505,12 @@ public class FormattingViewModel : ReactiveViewModelBase
         if (SelectedStation.AtisFormat.ClosingStatement.AutoIncludeClosingStatement != ClosingStatementAutoIncludeClosingStatement)
             SelectedStation.AtisFormat.ClosingStatement.AutoIncludeClosingStatement = ClosingStatementAutoIncludeClosingStatement;
 
+        if(SelectedStation.AtisFormat.TransitionLevel.Template.Text != TransitionLevelTextTemplate)
+            SelectedStation.AtisFormat.TransitionLevel.Template.Text = TransitionLevelTextTemplate;
+        
+        if(SelectedStation.AtisFormat.TransitionLevel.Template.Voice != TransitionLevelVoiceTemplate)
+            SelectedStation.AtisFormat.TransitionLevel.Template.Voice = TransitionLevelVoiceTemplate;
+        
         if (HasErrors)
             return false;
         
