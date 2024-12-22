@@ -395,11 +395,11 @@
 							<StackPanel Orientation="Horizontal" Spacing="10">
 								<StackPanel Orientation="Horizontal" Spacing="10">
 									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+									<TextBox Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
 								</StackPanel>
 								<StackPanel Orientation="Horizontal" Spacing="10">
 									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+									<TextBox Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
 								</StackPanel>
 							</StackPanel>
 							<controls:GroupBox Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
