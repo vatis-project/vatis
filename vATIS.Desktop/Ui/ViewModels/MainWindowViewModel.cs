@@ -191,18 +191,6 @@ public class MainWindowViewModel : ReactiveViewModelBase
         return Task.WhenAll(tasks);
     }
 
-    private async Task HandleGetAllAtisReceived(WebSocketSession session)
-    {
-        var tasks = new List<Task>();
-
-        foreach (var station in AtisStations)
-        {
-            tasks.Add(station.PublishAtisToWebsocket(session));
-        }
-
-        return Task.WhenAll(tasks);
-    }
-
     public async Task PopulateAtisStations()
     {
         if (mSessionManager.CurrentProfile?.Stations == null)
