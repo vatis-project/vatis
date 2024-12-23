@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using SuperSocket.WebSocket;
 using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using System.Collections.Concurrent;
 using SuperSocket.Server.Host;
-using SuperSocket.Server.Abstractions.Session;
 using System.Text.Json.Nodes;
 using SuperSocket.Server.Abstractions;
 
