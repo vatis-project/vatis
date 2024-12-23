@@ -787,6 +787,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     mNetworkConnection?.SendSubscriberNotification(AtisLetter);
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
                     await PublishAtisToHub();
+                    await PublishAtisToWebsocket();
 
                     if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
                     {
@@ -899,6 +900,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     mCancellationToken.Token);
 
                 await PublishAtisToHub();
+                await PublishAtisToWebsocket();
                 await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
 
                 if (mAtisStation.AtisVoice.UseTextToSpeech)
@@ -974,6 +976,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter,
                         mCancellationToken.Token);
                     await PublishAtisToHub();
+                    await PublishAtisToWebsocket();
 
                     if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
                     {
