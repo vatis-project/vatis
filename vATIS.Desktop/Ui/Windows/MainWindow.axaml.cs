@@ -22,11 +22,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnOpened(object? sender, EventArgs e)
     {
         ViewModel?.ConnectToHub();
+        ViewModel?.StartWebsocket();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.DisconnectFromHub();
+        ViewModel?.StopWebsocket();
     }
 
     public MainWindow()

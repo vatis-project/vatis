@@ -11,18 +11,17 @@ using System.Collections.Concurrent;
 using SuperSocket.Server.Host;
 using SuperSocket.Server.Abstractions.Session;
 using System.Text.Json.Nodes;
+using SuperSocket.Server.Abstractions;
 
 namespace Vatsim.Vatis.Ui.Services;
 
 public class WebsocketService : IWebsocketService
 {
-	private readonly IHost server;
+	private readonly IServer server;
 	private readonly ConcurrentDictionary<string, WebSocketSession> sessions = new();
 
 	public event Action<WebSocketSession, string>? GetAtisReceived;
 	public event Action? GetAllAtisReceived;
-	public event Action? Started;
-	public event Action? Stopped;
 
 
 	public WebsocketService()
@@ -72,7 +71,7 @@ public class WebsocketService : IWebsocketService
 						{ "serverOptions:listeners:0:port", "5092" }
 				});
 		})
-		.Build();
+		.BuildAsServer();
 	}
 
 	private void HandleRequest(WebSocketSession session, WebSocketPackage message)
@@ -123,48 +122,19 @@ public class WebsocketService : IWebsocketService
 		}
 	}
 
-	public event Action? OnStarted
-	{
-		add
-		{
-			Started += value;
-		}
-
-		remove
-		{
-			Started -= value;
-		}
-	}
-
-	public event Action? OnStopped
-	{
-		add
-		{
-			Stopped += value;
-		}
-
-		remove
-		{
-			Stopped -= value;
-		}
-	}
-
-	public void Start()
-	{
-		server.Start();
-		Started?.Invoke();
-	}
-
 	public async Task StartAsync()
 	{
+		if (server.State is not (ServerState.None or ServerState.Stopped))
+		{
+			return;
+		}
+
 		await server.StartAsync();
-		Started?.Invoke();
 	}
 
 	public async Task StopAsync()
 	{
 		await server.StopAsync();
-		Stopped?.Invoke();
 	}
 
 	public Task SendAsync(string message)

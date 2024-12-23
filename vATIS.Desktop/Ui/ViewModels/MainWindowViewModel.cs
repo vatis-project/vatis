@@ -174,7 +174,6 @@ public class MainWindowViewModel : ReactiveViewModelBase
         {
             await HandleGetAllAtisReceived();
         };
-        mWebsocketService.Start();
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
@@ -264,7 +263,6 @@ public class MainWindowViewModel : ReactiveViewModelBase
             }
 
             mSessionManager.EndSession();
-            await mWebsocketService.StopAsync();
         }
     }
 
@@ -282,6 +280,16 @@ public class MainWindowViewModel : ReactiveViewModelBase
             return;
 
         mWindowLocationService.Restore(window);
+    }
+
+    public async Task StartWebsocket()
+    {
+        await mWebsocketService.StartAsync();
+    }
+
+    public async Task StopWebsocket()
+    {
+        await mWebsocketService.StopAsync();
     }
 
     public async Task ConnectToHub()
