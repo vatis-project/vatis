@@ -48,7 +48,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
         try
         {
             var url = $"{mMetarUrl}?id={string.Join(',', stations)}&ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-            Log.Debug($"Downloading METARs from {url}");
+            Log.Information($"Downloading METARs from {url}");
             var array = (await mDownloader.DownloadStringAsync(url)).Split(Separators, StringSplitOptions.None);
             foreach (var rawMetar in array)
             {
@@ -63,7 +63,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
 
     private void ProcessMetarResponse(string rawMetar)
     {
-        Log.Debug($"Processing METAR: {rawMetar}");
+        Log.Information($"Processing METAR: {rawMetar}");
         
         try
         {
@@ -82,7 +82,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
         try
         {
             var url = $"{mMetarUrl}?id={station}&ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-            Log.Debug($"Downloading METAR {station} from {url}");
+            Log.Information($"Downloading METAR {station} from {url}");
             return await mDownloader.DownloadStringAsync(url);
         }
         catch (Exception ex)

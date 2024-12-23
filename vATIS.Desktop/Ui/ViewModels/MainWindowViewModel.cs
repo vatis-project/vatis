@@ -32,6 +32,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
     private readonly IAtisHubConnection mAtisHubConnection;
     private readonly IWebsocketService mWebsocketService;
 
+    public Window Owner { get; set; }
     private readonly SourceList<AtisStationViewModel> mAtisStationSource = new();
     public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
     public ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
@@ -90,8 +91,6 @@ public class MainWindowViewModel : ReactiveViewModelBase
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
-
-        PopulateAtisStations();
 
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
@@ -192,14 +191,33 @@ public class MainWindowViewModel : ReactiveViewModelBase
         return Task.WhenAll(tasks);
     }
 
-    private void PopulateAtisStations()
+    private async Task HandleGetAllAtisReceived(WebSocketSession session)
+    {
+        var tasks = new List<Task>();
+
+        foreach (var station in AtisStations)
+        {
+            tasks.Add(station.PublishAtisToWebsocket(session));
+        }
+
+        return Task.WhenAll(tasks);
+    }
+
+    public async Task PopulateAtisStations()
     {
         if (mSessionManager.CurrentProfile?.Stations == null)
             return;
 
         foreach (var station in mSessionManager.CurrentProfile.Stations.OrderBy(x => x.Identifier))
         {
-            mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+            try
+            {
+                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+            }
+            catch (Exception ex)
+            {
+                await MessageBox.ShowDialog(Owner, "Error populating ATIS station: " + ex.Message, "Error", MessageBoxButton.Ok, MessageBoxIcon.Error);
+            }
         }
     }
 

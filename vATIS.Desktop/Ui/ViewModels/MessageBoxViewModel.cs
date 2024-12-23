@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Reactive;
+using Avalonia.Controls;
 using ReactiveUI;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 
@@ -7,6 +8,8 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class MessageBoxViewModel : ReactiveViewModelBase
 {
+    public Window? Owner { get; set; }
+    
     public ReactiveCommand<ICloseable, Unit> YesButtonCommand { get; private set; }
     public ReactiveCommand<ICloseable, Unit> NoButtonCommand { get; private set; }
     public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; private set; }

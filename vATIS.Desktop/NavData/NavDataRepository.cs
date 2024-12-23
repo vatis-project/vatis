@@ -30,7 +30,7 @@ public class NavDataRepository : INavDataRepository
         {
             MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new navigation data..."));
             var localNavDataSerial = await GetLocalNavDataSeial();
-            Log.Debug($"Local NavData serial number {localNavDataSerial}");
+            Log.Information($"Local NavData serial number {localNavDataSerial}");
             var response = await mDownloader.DownloadStringAsync(mAppConfigurationProvider.NavDataUrl);
             {
                 var availableNavData =

@@ -68,12 +68,13 @@ public static class MessageBox
     private static Task<MessageBoxResult> ShowDialogCore(Window owner, string messageBoxText, string caption,
         MessageBoxButton button, MessageBoxIcon icon)
     {
-        var viewModel = new MessageBoxViewModel()
+        var viewModel = new MessageBoxViewModel
         {
             Caption = caption,
             Message = messageBoxText,
             Button = button,
-            Icon = icon
+            Icon = icon,
+            Owner = owner
         };
 
         var window = new MessageBoxView
