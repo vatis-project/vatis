@@ -32,6 +32,7 @@ using Vatsim.Vatis.Ui.Services;
 using System.Diagnostics;
 using System.Text.Json;
 using SuperSocket.WebSocket.Server;
+using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 public class AtisStationViewModel : ReactiveViewModelBase
@@ -832,8 +833,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
     public async Task PublishAtisToWebsocket(WebSocketSession? session = null)
     {
-        var dto = new AtisHubDto(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
-            Wind?.Trim(), Altimeter?.Trim());
+        var dto = new AtisMessage(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
+            Wind?.Trim(), Altimeter?.Trim(), NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer);
 
         if (session is not null)
         {
