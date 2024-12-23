@@ -15,18 +15,31 @@ using SuperSocket.Server.Abstractions;
 
 namespace Vatsim.Vatis.Ui.Services;
 
+/// <summary>
+/// Provides a websocket interface to vATIS for getting ATIS information
+/// </summary>
 public class WebsocketService : IWebsocketService
 {
 	private readonly IServer server;
+
+	// A list of connected clients so messages can be broadcast to all connected clients when requested.
 	private readonly ConcurrentDictionary<string, WebSocketSession> sessions = new();
 
+	/// <summary>
+	/// Event that is raised when a client requests a specific ATIS. The requesting session and the station requested are passed as parameters.
+	/// </summary>
 	public event Action<WebSocketSession, string>? GetAtisReceived;
-	public event Action? GetAllAtisReceived;
+
+	/// <summary>
+	/// Event that is raised when a client requests all ATIS messages. The requesting session is passed as a parameter.
+	/// </summary>
+	public event Action<WebSocketSession>? GetAllAtisReceived;
 
 
 	public WebsocketService()
 	{
 		server = WebSocketHostBuilder.Create()
+		// Set up handling messages. Any exceptions thrown are put into an ErrorMessage and sent back to the client.
 		.UseWebSocketMessageHandler(
 				async (session, message) =>
 				{
@@ -47,6 +60,8 @@ public class WebsocketService : IWebsocketService
 					}
 				}
 		)
+		// Save and remove sessions when they connect and disconnect so messages can be broadcast
+		// to all connected clients.
 		.UseSessionHandler(async (s) =>
 		{
 			// This method of casing to a WebSocketSession comes from
@@ -74,6 +89,13 @@ public class WebsocketService : IWebsocketService
 		.BuildAsServer();
 	}
 
+	/// <summary>
+	/// Handles a request from a client. Looks at the Key property to determine the message type
+	/// then passes the Value property (if any) to the appropriate handler.
+	/// </summary>
+	/// <param name="session">The client that sent the message.</param>
+	/// <param name="message">The message.</param>
+	/// <exception cref="ArgumentException">Thrown if the Key is missing or invalid, or Value properties are missing when required.</exception>
 	private void HandleRequest(WebSocketSession session, WebSocketPackage message)
 	{
 		var request = JsonSerializer.Deserialize<MessageBase>(message.Message);
@@ -89,10 +111,10 @@ public class WebsocketService : IWebsocketService
 				HandleGetAtis(session, request.Value);
 				break;
 			case "GetAllAtis":
-				GetAllAtisReceived?.Invoke();
+				GetAllAtisReceived?.Invoke(session);
 				break;
 			default:
-				break;
+				throw new ArgumentException($"Invalid request: unknown Key {request.Key}");
 		}
 	}
 
@@ -109,7 +131,7 @@ public class WebsocketService : IWebsocketService
 		}
 	}
 
-	public event Action? OnGetAllAtisReceived
+	public event Action<WebSocketSession>? OnGetAllAtisReceived
 	{
 		add
 		{

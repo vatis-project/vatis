@@ -831,8 +831,15 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
+    /// <summary>
+    /// Publishes the current ATIS information to connected websocket clients.
+    /// </summary>
+    /// <param name="session">The connected client to publish the data to. If omitted or null the data is broadcast to all connected clients.</param>
+    /// <returns>A task.</returns>
     public async Task PublishAtisToWebsocket(WebSocketSession? session = null)
     {
+        // Construct the AtisMessage object. The value winds up being the same as the AtisHubDto object with
+        // an additional field for the network connection status of the station.
         var atis = new AtisMessage
         {
             Value = new AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),

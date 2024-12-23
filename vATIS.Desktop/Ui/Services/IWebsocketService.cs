@@ -11,5 +11,5 @@ public interface IWebsocketService
 	Task SendAsync(string message);
 	public event Action<WebSocketSession, string>? OnGetAtisReceived;
 
-	public event Action? OnGetAllAtisReceived;
+	public event Action<WebSocketSession>? OnGetAllAtisReceived;
 }

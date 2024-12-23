@@ -14,6 +14,7 @@ using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
@@ -170,9 +171,9 @@ public class MainWindowViewModel : ReactiveViewModelBase
             };
         }
 
-        mWebsocketService.OnGetAllAtisReceived += async () =>
+        mWebsocketService.OnGetAllAtisReceived += async (session) =>
         {
-            await HandleGetAllAtisReceived();
+            await HandleGetAllAtisReceived(session);
         };
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
@@ -180,13 +181,13 @@ public class MainWindowViewModel : ReactiveViewModelBase
         timer.Start();
     }
 
-    private Task HandleGetAllAtisReceived()
+    private Task HandleGetAllAtisReceived(WebSocketSession session)
     {
         var tasks = new List<Task>();
 
         foreach (var station in AtisStations)
         {
-            tasks.Add(station.PublishAtisToWebsocket());
+            tasks.Add(station.PublishAtisToWebsocket(session));
         }
 
         return Task.WhenAll(tasks);
