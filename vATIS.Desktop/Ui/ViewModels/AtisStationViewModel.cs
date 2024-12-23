@@ -843,7 +843,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         // an additional field for the network connection status of the station.
         var atis = new AtisMessage
         {
-            Value = new AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
+            Value = new AtisMessage.AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
                             Wind?.Trim(), Altimeter?.Trim(), NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
         };
 

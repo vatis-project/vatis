@@ -6,10 +6,10 @@ namespace Vatsim.Vatis.Ui.Services;
 
 public interface IWebsocketService
 {
+	Task SendAsync(string message);
 	Task StartAsync();
 	Task StopAsync();
-	Task SendAsync(string message);
-	public event Action<WebSocketSession, string>? OnGetAtisReceived;
 
 	public event Action<WebSocketSession>? OnGetAllAtisReceived;
+	public event Action<WebSocketSession, string>? OnGetAtisReceived;
 }

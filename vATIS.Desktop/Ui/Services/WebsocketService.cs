@@ -50,7 +50,7 @@ public class WebsocketService : IWebsocketService
 					{
 						var error = new ErrorMessage
 						{
-							Value = new ErrorValue
+							Value = new ErrorMessage.ErrorValue
 							{
 								Message = e.Message
 							}
