@@ -28,6 +28,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
     private readonly IViewModelFactory mViewModelFactory;
     private readonly IWindowLocationService mWindowLocationService;
     private readonly IAtisHubConnection mAtisHubConnection;
+    private readonly IWebsocketService mWebsocketService;
 
     private readonly SourceList<AtisStationViewModel> mAtisStationSource = new();
     public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
@@ -48,7 +49,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
         get => mSelectedTabIndex;
         set => this.RaiseAndSetIfChanged(ref mSelectedTabIndex, value);
     }
-    
+
     public string CurrentTime
     {
         get => mCurrentTime;
@@ -62,7 +63,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
         get => mShowOverlay;
         set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
     }
-    
+
     private bool mHasConnectedStations;
     private bool HasConnectedStations
     {
@@ -74,13 +75,14 @@ public class MainWindowViewModel : ReactiveViewModelBase
 
     public MainWindowViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory, IWindowLocationService windowLocationService,
-        IAtisHubConnection atisHubConnection)
+        IAtisHubConnection atisHubConnection, IWebsocketService websocketService)
     {
         mSessionManager = sessionManager;
         mWindowFactory = windowFactory;
         mViewModelFactory = viewModelFactory;
         mWindowLocationService = windowLocationService;
         mAtisHubConnection = atisHubConnection;
+        mWebsocketService = websocketService;
 
         OpenSettingsDialogCommand = ReactiveCommand.Create(OpenSettingsDialog);
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
@@ -88,7 +90,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
 
         PopulateAtisStations();
-        
+
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .Sort(SortExpressionComparer<AtisStationViewModel>
@@ -105,9 +107,9 @@ public class MainWindowViewModel : ReactiveViewModelBase
                 AtisStations = sortedStations;
                 SelectedTabIndex = 0;
             });
-        
+
         AtisStations = sortedStations;
-        
+
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
@@ -166,6 +168,8 @@ public class MainWindowViewModel : ReactiveViewModelBase
             };
         }
 
+        mWebsocketService.Connect("http://localhost");
+
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
         timer.Start();
@@ -175,7 +179,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
     {
         if (mSessionManager.CurrentProfile?.Stations == null)
             return;
-        
+
         foreach (var station in mSessionManager.CurrentProfile.Stations.OrderBy(x => x.Identifier))
         {
             mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
