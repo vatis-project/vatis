@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -169,11 +170,27 @@ public class MainWindowViewModel : ReactiveViewModelBase
             };
         }
 
-        mWebsocketService.Connect();
+        mWebsocketService.OnGetAllAtisReceived += async () =>
+        {
+            await HandleGetAllAtisReceived();
+        };
+        mWebsocketService.Start();
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
         timer.Start();
+    }
+
+    private Task HandleGetAllAtisReceived()
+    {
+        var tasks = new List<Task>();
+
+        foreach (var station in AtisStations)
+        {
+            tasks.Add(station.PublishAtisToWebsocket());
+        }
+
+        return Task.WhenAll(tasks);
     }
 
     private void PopulateAtisStations()

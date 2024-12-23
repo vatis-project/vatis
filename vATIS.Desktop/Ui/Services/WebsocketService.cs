@@ -8,14 +8,22 @@ using Microsoft.Extensions.Hosting;
 using SuperSocket.WebSocket;
 using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using System.Collections.Concurrent;
+using SuperSocket.Server.Host;
+using SuperSocket.Server.Abstractions.Session;
 
 namespace Vatsim.Vatis.Ui.Services;
 
 public class WebsocketService : IWebsocketService
 {
 	private readonly IHost server;
+	private readonly ConcurrentDictionary<string, WebSocketSession> sessions = new();
 
 	public event Action<WebSocketSession, string>? GetAtisReceived;
+	public event Action? GetAllAtisReceived;
+	public event Action? Started;
+	public event Action? Stopped;
+
 
 	public WebsocketService()
 	{
@@ -23,10 +31,32 @@ public class WebsocketService : IWebsocketService
 		.UseWebSocketMessageHandler(
 				async (session, message) =>
 				{
-					HandleRequest(session, message);
-					await session.SendAsync("Hi");
+					var result = HandleRequest(session, message);
+					if (!string.IsNullOrWhiteSpace(result))
+					{
+						await session.SendAsync(result);
+					}
+					else
+					{
+						await ValueTask.CompletedTask;
+					}
 				}
 		)
+		.UseSessionHandler(async (s) =>
+		{
+			// This method of casing to a WebSocketSession comes from
+			// https://github.com/kerryjiang/SuperSocket/blob/e86ace953eb569ade27f06ce554e55a6e8c854c4/test/SuperSocket.Tests/WebSocket/WebSocketBasicTest.cs#L133
+			if (s is WebSocketSession session)
+			{
+				sessions.TryAdd(session.SessionID, session);
+			}
+			await ValueTask.CompletedTask;
+		},
+		async (s, e) =>
+		{
+			sessions.TryRemove(s.SessionID, out _);
+			await ValueTask.CompletedTask;
+		})
 		.ConfigureAppConfiguration((hostCtx, configApp) =>
 		{
 			configApp.AddInMemoryCollection(new Dictionary<string, string?>
@@ -37,32 +67,47 @@ public class WebsocketService : IWebsocketService
 				});
 		})
 		.Build();
-
-		Debug.WriteLine("Initializing WebsocketService");
 	}
 
-	private void HandleRequest(WebSocketSession session, WebSocketPackage message)
+	private string HandleRequest(WebSocketSession session, WebSocketPackage message)
 	{
 		Debug.WriteLine($"Received message {message.Message}");
 
-		var request = JsonSerializer.Deserialize<GetAtisCommand>(message.Message);
+		var request = JsonSerializer.Deserialize<MessageBase>(message.Message);
 
-		if (request == null || string.IsNullOrWhiteSpace(request.Key) || string.IsNullOrWhiteSpace(request.Station))
+		if (request == null || string.IsNullOrWhiteSpace(request.Key))
 		{
-			return;
+			return "Invalid request: no Key specified";
 		}
 
 		switch (request.Key)
 		{
 			case "GetAtis":
-				GetAtisReceived?.Invoke(session, request.Station);
+				if (request.Value is null)
+				{
+					return "Invalid request: no Value specified";
+				}
+
+				var value = JsonSerializer.Deserialize<GetAtisCommand>(request.Value);
+
+				if (string.IsNullOrEmpty(value?.Station))
+				{
+					return "Invalid request: no Station specified";
+				}
+
+				GetAtisReceived?.Invoke(session, value.Station);
+				break;
+			case "GetAllAtis":
+				GetAllAtisReceived?.Invoke();
 				break;
 			default:
 				break;
 		}
+
+		return string.Empty;
 	}
 
-	public event Action<WebSocketSession, string> OnGetAtisReceived
+	public event Action<WebSocketSession, string>? OnGetAtisReceived
 	{
 		add
 		{
@@ -75,22 +120,72 @@ public class WebsocketService : IWebsocketService
 		}
 	}
 
-	public void Connect()
+	public event Action? OnGetAllAtisReceived
+	{
+		add
+		{
+			GetAllAtisReceived += value;
+		}
+
+		remove
+		{
+			GetAllAtisReceived -= value;
+		}
+	}
+
+	public event Action? OnStarted
+	{
+		add
+		{
+			Started += value;
+		}
+
+		remove
+		{
+			Started -= value;
+		}
+	}
+
+	public event Action? OnStopped
+	{
+		add
+		{
+			Stopped += value;
+		}
+
+		remove
+		{
+			Stopped -= value;
+		}
+	}
+
+	public void Start()
 	{
 		server.Start();
+		Started?.Invoke();
 	}
 
-	public async Task ConnectAsync()
+	public async Task StartAsync()
 	{
 		await server.StartAsync();
+		Started?.Invoke();
 	}
 
-	public async Task DisconnectAsync()
+	public async Task StopAsync()
 	{
 		await server.StopAsync();
+		Stopped?.Invoke();
 	}
 
-	public Task SendMessageAsync(string message)
+	public Task SendAsync(string message)
 	{
+		var tasks = new List<Task>();
+
+		foreach (var session in sessions.Values)
+		{
+			tasks.Add(session.SendAsync(message).AsTask());
+		}
+
+		return Task.WhenAll(tasks);
 	}
 }

@@ -31,6 +31,7 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Ui.Services;
 using System.Diagnostics;
 using System.Text.Json;
+using SuperSocket.WebSocket.Server;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 public class AtisStationViewModel : ReactiveViewModelBase
@@ -282,14 +283,14 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 (metar, voiceRecord, networkStatus) => !string.IsNullOrEmpty(metar) && voiceRecord &&
                                                        networkStatus == NetworkConnectionStatus.Connected));
 
-        mWebsocketService.OnGetAtisReceived += async station =>
+        mWebsocketService.OnGetAtisReceived += async (session, station) =>
         {
             if (station != mAtisStation.Identifier)
             {
                 return;
             }
 
-            await PublishAtisToWebsocket();
+            await PublishAtisToWebsocket(session);
 
             Debug.WriteLine($"Received GetAtis for {station}");
             Debug.WriteLine($"AtisStation connected status: {this.NetworkConnectionStatus}");
@@ -829,13 +830,21 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
-    private async Task PublishAtisToWebsocket()
+    public async Task PublishAtisToWebsocket(WebSocketSession? session = null)
     {
         var dto = new AtisHubDto(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
             Wind?.Trim(), Altimeter?.Trim());
 
-        await mWebsocketService.SendMessageAsync(JsonSerializer.Serialize(dto));
+        if (session is not null)
+        {
+            await session.SendAsync(JsonSerializer.Serialize(dto));
+        }
+        else
+        {
+            await mWebsocketService.SendAsync(JsonSerializer.Serialize(dto));
+        }
     }
+
     private async Task PublishAtisToHub()
     {
         await mAtisHubConnection.PublishAtis(new AtisHubDto(mAtisStation.Identifier, mAtisStation.AtisType,
