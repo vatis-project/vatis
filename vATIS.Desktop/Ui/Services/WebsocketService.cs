@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using SuperSocket.WebSocket;
 using SuperSocket.WebSocket.Server;
-using Vatsim.Vatis.Ui.Services.WebsocketCommands;
+using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 namespace Vatsim.Vatis.Ui.Services;
 
@@ -15,7 +15,7 @@ public class WebsocketService : IWebsocketService
 {
 	private readonly IHost server;
 
-	public event Action<string>? GetAtisReceived;
+	public event Action<WebSocketSession, string>? GetAtisReceived;
 
 	public WebsocketService()
 	{
@@ -23,8 +23,8 @@ public class WebsocketService : IWebsocketService
 		.UseWebSocketMessageHandler(
 				async (session, message) =>
 				{
-					HandleRequest(message);
-					await session.SendAsync("response");
+					HandleRequest(session, message);
+					await session.SendAsync("Hi");
 				}
 		)
 		.ConfigureAppConfiguration((hostCtx, configApp) =>
@@ -41,7 +41,7 @@ public class WebsocketService : IWebsocketService
 		Debug.WriteLine("Initializing WebsocketService");
 	}
 
-	private void HandleRequest(WebSocketPackage message)
+	private void HandleRequest(WebSocketSession session, WebSocketPackage message)
 	{
 		Debug.WriteLine($"Received message {message.Message}");
 
@@ -55,14 +55,14 @@ public class WebsocketService : IWebsocketService
 		switch (request.Key)
 		{
 			case "GetAtis":
-				GetAtisReceived?.Invoke(request.Station);
+				GetAtisReceived?.Invoke(session, request.Station);
 				break;
 			default:
 				break;
 		}
 	}
 
-	public event Action<string> OnGetAtisReceived
+	public event Action<WebSocketSession, string> OnGetAtisReceived
 	{
 		add
 		{
@@ -92,7 +92,5 @@ public class WebsocketService : IWebsocketService
 
 	public Task SendMessageAsync(string message)
 	{
-		Debug.WriteLine($"Sending message {message}");
-		return Task.CompletedTask;
 	}
 }

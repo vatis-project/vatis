@@ -30,6 +30,7 @@ using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Ui.Services;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 public class AtisStationViewModel : ReactiveViewModelBase
@@ -281,12 +282,14 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 (metar, voiceRecord, networkStatus) => !string.IsNullOrEmpty(metar) && voiceRecord &&
                                                        networkStatus == NetworkConnectionStatus.Connected));
 
-        mWebsocketService.OnGetAtisReceived += station =>
+        mWebsocketService.OnGetAtisReceived += async station =>
         {
             if (station != mAtisStation.Identifier)
             {
                 return;
             }
+
+            await PublishAtisToWebsocket();
 
             Debug.WriteLine($"Received GetAtis for {station}");
             Debug.WriteLine($"AtisStation connected status: {this.NetworkConnectionStatus}");
@@ -826,6 +829,13 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
+    private async Task PublishAtisToWebsocket()
+    {
+        var dto = new AtisHubDto(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
+            Wind?.Trim(), Altimeter?.Trim());
+
+        await mWebsocketService.SendMessageAsync(JsonSerializer.Serialize(dto));
+    }
     private async Task PublishAtisToHub()
     {
         await mAtisHubConnection.PublishAtis(new AtisHubDto(mAtisStation.Identifier, mAtisStation.AtisType,

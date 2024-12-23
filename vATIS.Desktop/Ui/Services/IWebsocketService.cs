@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using SuperSocket.WebSocket.Server;
 
 namespace Vatsim.Vatis.Ui.Services;
 
@@ -9,5 +10,5 @@ public interface IWebsocketService
 	Task ConnectAsync();
 	Task DisconnectAsync();
 	Task SendMessageAsync(string message);
-	event Action<string> OnGetAtisReceived;
+	public event Action<WebSocketSession, string>? GetAtisReceived;
 }

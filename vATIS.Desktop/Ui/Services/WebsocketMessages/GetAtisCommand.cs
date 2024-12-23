@@ -1,4 +1,4 @@
-namespace Vatsim.Vatis.Ui.Services.WebsocketCommands;
+namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 class GetAtisCommand
 {
