@@ -29,7 +29,6 @@ using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Ui.Services;
-using System.Diagnostics;
 using System.Text.Json;
 using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
@@ -292,9 +291,6 @@ public class AtisStationViewModel : ReactiveViewModelBase
             }
 
             await PublishAtisToWebsocket(session);
-
-            Debug.WriteLine($"Received GetAtis for {station}");
-            Debug.WriteLine($"AtisStation connected status: {this.NetworkConnectionStatus}");
         };
 
         LoadContractionData();
