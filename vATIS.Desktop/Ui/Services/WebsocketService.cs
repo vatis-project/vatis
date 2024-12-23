@@ -10,6 +10,7 @@ using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using System.Collections.Concurrent;
 using SuperSocket.Server.Host;
 using SuperSocket.Server.Abstractions.Session;
+using System.Text.Json.Nodes;
 
 namespace Vatsim.Vatis.Ui.Services;
 
@@ -30,14 +31,13 @@ public class WebsocketService : IWebsocketService
 		.UseWebSocketMessageHandler(
 				async (session, message) =>
 				{
-					var result = HandleRequest(session, message);
-					if (!string.IsNullOrWhiteSpace(result))
+					try
 					{
-						await session.SendAsync(result);
+						HandleRequest(session, message);
 					}
-					else
+					catch (Exception e)
 					{
-						await ValueTask.CompletedTask;
+						await session.SendAsync(e.Message);
 					}
 				}
 		)
@@ -68,31 +68,19 @@ public class WebsocketService : IWebsocketService
 		.Build();
 	}
 
-	private string HandleRequest(WebSocketSession session, WebSocketPackage message)
+	private void HandleRequest(WebSocketSession session, WebSocketPackage message)
 	{
 		var request = JsonSerializer.Deserialize<MessageBase>(message.Message);
 
 		if (request == null || string.IsNullOrWhiteSpace(request.Key))
 		{
-			return "Invalid request: no Key specified";
+			throw new ArgumentException("Invalid request: no Key specified");
 		}
 
 		switch (request.Key)
 		{
 			case "GetAtis":
-				if (request.Value is null)
-				{
-					return "Invalid request: no Value specified";
-				}
-
-				var value = JsonSerializer.Deserialize<GetAtisMessage>(request.Value);
-
-				if (string.IsNullOrEmpty(value?.Station))
-				{
-					return "Invalid request: no Station specified";
-				}
-
-				GetAtisReceived?.Invoke(session, value.Station);
+				HandleGetAtis(session, request.Value);
 				break;
 			case "GetAllAtis":
 				GetAllAtisReceived?.Invoke();
@@ -100,8 +88,6 @@ public class WebsocketService : IWebsocketService
 			default:
 				break;
 		}
-
-		return string.Empty;
 	}
 
 	public event Action<WebSocketSession, string>? OnGetAtisReceived
@@ -184,5 +170,28 @@ public class WebsocketService : IWebsocketService
 		}
 
 		return Task.WhenAll(tasks);
+	}
+
+	/// <summary>
+	/// Handles requests for a specific station's ATIS.
+	/// </summary>
+	/// <param name="session">The session that requested the ATIS</param>
+	/// <param name="request">The request value</param>
+	/// <exception cref="ArgumentException">Thrown when the request is invalid</exception>
+	private void HandleGetAtis(WebSocketSession session, JsonValue? request)
+	{
+		if (request is null)
+		{
+			throw new ArgumentException("Invalid request: no Value specified");
+		}
+
+		var value = JsonSerializer.Deserialize<GetAtisMessage>(request);
+
+		if (string.IsNullOrEmpty(value?.Station))
+		{
+			throw new ArgumentException("Invalid request: no Station specified");
+		}
+
+		GetAtisReceived?.Invoke(session, value.Station);
 	}
 }
