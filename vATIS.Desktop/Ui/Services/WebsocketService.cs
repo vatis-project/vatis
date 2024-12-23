@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -71,8 +70,6 @@ public class WebsocketService : IWebsocketService
 
 	private string HandleRequest(WebSocketSession session, WebSocketPackage message)
 	{
-		Debug.WriteLine($"Received message {message.Message}");
-
 		var request = JsonSerializer.Deserialize<MessageBase>(message.Message);
 
 		if (request == null || string.IsNullOrWhiteSpace(request.Key))
@@ -88,7 +85,7 @@ public class WebsocketService : IWebsocketService
 					return "Invalid request: no Value specified";
 				}
 
-				var value = JsonSerializer.Deserialize<GetAtisCommand>(request.Value);
+				var value = JsonSerializer.Deserialize<GetAtisMessage>(request.Value);
 
 				if (string.IsNullOrEmpty(value?.Station))
 				{
