@@ -121,7 +121,8 @@ internal class ViewModelFactory : IViewModelFactory
             mProvider.GetService<IAppConfig>(), mProvider.GetService<IVoiceServerConnection>(),
             mProvider.GetService<IAtisBuilder>(), mProvider.GetService<IWindowFactory>(),
             mProvider.GetService<INavDataRepository>(), mProvider.GetService<IAtisHubConnection>(),
-            mProvider.GetService<ISessionManager>());
+            mProvider.GetService<ISessionManager>(),
+            mProvider.GetService<IWebsocketService>());
     }
 
     public ContractionsViewModel CreateContractionsViewModel()

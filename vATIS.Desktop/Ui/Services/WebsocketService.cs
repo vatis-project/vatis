@@ -1,56 +1,98 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using SuperSocket.WebSocket;
+using SuperSocket.WebSocket.Server;
+using Vatsim.Vatis.Ui.Services.WebsocketCommands;
 
 namespace Vatsim.Vatis.Ui.Services;
 
 public class WebsocketService : IWebsocketService
 {
-	public event Action<string>? OnMessageReceived;
+	private readonly IHost server;
+
+	public event Action<string>? GetAtisReceived;
 
 	public WebsocketService()
 	{
+		server = WebSocketHostBuilder.Create()
+		.UseWebSocketMessageHandler(
+				async (session, message) =>
+				{
+					HandleRequest(message);
+					await session.SendAsync("response");
+				}
+		)
+		.ConfigureAppConfiguration((hostCtx, configApp) =>
+		{
+			configApp.AddInMemoryCollection(new Dictionary<string, string?>
+				{
+						{ "serverOptions:name", "vATIS" },
+						{ "serverOptions:listeners:0:ip", "Any" },
+						{ "serverOptions:listeners:0:port", "5092" }
+				});
+		})
+		.Build();
+
 		Debug.WriteLine("Initializing WebsocketService");
 	}
 
-	event Action<string> IWebsocketService.OnMessageReceived
+	private void HandleRequest(WebSocketPackage message)
+	{
+		Debug.WriteLine($"Received message {message.Message}");
+
+		var request = JsonSerializer.Deserialize<GetAtisCommand>(message.Message);
+
+		if (request == null || string.IsNullOrWhiteSpace(request.Key) || string.IsNullOrWhiteSpace(request.Station))
+		{
+			return;
+		}
+
+		switch (request.Key)
+		{
+			case "GetAtis":
+				GetAtisReceived?.Invoke(request.Station);
+				break;
+			default:
+				break;
+		}
+	}
+
+	public event Action<string> OnGetAtisReceived
 	{
 		add
 		{
-			throw new NotImplementedException();
+			GetAtisReceived += value;
 		}
 
 		remove
 		{
-			throw new NotImplementedException();
+			GetAtisReceived -= value;
 		}
 	}
 
-	public void Connect(string uri)
+	public void Connect()
 	{
-		Debug.WriteLine($"Connecting to {uri}");
+		server.Start();
 	}
 
-	public Task ConnectAsync(string uri)
+	public async Task ConnectAsync()
 	{
-		Debug.WriteLine($"Connecting to {uri}");
-		return Task.CompletedTask;
+		await server.StartAsync();
 	}
 
-	public Task DisconnectAsync()
+	public async Task DisconnectAsync()
 	{
-		Debug.WriteLine("Disconnecting");
-		return Task.CompletedTask;
+		await server.StopAsync();
 	}
 
 	public Task SendMessageAsync(string message)
 	{
 		Debug.WriteLine($"Sending message {message}");
 		return Task.CompletedTask;
-	}
-
-	protected virtual void RaiseOnMessageReceived(string message)
-	{
-		OnMessageReceived?.Invoke(message);
 	}
 }

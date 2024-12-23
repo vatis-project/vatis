@@ -62,6 +62,7 @@
 		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
 		<PackageReference Include="Jab" Version="0.10.2" PrivateAssets="all" />
 		<PackageReference Include="Slugify.Core" Version="4.0.1" />
+		<PackageReference Include="SuperSocket.WebSocket.Server" Version="2.0.0-beta.28" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
 		<PackageReference Include="Velopack" Version="0.0.942" />
 	</ItemGroup>

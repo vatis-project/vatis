@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
@@ -168,7 +169,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
             };
         }
 
-        mWebsocketService.Connect("http://localhost");
+        mWebsocketService.Connect();
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
