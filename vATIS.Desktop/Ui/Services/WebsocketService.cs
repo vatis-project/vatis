@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using SuperSocket.Server.Host;
 using System.Text.Json.Nodes;
 using SuperSocket.Server.Abstractions;
+using Serilog;
 
 namespace Vatsim.Vatis.Ui.Services;
 
@@ -116,6 +117,9 @@ public class WebsocketService : IWebsocketService
 		}
 	}
 
+	/// <summary>
+	/// Event that is raised when a client requests a specific ATIS. The requesting session and the station requested are passed as parameters.
+	/// </summary>
 	public event Action<WebSocketSession, string>? OnGetAtisReceived
 	{
 		add
@@ -129,6 +133,9 @@ public class WebsocketService : IWebsocketService
 		}
 	}
 
+	/// <summary>
+	/// Event that is raised when a client requests all ATIS messages. The requesting session is passed as a parameter.
+	/// </summary>
 	public event Action<WebSocketSession>? OnGetAllAtisReceived
 	{
 		add
@@ -142,28 +149,60 @@ public class WebsocketService : IWebsocketService
 		}
 	}
 
+	/// <summary>
+	/// Starts the WebSocket server.
+	/// </summary>
+	/// <returns>A task.</returns>
 	public async Task StartAsync()
 	{
-		if (server.State is not (ServerState.None or ServerState.Stopped))
+		try
 		{
-			return;
+			await server.StartAsync();
 		}
-
-		await server.StartAsync();
+		catch (Exception e)
+		{
+			Log.Error(e, "Failed to start WebSocket server");
+		}
 	}
 
+	/// <summary>
+	/// Stops the WebSocket server.
+	/// </summary>
+	/// <returns>A task.</returns>
 	public async Task StopAsync()
 	{
-		await server.StopAsync();
+		try
+		{
+			await server.StopAsync();
+		}
+		catch (Exception e)
+		{
+			Log.Error(e, "Failed to stop WebSocket server");
+		}
 	}
 
+	/// <summary>
+	/// Sends a message to all connected clients.
+	/// </summary>
+	/// <param name="message">The message to send</param>
+	/// <returns>A task.</returns>
 	public Task SendAsync(string message)
 	{
 		var tasks = new List<Task>();
 
 		foreach (var session in sessions.Values)
 		{
-			tasks.Add(session.SendAsync(message).AsTask());
+			tasks.Add(Task.Run(async () =>
+			{
+				try
+				{
+					await session.SendAsync(message);
+				}
+				catch (Exception ex)
+				{
+					Log.Error(ex, $"Error sending message to session {session.SessionID}");
+				}
+			}));
 		}
 
 		return Task.WhenAll(tasks);
