@@ -82,7 +82,7 @@ public class WebsocketService : IWebsocketService
 				{
 						{ "serverOptions:name", "vATIS" },
 						{ "serverOptions:listeners:0:ip", "Any" },
-						{ "serverOptions:listeners:0:port", "5092" }
+						{ "serverOptions:listeners:0:port", "49082" }
 				});
 		})
 		.BuildAsServer();
