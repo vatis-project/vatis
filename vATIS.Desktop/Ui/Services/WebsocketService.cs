@@ -37,7 +37,14 @@ public class WebsocketService : IWebsocketService
 					}
 					catch (Exception e)
 					{
-						await session.SendAsync(e.Message);
+						var error = new ErrorMessage
+						{
+							Value = new ErrorValue
+							{
+								Message = e.Message
+							}
+						};
+						await session.SendAsync(JsonSerializer.Serialize(error));
 					}
 				}
 		)

@@ -833,16 +833,19 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
     public async Task PublishAtisToWebsocket(WebSocketSession? session = null)
     {
-        var dto = new AtisMessage(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
-            Wind?.Trim(), Altimeter?.Trim(), NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer);
+        var atis = new AtisMessage
+        {
+            Value = new AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
+                            Wind?.Trim(), Altimeter?.Trim(), NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+        };
 
         if (session is not null)
         {
-            await session.SendAsync(JsonSerializer.Serialize(dto));
+            await session.SendAsync(JsonSerializer.Serialize(atis));
         }
         else
         {
-            await mWebsocketService.SendAsync(JsonSerializer.Serialize(dto));
+            await mWebsocketService.SendAsync(JsonSerializer.Serialize(atis));
         }
     }
 

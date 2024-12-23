@@ -264,6 +264,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
             }
 
             mSessionManager.EndSession();
+            await mWebsocketService.StopAsync();
         }
     }
 
