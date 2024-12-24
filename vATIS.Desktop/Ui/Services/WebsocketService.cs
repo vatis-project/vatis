@@ -27,13 +27,17 @@ public class WebsocketService : IWebsocketService
 	/// <summary>
 	/// Event that is raised when a client requests a specific ATIS. The requesting session and the station requested are passed as parameters.
 	/// </summary>
-	public event Action<WebSocketSession, string>? GetAtisReceived;
+	private event Action<WebSocketSession, string>? GetAtisReceived;
 
 	/// <summary>
 	/// Event that is raised when a client requests all ATIS messages. The requesting session is passed as a parameter.
 	/// </summary>
-	public event Action<WebSocketSession>? GetAllAtisReceived;
+	private event Action<WebSocketSession>? GetAllAtisReceived;
 
+	/// <summary>
+	/// Event that is raised when a client acknowledges an ATIS update. The station acknowledged is passed as a parameter.
+	/// </summary>
+	private event Action<string>? AcknowledgeAtisUpdateReceived;
 
 	public WebsocketService()
 	{
@@ -106,11 +110,14 @@ public class WebsocketService : IWebsocketService
 
 		switch (request.MessageType)
 		{
-			case "GetAtis":
+			case "getAtis":
 				HandleGetAtis(session, request.Value);
 				break;
-			case "GetAllAtis":
+			case "getAllAtis":
 				GetAllAtisReceived?.Invoke(session);
+				break;
+			case "acknowledgeAtisUpdate":
+				HandleAcknowledgeAtisUpdate(request.Value);
 				break;
 			default:
 				throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");
@@ -146,6 +153,22 @@ public class WebsocketService : IWebsocketService
 		remove
 		{
 			GetAllAtisReceived -= value;
+		}
+	}
+
+	/// <summary>
+	/// Event that is raised when a client acknowledges an ATIS update. The station acknowledged is passed as a parameter.
+	/// </summary>
+	public event Action<string>? OnAcknowledgeAtisUpdateReceived
+	{
+		add
+		{
+			AcknowledgeAtisUpdateReceived += value;
+		}
+
+		remove
+		{
+			AcknowledgeAtisUpdateReceived -= value;
 		}
 	}
 
@@ -211,23 +234,45 @@ public class WebsocketService : IWebsocketService
 	/// <summary>
 	/// Handles requests for a specific station's ATIS.
 	/// </summary>
-	/// <param name="session">The session that requested the ATIS</param>
-	/// <param name="request">The request value</param>
-	/// <exception cref="ArgumentException">Thrown when the request is invalid</exception>
+	/// <param name="session">The session that requested the ATIS.</param>
+	/// <param name="request">The request value.</param>
+	/// <exception cref="ArgumentException">Thrown when the request is invalid.</exception>
 	private void HandleGetAtis(WebSocketSession session, JsonValue? request)
 	{
 		if (request is null)
 		{
-			throw new ArgumentException("Invalid request: no Value specified");
+			throw new ArgumentException("Invalid request: no value specified");
 		}
 
-		var value = JsonSerializer.Deserialize<GetAtisMessage>(request);
+		var value = JsonSerializer.Deserialize<GetAtisMessage.GetAtisValue>(request);
 
 		if (string.IsNullOrEmpty(value?.Station))
 		{
-			throw new ArgumentException("Invalid request: no Station specified");
+			throw new ArgumentException("Invalid request: no station specified");
 		}
 
 		GetAtisReceived?.Invoke(session, value.Station);
+	}
+
+	/// <summary>
+	/// Handles requests to acknowledge an ATIS update.
+	/// </summary>
+	/// <param name="request">The request value.</param>
+	/// <exception cref="ArgumentException">Thrown when the request is invalid.</exception>
+	private void HandleAcknowledgeAtisUpdate(JsonValue? request)
+	{
+		if (request is null)
+		{
+			throw new ArgumentException("Invalid request: no value specified");
+		}
+
+		var value = JsonSerializer.Deserialize<AcknowledgeAtisUpdate.AcknowledgeAtisUpdateValue>(request);
+
+		if (string.IsNullOrEmpty(value?.Station))
+		{
+			throw new ArgumentException("Invalid request: no station specified");
+		}
+
+		AcknowledgeAtisUpdateReceived?.Invoke(value.Station);
 	}
 }

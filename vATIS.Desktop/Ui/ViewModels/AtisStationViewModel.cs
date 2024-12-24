@@ -297,6 +297,21 @@ public class AtisStationViewModel : ReactiveViewModelBase
             await PublishAtisToWebsocket(session);
         };
 
+        mWebsocketService.OnAcknowledgeAtisUpdateReceived += async (station) =>
+        {
+            if (station != mAtisStation.Identifier)
+            {
+                return;
+            }
+
+            HandleAcknowledgeAtisUpdate();
+
+            // Since this may cause the state to change publish an update to all connected clients.
+            // This is done here instead of in HandleAcknowledgeAtisUpdate() to avoid having to make
+            // that method async.
+            await PublishAtisToWebsocket();
+        };
+
         LoadContractionData();
 
         mNetworkConnection = connectionFactory.CreateConnection(mAtisStation);
@@ -846,7 +861,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         var atis = new AtisMessage
         {
             Value = new AtisMessage.AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
-                            Wind?.Trim(), Altimeter?.Trim(), NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+                            Wind?.Trim(), Altimeter?.Trim(), IsNewAtis, NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
         };
 
         if (session is not null)

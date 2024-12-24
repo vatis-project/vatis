@@ -1,6 +1,4 @@
 using System.Text.Json.Serialization;
-using Avalonia.Input;
-using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
@@ -13,7 +11,7 @@ public class AtisMessage()
   /// <summary>
   /// Represents the value of an ATIS message.
   /// </summary>
-  public class AtisMessageValue(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, bool isPublished)
+  public class AtisMessageValue(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, bool isNewAtis, bool isPublished)
   {
     [JsonPropertyName("isPublished")]
     /// <summary>
@@ -56,13 +54,19 @@ public class AtisMessage()
     /// </summary>
     [JsonPropertyName("altimeter")]
     public string? Altimeter { get; } = altimeter;
+
+    [JsonPropertyName("isNewAtis")]
+    /// <summary>
+    /// Gets a value indicating whether the ATIS message is new.
+    /// </summary>
+    public bool IsNewAtis { get; } = isNewAtis;
   }
 
   [JsonPropertyName("type")]
   /// <summary>
   /// Gets the string identifying the message as an ATIS message.
   /// </summary>
-  public string MessageType { get; } = "Atis";
+  public string MessageType { get; } = "atis";
 
   [JsonPropertyName("value")]
   /// <summary>

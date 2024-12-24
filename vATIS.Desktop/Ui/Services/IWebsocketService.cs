@@ -12,4 +12,5 @@ public interface IWebsocketService
 
 	public event Action<WebSocketSession>? OnGetAllAtisReceived;
 	public event Action<WebSocketSession, string>? OnGetAtisReceived;
+	public event Action<string>? OnAcknowledgeAtisUpdateReceived;
 }

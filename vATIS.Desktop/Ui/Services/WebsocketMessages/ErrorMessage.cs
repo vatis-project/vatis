@@ -23,7 +23,7 @@ public class ErrorMessage
   /// <summary>
   /// Gets the key identifying the message as an error message.
   /// </summary>
-  public string MessageType { get; } = "Error";
+  public string MessageType { get; } = "error";
 
   [JsonPropertyName("value")]
   /// <summary>
