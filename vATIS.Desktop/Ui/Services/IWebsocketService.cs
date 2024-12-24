@@ -17,5 +17,5 @@ public interface IWebsocketService
 
 	public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived;
 	public event EventHandler<GetAtisReceived> GetAtisReceived;
-	public event EventHandler<GetNetworkStatusReceived> GetNetworkStatusReceived;
+	public event EventHandler<GetNetworkConnectionStatusReceived> GetNetworkConnectionStatusReceived;
 }

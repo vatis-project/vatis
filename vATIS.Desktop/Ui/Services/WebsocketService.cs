@@ -39,7 +39,7 @@ public class WebsocketService : IWebsocketService
 	/// <summary>
 	/// Event that is raised when a client requests network status information. The requesting session and the station requested, if specified, are passed as parameters.
 	/// </summary>
-	public event EventHandler<GetNetworkStatusReceived> GetNetworkStatusReceived = delegate { };
+	public event EventHandler<GetNetworkConnectionStatusReceived> GetNetworkConnectionStatusReceived = delegate { };
 
 	public WebsocketService()
 	{
@@ -112,8 +112,8 @@ public class WebsocketService : IWebsocketService
 
 		switch (request.MessageType)
 		{
-			case "getNetworkStatus":
-				GetNetworkStatusReceived?.Invoke(this, new GetNetworkStatusReceived(session, request.Value?.Station));
+			case "getNetworkConnectionStatus":
+				GetNetworkConnectionStatusReceived?.Invoke(this, new GetNetworkConnectionStatusReceived(session, request.Value?.Station));
 				break;
 			case "getAtis":
 				GetAtisReceived?.Invoke(this, new GetAtisReceived(session, request.Value?.Station));
