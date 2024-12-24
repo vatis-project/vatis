@@ -23,7 +23,7 @@ public class AtisMessage()
     /// Gets the ATIS message text.
     /// </summary>
     [JsonPropertyName("textAtis")]
-    public string TextAtis { get; } = textAtis;
+    public string? TextAtis { get; } = textAtis;
 
     /// <summary>
     /// Gets the station ID of the ATIS message.
