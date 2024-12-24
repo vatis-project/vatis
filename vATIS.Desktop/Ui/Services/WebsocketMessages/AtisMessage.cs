@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
@@ -11,13 +12,14 @@ public class AtisMessage()
   /// <summary>
   /// Represents the value of an ATIS message.
   /// </summary>
-  public class AtisMessageValue(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, string? textAtis, bool isNewAtis, bool isPublished)
+  public class AtisMessageValue(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, string? textAtis, bool isNewAtis, NetworkConnectionStatus networkConnectionStatus)
   {
     /// <summary>
-    /// Gets a value indicating whether the ATIS message is published.
+    /// Gets the network connection status.
     /// </summary>
-    [JsonPropertyName("isPublished")]
-    public bool IsPublished { get; } = isPublished;
+    [JsonPropertyName("networkConnectionStatus")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public NetworkConnectionStatus NetworkConnectionStatus { get; } = networkConnectionStatus;
 
     /// <summary>
     /// Gets the ATIS message text.
