@@ -43,7 +43,7 @@ VERSION="$1"
 OUTPUT_DIR="./Publish"
 TMP_DIR="$OUTPUT_DIR/tmp"
 APP_NAME="vATIS"
-ICON_SRC="./Desktop/Assets/MainIcon.icns"
+ICON_SRC="./vATIS.Desktop/Assets/MainIcon.icns"
 APP_BUNDLE="$OUTPUT_DIR/$APP_NAME.app"
 BIN_DIR="$OUTPUT_DIR/Bin"
 CODESIGN=false
@@ -114,7 +114,7 @@ build_dotnet_project() {
     local output_path="$OUTPUT_DIR/$runtime"
 
     dotnet publish -c Release -r "$runtime" -o "$output_path" \
-        -p:UseAppHost=true -p:Version=$VERSION ./Desktop/Desktop.csproj
+        -p:UseAppHost=true -p:Version=$VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
 }
 
 # Build for x64 and arm64
@@ -254,7 +254,7 @@ vpk upload s3 \
     --endpoint "$AWS_ENDPOINT" \
     --keyId "$AWS_ACCESS_KEY_ID" \
     --secret "$AWS_SECRET_ACCESS_KEY" \
-    --prefix "macos"
+    --prefix "staging/macos"
 
 # Upload Debug Symbols
 npm install -g @sentry/cli
@@ -270,11 +270,11 @@ aws configure set region auto
 aws configure set output "json"
 
 aws s3 cp "$BIN_DIR/$APP_NAME-$VERSION.dmg" \
-    "s3://vatis-releases/macos/$APP_NAME-$VERSION.dmg" \
+    "s3://vatis-releases/staging/macos/$APP_NAME-$VERSION.dmg" \
     --endpoint-url "$AWS_ENDPOINT"
 
 # Remove unused files
-aws s3 rm "s3://vatis-releases/macos/RELEASES-osx" \
+aws s3 rm "s3://vatis-releases/staging/macos/RELEASES-osx" \
     --endpoint-url "$AWS_ENDPOINT"
-aws s3 rm "s3://vatis-releases/macos/org.vatsim.vatis-osx-Portable.zip" \
+aws s3 rm "s3://vatis-releases/staging/macos/org.vatsim.vatis-osx-Portable.zip" \
     --endpoint-url "$AWS_ENDPOINT"

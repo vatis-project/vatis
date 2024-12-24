@@ -21,10 +21,8 @@ jobs:
     steps:
 
       - name: Clone Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
-          repository: vatis-project/vatis-source
-          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           submodules: recursive
       
       - name: Remove dummy client auth
@@ -70,4 +68,5 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
+          chmod +x ./Scripts/build-macos.sh
           ./Scripts/build-macos.sh ${{ github.event.inputs.version }} --codesign

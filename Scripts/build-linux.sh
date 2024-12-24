@@ -8,7 +8,7 @@ fi
 
 VERSION="$1"
 
-dotnet publish -c Release -r linux-x64 -o "./build-linux" -p:UseAppHost=true -p:Version=$VERSION ./Desktop/Desktop.csproj
+dotnet publish -c Release -r linux-x64 -o "./build-linux" -p:UseAppHost=true -p:Version=$VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
 
 if [ $? -ne 0 ]; then
     echo "Build failed!"
@@ -19,8 +19,8 @@ fi
 mkdir -p ./NativeAudio/build
 cmake -S ./NativeAudio -B ./NativeAudio/build
 cmake --build ./NativeAudio/build --config Release
-mkdir -p ./Desktop/Voice/Audio/Native/lin
-cp ./NativeAudio/build/libNativeAudio.so ./Desktop/Voice/Audio/Native/lin
+mkdir -p ./vATIS.Desktop/Voice/Audio/Native/lin
+cp ./NativeAudio/build/libNativeAudio.so ./vATIS.Desktop/Voice/Audio/Native/lin
 
 if [ -f "./velopack/org.vatsim.vatis.AppImage" ]; then
     rm "./velopack/org.vatsim.vatis.AppImage"
@@ -40,7 +40,7 @@ vpk pack \
     --packDir ./build-linux \
     --mainExe vATIS \
     --delta BestSize \
-    --icon ./Desktop/Assets/MainIcon.png \
+    --icon ./vATIS.Desktop/Assets/MainIcon.png \
     --outputDir ./velopack \
     --verbose
 
@@ -50,7 +50,7 @@ vpk upload s3 \
     --endpoint "$AWS_ENDPOINT" \
     --keyId "$AWS_ACCESS_KEY_ID" \
     --secret "$AWS_SECRET_ACCESS_KEY" \
-    --prefix "linux"
+    --prefix "staging/linux"
 
 # Upload Debug Symbols
 npm install -g @sentry/cli
@@ -65,11 +65,11 @@ aws configure set region auto
 aws configure set output "json"
 
 aws s3 cp "./velopack/vATIS-$VERSION.AppImage" \
-    "s3://vatis-releases/linux/vATIS-$VERSION.AppImage" \
+    "s3://vatis-releases/staging/linux/vATIS-$VERSION.AppImage" \
     --endpoint-url "$AWS_ENDPOINT"
 
 # Remove unused files
-aws s3 rm "s3://vatis-releases/linux/RELEASES-linux" \
+aws s3 rm "s3://vatis-releases/staging/linux/RELEASES-linux" \
     --endpoint-url "$AWS_ENDPOINT"
-aws s3 rm "s3://vatis-releases/linux/org.vatsim.vatis.AppImage" \
+aws s3 rm "s3://vatis-releases/staging/linux/org.vatsim.vatis.AppImage" \
     --endpoint-url "$AWS_ENDPOINT"
