@@ -188,17 +188,22 @@ public class WebsocketService : IWebsocketService
     /// <summary>
     /// Sends a network connection status message to all connected clients.
     /// </summary>
-    /// <param name="status">The status to send.</param>
+    /// <param name="value">The status to send.</param>
     /// <returns>A task.</returns>
-    public async Task SendNetworkConnectionStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status)
+    public async Task SendNetworkConnectionStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage.NetworkConnectionStatusValue value)
     {
+        var message = new NetworkConnectionStatusMessage
+        {
+            Value = value
+        };
+
         if (session is not null)
         {
-            await session.SendAsync(JsonSerializer.Serialize(status));
+            await session.SendAsync(JsonSerializer.Serialize(message));
         }
         else
         {
-            await SendAsync(JsonSerializer.Serialize(status));
+            await SendAsync(JsonSerializer.Serialize(message));
         }
     }
 
@@ -206,17 +211,22 @@ public class WebsocketService : IWebsocketService
     /// Sends an ATIS message to a specific session, or to all connected clients if session is null.
     /// </summary>
     /// <param name="session">The session to send the message to.</param>
-    /// <param name="atis">The ATIS to send.</param>
+    /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    public async Task SendAtisMessage(WebSocketSession? session, AtisMessage atis)
+    public async Task SendAtisMessage(WebSocketSession? session, AtisMessage.AtisMessageValue value)
     {
+        var message = new AtisMessage
+        {
+            Value = value
+        };
+
         if (session is not null)
         {
-            await session.SendAsync(JsonSerializer.Serialize(atis));
+            await session.SendAsync(JsonSerializer.Serialize(message));
         }
         else
         {
-            await SendAsync(JsonSerializer.Serialize(atis));
+            await SendAsync(JsonSerializer.Serialize(message));
         }
     }
 }

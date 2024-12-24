@@ -9,8 +9,8 @@ namespace Vatsim.Vatis.Ui.Services;
 
 public interface IWebsocketService
 {
-	Task SendAtisMessage(WebSocketSession? session, AtisMessage atis);
-	Task SendNetworkConnectionStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status);
+	Task SendAtisMessage(WebSocketSession? session, AtisMessage.AtisMessageValue value);
+	Task SendNetworkConnectionStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage.NetworkConnectionStatusValue value);
 	Task StartAsync();
 	Task StopAsync();
 

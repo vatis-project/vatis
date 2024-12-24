@@ -844,16 +844,11 @@ public class AtisStationViewModel : ReactiveViewModelBase
     /// <returns>A task.</returns>
     public async Task PublishNetworkStatusToWebsocket(WebSocketSession? session = null)
     {
-        var networkStatus = new NetworkConnectionStatusMessage
+        await mWebsocketService.SendNetworkConnectionStatusMessage(session, new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
         {
-            Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
-            {
-                Status = NetworkConnectionStatus,
-                Station = mAtisStation.Identifier
-            }
-        };
-
-        await mWebsocketService.SendNetworkConnectionStatusMessage(session, networkStatus);
+            Status = NetworkConnectionStatus,
+            Station = mAtisStation.Identifier
+        });
     }
 
     /// <summary>
@@ -863,13 +858,18 @@ public class AtisStationViewModel : ReactiveViewModelBase
     /// <returns>A task.</returns>
     public async Task PublishAtisToWebsocket(WebSocketSession? session = null)
     {
-        var atis = new AtisMessage
+        await mWebsocketService.SendAtisMessage(session, new AtisMessage.AtisMessageValue
         {
-            Value = new AtisMessage.AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
-                            Wind?.Trim(), Altimeter?.Trim(), mAtisStation.TextAtis, IsNewAtis, NetworkConnectionStatus)
-        };
-
-        await mWebsocketService.SendAtisMessage(session, atis);
+            Station = mAtisStation.Identifier,
+            AtisType = mAtisStation.AtisType,
+            AtisLetter = AtisLetter,
+            Metar = Metar?.Trim(),
+            Wind = Wind?.Trim(),
+            Altimeter = Altimeter?.Trim(),
+            TextAtis = mAtisStation.TextAtis,
+            IsNewAtis = IsNewAtis,
+            NetworkConnectionStatus = NetworkConnectionStatus
+        });
     }
 
     private async Task PublishAtisToHub()
