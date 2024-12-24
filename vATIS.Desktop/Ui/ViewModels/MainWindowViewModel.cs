@@ -133,8 +133,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
             var station = mSessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null && mAtisStationSource.Items.All(x => x.Id != station.Id))
             {
-                var viewModel = mViewModelFactory.CreateAtisStationViewModel(station);
-                mAtisStationSource.Add(viewModel);
+                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
             }
         });
         MessageBus.Current.Listen<AtisStationUpdated>().Subscribe(evt =>

@@ -14,6 +14,7 @@ using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using DynamicData;
 using DynamicData.Binding;
+using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
@@ -30,8 +31,6 @@ using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Ui.Services;
-using System.Text.Json;
-using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -576,14 +575,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
 
-            await mWebsocketService.SendNetworkConnectedStatusMessage(null, new NetworkConnectionStatusMessage
-            {
-                Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
-                {
-                    Status = status,
-                    Station = mAtisStation.Identifier
-                }
-            });
+            await PublishNetworkStatusToWebsocket(null);
 
             switch (status)
             {
@@ -845,6 +837,20 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
+    public async Task PublishNetworkStatusToWebsocket(WebSocketSession? session = null)
+    {
+        var networkStatus = new NetworkConnectionStatusMessage
+        {
+            Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
+            {
+                Status = NetworkConnectionStatus,
+                Station = mAtisStation.Identifier
+            }
+        };
+
+        await mWebsocketService.SendNetworkConnectedStatusMessage(session, networkStatus);
+    }
+
     /// <summary>
     /// Publishes the current ATIS information to connected websocket clients.
     /// </summary>
@@ -1042,21 +1048,14 @@ public class AtisStationViewModel : ReactiveViewModelBase
         HandleAcknowledgeAtisUpdate();
     }
 
-    private void OnGetNetworkStatusReceived(object? sender, GetNetworkStatusReceived e)
+    private async void OnGetNetworkStatusReceived(object? sender, GetNetworkStatusReceived e)
     {
         if (!string.IsNullOrEmpty(e.Station) && e.Station != mAtisStation.Identifier)
         {
             return;
         }
 
-        mWebsocketService.SendNetworkConnectedStatusMessage(e.Session, new NetworkConnectionStatusMessage
-        {
-            Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
-            {
-                Status = NetworkConnectionStatus,
-                Station = mAtisStation.Identifier
-            }
-        });
+        await PublishNetworkStatusToWebsocket(e.Session);
     }
 
     private void HandleAcknowledgeAtisUpdate()

@@ -12,12 +12,11 @@ using System.Text.Json.Nodes;
 using SuperSocket.Server.Abstractions;
 using Serilog;
 using Vatsim.Vatis.Events;
-using Vatsim.Vatis.Networking;
 
 namespace Vatsim.Vatis.Ui.Services;
 
 /// <summary>
-/// Provides a websocket interface to vATIS for getting ATIS information
+/// Provides a websocket interface to vATIS
 /// </summary>
 public class WebsocketService : IWebsocketService
 {
@@ -33,10 +32,13 @@ public class WebsocketService : IWebsocketService
 	public event EventHandler<GetAtisReceived> GetAtisReceived = delegate { };
 
 	/// <summary>
-	/// Event that is raised when a client acknowledges an ATIS update. The station acknowledged is passed as a parameter.
+	/// Event that is raised when a client acknowledges an ATIS update. The requesting session and the station acknowledged, if specified, is passed as a parameter.
 	/// </summary>
 	public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = delegate { };
 
+	/// <summary>
+	/// Event that is raised when a client requests network status information. The requesting session and the station requested, if specified, are passed as parameters.
+	/// </summary>
 	public event EventHandler<GetNetworkStatusReceived> GetNetworkStatusReceived = delegate { };
 
 	public WebsocketService()
@@ -93,15 +95,15 @@ public class WebsocketService : IWebsocketService
 	}
 
 	/// <summary>
-	/// Handles a request from a client. Looks at the Key property to determine the message type
-	/// then passes the Value property (if any) to the appropriate handler.
+	/// Handles a request from a client. Looks at the type property to determine the message type
+	/// then fires the appropriate event with the session and station as parameters.
 	/// </summary>
 	/// <param name="session">The client that sent the message.</param>
 	/// <param name="message">The message.</param>
-	/// <exception cref="ArgumentException">Thrown if the Key is missing or invalid, or Value properties are missing when required.</exception>
+	/// <exception cref="ArgumentException">Thrown if the type is missing or invalid.</exception>
 	private void HandleRequest(WebSocketSession session, WebSocketPackage message)
 	{
-		var request = JsonSerializer.Deserialize<BaseMessage>(message.Message);
+		var request = JsonSerializer.Deserialize<CommandMessage>(message.Message);
 
 		if (request == null || string.IsNullOrWhiteSpace(request.MessageType))
 		{
@@ -161,7 +163,7 @@ public class WebsocketService : IWebsocketService
 	/// </summary>
 	/// <param name="message">The message to send</param>
 	/// <returns>A task.</returns>
-	public Task SendAsync(string message)
+	public async Task SendAsync(string message)
 	{
 		var tasks = new List<Task>();
 
@@ -180,7 +182,7 @@ public class WebsocketService : IWebsocketService
 			}));
 		}
 
-		return Task.WhenAll(tasks);
+		await Task.WhenAll(tasks);
 	}
 
 	/// <summary>

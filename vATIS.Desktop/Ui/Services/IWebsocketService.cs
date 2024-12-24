@@ -15,7 +15,7 @@ public interface IWebsocketService
 	Task SendAtisMessage(WebSocketSession? session, AtisMessage atis);
 	Task SendNetworkConnectedStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status);
 
-	public event EventHandler<GetNetworkStatusReceived> GetNetworkStatusReceived;
-	public event EventHandler<GetAtisReceived> GetAtisReceived;
 	public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived;
+	public event EventHandler<GetAtisReceived> GetAtisReceived;
+	public event EventHandler<GetNetworkStatusReceived> GetNetworkStatusReceived;
 }

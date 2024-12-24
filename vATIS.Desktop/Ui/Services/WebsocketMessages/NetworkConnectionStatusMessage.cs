@@ -4,7 +4,7 @@ using Vatsim.Vatis.Networking;
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 /// <summary>
-/// Represents an error message sent over the websocket.
+/// Represents a network connection status sent over the websocket.
 /// </summary>
 public class NetworkConnectionStatusMessage
 {
@@ -35,7 +35,7 @@ public class NetworkConnectionStatusMessage
 
 	[JsonPropertyName("value")]
 	/// <summary>
-	/// Gets and sets the error information.
+	/// Gets and sets the network connection status information.
 	/// </summary>
 	public NetworkConnectionStatusValue? Value { get; set; }
 }
