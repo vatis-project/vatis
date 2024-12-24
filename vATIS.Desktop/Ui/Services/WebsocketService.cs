@@ -37,6 +37,8 @@ public class WebsocketService : IWebsocketService
 	/// </summary>
 	public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = delegate { };
 
+	public event EventHandler<GetNetworkStatusReceived> GetNetworkStatusReceived = delegate { };
+
 	public WebsocketService()
 	{
 		server = WebSocketHostBuilder.Create()
@@ -99,7 +101,7 @@ public class WebsocketService : IWebsocketService
 	/// <exception cref="ArgumentException">Thrown if the Key is missing or invalid, or Value properties are missing when required.</exception>
 	private void HandleRequest(WebSocketSession session, WebSocketPackage message)
 	{
-		var request = JsonSerializer.Deserialize<MessageBase>(message.Message);
+		var request = JsonSerializer.Deserialize<BaseMessage>(message.Message);
 
 		if (request == null || string.IsNullOrWhiteSpace(request.MessageType))
 		{
@@ -108,14 +110,14 @@ public class WebsocketService : IWebsocketService
 
 		switch (request.MessageType)
 		{
-			case "getAtis":
-				HandleGetAtis(session, request.Value);
+			case "getNetworkStatus":
+				GetNetworkStatusReceived?.Invoke(this, new GetNetworkStatusReceived(session, request.Value?.Station));
 				break;
-			case "getAllAtis":
-				GetAtisReceived?.Invoke(this, new GetAtisReceived(session, null));
+			case "getAtis":
+				GetAtisReceived?.Invoke(this, new GetAtisReceived(session, request.Value?.Station));
 				break;
 			case "acknowledgeAtisUpdate":
-				HandleAcknowledgeAtisUpdate(session, request.Value);
+				AcknowledgeAtisUpdateReceived?.Invoke(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station));
 				break;
 			default:
 				throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");
@@ -182,67 +184,20 @@ public class WebsocketService : IWebsocketService
 	}
 
 	/// <summary>
-	/// Handles requests for a specific station's ATIS.
-	/// </summary>
-	/// <param name="session">The client that requested the ATIS.</param>
-	/// <param name="request">The request value.</param>
-	/// <exception cref="ArgumentException">Thrown when the request is invalid.</exception>
-	private void HandleGetAtis(WebSocketSession session, JsonValue? request)
-	{
-		if (request is null)
-		{
-			throw new ArgumentException("Invalid request: no value specified");
-		}
-
-		var value = JsonSerializer.Deserialize<GetAtisMessage.GetAtisValue>(request);
-
-		if (string.IsNullOrEmpty(value?.Station))
-		{
-			throw new ArgumentException("Invalid request: no station specified");
-		}
-
-		GetAtisReceived?.Invoke(this, new GetAtisReceived(session, value.Station));
-	}
-
-	/// <summary>
-	/// Handles requests to acknowledge an ATIS update.
-	/// </summary>
-	/// <param name="session">The client that sent the acknowledge message.</param>
-	/// <param name="request">The request value.</param>
-	/// <exception cref="ArgumentException">Thrown when the request is invalid.</exception>
-	private void HandleAcknowledgeAtisUpdate(WebSocketSession session, JsonValue? request)
-	{
-		if (request is null)
-		{
-			throw new ArgumentException("Invalid request: no value specified");
-		}
-
-		var value = JsonSerializer.Deserialize<AcknowledgeAtisUpdate.AcknowledgeAtisUpdateValue>(request);
-
-		if (string.IsNullOrEmpty(value?.Station))
-		{
-			throw new ArgumentException("Invalid request: no station specified");
-		}
-
-		AcknowledgeAtisUpdateReceived?.Invoke(this, new AcknowledgeAtisUpdateReceived(session, value.Station));
-	}
-
-	/// <summary>
 	/// Sends a network connection status message to all connected clients.
 	/// </summary>
 	/// <param name="status">The status to send.</param>
 	/// <returns>A task.</returns>
-	public async Task SendNetworkConnectedStatusMessage(NetworkConnectionStatus status)
+	public async Task SendNetworkConnectedStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status)
 	{
-		var message = new NetworkConnectionStatusMessage
+		if (session is not null)
 		{
-			Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
-			{
-				Status = status
-			}
-		};
-
-		await SendAsync(JsonSerializer.Serialize(message));
+			await session.SendAsync(JsonSerializer.Serialize(status));
+		}
+		else
+		{
+			await SendAsync(JsonSerializer.Serialize(status));
+		}
 	}
 
 	/// <summary>

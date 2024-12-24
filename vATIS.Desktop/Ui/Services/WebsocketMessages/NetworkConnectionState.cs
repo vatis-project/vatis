@@ -18,6 +18,12 @@ public class NetworkConnectionStatusMessage
 		/// Gets and sets the status.
 		/// </summary>
 		public NetworkConnectionStatus Status { get; set; } = NetworkConnectionStatus.Disconnected;
+
+		[JsonPropertyName("station")]
+		/// <summary>
+		/// Gets and sets the station.
+		/// </summary>
+		public string Station { get; set; } = string.Empty;
 	}
 
 	[JsonPropertyName("type")]

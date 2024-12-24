@@ -289,6 +289,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
         mWebsocketService.GetAtisReceived += OnGetAtisReceived;
         mWebsocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
+        mWebsocketService.GetNetworkStatusReceived += OnGetNetworkStatusReceived;
 
         LoadContractionData();
 
@@ -569,7 +570,14 @@ public class AtisStationViewModel : ReactiveViewModelBase
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
 
-            await mWebsocketService.SendNetworkConnectedStatusMessage(status);
+            await mWebsocketService.SendNetworkConnectedStatusMessage(null, new NetworkConnectionStatusMessage
+            {
+                Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
+                {
+                    Status = status,
+                    Station = mAtisStation.Identifier
+                }
+            });
 
             switch (status)
             {
@@ -1009,7 +1017,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
     private async void OnGetAtisReceived(object? sender, GetAtisReceived args)
     {
         // A null station means all stations were requested.
-        if (args.Station is not null && args.Station != mAtisStation.Identifier)
+        if (!string.IsNullOrEmpty(args.Station) && args.Station != mAtisStation.Identifier)
         {
             return;
         }
@@ -1019,12 +1027,29 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
     private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
     {
-        if (e.Station != mAtisStation.Identifier)
+        if (!string.IsNullOrEmpty(e.Station) && e.Station != mAtisStation.Identifier)
         {
             return;
         }
 
         HandleAcknowledgeAtisUpdate();
+    }
+
+    private void OnGetNetworkStatusReceived(object? sender, GetNetworkStatusReceived e)
+    {
+        if (!string.IsNullOrEmpty(e.Station) && e.Station != mAtisStation.Identifier)
+        {
+            return;
+        }
+
+        mWebsocketService.SendNetworkConnectedStatusMessage(e.Session, new NetworkConnectionStatusMessage
+        {
+            Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
+            {
+                Status = NetworkConnectionStatus,
+                Station = mAtisStation.Identifier
+            }
+        });
     }
 
     private void HandleAcknowledgeAtisUpdate()
