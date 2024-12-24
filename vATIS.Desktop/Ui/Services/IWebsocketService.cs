@@ -17,7 +17,6 @@ public interface IWebsocketService
 
 	Task SendNetworkConnectedStatusMessage(NetworkConnectionStatus status);
 
-	public event EventHandler<GetAllAtisReceived> GetAllAtisReceived;
 	public event EventHandler<GetAtisReceived> GetAtisReceived;
 	public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived;
 }

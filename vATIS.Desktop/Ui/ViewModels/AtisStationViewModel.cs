@@ -1008,7 +1008,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
     private async void OnGetAtisReceived(object? sender, GetAtisReceived args)
     {
-        if (args.Station != mAtisStation.Identifier)
+        // A null station means all stations were requested.
+        if (args.Station is not null && args.Station != mAtisStation.Identifier)
         {
             return;
         }

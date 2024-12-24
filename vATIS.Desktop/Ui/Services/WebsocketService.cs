@@ -27,15 +27,10 @@ public class WebsocketService : IWebsocketService
 	private readonly ConcurrentDictionary<string, WebSocketSession> sessions = new();
 
 	/// <summary>
-	/// Event that is raised when a client requests a specific ATIS. The requesting session and the station requested are passed as parameters.
+	/// Event that is raised when a client requests ATIS information. The requesting session and the station requested, if specified, are passed as parameters.
 	/// </summary>
 	/// 
 	public event EventHandler<GetAtisReceived> GetAtisReceived = delegate { };
-
-	/// <summary>
-	/// Event that is raised when a client requests all ATIS messages. The requesting session is passed as a parameter.
-	/// </summary>
-	public event EventHandler<GetAllAtisReceived> GetAllAtisReceived = delegate { };
 
 	/// <summary>
 	/// Event that is raised when a client acknowledges an ATIS update. The station acknowledged is passed as a parameter.
@@ -117,7 +112,7 @@ public class WebsocketService : IWebsocketService
 				HandleGetAtis(session, request.Value);
 				break;
 			case "getAllAtis":
-				GetAllAtisReceived?.Invoke(this, new GetAllAtisReceived(session));
+				GetAtisReceived?.Invoke(this, new GetAtisReceived(session, null));
 				break;
 			case "acknowledgeAtisUpdate":
 				HandleAcknowledgeAtisUpdate(session, request.Value);

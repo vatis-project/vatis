@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Vatsim.Vatis.Networking;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
