@@ -232,6 +232,11 @@ public class WebsocketService : IWebsocketService
 		AcknowledgeAtisUpdateReceived?.Invoke(this, new AcknowledgeAtisUpdateReceived(session, value.Station));
 	}
 
+	/// <summary>
+	/// Sends a network connection status message to all connected clients.
+	/// </summary>
+	/// <param name="status">The status to send.</param>
+	/// <returns>A task.</returns>
 	public async Task SendNetworkConnectedStatusMessage(NetworkConnectionStatus status)
 	{
 		var message = new NetworkConnectionStatusMessage
@@ -245,4 +250,21 @@ public class WebsocketService : IWebsocketService
 		await SendAsync(JsonSerializer.Serialize(message));
 	}
 
+	/// <summary>
+	/// Sends an ATIS message to a specific session, or to all connected clients if session is null.
+	/// </summary>
+	/// <param name="session">The session to send the message to.</param>
+	/// <param name="atis">The ATIS to send.</param>
+	/// <returns>A task.</returns>
+	public async Task SendAtisMessage(WebSocketSession? session, AtisMessage atis)
+	{
+		if (session is not null)
+		{
+			await session.SendAsync(JsonSerializer.Serialize(atis));
+		}
+		else
+		{
+			await SendAsync(JsonSerializer.Serialize(atis));
+		}
+	}
 }

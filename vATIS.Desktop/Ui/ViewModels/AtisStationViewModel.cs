@@ -837,22 +837,13 @@ public class AtisStationViewModel : ReactiveViewModelBase
     /// <returns>A task.</returns>
     public async Task PublishAtisToWebsocket(WebSocketSession? session = null)
     {
-        // Construct the AtisMessage object. The value winds up being the same as the AtisHubDto object with
-        // an additional field for the network connection status of the station.
         var atis = new AtisMessage
         {
             Value = new AtisMessage.AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
                             Wind?.Trim(), Altimeter?.Trim(), IsNewAtis, NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
         };
 
-        if (session is not null)
-        {
-            await session.SendAsync(JsonSerializer.Serialize(atis));
-        }
-        else
-        {
-            await mWebsocketService.SendAsync(JsonSerializer.Serialize(atis));
-        }
+        await mWebsocketService.SendAtisMessage(session, atis);
     }
 
     private async Task PublishAtisToHub()
