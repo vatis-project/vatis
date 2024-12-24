@@ -853,7 +853,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             }
         };
 
-        await mWebsocketService.SendNetworkConnectedStatusMessage(session, networkStatus);
+        await mWebsocketService.SendNetworkConnectionStatusMessage(session, networkStatus);
     }
 
     /// <summary>

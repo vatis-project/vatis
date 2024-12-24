@@ -13,7 +13,7 @@ public interface IWebsocketService
 	Task StartAsync();
 	Task StopAsync();
 	Task SendAtisMessage(WebSocketSession? session, AtisMessage atis);
-	Task SendNetworkConnectedStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status);
+	Task SendNetworkConnectionStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status);
 
 	public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived;
 	public event EventHandler<GetAtisReceived> GetAtisReceived;

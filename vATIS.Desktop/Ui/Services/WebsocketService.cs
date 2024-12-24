@@ -190,7 +190,7 @@ public class WebsocketService : IWebsocketService
 	/// </summary>
 	/// <param name="status">The status to send.</param>
 	/// <returns>A task.</returns>
-	public async Task SendNetworkConnectedStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status)
+	public async Task SendNetworkConnectionStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage status)
 	{
 		if (session is not null)
 		{
