@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
 using Serilog;
+using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Components;
@@ -41,6 +42,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             if(ViewModel == null)
                 return;
+            
+            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+                return;
 
             await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
         }
@@ -55,6 +59,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         try
         {
             if (ViewModel == null)
+                return;
+
+            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 return;
 
             var point = e.GetCurrentPoint(this);
@@ -72,6 +79,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     private void TypeAtisLetterOnKeyDown(object? sender, KeyEventArgs e)
     {
         if (ViewModel == null)
+            return;
+        
+        if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
             return;
 
         if (e.Key == Key.Escape)

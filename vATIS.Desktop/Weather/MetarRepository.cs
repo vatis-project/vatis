@@ -122,6 +122,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
 
     public void RemoveMetar(string station)
     {
+        mMetars.Remove(station);
         mMonitoredStations.Remove(station);
     }
 

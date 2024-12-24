@@ -21,10 +21,8 @@ jobs:
     steps:
 
       - name: Clone Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
-          repository: vatis-project/vatis-source
-          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           submodules: recursive
       
       - name: Remove dummy client auth

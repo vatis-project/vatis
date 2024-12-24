@@ -331,11 +331,14 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 sync.Dto.AtisType == station.AtisType &&
                 NetworkConnectionStatus != NetworkConnectionStatus.Connected)
             {
-                AtisLetter = sync.Dto.AtisLetter;
-                Wind = sync.Dto.Wind;
-                Altimeter = sync.Dto.Altimeter;
-                Metar = sync.Dto.Metar;
-                NetworkConnectionStatus = NetworkConnectionStatus.Observer;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    AtisLetter = sync.Dto.AtisLetter;
+                    Wind = sync.Dto.Wind;
+                    Altimeter = sync.Dto.Altimeter;
+                    Metar = sync.Dto.Metar;
+                    NetworkConnectionStatus = NetworkConnectionStatus.Observer;
+                });
             }
         });
         MessageBus.Current.Listen<AtisHubExpiredAtisReceived>().Subscribe(sync =>
@@ -344,11 +347,14 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 sync.Dto.AtisType == mAtisStation.AtisType &&
                 NetworkConnectionStatus == NetworkConnectionStatus.Observer)
             {
-                AtisLetter = 'A';
-                Wind = null;
-                Altimeter = null;
-                Metar = null;
-                NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    AtisLetter = 'A';
+                    Wind = null;
+                    Altimeter = null;
+                    Metar = null;
+                    NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                });
             }
         });
         MessageBus.Current.Listen<HubConnected>().Subscribe(_ =>
@@ -751,7 +757,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
 
-            if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Disconnected ||
+                NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 return;
 
             if (SelectedAtisPreset == null)

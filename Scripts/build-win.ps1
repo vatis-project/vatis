@@ -4,7 +4,7 @@ param (
 
 # Dotnet publish command with dynamically set version
 Write-Host "Publishing project with version $env:VERSION..."
-dotnet publish -c Release -r win-x64 -o .\Publish\win-x64 .\Desktop\Desktop.csproj -p:Version=$env:VERSION
+dotnet publish -c Release -r win-x64 -o .\Publish\win-x64 .\vATIS.Desktop\vATIS.Desktop.csproj -p:Version=$env:VERSION
 
 # Upload debug symbols to Sentry
 npm install -g @sentry/cli
@@ -31,7 +31,7 @@ vpk pack `
     --noPortable `
     --delta BestSize `
     --skipVeloAppCheck `
-    --icon .\Desktop\Assets\MainIcon.ico `
+    --icon .\vATIS.Desktop\Assets\MainIcon.ico `
     --outputDir .\Publish `
     --signTemplate $template
 
@@ -42,7 +42,7 @@ vpk upload s3 `
     --endpoint "$env:AWS_ENDPOINT" `
     --keyId "$env:AWS_ACCESS_KEY_ID" `
     --secret "$env:AWS_SECRET_ACCESS_KEY" `
-    --prefix "windows"
+    --prefix "staging/windows"
 
 #Rename resulting file with version
 $setupFile = ".\Publish\org.vatsim.vatis-win-Setup.exe"
@@ -65,11 +65,11 @@ aws configure set region auto
 aws configure set output "json"
 
 aws s3 cp "$newSetupFile" `
-    "s3://vatis-releases/windows/vATIS-Setup-$env:VERSION.exe" `
+    "s3://vatis-releases/staging/windows/vATIS-Setup-$env:VERSION.exe" `
     --endpoint-url "$env:AWS_ENDPOINT"
 
 # Remove unused files
-aws s3 rm "s3://vatis-releases/windows/RELEASES" `
+aws s3 rm "s3://vatis-releases/staging/windows/RELEASES" `
     --endpoint-url "$env:AWS_ENDPOINT"
-aws s3 rm "s3://vatis-releases/windows/org.vatsim.vatis-win-Setup.exe" `
+aws s3 rm "s3://vatis-releases/staging/windows/org.vatsim.vatis-win-Setup.exe" `
     --endpoint-url "$env:AWS_ENDPOINT"
