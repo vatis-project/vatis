@@ -13,16 +13,17 @@ public class NetworkConnectionStatusMessage
 	/// </summary>
 	public class NetworkConnectionStatusValue
 	{
-		[JsonPropertyName("status")]
 		/// <summary>
 		/// Gets and sets the status.
 		/// </summary>
+		[JsonConverter(typeof(JsonStringEnumConverter))]
+		[JsonPropertyName("status")]
 		public NetworkConnectionStatus Status { get; set; } = NetworkConnectionStatus.Disconnected;
 
-		[JsonPropertyName("station")]
 		/// <summary>
 		/// Gets and sets the station.
 		/// </summary>
+		[JsonPropertyName("station")]
 		public string Station { get; set; } = string.Empty;
 	}
 

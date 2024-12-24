@@ -13,15 +13,15 @@ public class BaseMessage
 		public string? Station { get; set; }
 	}
 
-	[JsonPropertyName("type")]
 	/// <summary>
 	/// Gets or sets the key identifying the message type.
 	/// </summary>
+	[JsonPropertyName("type")]
 	public string? MessageType { get; set; }
 
-	[JsonPropertyName("value")]
 	/// <summary>
 	/// Gets or sets the value of the message.
 	/// </summary>
+	[JsonPropertyName("value")]
 	public BaseMessageValue? Value { get; set; }
 }

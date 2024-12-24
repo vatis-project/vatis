@@ -13,28 +13,28 @@ public class AtisMessage()
   /// </summary>
   public class AtisMessageValue(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, bool isNewAtis, bool isPublished)
   {
-    [JsonPropertyName("isPublished")]
     /// <summary>
     /// Gets a value indicating whether the ATIS message is published.
     /// </summary>
+    [JsonPropertyName("isPublished")]
     public bool IsPublished { get; } = isPublished;
 
-    [JsonPropertyName("stationId")]
     /// <summary>
     /// Gets the station ID of the ATIS message.
     /// </summary>
+    [JsonPropertyName("stationId")]
     public string StationId { get; } = stationId;
 
-    [JsonPropertyName("atisType")]
     /// <summary>
     /// Gets the type of the ATIS message.
     /// </summary>
+    [JsonPropertyName("atisType")]
     public AtisType AtisType { get; } = atisType;
 
-    [JsonPropertyName("atisLetter")]
     /// <summary>
     /// Gets the ATIS letter.
     /// </summary>
+    [JsonPropertyName("atisLetter")]
     public char AtisLetter { get; } = atisLetter;
 
     /// <summary>
@@ -55,22 +55,22 @@ public class AtisMessage()
     [JsonPropertyName("altimeter")]
     public string? Altimeter { get; } = altimeter;
 
-    [JsonPropertyName("isNewAtis")]
     /// <summary>
     /// Gets a value indicating whether the ATIS message is new.
     /// </summary>
+    [JsonPropertyName("isNewAtis")]
     public bool IsNewAtis { get; } = isNewAtis;
   }
 
-  [JsonPropertyName("type")]
   /// <summary>
   /// Gets the string identifying the message as an ATIS message.
   /// </summary>
+  [JsonPropertyName("type")]
   public string MessageType { get; } = "atis";
 
-  [JsonPropertyName("value")]
   /// <summary>
   /// Gets or sets the ATIS information.
   /// </summary>
+  [JsonPropertyName("value")]
   public AtisMessageValue? Value { get; set; }
 }

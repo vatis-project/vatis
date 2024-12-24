@@ -12,22 +12,22 @@ public class ErrorMessage
   /// </summary>
   public class ErrorValue
   {
-    [JsonPropertyName("message")]
     /// <summary>
     /// Gets and sets the error message.
     /// </summary>
+    [JsonPropertyName("message")]
     public string Message { get; set; } = string.Empty;
   }
 
-  [JsonPropertyName("type")]
   /// <summary>
   /// Gets the key identifying the message as an error message.
   /// </summary>
+  [JsonPropertyName("type")]
   public string MessageType { get; } = "error";
 
-  [JsonPropertyName("value")]
   /// <summary>
   /// Gets and sets the error information.
   /// </summary>
+  [JsonPropertyName("value")]
   public ErrorValue? Value { get; set; }
 }
