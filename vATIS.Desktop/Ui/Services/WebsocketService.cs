@@ -36,11 +36,6 @@ public class WebsocketService : IWebsocketService
     /// </summary>
     public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = delegate { };
 
-    /// <summary>
-    /// Event that is raised when a client requests network status information. The requesting session and the station requested, if specified, are passed as parameters.
-    /// </summary>
-    public event EventHandler<GetNetworkConnectionStatusReceived> GetNetworkConnectionStatusReceived = delegate { };
-
     public WebsocketService()
     {
         server = WebSocketHostBuilder.Create()
@@ -112,9 +107,6 @@ public class WebsocketService : IWebsocketService
 
         switch (request.MessageType)
         {
-            case "getNetworkConnectionStatus":
-                GetNetworkConnectionStatusReceived?.Invoke(this, new GetNetworkConnectionStatusReceived(session, request.Value?.Station));
-                break;
             case "getAtis":
                 GetAtisReceived?.Invoke(this, new GetAtisReceived(session, request.Value?.Station));
                 break;
@@ -183,28 +175,6 @@ public class WebsocketService : IWebsocketService
         }
 
         await Task.WhenAll(tasks);
-    }
-
-    /// <summary>
-    /// Sends a network connection status message to all connected clients.
-    /// </summary>
-    /// <param name="value">The status to send.</param>
-    /// <returns>A task.</returns>
-    public async Task SendNetworkConnectionStatusMessage(WebSocketSession? session, NetworkConnectionStatusMessage.NetworkConnectionStatusValue value)
-    {
-        var message = new NetworkConnectionStatusMessage
-        {
-            Value = value
-        };
-
-        if (session is not null)
-        {
-            await session.SendAsync(JsonSerializer.Serialize(message));
-        }
-        else
-        {
-            await SendAsync(JsonSerializer.Serialize(message));
-        }
     }
 
     /// <summary>

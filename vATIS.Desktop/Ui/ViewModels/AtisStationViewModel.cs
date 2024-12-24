@@ -288,7 +288,6 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
         mWebsocketService.GetAtisReceived += OnGetAtisReceived;
         mWebsocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
-        mWebsocketService.GetNetworkConnectionStatusReceived += OnGetNetworkConnectionStatusReceived;
 
         LoadContractionData();
 
@@ -575,7 +574,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
 
-            await PublishNetworkStatusToWebsocket(null);
+            await PublishAtisToWebsocket(null);
 
             switch (status)
             {
@@ -792,7 +791,6 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     mNetworkConnection?.SendSubscriberNotification(AtisLetter);
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
                     await PublishAtisToHub();
-                    await PublishAtisToWebsocket();
 
                     if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
                     {
@@ -824,6 +822,9 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     NativeAudio.EmitSound(SoundType.Error);
                 }
             }
+
+            // This is done at the very end to ensure the TextAtis is updated before the websocket message is sent.
+            await PublishAtisToWebsocket();
         }
         catch (Exception ex)
         {
@@ -835,20 +836,6 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 ErrorMessage = ex.Message;
             });
         }
-    }
-
-    /// <summary>
-    /// Publishes the current network connection status to connected websocket clients.
-    /// </summary>
-    /// <param name="session">The connected client to publish the data to. If omitted or null the data is broadcast to all connected clients.</param>
-    /// <returns>A task.</returns>
-    public async Task PublishNetworkStatusToWebsocket(WebSocketSession? session = null)
-    {
-        await mWebsocketService.SendNetworkConnectionStatusMessage(session, new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
-        {
-            Status = NetworkConnectionStatus,
-            Station = mAtisStation.Identifier
-        });
     }
 
     /// <summary>
@@ -916,6 +903,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
                 await PublishAtisToHub();
                 await PublishAtisToWebsocket();
+
                 await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
 
                 if (mAtisStation.AtisVoice.UseTextToSpeech)
@@ -966,6 +954,10 @@ public class AtisStationViewModel : ReactiveViewModelBase
     {
         try
         {
+            // Always publish the latest information to the websocket, even if the station isn't
+            // connected or doesn't support text to speech.
+            await PublishAtisToWebsocket();
+
             if (!mAtisStation.AtisVoice.UseTextToSpeech)
                 return;
 
@@ -996,7 +988,6 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter,
                         mCancellationToken.Token);
                     await PublishAtisToHub();
-                    await PublishAtisToWebsocket();
 
                     if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
                     {
@@ -1051,16 +1042,6 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
 
         HandleAcknowledgeAtisUpdate();
-    }
-
-    private async void OnGetNetworkConnectionStatusReceived(object? sender, GetNetworkConnectionStatusReceived e)
-    {
-        if (!string.IsNullOrEmpty(e.Station) && e.Station != mAtisStation.Identifier)
-        {
-            return;
-        }
-
-        await PublishNetworkStatusToWebsocket(e.Session);
     }
 
     private void HandleAcknowledgeAtisUpdate()
