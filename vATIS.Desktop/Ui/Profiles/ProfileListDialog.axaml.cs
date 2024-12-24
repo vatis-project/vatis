@@ -1,5 +1,7 @@
 using System;
 using System.Reactive.Linq;
+using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Serilog;
@@ -25,6 +27,14 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load profile list");
+        }
+    }
+
+    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
         }
     }
 
