@@ -30,6 +30,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (ViewModel == null)
             return;
         
+        if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            return;
+        
         if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
         {
             ViewModel.IsAtisLetterInputMode = true;
