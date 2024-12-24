@@ -40,6 +40,7 @@ public class AtisMessage()
         /// Gets the type of the ATIS message.
         /// </summary>
         [JsonPropertyName("atisType")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public AtisType? AtisType { get; set; }
 
