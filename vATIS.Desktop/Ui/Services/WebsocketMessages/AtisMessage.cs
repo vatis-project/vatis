@@ -11,13 +11,19 @@ public class AtisMessage()
   /// <summary>
   /// Represents the value of an ATIS message.
   /// </summary>
-  public class AtisMessageValue(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, bool isNewAtis, bool isPublished)
+  public class AtisMessageValue(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, string? textAtis, bool isNewAtis, bool isPublished)
   {
     /// <summary>
     /// Gets a value indicating whether the ATIS message is published.
     /// </summary>
     [JsonPropertyName("isPublished")]
     public bool IsPublished { get; } = isPublished;
+
+    /// <summary>
+    /// Gets the ATIS message text.
+    /// </summary>
+    [JsonPropertyName("textAtis")]
+    public string TextAtis { get; } = textAtis;
 
     /// <summary>
     /// Gets the station ID of the ATIS message.

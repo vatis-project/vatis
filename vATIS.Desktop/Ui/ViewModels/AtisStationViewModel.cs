@@ -848,7 +848,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         var atis = new AtisMessage
         {
             Value = new AtisMessage.AtisMessageValue(mAtisStation.Identifier, mAtisStation.AtisType, AtisLetter, Metar?.Trim(),
-                            Wind?.Trim(), Altimeter?.Trim(), IsNewAtis, NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+                            Wind?.Trim(), Altimeter?.Trim(), mAtisStation.TextAtis, IsNewAtis, NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
         };
 
         await mWebsocketService.SendAtisMessage(session, atis);
