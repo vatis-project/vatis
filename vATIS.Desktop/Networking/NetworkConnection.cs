@@ -15,7 +15,6 @@ using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Utils;
 using Vatsim.Vatis.Weather;
@@ -120,14 +119,17 @@ public class NetworkConnection
 
         MessageBus.Current.Listen<MetarReceived>().Subscribe(evt =>
         {
-            if (evt.Metar.RawMetar != mPreviousMetar && evt.Metar.Icao == station.Identifier)
+            if (evt.Metar.Icao == station.Identifier)
             {
-                MetarResponseReceived(this,
-                    new MetarResponseReceived(evt.Metar, !string.IsNullOrEmpty(mPreviousMetar)));
-                mPreviousMetar = evt.Metar.RawMetar;
+                var isNewMetar = !string.IsNullOrEmpty(mPreviousMetar) &&
+                                 evt.Metar.RawMetar?.Trim() != mPreviousMetar?.Trim();
+                if (mPreviousMetar != evt.Metar.RawMetar)
+                {
+                    MetarResponseReceived(this, new MetarResponseReceived(evt.Metar, isNewMetar));
+                    mPreviousMetar = evt.Metar.RawMetar;
+                    mDecodedMetar = evt.Metar;
+                }
             }
-
-            mDecodedMetar = evt.Metar;
         });
 
         MessageBus.Current.Listen<SessionEnded>().Subscribe((_) => { Disconnect(); });

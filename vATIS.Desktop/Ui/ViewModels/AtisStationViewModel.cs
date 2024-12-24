@@ -729,8 +729,9 @@ public class AtisStationViewModel : ReactiveViewModelBase
         {
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
-        
-            if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Disconnected ||
+                NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 return;
         
             if (SelectedAtisPreset == null)
