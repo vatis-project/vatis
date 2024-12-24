@@ -205,7 +205,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         
         SelectedTabIndex = -1;
         SelectedStation = station;
-        Frequency = station.Frequency > 0 ? (station.Frequency / 1000000.0).ToString("000.000") : "";
+        Frequency = station.Frequency > 0 ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US")) : "";
         AtisType = station.AtisType;
         CodeRangeLow = station.CodeRange.Low;
         CodeRangeHigh = station.CodeRange.High;

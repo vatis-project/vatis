@@ -85,7 +85,7 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
             return "";
 
         format = Regex.Replace(format, "{altimeter}", node.ActualValue.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|inhg}", mPressureInHg.ToString("00.00"), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|inhg}", mPressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{altimeter\|hpa}", mPressureHpa.ToString(), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{altimeter\|text}", node.ActualValue.ToString("0000").ToSerialFormat()?.ToUpperInvariant() ?? string.Empty, RegexOptions.IgnoreCase);
 
@@ -117,7 +117,7 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
             return "";
         
         format = Regex.Replace(format, "{altimeter}", ((int)node.ActualValue).ToSerialFormat(), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|inhg}", mPressureInHg.ToString("00.00").ToSerialFormat(Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|inhg}", mPressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")).ToSerialFormat(Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty, RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{altimeter\|hpa}", mPressureHpa.ToSerialFormat(), RegexOptions.IgnoreCase);
 
         var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
