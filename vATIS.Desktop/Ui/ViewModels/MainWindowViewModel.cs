@@ -110,6 +110,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+            .Sort(SortExpressionComparer<AtisStationViewModel>.Ascending(i => i.Identifier ?? string.Empty))
             .Bind(out var connectedStations)
             .Subscribe(_ =>
             {
