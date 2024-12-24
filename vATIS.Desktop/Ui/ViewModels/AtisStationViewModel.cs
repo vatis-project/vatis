@@ -287,30 +287,17 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 (metar, voiceRecord, networkStatus) => !string.IsNullOrEmpty(metar) && voiceRecord &&
                                                        networkStatus == NetworkConnectionStatus.Connected));
 
-        mWebsocketService.OnGetAtisReceived += async (session, station) =>
+        mWebsocketService.GetAtisReceived += async (session, args) =>
         {
-            if (station != mAtisStation.Identifier)
+            if (args.Station != mAtisStation.Identifier)
             {
                 return;
             }
 
-            await PublishAtisToWebsocket(session);
+            await PublishAtisToWebsocket(args.Session);
         };
 
-        mWebsocketService.OnAcknowledgeAtisUpdateReceived += async (station) =>
-        {
-            if (station != mAtisStation.Identifier)
-            {
-                return;
-            }
-
-            HandleAcknowledgeAtisUpdate();
-
-            // Since this may cause the state to change publish an update to all connected clients.
-            // This is done here instead of in HandleAcknowledgeAtisUpdate() to avoid having to make
-            // that method async.
-            await PublishAtisToWebsocket();
-        };
+        mWebsocketService.AcknowledgeAtisUpdateReceived += AcknowledgeAtisUpdateReceived;
 
         LoadContractionData();
 
@@ -377,6 +364,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             mAtisHubConnection.SubscribeToAtis(new SubscribeDto(mAtisStation.Identifier, mAtisStation.AtisType));
         });
 
+        this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
         this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
         this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(HandleNetworkStatusChanged);
     }
@@ -959,6 +947,11 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
+    private async void HandleIsNewAtisChanged(bool isNewAtis)
+    {
+        await PublishAtisToWebsocket();
+    }
+
     private async void HandleAtisLetterChanged(char atisLetter)
     {
         try
@@ -1027,6 +1020,16 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 ErrorMessage = e.Message;
             });
         }
+    }
+
+    private void AcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
+    {
+        if (e.Station != mAtisStation.Identifier)
+        {
+            return;
+        }
+
+        HandleAcknowledgeAtisUpdate();
     }
 
     private void HandleAcknowledgeAtisUpdate()

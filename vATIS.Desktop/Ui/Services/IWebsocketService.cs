@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using SuperSocket.WebSocket.Server;
+using Vatsim.Vatis.Events;
 
 namespace Vatsim.Vatis.Ui.Services;
 
@@ -10,7 +10,7 @@ public interface IWebsocketService
 	Task StartAsync();
 	Task StopAsync();
 
-	public event Action<WebSocketSession>? OnGetAllAtisReceived;
-	public event Action<WebSocketSession, string>? OnGetAtisReceived;
-	public event Action<string>? OnAcknowledgeAtisUpdateReceived;
+	public event EventHandler<GetAllAtisReceived> GetAllAtisReceived;
+	public event EventHandler<GetAtisReceived> GetAtisReceived;
+	public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived;
 }

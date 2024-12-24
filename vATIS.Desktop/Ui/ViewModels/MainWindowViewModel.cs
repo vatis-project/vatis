@@ -133,7 +133,8 @@ public class MainWindowViewModel : ReactiveViewModelBase
             var station = mSessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null && mAtisStationSource.Items.All(x => x.Id != station.Id))
             {
-                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                var viewModel = mViewModelFactory.CreateAtisStationViewModel(station);
+                mAtisStationSource.Add(viewModel);
             }
         });
         MessageBus.Current.Listen<AtisStationUpdated>().Subscribe(evt =>
@@ -169,9 +170,9 @@ public class MainWindowViewModel : ReactiveViewModelBase
             };
         }
 
-        mWebsocketService.OnGetAllAtisReceived += async (session) =>
+        mWebsocketService.GetAllAtisReceived += async (sender, args) =>
         {
-            await HandleGetAllAtisReceived(session);
+            await HandleGetAllAtisReceived(args.Session);
         };
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
