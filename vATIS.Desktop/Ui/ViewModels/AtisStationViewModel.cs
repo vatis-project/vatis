@@ -288,7 +288,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
         mWebsocketService.GetAtisReceived += OnGetAtisReceived;
         mWebsocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
-        mWebsocketService.GetNetworkStatusReceived += OnGetNetworkStatusReceived;
+        mWebsocketService.GetNetworkConnectionStatusReceived += OnGetNetworkConnectionStatusReceived;
 
         LoadContractionData();
 
@@ -1053,7 +1053,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         HandleAcknowledgeAtisUpdate();
     }
 
-    private async void OnGetNetworkStatusReceived(object? sender, GetNetworkStatusReceived e)
+    private async void OnGetNetworkConnectionStatusReceived(object? sender, GetNetworkConnectionStatusReceived e)
     {
         if (!string.IsNullOrEmpty(e.Station) && e.Station != mAtisStation.Identifier)
         {
