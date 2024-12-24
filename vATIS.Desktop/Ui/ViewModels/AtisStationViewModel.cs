@@ -837,6 +837,11 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
+    /// <summary>
+    /// Publishes the current network connection status to connected websocket clients.
+    /// </summary>
+    /// <param name="session">The connected client to publish the data to. If omitted or null the data is broadcast to all connected clients.</param>
+    /// <returns>A task.</returns>
     public async Task PublishNetworkStatusToWebsocket(WebSocketSession? session = null)
     {
         var networkStatus = new NetworkConnectionStatusMessage
