@@ -163,7 +163,7 @@ public class WebsocketService : IWebsocketService
 	/// </summary>
 	/// <param name="message">The message to send</param>
 	/// <returns>A task.</returns>
-	public async Task SendAsync(string message)
+	private async Task SendAsync(string message)
 	{
 		var tasks = new List<Task>();
 
