@@ -142,12 +142,39 @@ public class WebsocketService : IWebsocketService
     {
         try
         {
+            await CloseAllClientsAsync();
             await server.StopAsync();
         }
         catch (Exception e)
         {
             Log.Error(e, "Failed to stop WebSocket server");
         }
+    }
+
+    /// <summary>
+    /// Closes all connected sessions.
+    /// </summary>
+    /// <returns>A task.</returns>
+    private async Task CloseAllClientsAsync()
+    {
+        var tasks = new List<Task>();
+
+        foreach (var session in sessions.Values)
+        {
+            tasks.Add(Task.Run(async () =>
+            {
+                try
+                {
+                    await session.CloseAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error clossing session {session.SessionID}");
+                }
+            }));
+        }
+
+        await Task.WhenAll(tasks);
     }
 
     /// <summary>
