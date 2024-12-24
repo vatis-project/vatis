@@ -99,12 +99,12 @@ public class WebsocketService : IWebsocketService
 	{
 		var request = JsonSerializer.Deserialize<MessageBase>(message.Message);
 
-		if (request == null || string.IsNullOrWhiteSpace(request.Key))
+		if (request == null || string.IsNullOrWhiteSpace(request.MessageType))
 		{
-			throw new ArgumentException("Invalid request: no Key specified");
+			throw new ArgumentException("Invalid request: no message type specified");
 		}
 
-		switch (request.Key)
+		switch (request.MessageType)
 		{
 			case "GetAtis":
 				HandleGetAtis(session, request.Value);
@@ -113,7 +113,7 @@ public class WebsocketService : IWebsocketService
 				GetAllAtisReceived?.Invoke(session);
 				break;
 			default:
-				throw new ArgumentException($"Invalid request: unknown Key {request.Key}");
+				throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");
 		}
 	}
 

@@ -8,7 +8,7 @@ class GetAtisMessage
 	/// <summary>
 	/// Gets or sets the key identifying the message as a get ATIS message.
 	/// </summary>
-	public string? Key { get; set; }
+	public string? MessageType { get; set; }
 
 	/// <summary>
 	/// Gets or sets the station to get the ATIS for.

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 /// <summary>
@@ -10,17 +12,20 @@ public class ErrorMessage
   /// </summary>
   public class ErrorValue
   {
+    [JsonPropertyName("message")]
     /// <summary>
     /// Gets and sets the error message.
     /// </summary>
     public string Message { get; set; } = string.Empty;
   }
 
+  [JsonPropertyName("type")]
   /// <summary>
   /// Gets the key identifying the message as an error message.
   /// </summary>
-  public string Key { get; } = "Error";
+  public string MessageType { get; } = "Error";
 
+  [JsonPropertyName("value")]
   /// <summary>
   /// Gets and sets the error information.
   /// </summary>
