@@ -287,17 +287,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 (metar, voiceRecord, networkStatus) => !string.IsNullOrEmpty(metar) && voiceRecord &&
                                                        networkStatus == NetworkConnectionStatus.Connected));
 
-        mWebsocketService.GetAtisReceived += async (session, args) =>
-        {
-            if (args.Station != mAtisStation.Identifier)
-            {
-                return;
-            }
-
-            await PublishAtisToWebsocket(args.Session);
-        };
-
-        mWebsocketService.AcknowledgeAtisUpdateReceived += AcknowledgeAtisUpdateReceived;
+        mWebsocketService.GetAtisReceived += OnGetAtisReceived;
+        mWebsocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
 
         LoadContractionData();
 
@@ -1022,7 +1013,17 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
-    private void AcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
+    private async void OnGetAtisReceived(object? sender, GetAtisReceived args)
+    {
+        if (args.Station != mAtisStation.Identifier)
+        {
+            return;
+        }
+
+        await PublishAtisToWebsocket(args.Session);
+    }
+
+    private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
     {
         if (e.Station != mAtisStation.Identifier)
         {

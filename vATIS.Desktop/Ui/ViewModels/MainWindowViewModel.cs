@@ -170,26 +170,23 @@ public class MainWindowViewModel : ReactiveViewModelBase
             };
         }
 
-        mWebsocketService.GetAllAtisReceived += async (sender, args) =>
-        {
-            await HandleGetAllAtisReceived(args.Session);
-        };
+        mWebsocketService.GetAllAtisReceived += OnGetAllAtisReceived;
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
         timer.Start();
     }
 
-    private Task HandleGetAllAtisReceived(WebSocketSession session)
+    private async void OnGetAllAtisReceived(object? sender, GetAllAtisReceived e)
     {
         var tasks = new List<Task>();
 
         foreach (var station in AtisStations)
         {
-            tasks.Add(station.PublishAtisToWebsocket(session));
+            tasks.Add(station.PublishAtisToWebsocket(e.Session));
         }
 
-        return Task.WhenAll(tasks);
+        await Task.WhenAll(tasks);
     }
 
     public async Task PopulateAtisStations()
