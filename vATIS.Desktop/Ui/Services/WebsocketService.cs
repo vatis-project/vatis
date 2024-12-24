@@ -12,6 +12,7 @@ using System.Text.Json.Nodes;
 using SuperSocket.Server.Abstractions;
 using Serilog;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Networking;
 
 namespace Vatsim.Vatis.Ui.Services;
 
@@ -230,4 +231,18 @@ public class WebsocketService : IWebsocketService
 
 		AcknowledgeAtisUpdateReceived?.Invoke(this, new AcknowledgeAtisUpdateReceived(session, value.Station));
 	}
+
+	public async Task SendNetworkConnectedStatusMessage(NetworkConnectionStatus status)
+	{
+		var message = new NetworkConnectionStatusMessage
+		{
+			Value = new NetworkConnectionStatusMessage.NetworkConnectionStatusValue
+			{
+				Status = status
+			}
+		};
+
+		await SendAsync(JsonSerializer.Serialize(message));
+	}
+
 }

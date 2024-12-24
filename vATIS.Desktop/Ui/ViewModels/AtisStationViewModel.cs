@@ -569,6 +569,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
 
+            await mWebsocketService.SendNetworkConnectedStatusMessage(status);
+
             switch (status)
             {
                 case NetworkConnectionStatus.Connected:
