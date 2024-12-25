@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
@@ -14,6 +15,13 @@ public class CommandMessage
 		/// </summary>
 		[JsonPropertyName("station")]
 		public string? Station { get; set; }
+
+		/// <summary>
+		/// Gets or sets the atisType the command is for. Defaults to "Combined".
+		/// </summary> 
+		[JsonPropertyName("atisType")]
+		[JsonConverter(typeof(JsonStringEnumConverter))]
+		public AtisType AtisType { get; set; } = Vatis.Profiles.Models.AtisType.Combined;
 	}
 
 	/// <summary>

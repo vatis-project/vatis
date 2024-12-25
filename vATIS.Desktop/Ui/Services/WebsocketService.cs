@@ -108,10 +108,10 @@ public class WebsocketService : IWebsocketService
         switch (request.MessageType)
         {
             case "getAtis":
-                GetAtisReceived?.Invoke(this, new GetAtisReceived(session, request.Value?.Station));
+                GetAtisReceived?.Invoke(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
                 break;
             case "acknowledgeAtisUpdate":
-                AcknowledgeAtisUpdateReceived?.Invoke(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station));
+                AcknowledgeAtisUpdateReceived?.Invoke(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
                 break;
             default:
                 throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");

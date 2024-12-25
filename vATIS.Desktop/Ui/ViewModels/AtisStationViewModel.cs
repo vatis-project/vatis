@@ -1023,20 +1023,27 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
     }
 
-    private async void OnGetAtisReceived(object? sender, GetAtisReceived args)
+    private async void OnGetAtisReceived(object? sender, GetAtisReceived e)
     {
-        // A null station means all stations were requested.
-        if (!string.IsNullOrEmpty(args.Station) && args.Station != mAtisStation.Identifier)
+        // If a specific station is specified then both the station identifier and the ATIS type
+        // must match to acknowledge the update.
+        // If a specific station isn't specified then the request is for all stations.
+        if (!string.IsNullOrEmpty(e.Station) &&
+            (e.Station != mAtisStation.Identifier || e.AtisType != mAtisStation.AtisType))
         {
             return;
         }
 
-        await PublishAtisToWebsocket(args.Session);
+        await PublishAtisToWebsocket(e.Session);
     }
 
     private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
     {
-        if (!string.IsNullOrEmpty(e.Station) && e.Station != mAtisStation.Identifier)
+        // If a specific station is specified then both the station identifier and the ATIS type
+        // must match to acknowledge the update.
+        // If a specific station isn't specified then the request is for all stations.
+        if (!string.IsNullOrEmpty(e.Station) &&
+            (e.Station != mAtisStation.Identifier || e.AtisType != mAtisStation.AtisType))
         {
             return;
         }
