@@ -25,7 +25,7 @@
 			<Grid x:Name="Overlay" Grid.RowSpan="3" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:ProfileListViewModel, FallbackValue=False}">
 				<Border Background="#000000" Opacity="0.80"/>
 			</Grid>
-			<DockPanel Grid.Row="0" VerticalAlignment="Center" PointerPressed="OnPointerPressed">
+			<DockPanel Grid.Row="0" VerticalAlignment="Center" PointerPressed="OnPointerPressed" Background="#323232">
 				<Border BorderBrush="#646464" BorderThickness="0,0,0,1">
 					<TextBlock Foreground="White" Text="vATIS Profiles" Margin="5,3" />
 				</Border>
