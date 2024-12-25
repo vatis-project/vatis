@@ -210,6 +210,13 @@ public class SandboxViewModel : ReactiveViewModelBase
         SelectedPreset = null;
         SelectedStation = station;
         Presets = new ObservableCollection<AtisPreset>(station.Presets);
+        SandboxMetar = "";
+        HasUnsavedAirportConditions = false;
+        AirportConditionsTextDocument.Text = "";
+        HasUnsavedNotams = false;
+        NotamsTextDocument.Text = "";
+        SandboxTextAtis = "";
+        SandboxSpokenTextAtis = "";
     }
 
     public bool ApplyConfig()
