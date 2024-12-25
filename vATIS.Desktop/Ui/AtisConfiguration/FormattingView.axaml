@@ -495,6 +495,14 @@
 								<CheckBox Name="CloudToMetric" IsChecked="{Binding CloudsConvertToMetric, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Convert cloud layer altitude to metric</CheckBox>
 							</StackPanel>
 							<CheckBox IsChecked="{Binding CloudHeightAltitudeInHundreds, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" IsEnabled="{Binding !#CloudToMetric.IsChecked}" ToolTip.Tip="Cloud height will displayed in hundreds of feet, for example FEW010 will be shown as FEW1000">Display cloud height in hundreds of feet</CheckBox>
+							<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+								<TextBlock VerticalAlignment="Center" ToolTip.Tip="The minimum number digits to use for displaying cloud height.">Min cloud height digits count:</TextBlock>
+								<TextBox Text="{Binding CloudHeightMinDigitCount, DataType=vm:FormattingViewModel}" MaxLength="1" MinWidth="60" Name="CloudHeightMinDigitCount" Theme="{StaticResource DarkTextBox}">
+									<Interaction.Behaviors>
+										<behaviors:TextBoxNumericOnlyBehavior/>
+									</Interaction.Behaviors>
+								</TextBox>
+							</StackPanel>
 							<Grid ColumnDefinitions="140,5,*,20,140,5,*" Margin="0,10,0,5">
 								<TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the cloud layer height is ///">Undetermined (Voice):</TextBlock>
 								<TextBox Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Grid.Column="2" Theme="{StaticResource DarkTextBox}"></TextBox>

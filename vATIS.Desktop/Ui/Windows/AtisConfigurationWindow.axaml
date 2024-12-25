@@ -8,7 +8,7 @@
         x:Class="Vatsim.Vatis.Ui.Windows.AtisConfigurationWindow"
 		x:Name="Window" 
         x:DataType="vm:AtisConfigurationWindowViewModel"
-        Height="640" 
+        Height="670" 
         Width="950" 
         SystemDecorations="None" 
         Background="Transparent"
