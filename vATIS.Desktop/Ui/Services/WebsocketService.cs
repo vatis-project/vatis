@@ -8,7 +8,6 @@ using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using System.Collections.Concurrent;
 using SuperSocket.Server.Host;
-using System.Text.Json.Nodes;
 using SuperSocket.Server.Abstractions;
 using Serilog;
 using Vatsim.Vatis.Events;
