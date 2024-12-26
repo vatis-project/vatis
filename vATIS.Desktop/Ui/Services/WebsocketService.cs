@@ -12,6 +12,7 @@ using System.Text.Json.Nodes;
 using SuperSocket.Server.Abstractions;
 using Serilog;
 using Vatsim.Vatis.Events;
+using System.Net;
 
 namespace Vatsim.Vatis.Ui.Services;
 
@@ -82,7 +83,9 @@ public class WebsocketService : IWebsocketService
             configApp.AddInMemoryCollection(new Dictionary<string, string?>
             {
             { "serverOptions:name", "vATIS" },
-            { "serverOptions:listeners:0:ip", "Any" },
+            // The loopback address is used instead of "Any" so Windows doesn't prompt
+            // to grant vATIS firewall permissions.
+            { "serverOptions:listeners:0:ip", IPAddress.Loopback.ToString() },
             { "serverOptions:listeners:0:port", "49082" }
             });
         })
