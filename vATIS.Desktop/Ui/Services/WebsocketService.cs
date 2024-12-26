@@ -29,12 +29,11 @@ public class WebsocketService : IWebsocketService
     {
         // The loopback address is used to avoid Windows prompting for firewall permissions
         // when vATIS runs.
-        var uri = new Uri($"http://{IPAddress.Loopback}:49082");
-        mServer = new WatsonWsServer(uri);
+        mServer = new WatsonWsServer(hostname: IPAddress.Loopback.ToString(), port: 49082);
+        mServer.Logger = Log.Information;
         mServer.ClientConnected += OnClientConnected;
         mServer.ClientDisconnected += OnClientDisconnected;
         mServer.MessageReceived += OnMessageReceived;
-        Log.Information($"Initializing WebSocketService: {uri}");
     }
 
     /// <summary>
