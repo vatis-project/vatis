@@ -22,7 +22,7 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Networking;
 
-public class NetworkConnection
+public class NetworkConnection : INetworkConnection
 {
     private const string VATSIM_SERVER_ENDPOINT = "http://fsd.vatsim.net";
     private const string CLIENT_NAME = "vATIS";

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaEdit", "AvaloniaEdi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vATIS.Desktop", "vATIS.Desktop\vATIS.Desktop.csproj", "{AD458EDF-48A5-4158-ABE2-6E51DE8E3FF7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevServer", "DevServer\DevServer.csproj", "{FB6F95B8-0EFB-49C0-B330-8C16D95F6BF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{AD458EDF-48A5-4158-ABE2-6E51DE8E3FF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD458EDF-48A5-4158-ABE2-6E51DE8E3FF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD458EDF-48A5-4158-ABE2-6E51DE8E3FF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB6F95B8-0EFB-49C0-B330-8C16D95F6BF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB6F95B8-0EFB-49C0-B330-8C16D95F6BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB6F95B8-0EFB-49C0-B330-8C16D95F6BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB6F95B8-0EFB-49C0-B330-8C16D95F6BF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -75,13 +75,13 @@ public class MainWindowViewModel : ReactiveViewModelBase
 
     public MainWindowViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory, IWindowLocationService windowLocationService,
-        IAtisHubConnection atisHubConnection)
+        IHubConnectionFactory hubConnectionFactory)
     {
         mSessionManager = sessionManager;
         mWindowFactory = windowFactory;
         mViewModelFactory = viewModelFactory;
         mWindowLocationService = windowLocationService;
-        mAtisHubConnection = atisHubConnection;
+        mAtisHubConnection = hubConnectionFactory.CreateHubConnection();
 
         OpenSettingsDialogCommand = ReactiveCommand.Create(OpenSettingsDialog);
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
@@ -130,7 +130,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
             var station = mSessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null && mAtisStationSource.Items.All(x => x.Id != station.Id))
             {
-                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station, mAtisHubConnection));
             }
         });
         MessageBus.Current.Listen<AtisStationUpdated>().Subscribe(evt =>
@@ -145,7 +145,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
                 var updatedStation = mSessionManager.CurrentProfile?.Stations?.FirstOrDefault(x => x.Id == evt.Id);
                 if (updatedStation != null)
                 {
-                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(updatedStation));
+                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(updatedStation, mAtisHubConnection));
                 }
             }
         });
@@ -180,7 +180,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
         {
             try
             {
-                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station, mAtisHubConnection));
             }
             catch (Exception ex)
             {

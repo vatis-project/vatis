@@ -38,7 +38,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
     private readonly IAtisBuilder mAtisBuilder;
     private readonly AtisStation mAtisStation;
     private readonly IWindowFactory mWindowFactory;
-    private readonly NetworkConnection? mNetworkConnection;
+    private readonly INetworkConnection? mNetworkConnection;
     private readonly IVoiceServerConnection? mVoiceServerConnection;
     private readonly IAtisHubConnection mAtisHubConnection;
     private readonly ISessionManager mSessionManager;
@@ -221,7 +221,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
     public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
 
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
-        IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
+        IVoiceServerConnectionFactory voiceServerConnectionFactory, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
         INavDataRepository navDataRepository, IAtisHubConnection atisHubConnection, ISessionManager sessionManager,
         IProfileRepository profileRepository)
     {
@@ -290,7 +290,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mNetworkConnection.ChangeServerReceived += OnChangeServerReceived;
         mNetworkConnection.MetarResponseReceived += OnMetarResponseReceived;
         mNetworkConnection.KillRequestReceived += OnKillRequestedReceived;
-        mVoiceServerConnection = voiceServerConnection;
+        mVoiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
         UseTexToSpeech = !mAtisStation.AtisVoice.UseTextToSpeech;
         MessageBus.Current.Listen<AtisVoiceTypeChanged>().Subscribe(evt =>
