@@ -1,7 +1,7 @@
-namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
-
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Profiles.Models;
+
+namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 /// <summary>
 /// Represents a command sent from a client to the websocket server.
@@ -36,7 +36,7 @@ public class CommandMessage
         /// Gets or sets the atisType the command is for. Defaults to "Combined".
         /// </summary>
         [JsonPropertyName("atisType")]
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public AtisType AtisType { get; set; } = Vatis.Profiles.Models.AtisType.Combined;
+        [JsonConverter(typeof(JsonStringEnumConverter<AtisType>))]
+        public AtisType AtisType { get; set; } = AtisType.Combined;
     }
 }

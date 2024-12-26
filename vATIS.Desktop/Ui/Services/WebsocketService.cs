@@ -1,102 +1,78 @@
-namespace Vatsim.Vatis.Ui.Services;
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Serilog;
-using SuperSocket.Server.Abstractions;
-using SuperSocket.Server.Host;
-using SuperSocket.WebSocket;
-using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using WatsonWebsocket;
+
+namespace Vatsim.Vatis.Ui.Services;
 
 /// <summary>
 /// Provides a websocket interface to vATIS.
 /// </summary>
 public class WebsocketService : IWebsocketService
 {
-    private readonly IServer server;
+    private readonly WatsonWsServer mServer;
 
     // A list of connected clients so messages can be broadcast to all connected clients when requested.
-    private readonly ConcurrentDictionary<string, WebSocketSession> sessions = new();
+    private readonly ConcurrentDictionary<Guid, ClientMetadata> mSessions = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WebsocketService"/> class.
     /// </summary>
     public WebsocketService()
     {
-        server = WebSocketHostBuilder.Create()
+        var uri = new Uri($"http://{IPAddress.Loopback}:49082");
+        mServer = new WatsonWsServer(uri);
+        mServer.ClientConnected += OnClientConnected;
+        mServer.ClientDisconnected += OnClientDisconnected;
+        mServer.MessageReceived += OnMessageReceived;
+        Log.Information("Initializing WebSocketService: " + uri);
+    }
 
-        // Set up handling messages. Any exceptions thrown are put into an ErrorMessage and sent back to the client.
-        .UseWebSocketMessageHandler(
-            async (session, message) =>
-            {
-                try
-                {
-                    HandleRequest(session, message);
-                }
-                catch (Exception e)
-                {
-                    var error = new ErrorMessage
-                    {
-                        Value = new ErrorMessage.ErrorValue
-                        {
-                            Message = e.Message,
-                        },
-                    };
-                    await session.SendAsync(JsonSerializer.Serialize(error));
-                }
-            })
-
-        // Save and remove sessions when they connect and disconnect so messages can be broadcast
-        // to all connected clients.
-        .UseSessionHandler(
-            async (s) =>
-            {
-                // This method of casing to a WebSocketSession comes from
-                // https://github.com/kerryjiang/SuperSocket/blob/e86ace953eb569ade27f06ce554e55a6e8c854c4/test/SuperSocket.Tests/WebSocket/WebSocketBasicTest.cs#L133
-                if (s is WebSocketSession session)
-                {
-                    sessions.TryAdd(session.SessionID, session);
-                }
-
-                await ValueTask.CompletedTask;
-            },
-            async (s, e) =>
-            {
-                sessions.TryRemove(s.SessionID, out _);
-                await ValueTask.CompletedTask;
-            })
-        .ConfigureAppConfiguration((hostCtx, configApp) =>
+    private async void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
+    {
+        try
         {
-            configApp.AddInMemoryCollection(new Dictionary<string, string?>
+            HandleRequest(e.Client, e.Data);
+        }
+        catch (Exception ex)
+        {
+            var error = new ErrorMessage
             {
-            { "serverOptions:name", "vATIS" },
+                Value = new ErrorMessage.ErrorValue
+                {
+                    Message = ex.Message,
+                },
+            };
+            await mServer.SendAsync(e.Client.Guid, JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
+        }
+    }
 
-            // The loopback address is used instead of "Any" so Windows doesn't prompt
-            // to grant vATIS firewall permissions.
-            { "serverOptions:listeners:0:ip", IPAddress.Loopback.ToString() },
-            { "serverOptions:listeners:0:port", "49082" },
-            });
-        })
-        .BuildAsServer();
+    private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
+    {
+        mSessions.TryRemove(e.Client.Guid, out _);
+    }
+
+    private void OnClientConnected(object? sender, ConnectionEventArgs e)
+    {
+        mSessions.TryAdd(e.Client.Guid, e.Client);
     }
 
     /// <summary>
     /// Event that is raised when a client requests ATIS information. The requesting session and the station requested, if specified, are passed as parameters.
     /// </summary>
     ///
-    public event EventHandler<GetAtisReceived> GetAtisReceived = (sender, e) => { };
+    public event EventHandler<GetAtisReceived> GetAtisReceived = (_, _) => { };
 
     /// <summary>
     /// Event that is raised when a client acknowledges an ATIS update. The requesting session and the station acknowledged, if specified, is passed as a parameter.
     /// </summary>
-    public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = (sender, e) => { };
+    public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = (_, _) => { };
 
     /// <summary>
     /// Starts the WebSocket server.
@@ -106,7 +82,7 @@ public class WebsocketService : IWebsocketService
     {
         try
         {
-            await server.StartAsync();
+            await mServer.StartAsync();
         }
         catch (Exception e)
         {
@@ -123,7 +99,7 @@ public class WebsocketService : IWebsocketService
         try
         {
             await CloseAllClientsAsync();
-            await server.StopAsync();
+            mServer.Stop();
         }
         catch (Exception e)
         {
@@ -137,7 +113,7 @@ public class WebsocketService : IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    public async Task SendAtisMessage(WebSocketSession? session, AtisMessage.AtisMessageValue value)
+    public async Task SendAtisMessage(ClientMetadata? session, AtisMessage.AtisMessageValue value)
     {
         var message = new AtisMessage
         {
@@ -146,11 +122,11 @@ public class WebsocketService : IWebsocketService
 
         if (session is not null)
         {
-            await session.SendAsync(JsonSerializer.Serialize(message));
+            await mServer.SendAsync(session.Guid, JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
         else
         {
-            await SendAsync(JsonSerializer.Serialize(message));
+            await SendAsync(JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
     }
 
@@ -161,9 +137,9 @@ public class WebsocketService : IWebsocketService
     /// <param name="session">The client that sent the message.</param>
     /// <param name="message">The message.</param>
     /// <exception cref="ArgumentException">Thrown if the type is missing or invalid.</exception>
-    private void HandleRequest(WebSocketSession session, WebSocketPackage message)
+    private void HandleRequest(ClientMetadata session, ArraySegment<byte> message)
     {
-        var request = JsonSerializer.Deserialize<CommandMessage>(message.Message);
+        var request = JsonSerializer.Deserialize(message, SourceGenerationContext.NewDefault.CommandMessage);
 
         if (request == null || string.IsNullOrWhiteSpace(request.MessageType))
         {
@@ -173,10 +149,10 @@ public class WebsocketService : IWebsocketService
         switch (request.MessageType)
         {
             case "getAtis":
-                GetAtisReceived?.Invoke(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
+                GetAtisReceived(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
                 break;
             case "acknowledgeAtisUpdate":
-                AcknowledgeAtisUpdateReceived?.Invoke(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
+                AcknowledgeAtisUpdateReceived(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
                 break;
             default:
                 throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");
@@ -191,18 +167,20 @@ public class WebsocketService : IWebsocketService
     {
         var tasks = new List<Task>();
 
-        foreach (var session in sessions.Values)
+        foreach (var session in mSessions.Values)
         {
-            tasks.Add(Task.Run(async () =>
+            tasks.Add(Task.Run(() =>
             {
                 try
                 {
-                    await session.CloseAsync();
+                    mServer.DisconnectClient(session.Guid);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"Error clossing session {session.SessionID}");
+                    Log.Error(ex, $"Error closing session {session.Guid}");
                 }
+
+                return Task.CompletedTask;
             }));
         }
 
@@ -218,17 +196,17 @@ public class WebsocketService : IWebsocketService
     {
         var tasks = new List<Task>();
 
-        foreach (var session in sessions.Values)
+        foreach (var session in mSessions.Values)
         {
             tasks.Add(Task.Run(async () =>
             {
                 try
                 {
-                    await session.SendAsync(message);
+                    await mServer.SendAsync(session.Guid, message);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"Error sending message to session {session.SessionID}");
+                    Log.Error(ex, $"Error sending message to session {session.Guid}");
                 }
             }));
         }

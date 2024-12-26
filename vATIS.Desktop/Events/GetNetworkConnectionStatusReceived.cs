@@ -1,4 +1,4 @@
-using SuperSocket.WebSocket.Server;
+using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Events;
 
@@ -7,4 +7,4 @@ namespace Vatsim.Vatis.Events;
 /// </summary>
 /// <param name="Session">The client that requested the network status.</param>
 /// <param name="Station">The station to get the network status for. If null all stations are returned.</param>
-public record GetNetworkConnectionStatusReceived(WebSocketSession Session, string? Station) : IEvent;
+public record GetNetworkConnectionStatusReceived(ClientMetadata Session, string? Station) : IEvent;

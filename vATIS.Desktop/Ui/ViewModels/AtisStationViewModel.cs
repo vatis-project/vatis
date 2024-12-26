@@ -14,7 +14,6 @@ using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using DynamicData;
 using DynamicData.Binding;
-using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
@@ -32,8 +31,10 @@ using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
+
 public class AtisStationViewModel : ReactiveViewModelBase
 {
     private readonly IAppConfig mAppConfig;
@@ -574,7 +575,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
 
-            await PublishAtisToWebsocket(null);
+            await PublishAtisToWebsocket();
 
             switch (status)
             {
@@ -849,7 +850,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
     /// </summary>
     /// <param name="session">The connected client to publish the data to. If omitted or null the data is broadcast to all connected clients.</param>
     /// <returns>A task.</returns>
-    public async Task PublishAtisToWebsocket(WebSocketSession? session = null)
+    public async Task PublishAtisToWebsocket(ClientMetadata? session = null)
     {
         await mWebsocketService.SendAtisMessage(session, new AtisMessage.AtisMessageValue
         {

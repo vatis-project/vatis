@@ -21,7 +21,5 @@ vATIS is licensed under the [GPLv3 open-source license](LICENSE).
 
 This application uses the following third-party library:
 
-SuperSocket
-Licensed under the Apache License, Version 2.0.
-Copyright © Kerry Jiang.
-No modifications have been made to the original source code.
+WatsonWebsocket
+Licensed under the MIT License.

@@ -1,19 +1,19 @@
-namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
-
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
 
+namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
+
 /// <summary>
 /// Represents a message sent over the websocket with ATIS information.
 /// </summary>
-public class AtisMessage()
+public class AtisMessage
 {
     /// <summary>
     /// Gets the string identifying the message as an ATIS message.
     /// </summary>
     [JsonPropertyName("type")]
-    public string MessageType { get; } = "atis";
+    public string MessageType => "atis";
 
     /// <summary>
     /// Gets or sets the ATIS information.
@@ -24,13 +24,13 @@ public class AtisMessage()
     /// <summary>
     /// Represents the value of an ATIS message.
     /// </summary>
-    public class AtisMessageValue()
+    public class AtisMessageValue
     {
         /// <summary>
         /// Gets or sets the network connection status.
         /// </summary>
         [JsonPropertyName("networkConnectionStatus")]
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter<NetworkConnectionStatus>))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public NetworkConnectionStatus? NetworkConnectionStatus { get; set; }
 
@@ -52,7 +52,7 @@ public class AtisMessage()
         /// Gets or sets the type of the ATIS message.
         /// </summary>
         [JsonPropertyName("atisType")]
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter<AtisType>))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public AtisType? AtisType { get; set; }
 

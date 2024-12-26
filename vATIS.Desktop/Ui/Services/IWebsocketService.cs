@@ -1,11 +1,10 @@
-namespace Vatsim.Vatis.Ui.Services;
-
 using System;
 using System.Threading.Tasks;
-using SuperSocket.WebSocket.Server;
 using Vatsim.Vatis.Events;
-using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using WatsonWebsocket;
+
+namespace Vatsim.Vatis.Ui.Services;
 
 /// <summary>
 /// Represents a WebsocketService.
@@ -29,7 +28,7 @@ public interface IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    Task SendAtisMessage(WebSocketSession? session, AtisMessage.AtisMessageValue value);
+    Task SendAtisMessage(ClientMetadata? session, AtisMessage.AtisMessageValue value);
 
     /// <summary>
     /// Starts the WebSocket server.

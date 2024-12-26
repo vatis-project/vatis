@@ -1,6 +1,6 @@
-namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
-
 using System.Text.Json.Serialization;
+
+namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 /// <summary>
 /// Represents an error message sent over the websocket.
@@ -11,7 +11,7 @@ public class ErrorMessage
     /// Gets the key identifying the message as an error message.
     /// </summary>
     [JsonPropertyName("type")]
-    public string MessageType { get; } = "error";
+    public string MessageType => "error";
 
     /// <summary>
     /// Gets or sets the error information.
