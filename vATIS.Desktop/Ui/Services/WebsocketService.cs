@@ -31,9 +31,14 @@ public class WebsocketService : IWebsocketService
         mServer.ClientConnected += OnClientConnected;
         mServer.ClientDisconnected += OnClientDisconnected;
         mServer.MessageReceived += OnMessageReceived;
-        Log.Information("Initializing WebSocketService: " + uri);
+        Log.Information($"Initializing WebSocketService: {uri}");
     }
 
+    /// <summary>
+    /// Handles messages received via the websocket and fires the appropriate event handler.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The message data.</param>
     private async void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
     {
         try
@@ -53,11 +58,21 @@ public class WebsocketService : IWebsocketService
         }
     }
 
+    /// <summary>
+    /// Handles clients disconnecting from the service.  
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The data about the client that disconnected.</param>
     private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
     {
         mSessions.TryRemove(e.Client.Guid, out _);
     }
 
+    /// <summary>
+    /// Handles clients connecting to the service.  
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The data about the client that connected.</param>
     private void OnClientConnected(object? sender, ConnectionEventArgs e)
     {
         mSessions.TryAdd(e.Client.Guid, e.Client);
