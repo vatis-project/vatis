@@ -16,6 +16,7 @@ namespace Vatsim.Vatis.Ui.Services;
 /// </summary>
 public class WebsocketService : IWebsocketService
 {
+    // The websocket server.
     private readonly WatsonWsServer mServer;
 
     // A list of connected clients so messages can be broadcast to all connected clients when requested.
