@@ -30,16 +30,22 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         if (format == null)
             return "";
 
-        if (value.PrevailingVisibility != null &&
-            value.PrevailingVisibility.ActualUnit == Value.Unit.Meter &&
-            (int)value.PrevailingVisibility.ActualValue == 9999)
+        if (value.IsCavok)
         {
-            return Station.AtisFormat.Visibility.UnlimitedVisibilityText;
+            return "CAVOK";
         }
+        else
+        {
+            if (value.PrevailingVisibility != null &&
+                value.PrevailingVisibility.ActualUnit == Value.Unit.Meter &&
+                (int)value.PrevailingVisibility.ActualValue == 9999)
+            {
+                return Station.AtisFormat.Visibility.UnlimitedVisibilityText;
+            }
 
-        if (value.RawValue != null)
-            return Regex.Replace(format, "{visibility}", value.RawValue, RegexOptions.IgnoreCase);
-
+            if (value.RawValue != null)
+                return Regex.Replace(format, "{visibility}", value.RawValue, RegexOptions.IgnoreCase);
+        }
         return "";
     }
 
