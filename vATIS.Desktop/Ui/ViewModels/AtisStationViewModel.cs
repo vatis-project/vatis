@@ -765,6 +765,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 IsNewAtis = true;
             }
 
+            var propertyUpdates = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() =>
             {
                 Metar = e.Metar.RawMetar?.ToUpperInvariant();
@@ -772,7 +773,12 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
                     : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
                 Wind = e.Metar.SurfaceWind?.RawValue;
+                propertyUpdates.SetResult();
             });
+
+            // Wait for the UI thread to finish updating the properties. Without this it's possible
+            // to publish updated METAR information either via the hub or websocket with old data.
+            await propertyUpdates.Task;
 
             if (mAtisStation.AtisVoice.UseTextToSpeech)
             {
