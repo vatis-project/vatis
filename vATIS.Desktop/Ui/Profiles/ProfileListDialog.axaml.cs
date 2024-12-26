@@ -51,4 +51,23 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
             model.SetDialogOwner(this);
         }
     }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        PositionChanged += OnPositionChanged;
+        if (DataContext is ProfileListViewModel model)
+        {
+            model.RestorePosition(this);
+        }
+    }
+
+    private void OnPositionChanged(object? sender, PixelPointEventArgs e)
+    {
+        if (DataContext is ProfileListViewModel model)
+        {
+            model.UpdatePosition(this);
+        }
+    }
 }

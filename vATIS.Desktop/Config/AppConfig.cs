@@ -30,6 +30,8 @@ public class AppConfig : IAppConfig
 
     public WindowPosition? CompactWindowPosition { get; set; }
 
+    public WindowPosition? ProfileListDialogWindowPosition { get; set; }
+
     public string? MicrophoneDevice { get; set; }
 
     public string? PlaybackDevice { get; set; }
