@@ -64,6 +64,7 @@ public class AppConfig : IAppConfig
             AlwaysOnTop = config.AlwaysOnTop;
             MainWindowPosition = config.MainWindowPosition;
             CompactWindowPosition = config.CompactWindowPosition;
+            ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;
             MicrophoneDevice = config.MicrophoneDevice;
             PlaybackDevice = config.PlaybackDevice;
         }
