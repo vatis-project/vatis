@@ -212,11 +212,13 @@ public class SandboxViewModel : ReactiveViewModelBase
         Presets = new ObservableCollection<AtisPreset>(station.Presets);
         SandboxMetar = "";
         HasUnsavedAirportConditions = false;
-        AirportConditionsTextDocument.Text = "";
         HasUnsavedNotams = false;
-        NotamsTextDocument.Text = "";
+        AirportConditionsText = "";
+        NotamText = "";
         SandboxTextAtis = "";
         SandboxSpokenTextAtis = "";
+        IsSandboxPlaybackActive = false;
+        NativeAudio.StopBufferPlayback();
     }
 
     public bool ApplyConfig()
