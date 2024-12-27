@@ -42,7 +42,7 @@ vpk upload s3 `
     --endpoint "$env:AWS_ENDPOINT" `
     --keyId "$env:AWS_ACCESS_KEY_ID" `
     --secret "$env:AWS_SECRET_ACCESS_KEY" `
-    --prefix "staging/windows"
+    --prefix "windows"
 
 #Rename resulting file with version
 $setupFile = ".\Publish\org.vatsim.vatis-win-Setup.exe"
@@ -65,11 +65,11 @@ aws configure set region auto
 aws configure set output "json"
 
 aws s3 cp "$newSetupFile" `
-    "s3://vatis-releases/staging/windows/vATIS-Setup-$env:VERSION.exe" `
+    "s3://vatis-releases/windows/vATIS-Setup-$env:VERSION.exe" `
     --endpoint-url "$env:AWS_ENDPOINT"
 
 # Remove unused files
-aws s3 rm "s3://vatis-releases/staging/windows/RELEASES" `
+aws s3 rm "s3://vatis-releases/windows/RELEASES" `
     --endpoint-url "$env:AWS_ENDPOINT"
-aws s3 rm "s3://vatis-releases/staging/windows/org.vatsim.vatis-win-Setup.exe" `
+aws s3 rm "s3://vatis-releases/windows/org.vatsim.vatis-win-Setup.exe" `
     --endpoint-url "$env:AWS_ENDPOINT"

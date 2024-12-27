@@ -50,7 +50,7 @@ vpk upload s3 \
     --endpoint "$AWS_ENDPOINT" \
     --keyId "$AWS_ACCESS_KEY_ID" \
     --secret "$AWS_SECRET_ACCESS_KEY" \
-    --prefix "staging/linux"
+    --prefix "linux"
 
 # Upload Debug Symbols
 npm install -g @sentry/cli
@@ -65,11 +65,11 @@ aws configure set region auto
 aws configure set output "json"
 
 aws s3 cp "./velopack/vATIS-$VERSION.AppImage" \
-    "s3://vatis-releases/staging/linux/vATIS-$VERSION.AppImage" \
+    "s3://vatis-releases/linux/vATIS-$VERSION.AppImage" \
     --endpoint-url "$AWS_ENDPOINT"
 
 # Remove unused files
-aws s3 rm "s3://vatis-releases/staging/linux/RELEASES-linux" \
+aws s3 rm "s3://vatis-releases/linux/RELEASES-linux" \
     --endpoint-url "$AWS_ENDPOINT"
-aws s3 rm "s3://vatis-releases/staging/linux/org.vatsim.vatis.AppImage" \
+aws s3 rm "s3://vatis-releases/linux/org.vatsim.vatis.AppImage" \
     --endpoint-url "$AWS_ENDPOINT"
