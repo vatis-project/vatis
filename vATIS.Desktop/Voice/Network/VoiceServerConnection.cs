@@ -68,7 +68,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         
         if (Debugger.IsAttached)
             return;
-        
+
         try
         {
             await CheckExpiry();
@@ -76,6 +76,10 @@ public class VoiceServerConnection : IVoiceServerConnection
             var response = await mDownloader.PutJson(VoiceServerUrl + "/api/v1/bots/" + callsign, request, mJwtToken,
                 cancellationToken);
             response.EnsureSuccessStatusCode();
+        }
+        catch (OperationCanceledException)
+        {
+            // ignored
         }
         catch (Exception ex)
         {
