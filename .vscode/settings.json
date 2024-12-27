@@ -1,6 +1,4 @@
 {
-  "cmake.sourceDirectory": "G:/vatis/NativeAudio",
-  "git.enableSmartCommit": false,
   "files.exclude": {
     "**/.run": true,
     "**/.vs": true
