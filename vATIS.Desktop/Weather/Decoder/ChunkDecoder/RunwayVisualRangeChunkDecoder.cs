@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Weather.Decoder.Exception;
@@ -13,7 +16,7 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
 
     public override string GetRegex()
     {
-        return $"^({RunwayRegexPattern})( {RunwayRegexPattern})?( {RunwayRegexPattern})?( {RunwayRegexPattern})?( )";
+        return $"^(({RunwayRegexPattern}) )+";
     }
 
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
@@ -25,14 +28,25 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
 
         if (found.Count > 1)
         {
+            var rvrMetarPart = found[0].Value;
+            var chunkRegex = new Regex($"^(({RunwayRegexPattern}) )", RegexOptions.None, TimeSpan.FromMilliseconds(500));
             var runways = new List<RunwayVisualRange>();
             // iterate on the results to get all runways visual range found
-            for (int i = 1; i <= 20; i += 7)
+            List<Group> rvrRunwayGroups;
+            while ((rvrRunwayGroups = chunkRegex.Match(rvrMetarPart).Groups.Cast<Group>().ToList()).Count > 1)
             {
-                if (!string.IsNullOrEmpty(found[i].Value))
+                rvrMetarPart = chunkRegex.Replace(rvrMetarPart, string.Empty);
+                var rvrRawValue = rvrRunwayGroups[2].Value;
+                if (!string.IsNullOrEmpty(rvrRawValue))
                 {
+                    var rwyValue = rvrRunwayGroups[3].Value;
+                    var minVisualRangeIntervalValue = rvrRunwayGroups[5].Value;
+                    var maxVisualRangeIntervalValue = rvrRunwayGroups[6].Value;
+                    var rangeUnitValue = rvrRunwayGroups[7].Value;
+                    var tendencyValue = rvrRunwayGroups[8].Value;
+                    
                     // check runway qfu validity
-                    var qfuAsInt = Value.ToInt(found[i + 1].Value);
+                    var qfuAsInt = Value.ToInt(rwyValue);
                     if (qfuAsInt > 36 || qfuAsInt < 1)
                     {
                         throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
@@ -41,12 +55,12 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
 
                     // get distance unit
                     var rangeUnit = Value.Unit.Meter;
-                    if (found[i + 5].Value == "FT")
+                    if (rangeUnitValue == "FT")
                     {
                         rangeUnit = Value.Unit.Feet;
                     }
                     Tendency tendency = Tendency.None;
-                    switch (found[i + 6].Value)
+                    switch (tendencyValue)
                     {
                         case "U":
                             tendency = Tendency.U;
@@ -62,23 +76,23 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
                     }
                     var observation = new RunwayVisualRange()
                     {
-                        Runway = found[i + 1].Value,
+                        Runway = rwyValue,
                         PastTendency = tendency,
-                        RawValue = found[i].Value
+                        RawValue = rvrRawValue
                     };
 
-                    if (!string.IsNullOrEmpty(found[i + 3].Value))
+                    if (!string.IsNullOrEmpty(minVisualRangeIntervalValue))
                     {
                         observation.Variable = true;
-                        var min = string.IsNullOrEmpty(found[i + 3].Value) ? null : new Value(Value.ToInt(found[i + 3].Value)!.Value, rangeUnit);
-                        var max = string.IsNullOrEmpty(found[i + 4].Value) ? null : new Value(Value.ToInt(found[i + 4].Value)!.Value, rangeUnit);
+                        var min = string.IsNullOrEmpty(minVisualRangeIntervalValue) ? null : new Value(Value.ToInt(minVisualRangeIntervalValue)!.Value, rangeUnit);
+                        var max = string.IsNullOrEmpty(maxVisualRangeIntervalValue) ? null : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
                         if (max != null && min != null) 
                             observation.VisualRangeInterval = [min, max];
                     }
                     else
                     {
                         observation.Variable = false;
-                        var v = string.IsNullOrEmpty(found[i + 4].Value) ? null : new Value(Value.ToInt(found[i + 4].Value)!.Value, rangeUnit);
+                        var v = string.IsNullOrEmpty(maxVisualRangeIntervalValue) ? null : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
                         if (v != null) observation.VisualRange = v;
                     }
                     runways.Add(observation);
