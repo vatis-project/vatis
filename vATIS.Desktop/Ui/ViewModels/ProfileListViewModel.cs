@@ -19,6 +19,7 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
+using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Utils;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -57,15 +58,19 @@ public class ProfileListViewModel : ReactiveViewModelBase
     
     private readonly ISessionManager mSessionManager;
     private readonly IWindowFactory mWindowFactory;
+    private readonly IWindowLocationService mWindowLocationService;
     private readonly IProfileRepository mProfileRepository;
     private IDialogOwner? mDialogOwner;
     private string mPreviousUserValue = "";
 
-    public ProfileListViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
+    public ProfileListViewModel(ISessionManager sessionManager,
+        IWindowFactory windowFactory,
+        IWindowLocationService windowLocationService,
         IProfileRepository profileRepository)
     {
         mSessionManager = sessionManager;
         mWindowFactory = windowFactory;
+        mWindowLocationService = windowLocationService;
         mProfileRepository = profileRepository;
 
         var version = Assembly.GetEntryAssembly()
@@ -249,6 +254,22 @@ public class ProfileListViewModel : ReactiveViewModelBase
         {
             desktop.Shutdown();
         }
+    }
+
+    public void UpdatePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        mWindowLocationService.Update(window);
+    }
+
+    public void RestorePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        mWindowLocationService.Restore(window);
     }
 
     public void SetDialogOwner(IDialogOwner owner)

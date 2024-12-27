@@ -1,5 +1,7 @@
 using System;
 using System.Reactive.Linq;
+using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Serilog;
@@ -28,6 +30,14 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         }
     }
 
+    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
+    }
+
     public ProfileListDialog()
     {
         InitializeComponent();
@@ -39,6 +49,25 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         if (DataContext is ProfileListViewModel model)
         {
             model.SetDialogOwner(this);
+        }
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        PositionChanged += OnPositionChanged;
+        if (DataContext is ProfileListViewModel model)
+        {
+            model.RestorePosition(this);
+        }
+    }
+
+    private void OnPositionChanged(object? sender, PixelPointEventArgs e)
+    {
+        if (DataContext is ProfileListViewModel model)
+        {
+            model.UpdatePosition(this);
         }
     }
 }

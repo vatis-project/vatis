@@ -72,8 +72,21 @@ public class CloudNode : BaseNode<CloudLayer>
                 else if (Station.AtisFormat.Clouds.IsAltitudeInHundreds)
                     height *= 100;
 
-                template = Regex.Replace(template, "{altitude}", height.ToString("000"),
-                    RegexOptions.IgnoreCase);
+                // Match {altitude} or {altitude:N}, where N is the number of digits
+                template = Regex.Replace(
+                    template, 
+                    @"\{altitude(?::(\d+))?\}", 
+                    match =>
+                    {
+                        var minDigits = 3;
+                        if (int.TryParse(match.Groups[1].Value, out var specifiedDigits))
+                        {
+                            minDigits = specifiedDigits;
+                        }
+                        return height.ToString(new string('0', minDigits));
+                    }, 
+                    RegexOptions.IgnoreCase
+                );
             }
             
             template = layer.Type != CloudLayer.CloudType.None

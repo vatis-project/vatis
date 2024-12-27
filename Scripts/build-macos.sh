@@ -254,7 +254,7 @@ vpk upload s3 \
     --endpoint "$AWS_ENDPOINT" \
     --keyId "$AWS_ACCESS_KEY_ID" \
     --secret "$AWS_SECRET_ACCESS_KEY" \
-    --prefix "staging/macos"
+    --prefix "macos"
 
 # Upload Debug Symbols
 npm install -g @sentry/cli
@@ -270,11 +270,11 @@ aws configure set region auto
 aws configure set output "json"
 
 aws s3 cp "$BIN_DIR/$APP_NAME-$VERSION.dmg" \
-    "s3://vatis-releases/staging/macos/$APP_NAME-$VERSION.dmg" \
+    "s3://vatis-releases/macos/$APP_NAME-$VERSION.dmg" \
     --endpoint-url "$AWS_ENDPOINT"
 
 # Remove unused files
-aws s3 rm "s3://vatis-releases/staging/macos/RELEASES-osx" \
+aws s3 rm "s3://vatis-releases/macos/RELEASES-osx" \
     --endpoint-url "$AWS_ENDPOINT"
-aws s3 rm "s3://vatis-releases/staging/macos/org.vatsim.vatis-osx-Portable.zip" \
+aws s3 rm "s3://vatis-releases/macos/org.vatsim.vatis-osx-Portable.zip" \
     --endpoint-url "$AWS_ENDPOINT"
