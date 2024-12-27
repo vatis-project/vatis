@@ -13,12 +13,14 @@ using Avalonia.Threading;
 using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
+using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Voice.Audio;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class VoiceRecordAtisDialogViewModel : ReactiveObject
 {
+    private readonly IWindowLocationService mWindowLocationService;
     private readonly Stopwatch mRecordingStopwatch;
     private readonly System.Timers.Timer mElapsedTimeUpdateTimer;
     private readonly System.Timers.Timer mMaxRecordingDurationTimer;
@@ -140,8 +142,11 @@ public class VoiceRecordAtisDialogViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ListenCommand { get; private set; }
     public Window? DialogOwner { get; set; }
 
-    public VoiceRecordAtisDialogViewModel(IAppConfig appConfig)
+    public VoiceRecordAtisDialogViewModel(
+        IAppConfig appConfig,
+        IWindowLocationService windowLocationService)
     {
+        mWindowLocationService = windowLocationService;
         mRecordingStopwatch = new Stopwatch();
         mElapsedTimeUpdateTimer = new System.Timers.Timer();
         mElapsedTimeUpdateTimer.Interval = 50;
@@ -357,5 +362,21 @@ public class VoiceRecordAtisDialogViewModel : ReactiveObject
         }
 
         return result;
+    }
+
+    public void UpdatePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        mWindowLocationService.Update(window);
+    }
+
+    public void RestorePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        mWindowLocationService.Restore(window);
     }
 }

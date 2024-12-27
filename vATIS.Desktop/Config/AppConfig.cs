@@ -30,6 +30,8 @@ public class AppConfig : IAppConfig
 
     public WindowPosition? CompactWindowPosition { get; set; }
 
+    public WindowPosition? VoiceRecordAtisDialogWindowPosition { get; set; }
+
     public string? MicrophoneDevice { get; set; }
 
     public string? PlaybackDevice { get; set; }
@@ -62,6 +64,7 @@ public class AppConfig : IAppConfig
             AlwaysOnTop = config.AlwaysOnTop;
             MainWindowPosition = config.MainWindowPosition;
             CompactWindowPosition = config.CompactWindowPosition;
+            VoiceRecordAtisDialogWindowPosition = config.VoiceRecordAtisDialogWindowPosition;
             MicrophoneDevice = config.MicrophoneDevice;
             PlaybackDevice = config.PlaybackDevice;
         }

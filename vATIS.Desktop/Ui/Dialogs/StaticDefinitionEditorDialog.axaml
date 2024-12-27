@@ -54,7 +54,7 @@
 	</Window.Styles>
 	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
 		<StackPanel>
-			<Border CornerRadius="5,5,0,0" Background="#282828" Height="40">
+			<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
 				<Grid ColumnDefinitions="1*,1*">
 					<TextBlock Text="{Binding Title, DataType=vm:StaticDefinitionEditorDialogViewModel, FallbackValue='Definition Editor'}" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
 					<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CancelButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>

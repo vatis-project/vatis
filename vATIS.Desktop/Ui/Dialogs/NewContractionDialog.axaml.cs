@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Slugify;
@@ -26,6 +27,14 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
         if (e.Source is TextBox textBox)
         {
             textBox.Text = Slug.GenerateSlug(textBox.Text).ToUpperInvariant().Replace("-", "_");
+        }
+    }
+
+    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
         }
     }
 }
