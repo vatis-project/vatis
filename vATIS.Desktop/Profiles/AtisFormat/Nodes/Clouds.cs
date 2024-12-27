@@ -19,7 +19,6 @@ public class Clouds : BaseFormat
     public bool IdentifyCeilingLayer { get; set; } = true;
     public bool ConvertToMetric { get; set; }
     public bool IsAltitudeInHundreds { get; set; }
-    public int CloudHeightMinDigitCount { get; set; } = 3;
     public UndeterminedLayer UndeterminedLayerAltitude { get; set; } = new UndeterminedLayer("undetermined", "undetermined");
 
     [JsonConverter(typeof(CloudTypeConverter))]

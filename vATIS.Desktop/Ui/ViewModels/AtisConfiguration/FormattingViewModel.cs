@@ -819,20 +819,6 @@ public class FormattingViewModel : ReactiveViewModelBase
             }
         }
     }
-    
-    private string? mCloudHeightMinDigitCount;
-    public string? CloudHeightMinDigitCount
-    {
-        get => mCloudHeightMinDigitCount;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref mCloudHeightMinDigitCount, value);
-            if (!mInitializedProperties.Add(nameof(CloudHeightMinDigitCount)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
 
     private bool mTemperatureUsePlusPrefix;
     public bool TemperatureUsePlusPrefix
@@ -1097,7 +1083,6 @@ public class FormattingViewModel : ReactiveViewModelBase
         CloudsIdentifyCeilingLayer = station.AtisFormat.Clouds.IdentifyCeilingLayer;
         CloudsConvertToMetric = station.AtisFormat.Clouds.ConvertToMetric;
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
-        CloudHeightMinDigitCount = station.AtisFormat.Clouds.CloudHeightMinDigitCount.ToString();
         UndeterminedLayerAltitudeText = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text;
         UndeterminedLayerAltitudeVoice = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice;
         TemperatureUsePlusPrefix = station.AtisFormat.Temperature.UsePlusPrefix;
@@ -1481,16 +1466,6 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if(SelectedStation.AtisFormat.Clouds.IsAltitudeInHundreds != CloudHeightAltitudeInHundreds)
             SelectedStation.AtisFormat.Clouds.IsAltitudeInHundreds = CloudHeightAltitudeInHundreds;
-        
-        if (int.TryParse(CloudHeightMinDigitCount, out var cloudHeightMinDigitCount))
-        {
-            if (SelectedStation.AtisFormat.Clouds.CloudHeightMinDigitCount != cloudHeightMinDigitCount)
-                SelectedStation.AtisFormat.Clouds.CloudHeightMinDigitCount = cloudHeightMinDigitCount;
-        }
-        else
-        {
-            SelectedStation.AtisFormat.Clouds.CloudHeightMinDigitCount = 3;
-        }
         
         if (SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Text != UndeterminedLayerAltitudeText)
             SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Text = UndeterminedLayerAltitudeText ?? "";
