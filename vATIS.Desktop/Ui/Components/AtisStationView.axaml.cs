@@ -21,11 +21,11 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
         TypeAtisLetter.KeyDown += TypeAtisLetterOnKeyDown;
         AtisLetter.DoubleTapped += AtisLetterOnDoubleTapped;
-        AtisLetter.Click += AtisLetterOnClick;
+        AtisLetter.Tapped += AtisLetterOnTapped;
         AtisLetter.PointerPressed += AtisLetterOnPointerPressed;
     }
 
-    private void AtisLetterOnDoubleTapped(object? sender, TappedEventArgs e)
+    private async void AtisLetterOnDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ViewModel == null)
             return;
@@ -37,9 +37,16 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             ViewModel.IsAtisLetterInputMode = true;
         }
+        // If the shift key wasn't held down during a double tap it is likely
+        // the user is just tapping/clicking really fast to advance the letter
+        // so treat it like a single tap and increment.
+        else
+        {
+            await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+        }
     }
 
-    private async void AtisLetterOnClick(object? sender, RoutedEventArgs e)
+    private async void AtisLetterOnTapped(object? sender, TappedEventArgs e)
     {
         try
         {
@@ -48,6 +55,14 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
             if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 return;
+
+            // If the shift key is held down it likely means the user is trying to
+            // shift + double click to get into edit mode, so don't advance
+            // the letter.
+            if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
+            {
+                return;
+            }
 
             await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
         }
@@ -90,8 +105,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (e.Key == Key.Escape)
         {
             ViewModel.IsAtisLetterInputMode = false;
-            TypeAtisLetter.Text = $"{ViewModel.CodeRange.Low}";
-            ViewModel.AtisLetter = ViewModel.CodeRange.Low;
+            TypeAtisLetter.Text = $"{ViewModel.AtisLetter}";
         }
         else if (e.Key == Key.Enter || e.Key == Key.Return)
         {
