@@ -70,7 +70,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref mTabText, value);
     }
 
-    private char mAtisLetter = 'A';
+    private char mAtisLetter;
     public char AtisLetter
     {
         get => mAtisLetter;
@@ -242,6 +242,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mCancellationToken = new CancellationTokenSource();
         mAtisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
+
+        mAtisLetter = mAtisStation.CodeRange.Low;
 
         switch (station.AtisType)
         {
