@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
@@ -205,7 +204,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         
         SelectedTabIndex = -1;
         SelectedStation = station;
-        Frequency = station.Frequency > 0 ? (station.Frequency / 1000000.0).ToString("000.000") : "";
+        Frequency = station.Frequency > 0 ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US")) : "";
         AtisType = station.AtisType;
         CodeRangeLow = station.CodeRange.Low;
         CodeRangeHigh = station.CodeRange.High;
@@ -248,9 +247,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
                 RaiseError(nameof(Frequency),
                     "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
             }
-
-            if (frequency != SelectedStation.Frequency)
-                SelectedStation.Frequency = (uint)frequency;
+            
+            if (frequency is >= 0 and <= uint.MaxValue)
+            {
+                if (frequency != SelectedStation.Frequency)
+                    SelectedStation.Frequency = (uint)frequency;
+            }
         }
         else
         {

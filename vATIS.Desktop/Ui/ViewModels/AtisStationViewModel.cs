@@ -733,6 +733,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             Metar = null;
             Wind = null;
             Altimeter = null;
+            IsNewAtis = false;
         });
     }
 
@@ -766,7 +767,6 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 IsNewAtis = true;
             }
 
-            var propertyUpdates = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() =>
             {
                 Metar = e.Metar.RawMetar?.ToUpperInvariant();

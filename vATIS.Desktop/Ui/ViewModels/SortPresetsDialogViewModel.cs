@@ -6,7 +6,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Media;
 using ReactiveUI;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels;

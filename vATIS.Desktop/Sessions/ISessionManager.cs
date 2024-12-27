@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Sessions;

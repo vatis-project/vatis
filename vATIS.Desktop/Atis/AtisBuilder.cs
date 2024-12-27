@@ -14,7 +14,6 @@ using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Atis.Nodes;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Weather;
@@ -246,8 +245,10 @@ public class AtisBuilder : IAtisBuilder
         template = Regex.Replace(template, @"\s+", " ");
         template = Regex.Replace(template, @"(?<=\*)(-?[\,0-9]+)", "$1");
         template = Regex.Replace(template, @"(?<=\#)(-?[\,0-9]+)", "$1");
+        template = Regex.Replace(template, @"\{(-?[\,0-9]+)\}", "$1");
         template = Regex.Replace(template, @"(?<=\+)([A-Z]{3})", "$1");
         template = Regex.Replace(template, @"(?<=\+)([A-Z]{4})", "$1");
+        template = Regex.Replace(template, @"\*", "");
         // strip caret from runway parsing
         template = Regex.Replace(template, @"(?<![\w\d])\^((?:0?[1-9]|[1-2][0-9]|3[0-6])(?:[LRC]?))(?![\w\d])", "$1");
 

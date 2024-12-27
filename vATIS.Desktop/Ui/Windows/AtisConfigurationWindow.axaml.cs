@@ -5,7 +5,6 @@ using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
 using Serilog;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.ViewModels;

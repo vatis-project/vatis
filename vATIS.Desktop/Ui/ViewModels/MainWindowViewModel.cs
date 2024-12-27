@@ -30,10 +30,10 @@ public class MainWindowViewModel : ReactiveViewModelBase
     private readonly IAtisHubConnection mAtisHubConnection;
     private readonly IWebsocketService mWebsocketService;
 
-    public Window Owner { get; set; }
+    public Window? Owner { get; set; }
     private readonly SourceList<AtisStationViewModel> mAtisStationSource = new();
     public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
-    public ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
+    private ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
 
     public ReactiveCommand<Unit, Unit> OpenSettingsDialogCommand { get; private set; }
     public ReactiveCommand<Unit, Unit> OpenProfileConfigurationWindowCommand { get; private set; }
@@ -63,13 +63,6 @@ public class MainWindowViewModel : ReactiveViewModelBase
     {
         get => mShowOverlay;
         set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
-    }
-
-    private bool mHasConnectedStations;
-    private bool HasConnectedStations
-    {
-        get => mHasConnectedStations;
-        set => this.RaiseAndSetIfChanged(ref mHasConnectedStations, value);
     }
 
     #endregion
@@ -117,10 +110,8 @@ public class MainWindowViewModel : ReactiveViewModelBase
             .Subscribe(_ =>
             {
                 CompactWindowStations = connectedStations;
-                HasConnectedStations = connectedStations.Count > 0;
             });
 
-        HasConnectedStations = connectedStations.Count > 0;
         CompactWindowStations = connectedStations;
 
         MessageBus.Current.Listen<OpenGenerateSettingsDialog>().Subscribe(_ => OpenSettingsDialog());
@@ -182,11 +173,18 @@ public class MainWindowViewModel : ReactiveViewModelBase
         {
             try
             {
-                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                if (mAtisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
+                {
+                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                }
             }
             catch (Exception ex)
             {
-                await MessageBox.ShowDialog(Owner, "Error populating ATIS station: " + ex.Message, "Error", MessageBoxButton.Ok, MessageBoxIcon.Error);
+                if (Owner != null)
+                {
+                    await MessageBox.ShowDialog(Owner, "Error populating ATIS station: " + ex.Message, "Error",
+                        MessageBoxButton.Ok, MessageBoxIcon.Error);
+                }
             }
         }
     }
