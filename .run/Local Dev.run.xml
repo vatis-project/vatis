@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Local Dev" type="CompoundRunConfigurationType">
+    <toRun name="DevServer" type="DotNetProject" />
+    <toRun name="vATIS.Desktop" type="DotNetProject" />
+    <method v="2" />
+  </configuration>
+</component>

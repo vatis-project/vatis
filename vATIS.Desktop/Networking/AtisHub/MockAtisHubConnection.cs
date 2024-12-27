@@ -22,7 +22,7 @@ public class MockAtisHubConnection : IAtisHubConnection
                 return;
 
             mHubConnection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5248/hub")
+                .WithUrl("http://localhost:5500/hub")
                 .WithAutomaticReconnect()
                 .AddJsonProtocol(options =>
                 {
