@@ -180,7 +180,10 @@ public class MainWindowViewModel : ReactiveViewModelBase
         {
             try
             {
-                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                if (mAtisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
+                {
+                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                }
             }
             catch (Exception ex)
             {
