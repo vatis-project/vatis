@@ -1,0 +1,12 @@
+{
+  "cmake.sourceDirectory": "G:/vatis/NativeAudio",
+  "git.enableSmartCommit": false,
+  "files.exclude": {
+    "**/.run": true,
+    "**/.vs": true
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "README.md": "CONTRIBUTING.md,LICENSE"
+  }
+}

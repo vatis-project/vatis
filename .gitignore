@@ -402,3 +402,7 @@ FodyWeavers.xsd
 /NativeAudio/build
 /vATIS.Desktop/Voice/Audio/Native
 .DS_Store
+
+# Windows builds
+build/**
+NativeAudio/Out/**
