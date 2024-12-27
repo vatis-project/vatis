@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -248,9 +249,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
                 RaiseError(nameof(Frequency),
                     "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
             }
-
-            if (frequency != SelectedStation.Frequency)
-                SelectedStation.Frequency = (uint)frequency;
+            
+            if (frequency is >= 0 and <= uint.MaxValue)
+            {
+                if (frequency != SelectedStation.Frequency)
+                    SelectedStation.Frequency = (uint)frequency;
+            }
         }
         else
         {
