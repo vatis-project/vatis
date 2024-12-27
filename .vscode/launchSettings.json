@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "vATIS.Desktop - Production": {
+      "commandName": "Project"
+    },
+    "vATIS.Desktop - Dev server": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ENV": "DEV"
+      }
+    }
+  }
+}

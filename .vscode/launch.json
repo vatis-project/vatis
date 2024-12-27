@@ -1,0 +1,56 @@
+{
+  "configurations": [
+    {
+      "name": "Launch dev server",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build DevServer",
+      "program": "${workspaceFolder}/DevServer/bin/Debug/net8.0/DevServer.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "launchSettingsProfile": "http",
+      "launchSettingsFilePath": "${workspaceFolder}/DevServer/Properties/launchSettings.json",
+      "presentation": {
+        "hidden": true,
+        "group": "",
+        "order": 1
+      }
+    },
+    {
+      "name": "Launch vATIS.Desktop - Production",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build vATIS.Desktop",
+      "program": "${workspaceFolder}/vATIS.Desktop/bin/Debug/net8.0/vATIS.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Launch vATIS.Desktop - Dev server",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build vATIS.Desktop",
+      "program": "${workspaceFolder}/vATIS.Desktop/bin/Debug/net8.0/vATIS.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "launchSettingsProfile": "vATIS.Desktop - Dev server",
+      "launchSettingsFilePath": "${workspaceFolder}/vATIS.Desktop/Properties/launchSettings.json"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch dev server & debug vATIS.Desktop",
+      "configurations": [
+        "Launch dev server",
+        "Launch vATIS.Desktop - Dev server"
+      ],
+      "stopAll": true
+    }
+  ]
+}
