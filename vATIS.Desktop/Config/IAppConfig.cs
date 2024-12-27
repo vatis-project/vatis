@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Vatsim.Network;
-using Vatsim.Vatis.Profiles;
+﻿using Vatsim.Network;
 
 namespace Vatsim.Vatis.Config;
 

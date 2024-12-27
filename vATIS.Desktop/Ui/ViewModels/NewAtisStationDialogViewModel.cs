@@ -1,7 +1,6 @@
 ﻿using ReactiveUI;
 using System;
 using System.Reactive;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs;
 

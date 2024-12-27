@@ -16,7 +16,6 @@ using Avalonia.Threading;
 using ReactiveUI;
 using Sentry;
 using Serilog;
-using Serilog.Events;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;

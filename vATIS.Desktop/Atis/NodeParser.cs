@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Vatsim.Vatis.Atis.Nodes;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder.Entity;
