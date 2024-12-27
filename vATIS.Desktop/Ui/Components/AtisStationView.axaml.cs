@@ -18,7 +18,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     public AtisStationView()
     {
         InitializeComponent();
-        
+
         TypeAtisLetter.KeyDown += TypeAtisLetterOnKeyDown;
         AtisLetter.DoubleTapped += AtisLetterOnDoubleTapped;
         AtisLetter.Click += AtisLetterOnClick;
@@ -29,23 +29,23 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         if (ViewModel == null)
             return;
-        
+
         if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
             return;
-        
+
         if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
         {
             ViewModel.IsAtisLetterInputMode = true;
         }
     }
-    
+
     private async void AtisLetterOnClick(object? sender, RoutedEventArgs e)
     {
         try
         {
-            if(ViewModel == null)
+            if (ViewModel == null)
                 return;
-            
+
             if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 return;
 
@@ -83,21 +83,29 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         if (ViewModel == null)
             return;
-        
+
         if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
             return;
 
         if (e.Key == Key.Escape)
         {
             ViewModel.IsAtisLetterInputMode = false;
-            TypeAtisLetter.Text = "A";
-            ViewModel.AtisLetter = 'A';
+            TypeAtisLetter.Text = $"{ViewModel.CodeRange.Low}";
+            ViewModel.AtisLetter = ViewModel.CodeRange.Low;
         }
         else if (e.Key == Key.Enter || e.Key == Key.Return)
         {
             ViewModel.IsAtisLetterInputMode = false;
             if (char.TryParse(TypeAtisLetter.Text?.ToUpperInvariant(), out var letter))
             {
+                if (letter > ViewModel.CodeRange.High)
+                {
+                    return;
+                }
+                if (letter < ViewModel.CodeRange.Low)
+                {
+                    return;
+                }
                 ViewModel.AtisLetter = letter;
             }
         }
@@ -141,7 +149,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
         if (!NotamFreeText.TextArea.IsFocused)
             return;
-        
+
         if (mNotamsInitialized)
         {
             ViewModel.HasUnsavedNotams = true;

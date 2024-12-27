@@ -77,6 +77,11 @@ public class AtisStationViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref mAtisLetter, value);
     }
 
+    public CodeRangeMeta CodeRange
+    {
+        get { return mAtisStation.CodeRange; }
+    }
+
     private bool mIsAtisLetterInputMode;
     public bool IsAtisLetterInputMode
     {
@@ -338,7 +343,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    AtisLetter = 'A';
+                    AtisLetter = mAtisStation.CodeRange.Low;
                     Wind = null;
                     Altimeter = null;
                     Metar = null;
@@ -994,15 +999,15 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
 
         AtisLetter++;
-        if (AtisLetter > 'Z')
-            AtisLetter = 'A';
+        if (AtisLetter > mAtisStation.CodeRange.High)
+            AtisLetter = mAtisStation.CodeRange.Low;
     }
 
     private void DecrementAtisLetter()
     {
         AtisLetter--;
-        if (AtisLetter < 'A')
-            AtisLetter = 'Z';
+        if (AtisLetter < mAtisStation.CodeRange.Low)
+            AtisLetter = mAtisStation.CodeRange.High;
     }
 
     public void Disconnect()
