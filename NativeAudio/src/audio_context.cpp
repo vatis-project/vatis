@@ -3,8 +3,8 @@
 #include "wav_data.h"
 
 AudioContext::AudioContext() :
-	playbackDeviceName(playbackDeviceName),
-	captureDeviceName(captureDeviceName),
+	playbackDeviceName(""),
+	captureDeviceName(""),
 	audioApi(0),
 	captureInitialized(false),
 	playbackInitialized(false),
