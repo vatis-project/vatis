@@ -767,6 +767,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 IsNewAtis = true;
             }
 
+            var propertyUpdates = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() =>
             {
                 Metar = e.Metar.RawMetar?.ToUpperInvariant();
