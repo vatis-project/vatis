@@ -16,6 +16,9 @@
         "hidden": true,
         "group": "",
         "order": 1
+      },
+      "logging": {
+        "moduleLoad": false
       }
     },
     {
@@ -27,7 +30,10 @@
       "args": [],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "logging": {
+        "moduleLoad": false
+      }
     },
     {
       "name": "Launch vATIS.Desktop - Dev server",
@@ -40,7 +46,10 @@
       "stopAtEntry": false,
       "console": "internalConsole",
       "launchSettingsProfile": "vATIS.Desktop - Dev server",
-      "launchSettingsFilePath": "${workspaceFolder}/vATIS.Desktop/Properties/launchSettings.json"
+      "launchSettingsFilePath": "${workspaceFolder}/vATIS.Desktop/Properties/launchSettings.json",
+      "logging": {
+        "moduleLoad": false
+      }
     }
   ],
   "compounds": [
