@@ -53,6 +53,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
     private AtisPreset? mPreviousAtisPreset;
     private IDisposable? mPublishAtisTimer;
     private bool mIsPublishAtisTriggeredInitially;
+    private DecodedMetar? mDecodedMetar;
 
     #region Reactive Properties
     private string? mId;
@@ -734,6 +735,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mCancellationToken.Dispose();
         mCancellationToken = new CancellationTokenSource();
 
+        mDecodedMetar = null;
+
         Dispatcher.UIThread.Post(() =>
         {
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
@@ -773,6 +776,10 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 AcknowledgeOrIncrementAtisLetterCommand.Execute().Subscribe();
                 IsNewAtis = true;
             }
+
+            // Save the decoded metar so its individual properties can be sent to clients
+            // connected via the websocket.
+            mDecodedMetar = e.Metar;
 
             var propertyUpdates = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() =>
@@ -870,7 +877,9 @@ public class AtisStationViewModel : ReactiveViewModelBase
             Altimeter = Altimeter?.Trim(),
             TextAtis = mAtisStation.TextAtis,
             IsNewAtis = IsNewAtis,
-            NetworkConnectionStatus = NetworkConnectionStatus
+            NetworkConnectionStatus = NetworkConnectionStatus,
+            PressureUnit = mDecodedMetar?.Pressure?.Value?.ActualUnit,
+            PressureValue = mDecodedMetar?.Pressure?.Value?.ActualValue,
         });
     }
 

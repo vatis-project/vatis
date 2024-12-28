@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
+using static Vatsim.Vatis.Weather.Decoder.Entity.Value;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
@@ -83,6 +84,15 @@ public class AtisMessage
         [JsonPropertyName("altimeter")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Altimeter { get; set; }
+
+        [JsonPropertyName("pressureUnit")]
+        [JsonConverter(typeof(JsonStringEnumConverter<Unit>))]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Unit? PressureUnit { get; set; }
+
+        [JsonPropertyName("pressureValue")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? PressureValue { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the ATIS message is new.
