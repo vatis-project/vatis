@@ -70,11 +70,16 @@ public class AtisStationViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref mTabText, value);
     }
 
-    private char mAtisLetter = 'A';
+    private char mAtisLetter;
     public char AtisLetter
     {
         get => mAtisLetter;
         set => this.RaiseAndSetIfChanged(ref mAtisLetter, value);
+    }
+
+    public CodeRangeMeta CodeRange
+    {
+        get { return mAtisStation.CodeRange; }
     }
 
     private bool mIsAtisLetterInputMode;
@@ -238,6 +243,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mAtisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
 
+        mAtisLetter = mAtisStation.CodeRange.Low;
+
         switch (station.AtisType)
         {
             case AtisType.Arrival:
@@ -338,7 +345,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    AtisLetter = 'A';
+                    AtisLetter = mAtisStation.CodeRange.Low;
                     Wind = null;
                     Altimeter = null;
                     Metar = null;
@@ -994,15 +1001,15 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
 
         AtisLetter++;
-        if (AtisLetter > 'Z')
-            AtisLetter = 'A';
+        if (AtisLetter > mAtisStation.CodeRange.High)
+            AtisLetter = mAtisStation.CodeRange.Low;
     }
 
     private void DecrementAtisLetter()
     {
         AtisLetter--;
-        if (AtisLetter < 'A')
-            AtisLetter = 'Z';
+        if (AtisLetter < mAtisStation.CodeRange.Low)
+            AtisLetter = mAtisStation.CodeRange.High;
     }
 
     public void Disconnect()

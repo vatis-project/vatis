@@ -4,6 +4,7 @@ using Avalonia.Platform;
 using System.Linq;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Ui.Dialogs;
+using Vatsim.Vatis.Ui.Profiles;
 
 namespace Vatsim.Vatis.Ui.Services;
 public class WindowLocationService : IWindowLocationService
@@ -50,23 +51,43 @@ public class WindowLocationService : IWindowLocationService
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
-                if (primaryScreen != null)
-                {
-                    var screenWorkingArea = primaryScreen.WorkingArea;
+                if (primaryScreen == null) return;
+                var screenWorkingArea = primaryScreen.WorkingArea;
 
-                    var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
-                    var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
+                var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
+                var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
 
-                    mLeft = centeredLeft;
-                    mTop = centeredTop;
+                mLeft = centeredLeft;
+                mTop = centeredTop;
 
-                    mAppConfig.CompactWindowPosition = new WindowPosition(centeredLeft, centeredTop);
-                    mAppConfig.SaveConfig();
-                }
+                mAppConfig.CompactWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                mAppConfig.SaveConfig();
                 return;
             }
             mLeft = mAppConfig.CompactWindowPosition.X;
             mTop = mAppConfig.CompactWindowPosition.Y;
+        }
+        else if (window.GetType() == typeof(ProfileListDialog))
+        {
+            if (mAppConfig.ProfileListDialogWindowPosition == null)
+            {
+                // No settings found to restore, so center the window on the primary screen.
+                var primaryScreen = window.Screens.Primary;
+                if (primaryScreen == null) return;
+                var screenWorkingArea = primaryScreen.WorkingArea;
+
+                var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
+                var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
+
+                mLeft = centeredLeft;
+                mTop = centeredTop;
+
+                mAppConfig.ProfileListDialogWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                mAppConfig.SaveConfig();
+                return;
+            }
+            mLeft = mAppConfig.ProfileListDialogWindowPosition.X;
+            mTop = mAppConfig.ProfileListDialogWindowPosition.Y;
         }
         else if (window.GetType() == typeof(VoiceRecordAtisDialog))
         {
@@ -133,6 +154,11 @@ public class WindowLocationService : IWindowLocationService
         else if (window.GetType() == typeof(Windows.CompactWindow))
         {
             mAppConfig.CompactWindowPosition = savedPosition;
+            mAppConfig.SaveConfig();
+        }
+        else if (window.GetType() == typeof(ProfileListDialog))
+        {
+            mAppConfig.ProfileListDialogWindowPosition = savedPosition;
             mAppConfig.SaveConfig();
         }
         else if (window.GetType() == typeof(VoiceRecordAtisDialog))

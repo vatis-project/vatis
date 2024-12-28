@@ -16,6 +16,7 @@ public interface IAppConfig
     string? PlaybackDevice { get; set; }
     WindowPosition? MainWindowPosition { get; set; }
     WindowPosition? CompactWindowPosition { get; set; }
+    WindowPosition? ProfileListDialogWindowPosition { get; set; }
     WindowPosition? VoiceRecordAtisDialogWindowPosition { get; set; }
     void LoadConfig();
     void SaveConfig();
