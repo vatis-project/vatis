@@ -1,17 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
-		xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
-		mc:Ignorable="d"
-        x:Class="Vatsim.Vatis.Ui.Profiles.ProfileListDialog"
-        Title="vATIS Profiles" Height="375" Width="300"
-		WindowStartupLocation="CenterScreen" SystemDecorations="None"
-		Icon="/Assets/MainIcon.ico"
-		CanResize="False" 
-        Background="Transparent" 
-        TransparencyLevelHint="Transparent">
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
+	xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels" mc:Ignorable="d" x:Class="Vatsim.Vatis.Ui.Profiles.ProfileListDialog" Title="vATIS Profiles" Height="375" Width="300" WindowStartupLocation="CenterScreen" SystemDecorations="None" Icon="/Assets/MainIcon.ico" CanResize="False" Background="Transparent" TransparencyLevelHint="Transparent">
 	<Window.Resources>
 		<converters:BoolToBrushColorConverter x:Key="BoolToBrushColorConverter" TrueColor="Black" FalseColor="#646464"/>
 	</Window.Resources>
@@ -67,6 +59,8 @@
 					<StackPanel Grid.Column="1" Orientation="Vertical">
 						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding ShowNewProfileDialogCommand, DataType=vm:ProfileListViewModel}">New</Button>
 						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding ImportProfileCommand, DataType=vm:ProfileListViewModel}">Import</Button>
+						<Border Background="{DynamicResource SystemControlForegroundBaseLowBrush}" Height="1" Margin="0,5" />
+						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding StartClientSessionCommand, DataType=vm:ProfileListViewModel}" CommandParameter="{Binding #ProfileList.SelectedItem}">Open</Button>
 						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding RenameProfileCommand, DataType=vm:ProfileListViewModel}" CommandParameter="{Binding #ProfileList.SelectedItem}">Rename</Button>
 						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding ExportProfileCommand, DataType=vm:ProfileListViewModel}">Export</Button>
 						<Button Theme="{StaticResource Dark}" HorizontalAlignment="Stretch" Margin="0,3" Command="{Binding DeleteProfileCommand, DataType=vm:ProfileListViewModel}" CommandParameter="{Binding #ProfileList.SelectedItem}">Delete</Button>
