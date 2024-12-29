@@ -173,7 +173,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
             {
                 if (mAtisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
                 {
-                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station, mAtisHubConnection));
                 }
             }
             catch (Exception ex)
