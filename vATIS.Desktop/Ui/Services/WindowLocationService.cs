@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Platform;
 using System.Linq;
 using Vatsim.Vatis.Config;
+using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Profiles;
 
 namespace Vatsim.Vatis.Ui.Services;
@@ -88,6 +89,28 @@ public class WindowLocationService : IWindowLocationService
             mLeft = mAppConfig.ProfileListDialogWindowPosition.X;
             mTop = mAppConfig.ProfileListDialogWindowPosition.Y;
         }
+        else if (window.GetType() == typeof(VoiceRecordAtisDialog))
+        {
+            if (mAppConfig.VoiceRecordAtisDialogWindowPosition == null)
+            {
+                // No settings found to restore, so center the window on the primary screen.
+                var primaryScreen = window.Screens.Primary;
+                if (primaryScreen == null) return;
+                var screenWorkingArea = primaryScreen.WorkingArea;
+
+                var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
+                var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
+
+                mLeft = centeredLeft;
+                mTop = centeredTop;
+
+                mAppConfig.VoiceRecordAtisDialogWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                mAppConfig.SaveConfig();
+                return;
+            }
+            mLeft = mAppConfig.VoiceRecordAtisDialogWindowPosition.X;
+            mTop = mAppConfig.VoiceRecordAtisDialogWindowPosition.Y;
+        }
 
         if (mLeft is null || mTop is null)
             return;
@@ -136,6 +159,11 @@ public class WindowLocationService : IWindowLocationService
         else if (window.GetType() == typeof(ProfileListDialog))
         {
             mAppConfig.ProfileListDialogWindowPosition = savedPosition;
+            mAppConfig.SaveConfig();
+        }
+        else if (window.GetType() == typeof(VoiceRecordAtisDialog))
+        {
+            mAppConfig.VoiceRecordAtisDialogWindowPosition = savedPosition;
             mAppConfig.SaveConfig();
         }
     }

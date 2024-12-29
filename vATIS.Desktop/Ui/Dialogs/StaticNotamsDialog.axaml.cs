@@ -1,3 +1,5 @@
+using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Vatsim.Vatis.Ui.ViewModels;
 
@@ -15,5 +17,13 @@ public partial class StaticNotamsDialog : ReactiveWindow<StaticNotamsDialogViewM
     public StaticNotamsDialog()
     {
         InitializeComponent();
+    }
+
+    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
     }
 }

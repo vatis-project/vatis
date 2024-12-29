@@ -1,3 +1,4 @@
+using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Vatsim.Vatis.Ui.ViewModels;
 
@@ -14,5 +15,13 @@ public partial class UserInputDialog : ReactiveWindow<UserInputDialogViewModel>,
     public UserInputDialog()
     {
         InitializeComponent();
+    }
+
+    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
     }
 }
