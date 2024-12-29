@@ -16,7 +16,6 @@ using Avalonia.Threading;
 using ReactiveUI;
 using Sentry;
 using Serilog;
-using Serilog.Events;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
@@ -114,6 +113,13 @@ public class App : Application
 
                 mServiceProvider = new ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
+
+                if (OperatingSystem.IsMacOS() && AppContext.BaseDirectory.StartsWith("/Volumes"))
+                {
+                    ShowError("vATIS cannot be launched from a DMG volume. " +
+                              "Please move vATIS to the Applications folder.", fatal: true);
+                    return;
+                }
 
                 var informationalVersion = Assembly.GetEntryAssembly()
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;

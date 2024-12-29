@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Vatsim.Vatis.Ui.ViewModels;
 
@@ -15,5 +15,13 @@ public partial class TransitionLevelDialog : ReactiveWindow<TransitionLevelDialo
     public TransitionLevelDialog()
     {
         InitializeComponent();
+    }
+
+    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
     }
 }

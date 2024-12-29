@@ -47,7 +47,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
     private AtisPreset? mPreviousAtisPreset;
     private IDisposable? mPublishAtisTimer;
     private bool mIsPublishAtisTriggeredInitially;
-    
+
     #region Reactive Properties
     private string? mId;
     public string? Id
@@ -70,11 +70,16 @@ public class AtisStationViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref mTabText, value);
     }
 
-    private char mAtisLetter = 'A';
+    private char mAtisLetter;
     public char AtisLetter
     {
         get => mAtisLetter;
         set => this.RaiseAndSetIfChanged(ref mAtisLetter, value);
+    }
+
+    public CodeRangeMeta CodeRange
+    {
+        get { return mAtisStation.CodeRange; }
     }
 
     private bool mIsAtisLetterInputMode;
@@ -165,7 +170,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         get => mNotamsTextDocument?.Text;
         set => NotamsTextDocument = new TextDocument(value);
     }
-    
+
     private TextDocument? mNotamsTextDocument = new();
     public TextDocument? NotamsTextDocument
     {
@@ -200,7 +205,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
         get => mHasUnsavedAirportConditions;
         set => this.RaiseAndSetIfChanged(ref mHasUnsavedAirportConditions, value);
     }
-    
+
     private bool mHasUnsavedNotams;
     public bool HasUnsavedNotams
     {
@@ -237,6 +242,8 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mCancellationToken = new CancellationTokenSource();
         mAtisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
+
+        mAtisLetter = mAtisStation.CodeRange.Low;
 
         switch (station.AtisType)
         {
@@ -338,11 +345,11 @@ public class AtisStationViewModel : ReactiveViewModelBase
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    AtisLetter = 'A';
+                    AtisLetter = mAtisStation.CodeRange.Low;
                     Wind = null;
                     Altimeter = null;
                     Metar = null;
-                    NetworkConnectionStatus = NetworkConnectionStatus.Disconnected; 
+                    NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
                 });
             }
         });
@@ -362,7 +369,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
         SelectedAtisPreset.Notams = NotamsFreeText;
         mAppConfig.SaveConfig();
-        
+
         HasUnsavedNotams = false;
     }
 
@@ -373,26 +380,26 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
         SelectedAtisPreset.AirportConditions = AirportConditionsFreeText;
         mAppConfig.SaveConfig();
-        
+
         HasUnsavedAirportConditions = false;
     }
 
     private void LoadContractionData()
     {
         ContractionCompletionData.Clear();
-        
+
         foreach (var contraction in mAtisStation.Contractions.ToList())
         {
-            if (contraction is { VariableName: not null, Voice: not null }) 
+            if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
     }
 
     private void HandleOpenStaticNotamsDialog()
     {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime) 
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
             return;
-        
+
         if (lifetime.MainWindow == null)
             return;
 
@@ -415,7 +422,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 mAtisStation.NotamDefinitions.AddRange(changes);
                 mAppConfig.SaveConfig();
             });
-            
+
             viewModel.Definitions.CollectionChanged += (_, _) =>
             {
                 var idx = 0;
@@ -425,7 +432,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     item.Ordinal = ++idx;
                     mAtisStation.NotamDefinitions.Add(item);
                 }
-                if (mSessionManager.CurrentProfile != null) 
+                if (mSessionManager.CurrentProfile != null)
                     mProfileRepository.Save(mSessionManager.CurrentProfile);
             };
         }
@@ -435,9 +442,9 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
     private void HandleOpenAirportConditionsDialog()
     {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime) 
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
             return;
-        
+
         if (lifetime.MainWindow == null)
             return;
 
@@ -470,7 +477,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     item.Ordinal = ++idx;
                     mAtisStation.AirportConditionDefinitions.Add(item);
                 }
-                if (mSessionManager.CurrentProfile != null) 
+                if (mSessionManager.CurrentProfile != null)
                     mProfileRepository.Save(mSessionManager.CurrentProfile);
             };
         }
@@ -481,7 +488,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
     private void OnKillRequestedReceived(object? sender, KillRequestReceived e)
     {
         NativeAudio.EmitSound(SoundType.Error);
-        
+
         Dispatcher.UIThread.Post(() =>
         {
             Wind = null;
@@ -502,7 +509,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
             if (mNetworkConnection == null || mVoiceServerConnection == null)
                 return;
-        
+
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
             {
                 if (lifetime.MainWindow == null)
@@ -567,38 +574,38 @@ public class AtisStationViewModel : ReactiveViewModelBase
             switch (status)
             {
                 case NetworkConnectionStatus.Connected:
-                {
-                    try
                     {
-                        await mVoiceServerConnection.Connect(mAppConfig.UserId, mAppConfig.PasswordDecrypted);
-                        mSessionManager.CurrentConnectionCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorMessage = ex.Message;
-                    }
+                        try
+                        {
+                            await mVoiceServerConnection.Connect(mAppConfig.UserId, mAppConfig.PasswordDecrypted);
+                            mSessionManager.CurrentConnectionCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorMessage = ex.Message;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case NetworkConnectionStatus.Disconnected:
-                {
-                    try
                     {
-                        mSessionManager.CurrentConnectionCount =
-                            Math.Max(mSessionManager.CurrentConnectionCount - 1, 0);
-                        await mVoiceServerConnection.RemoveBot(mNetworkConnection.Callsign);
-                        mVoiceServerConnection?.Disconnect();
-                        mPublishAtisTimer?.Dispose();
-                        mPublishAtisTimer = null;
-                        mIsPublishAtisTriggeredInitially = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorMessage = ex.Message;
-                    }
+                        try
+                        {
+                            mSessionManager.CurrentConnectionCount =
+                                Math.Max(mSessionManager.CurrentConnectionCount - 1, 0);
+                            await mVoiceServerConnection.RemoveBot(mNetworkConnection.Callsign);
+                            mVoiceServerConnection?.Disconnect();
+                            mPublishAtisTimer?.Dispose();
+                            mPublishAtisTimer = null;
+                            mIsPublishAtisTriggeredInitially = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorMessage = ex.Message;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case NetworkConnectionStatus.Connecting:
                 case NetworkConnectionStatus.Observer:
                     break;
@@ -713,16 +720,17 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mCancellationToken.Cancel();
         mCancellationToken.Dispose();
         mCancellationToken = new CancellationTokenSource();
-        
+
         Dispatcher.UIThread.Post(() =>
         {
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
             Metar = null;
             Wind = null;
-            Altimeter = null; 
+            Altimeter = null;
+            IsNewAtis = false;
         });
     }
-    
+
     private void OnChangeServerReceived(object? sender, ClientEventArgs<string> e)
     {
         mNetworkConnection?.Disconnect();
@@ -739,7 +747,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
             if (NetworkConnectionStatus == NetworkConnectionStatus.Disconnected ||
                 NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 return;
-        
+
             if (SelectedAtisPreset == null)
                 return;
 
@@ -752,7 +760,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                 AcknowledgeOrIncrementAtisLetterCommand.Execute().Subscribe();
                 IsNewAtis = true;
             }
-        
+
             Dispatcher.UIThread.Post(() =>
             {
                 Metar = e.Metar.RawMetar?.ToUpperInvariant();
@@ -770,16 +778,16 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     await mCancellationToken.CancelAsync();
                     mCancellationToken.Dispose();
                     mCancellationToken = new CancellationTokenSource();
-            
+
                     var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, null,
                         mCancellationToken.Token);
-            
+
                     mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
-            
+
                     mNetworkConnection?.SendSubscriberNotification(AtisLetter);
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
                     await PublishAtisToHub();
-                    
+
                     if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
                     {
                         await Task.Run(async () =>
@@ -864,10 +872,10 @@ public class AtisStationViewModel : ReactiveViewModelBase
 
                 var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, null,
                     mCancellationToken.Token);
-                
+
                 await PublishAtisToHub();
                 await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
-                
+
                 if (mAtisStation.AtisVoice.UseTextToSpeech)
                 {
                     // Cancel previous request
@@ -941,7 +949,7 @@ public class AtisStationViewModel : ReactiveViewModelBase
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter,
                         mCancellationToken.Token);
                     await PublishAtisToHub();
-                    
+
                     if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
                     {
                         var dto = AtisBotUtils.AddBotRequest(atisBuilder.AudioBytes, mAtisStation.Frequency,
@@ -993,15 +1001,15 @@ public class AtisStationViewModel : ReactiveViewModelBase
         }
 
         AtisLetter++;
-        if (AtisLetter > 'Z')
-            AtisLetter = 'A';
+        if (AtisLetter > mAtisStation.CodeRange.High)
+            AtisLetter = mAtisStation.CodeRange.Low;
     }
 
     private void DecrementAtisLetter()
     {
         AtisLetter--;
-        if (AtisLetter < 'A')
-            AtisLetter = 'Z';
+        if (AtisLetter < mAtisStation.CodeRange.Low)
+            AtisLetter = mAtisStation.CodeRange.High;
     }
 
     public void Disconnect()

@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Avalonia.Controls;
 using Slugify;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 

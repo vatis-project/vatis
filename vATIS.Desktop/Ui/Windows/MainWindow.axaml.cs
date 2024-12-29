@@ -38,7 +38,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
-        if (e.Source is Border && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             BeginMoveDrag(e);
         }

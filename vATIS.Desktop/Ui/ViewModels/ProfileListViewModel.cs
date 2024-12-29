@@ -19,6 +19,7 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
+using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Utils;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -42,10 +43,10 @@ public class ProfileListViewModel : ReactiveViewModelBase
         get => mShowOverlay;
         set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
     }
-    
+
     public string ClientVersion { get; }
     #endregion
-    
+
     public ReactiveCommand<Unit, Unit> InitializeCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowNewProfileDialogCommand { get; }
     public ReactiveCommand<ProfileViewModel, Unit> RenameProfileCommand { get; }
@@ -54,18 +55,22 @@ public class ProfileListViewModel : ReactiveViewModelBase
     public ReactiveCommand<Unit, Unit> ExportProfileCommand { get; }
     public ReactiveCommand<ProfileViewModel, Unit> StartClientSessionCommand { get; }
     public ReactiveCommand<Unit, Unit> ExitCommand { get; }
-    
+
     private readonly ISessionManager mSessionManager;
     private readonly IWindowFactory mWindowFactory;
+    private readonly IWindowLocationService mWindowLocationService;
     private readonly IProfileRepository mProfileRepository;
     private IDialogOwner? mDialogOwner;
     private string mPreviousUserValue = "";
 
-    public ProfileListViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
+    public ProfileListViewModel(ISessionManager sessionManager,
+        IWindowFactory windowFactory,
+        IWindowLocationService windowLocationService,
         IProfileRepository profileRepository)
     {
         mSessionManager = sessionManager;
         mWindowFactory = windowFactory;
+        mWindowLocationService = windowLocationService;
         mProfileRepository = profileRepository;
 
         var version = Assembly.GetEntryAssembly()
@@ -81,7 +86,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
         ImportProfileCommand = ReactiveCommand.CreateFromTask(HandleImportProfile);
         ExportProfileCommand = ReactiveCommand.CreateFromTask(HandleExportProfile, canExecute);
         DeleteProfileCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleDeleteProfile, canExecute);
-        StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession);
+        StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession, canExecute);
         ExitCommand = ReactiveCommand.Create(HandleExit);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
@@ -186,7 +191,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
                         context.SetError("Profile name is required.");
                         return;
                     }
-                    
+
                     var profile = new Profile { Name = context.UserValue.Trim() };
                     mProfileList.Add(new ProfileViewModel(profile));
                     mProfileRepository.Save(profile);
@@ -212,7 +217,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
             foreach (var file in files)
             {
                 var newProfile = await mProfileRepository.Import(file);
-                mProfileList.Add(new ProfileViewModel(newProfile));   
+                mProfileList.Add(new ProfileViewModel(newProfile));
             }
         }
         catch (Exception ex)
@@ -237,7 +242,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
 
         if (file == null)
             return;
-        
+
         mProfileRepository.Export(SelectedProfile.Profile, file.Path.LocalPath);
         await MessageBox.ShowDialog((Window)mDialogOwner, "Profile successfully exported.", "Success",
             MessageBoxButton.Ok, MessageBoxIcon.Information);
@@ -249,6 +254,22 @@ public class ProfileListViewModel : ReactiveViewModelBase
         {
             desktop.Shutdown();
         }
+    }
+
+    public void UpdatePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        mWindowLocationService.Update(window);
+    }
+
+    public void RestorePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        mWindowLocationService.Restore(window);
     }
 
     public void SetDialogOwner(IDialogOwner owner)

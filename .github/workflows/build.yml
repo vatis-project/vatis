@@ -1,0 +1,75 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            cmakeGenerator: "Unix Makefiles"
+            platform: linux-x64
+          - os: windows-latest
+            cmakeGenerator: "Visual Studio 17 2022"
+            platform: win-x64
+          - os: macos-latest
+            cmakeGenerator: "Unix Makefiles"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Remove dummy client auth
+        shell: bash
+        run: |
+          rm -rf Vatsim.Network/ClientAuth.cs
+
+      - name: Clone ClientAuth
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/client-auth
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          path: Vatsim.Network/ClientAuth.cs
+
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential libcurl4-openssl-dev
+
+      - name: Build NativeAudio
+        run: |
+          mkdir -p ./NativeAudio/out
+          cmake -S ./NativeAudio -B ./NativeAudio/out -G "${{ matrix.cmakeGenerator }}" -DCMAKE_BUILD_TYPE=Release
+          cmake --build ./NativeAudio/out --config Release
+
+      - name: Build client for macOS (ARM and x64)
+        if: matrix.os == 'macos-latest'
+        run: |
+          for ARCH in osx-arm64 osx-x64; do
+            echo "Building for platform: $ARCH"
+            dotnet publish -c Release -r $ARCH -o ./build-$ARCH -p:UseAppHost=true -p:NoWarn=IL3000 ./vATIS.Desktop/vATIS.Desktop.csproj
+          done
+
+      - name: Build client (single platform)
+        if: matrix.os != 'macos-latest'
+        shell: bash
+        run: |
+          echo "Building for platform: ${{ matrix.platform }}"
+          dotnet publish -c Release -r ${{ matrix.platform }} -o ./build-${{ matrix.platform }} -p:UseAppHost=true -p:NoWarn=IL3000 ./vATIS.Desktop/vATIS.Desktop.csproj

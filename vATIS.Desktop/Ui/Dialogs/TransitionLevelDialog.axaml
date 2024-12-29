@@ -52,7 +52,7 @@
 	</Window.Styles>
 	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
 		<StackPanel>
-			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent">
+			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent" PointerPressed="OnPointerPressed">
 				<TextBlock Text="Transition Level" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
 			</Border>
 			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">

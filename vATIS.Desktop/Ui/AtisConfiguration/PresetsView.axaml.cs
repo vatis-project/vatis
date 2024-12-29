@@ -2,7 +2,6 @@ using System;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Serilog;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;

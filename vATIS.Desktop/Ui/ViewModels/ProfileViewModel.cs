@@ -1,5 +1,4 @@
 ﻿using ReactiveUI;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels;

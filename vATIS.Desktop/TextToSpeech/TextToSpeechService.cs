@@ -9,7 +9,6 @@ using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Networking;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.TextToSpeech;

@@ -1,5 +1,3 @@
-﻿using Vatsim.Vatis.Networking.AtisHub;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;

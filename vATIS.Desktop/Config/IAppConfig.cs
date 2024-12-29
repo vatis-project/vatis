@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Vatsim.Network;
-using Vatsim.Vatis.Profiles;
+﻿using Vatsim.Network;
 
 namespace Vatsim.Vatis.Config;
 
@@ -18,6 +16,8 @@ public interface IAppConfig
     string? PlaybackDevice { get; set; }
     WindowPosition? MainWindowPosition { get; set; }
     WindowPosition? CompactWindowPosition { get; set; }
+    WindowPosition? ProfileListDialogWindowPosition { get; set; }
+    WindowPosition? VoiceRecordAtisDialogWindowPosition { get; set; }
     void LoadConfig();
     void SaveConfig();
 }

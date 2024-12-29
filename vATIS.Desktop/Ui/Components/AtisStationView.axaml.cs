@@ -18,33 +18,51 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     public AtisStationView()
     {
         InitializeComponent();
-        
+
         TypeAtisLetter.KeyDown += TypeAtisLetterOnKeyDown;
         AtisLetter.DoubleTapped += AtisLetterOnDoubleTapped;
-        AtisLetter.Click += AtisLetterOnClick;
+        AtisLetter.Tapped += AtisLetterOnTapped;
         AtisLetter.PointerPressed += AtisLetterOnPointerPressed;
     }
 
-    private void AtisLetterOnDoubleTapped(object? sender, TappedEventArgs e)
+    private async void AtisLetterOnDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ViewModel == null)
             return;
-        
+
+        if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            return;
+
         if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
         {
             ViewModel.IsAtisLetterInputMode = true;
         }
+        // If the shift key wasn't held down during a double tap it is likely
+        // the user is just tapping/clicking really fast to advance the letter
+        // so treat it like a single tap and increment.
+        else
+        {
+            await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+        }
     }
-    
-    private async void AtisLetterOnClick(object? sender, RoutedEventArgs e)
+
+    private async void AtisLetterOnTapped(object? sender, TappedEventArgs e)
     {
         try
         {
-            if(ViewModel == null)
+            if (ViewModel == null)
                 return;
-            
+
             if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 return;
+
+            // If the shift key is held down it likely means the user is trying to
+            // shift + double click to get into edit mode, so don't advance
+            // the letter.
+            if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
+            {
+                return;
+            }
 
             await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
         }
@@ -80,21 +98,28 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         if (ViewModel == null)
             return;
-        
+
         if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
             return;
 
         if (e.Key == Key.Escape)
         {
             ViewModel.IsAtisLetterInputMode = false;
-            TypeAtisLetter.Text = "A";
-            ViewModel.AtisLetter = 'A';
+            TypeAtisLetter.Text = $"{ViewModel.AtisLetter}";
         }
         else if (e.Key == Key.Enter || e.Key == Key.Return)
         {
             ViewModel.IsAtisLetterInputMode = false;
             if (char.TryParse(TypeAtisLetter.Text?.ToUpperInvariant(), out var letter))
             {
+                if (letter > ViewModel.CodeRange.High)
+                {
+                    return;
+                }
+                if (letter < ViewModel.CodeRange.Low)
+                {
+                    return;
+                }
                 ViewModel.AtisLetter = letter;
             }
         }
@@ -138,7 +163,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
         if (!NotamFreeText.TextArea.IsFocused)
             return;
-        
+
         if (mNotamsInitialized)
         {
             ViewModel.HasUnsavedNotams = true;

@@ -10,7 +10,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
-using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
