@@ -1,0 +1,540 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        required: true
+        description: Version (Semver without leading v)
+      github-release:
+        type: boolean
+        description: Make GitHub Release?
+        default: true
+      github-release-draft:
+        type: boolean
+        description: Mark GitHub Release as Draft?
+        default: false
+      github-release-prerelease:
+        type: boolean
+        description: Mark GitHub Release as Prerelease?
+        default: true
+
+jobs:
+  release-linux:
+    name: Release (linux-x64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Remove dummy client auth
+        shell: bash
+        run: |
+          rm -rf Vatsim.Network/ClientAuth.cs
+      
+      - name: Clone ClientAuth
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/client-auth
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          path: Vatsim.Network/ClientAuth.cs
+
+      - uses: olegtarasov/get-tag@v2.1.2
+        if: github.event_name == 'release'
+        id: tag_name
+        with:
+          tagRegex: "v(.*)"
+          
+      - name: Set Version from Tag
+        if: github.event_name == 'release'
+        run: |
+          echo "Using tag ${{ env.GIT_TAG_NAME }}"
+          echo "RELEASE_VERSION=${{ env.GIT_TAG_NAME }}" >> $GITHUB_ENV
+          
+      - name: Set Version from manual input
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Using version ${{ github.event.inputs.version }}"
+          echo "RELEASE_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Velopack
+        run: |
+          dotnet tool update -g vpk
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential libcurl4-openssl-dev
+
+      - name: Build NativeAudio
+        run: |
+          mkdir -p ./NativeAudio/out
+          cmake -S ./NativeAudio -B ./NativeAudio/out -DCMAKE_BUILD_TYPE=Release
+          cmake --build ./NativeAudio/out --config Release
+      
+      - name: Build
+        run: |
+          dotnet publish -c Release -r linux-x64 -o ./build -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version=$RELEASE_VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
+
+      - name: Upload Debug Symbols
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
+          sentry-cli debug-files upload -o clowd -p vatis ./build
+
+      - name: Download last release
+        run: |
+          vpk download s3 --outputDir "./velopack" \
+          --bucket vatis-releases --endpoint "${{ secrets.AWS_ENDPOINT }}" \
+          --keyId "${{ secrets.AWS_ACCESS_KEY_ID }}" --secret "${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          --prefix "linux"
+
+          # Capture filename to ignore later so we don't upload it twice
+          FILE=$(find ./velopack -type f -printf '%P\n')
+          echo "PREVIOUS_RELEASE=$FILE" >> $GITHUB_ENV
+
+      - name: Velopack
+        run: |
+          vpk pack \
+              --packId org.vatsim.vatis \
+              --packTitle "vATIS" \
+              --packVersion $RELEASE_VERSION \
+              --packAuthors "Justin Shannon" \
+              --packDir ./build \
+              --mainExe vATIS \
+              --icon ./vATIS.Desktop/Assets/MainIcon.png \
+              --outputDir ./velopack \
+              --verbose
+
+      - name: Upload release assets
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set region auto
+          aws configure set output "json"
+
+          # Rename AppImage
+          mv ./velopack/org.vatsim.vatis.AppImage ./velopack/vATIS.AppImage
+
+          # Upload release assets
+          aws s3 sync ./velopack s3://vatis-releases/sandbox/linux \
+            --exclude "$PREVIOUS_RELEASE" \
+            --exclude "assets.linux.json" \
+            --exclude "RELEASES-linux" \
+            --endpoint-url "${{secrets.AWS_ENDPOINT}}"
+
+  release-macos:
+    name: Release (macos-universal)
+    runs-on: macos-latest
+    env:
+      APPLE_CERTIFICATE_NAME: ${{ secrets.APPLE_CERTIFICATE_NAME }}
+      APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set Variables
+        run: |
+          echo "APP_BUNDLE=build/vATIS.app" >> $GITHUB_ENV
+          echo "CERT_PATH=$RUNNER_TEMP/build_certificate.p12" >> $GITHUB_ENV
+          echo "KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain" >> $GITHUB_ENV
+          echo "KEYCHAIN_PASSWORD=`openssl rand -base64 12`" >> $GITHUB_ENV
+
+      - name: Install certificates
+        run: |
+          if [ -z "$APPLE_CERTIFICATE_BASE64" ] || [ -z "$APPLE_CERTIFICATE_PASSWORD" ] || [ -z "$APPLE_ID" ] || [ -z "$APPLE_TEAM_ID" ] || [ -z "$APPLE_PASSWORD" ]; then
+              exit 1
+          fi
+
+          # import certificates
+          echo -n "$APPLE_CERTIFICATE_BASE64" | base64 --decode -o $CERT_PATH
+
+          # default again user login keychain
+          security list-keychains -d user -s login.keychain
+
+          # Create temp keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Append temp keychain to the user domain
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed s/\"//g)
+
+          # Remove relock timeout
+          security set-keychain-settings "$KEYCHAIN_PATH"
+
+          # Unlock keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Add certificate to keychain
+          security import $CERT_PATH -k "$KEYCHAIN_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -T "/usr/bin/codesign" -T "/usr/bin/productsign"
+
+          # Enable codesigning from a non user interactive shell
+          security set-key-partition-list -S apple-tool:,apple:, -s -k $KEYCHAIN_PASSWORD -t private $KEYCHAIN_PATH
+
+          # Create notarytool profile
+          xcrun notarytool store-credentials "notary-profile" --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_PASSWORD" --keychain "$KEYCHAIN_PATH" 
+
+      - name: Remove dummy client auth
+        shell: bash
+        run: |
+          rm -rf Vatsim.Network/ClientAuth.cs
+      
+      - name: Clone ClientAuth
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/client-auth
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          path: Vatsim.Network/ClientAuth.cs
+
+      - uses: olegtarasov/get-tag@v2.1.2
+        if: github.event_name == 'release'
+        id: tag_name
+        with:
+          tagRegex: "v(.*)"
+          
+      - name: Set Version from Tag
+        if: github.event_name == 'release'
+        run: |
+          echo "Using tag ${{ env.GIT_TAG_NAME }}"
+          echo "RELEASE_VERSION=${{ env.GIT_TAG_NAME }}" >> $GITHUB_ENV
+          
+      - name: Set Version from manual input
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Using version ${{ github.event.inputs.version }}"
+          echo "RELEASE_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Velopack
+        run: |
+          dotnet tool update -g vpk
+
+      - name: Build NativeAudio
+        run: |
+          mkdir -p ./NativeAudio/out
+          cmake -S ./NativeAudio -B ./NativeAudio/out -DCMAKE_BUILD_TYPE=Release
+          cmake --build ./NativeAudio/out --config Release
+      
+      - name: Build
+        run: |
+          dotnet publish -c Release -r osx-x64 -o ./build-x64 -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version=$RELEASE_VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
+          dotnet publish -c Release -r osx-arm64 -o ./build-arm -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version=$RELEASE_VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
+
+      - name: Convert Semantic Version to CFBundleVersion
+        id: convert_version
+        run: |
+          base_version=$(echo "$RELEASE_VERSION" | sed -E 's/[-+].*//')
+          beta_number=$(echo "$RELEASE_VERSION" | sed -E 's/.*-.*\.([0-9]+)/\1/')
+          [[ "$beta_number" == "$RELEASE_VERSION" ]] && beta_number="0"
+          echo "CFBUNDLE_VERSION=${base_version}.${beta_number}" >> $GITHUB_ENV  
+
+      - name: Create Application Bundle
+        run: |
+          # Create skeleton app bundle directories
+          mkdir -p $APP_BUNDLE/Contents/MacOS $APP_BUNDLE/Contents/Resources
+
+          # Create universal binary
+          lipo -create ./build-x64/vATIS ./build-arm/vATIS -output $APP_BUNDLE/Contents/MacOS/vATIS
+
+          # Copy libraries to application bundle
+          for lib in libAvaloniaNative.dylib libHarfBuzzSharp.dylib libNativeAudio.dylib libSkiaSharp.dylib; do
+              cp "./build-arm/$lib" "$APP_BUNDLE/Contents/MacOS/$lib"
+          done
+
+          # Copy application icon
+          cp ./vATIS.Desktop/Assets/MainIcon.icns $APP_BUNDLE/Contents/Resources/app.icns
+
+      - name: Create Info.plist
+        run: |
+          cat << EOF > "$APP_BUNDLE/Contents/Info.plist"
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleName</key>
+              <string>vATIS</string>
+              <key>CFBundleDisplayName</key>
+              <string>vATIS</string>
+              <key>CFBundleIdentifier</key>
+              <string>org.vatsim.vatis</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ env.RELEASE_VERSION }}</string>
+              <key>CFBundleVersion</key>
+              <string>${{ env.CFBUNDLE_VERSION }}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleExecutable</key>
+              <string>vATIS</string>
+              <key>CFBundleIconFile</key>
+              <string>app.icns</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+              <key>NSMicrophoneUsageDescription</key>
+              <string>vATIS requires access to your microphone.</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Download last release
+        run: |
+          vpk download s3 --outputDir "./velopack" \
+          --bucket vatis-releases --endpoint "${{ secrets.AWS_ENDPOINT }}" \
+          --keyId "${{ secrets.AWS_ACCESS_KEY_ID }}" --secret "${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          --prefix "macos"
+
+          # Capture filename to ignore later so we don't upload it twice
+          FILE=$(find ./velopack -type f | sed 's|./velopack/||')
+          echo "PREVIOUS_RELEASE=$FILE" >> $GITHUB_ENV
+
+      - name: Velopack
+        run: |
+          vpk pack \
+              --packId org.vatsim.vatis \
+              --packTitle vATIS \
+              --packVersion $RELEASE_VERSION \
+              --packAuthors "Justin Shannon" \
+              --packDir $APP_BUNDLE \
+              --noInst \
+              --delta None \
+              --mainExe vATIS \
+              --icon ./vATIS.Desktop/Assets/MainIcon.icns \
+              --outputDir ./velopack \
+              --verbose
+
+      - name: Upload Debug Symbols
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
+          sentry-cli debug-files upload -o clowd -p vatis $APP_BUNDLE/Contents/MacOS    
+
+      - name: Codesign Application
+        run: |
+          unzip -o ./velopack/org.vatsim.vatis-osx-Portable.zip -d ./velopack
+          
+          if [ -d "./velopack/__MACOSX" ]; then
+              rm -rf "./velopack/__MACOSX"
+          fi
+
+          codesign --deep --force --verify --verbose \
+            --sign "$APPLE_SIGNING_IDENTITY" \
+            --options runtime \
+            --entitlements ./Scripts/app.entitlements \
+            --keychain "$KEYCHAIN_PATH" \
+            "./velopack/vATIS.app"
+
+          codesign --verify --deep --strict --verbose=2 ./velopack/vATIS.app
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+
+          create-dmg \
+            --background ./Scripts/dmg-background.tiff \
+            --window-size 660 400 \
+            --window-pos 200 120 \
+            --app-drop-link 475 170 \
+            --icon vATIS.app 195 170 \
+            --hdiutil-quiet \
+            --hide-extension vATIS.app \
+            "./velopack/vATIS.dmg" \
+            "./velopack/vATIS.app"
+
+          # Codesign DMG
+          codesign --force --sign "$APPLE_CERTIFICATE_NAME" --keychain "$KEYCHAIN_PATH" "./velopack/vATIS.dmg"
+          codesign --verify --verbose=2 ./velopack/vATIS.dmg
+
+          # Notarize DMG
+          xcrun notarytool submit "./velopack/vATIS.dmg" --keychain-profile "notary-profile" --keychain "$KEYCHAIN_PATH" --wait
+
+          # Staple Notarization Ticket
+          xcrun stapler staple "./velopack/vATIS.dmg"
+          xcrun stapler validate "./velopack/vATIS.dmg"
+          
+      - name: Upload release assets
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set region auto
+          aws configure set output "json"
+
+          # Upload release assets
+          aws s3 sync ./velopack s3://vatis-releases/sandbox/macos \
+            --exclude "$PREVIOUS_RELEASE" \
+            --exclude "assets.osx.json" \
+            --exclude "RELEASES-osx" \
+            --exclude "vATIS.app/*" \
+            --exclude "org.vatsim.vatis-osx-Portable.zip" \
+            --endpoint-url "${{secrets.AWS_ENDPOINT}}"
+
+  release-windows:
+    name: Release (windows-x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Remove dummy client auth
+        shell: bash
+        run: |
+          rm -rf Vatsim.Network/ClientAuth.cs
+      
+      - name: Clone ClientAuth
+        uses: actions/checkout@v4
+        with:
+          repository: vatis-project/client-auth
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          path: Vatsim.Network/ClientAuth.cs
+
+      - uses: olegtarasov/get-tag@v2.1.2
+        if: github.event_name == 'release'
+        id: tag_name
+        with:
+          tagRegex: "v(.*)"
+          
+      - name: Set Version from Tag
+        if: github.event_name == 'release'
+        run: |
+          echo "Using tag ${{ env.GIT_TAG_NAME }}"
+          echo "RELEASE_VERSION=${{ env.GIT_TAG_NAME }}" >> $env:GITHUB_ENV
+          
+      - name: Set Version from manual input
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Using version ${{ github.event.inputs.version }}"
+          echo "RELEASE_VERSION=${{ github.event.inputs.version }}" >> $env:GITHUB_ENV
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Velopack
+        run: |
+          dotnet tool update -g vpk
+
+      - name: Build NativeAudio
+        shell: bash
+        run: |
+          mkdir -p ./NativeAudio/out
+          cmake -S ./NativeAudio -B ./NativeAudio/out -DCMAKE_BUILD_TYPE=Release
+          cmake --build ./NativeAudio/out --config Release
+      
+      - name: Build
+        shell: bash
+        run: |
+          dotnet publish -c Release -r win-x64 -o ./build -p:NoWarn=IL3000 -p:Version=$RELEASE_VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
+
+      - name: Upload Debug Symbols
+        shell: bash
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
+          sentry-cli debug-files upload -o clowd -p vatis ./build    
+
+      - name: Download last release
+        shell: bash
+        run: |
+          vpk download s3 --outputDir "./velopack" \
+          --bucket vatis-releases --endpoint "${{ secrets.AWS_ENDPOINT }}" \
+          --keyId "${{ secrets.AWS_ACCESS_KEY_ID }}" --secret "${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          --prefix "windows"
+
+          # Capture filename to ignore later so we don't upload it twice
+          FILE=$(find ./velopack -type f -printf '%P\n')
+          echo "PREVIOUS_RELEASE=$FILE" >> $GITHUB_ENV
+
+      - name: Create TrustedSigning Metadata
+        env:
+          ENDPOINT: https://eus.codesigning.azure.net
+          CODE_SIGNING_ACCOUNT_NAME: ${{ secrets.AZURE_ACCOUNT_NAME }}
+          CERTIFICATE_PROFILE_NAME: ${{ secrets.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $metadata = @{
+            Endpoint = $env:ENDPOINT
+            CodeSigningAccountName = $env:CODE_SIGNING_ACCOUNT_NAME
+            CertificateProfileName = $env:CERTIFICATE_PROFILE_NAME
+          }
+          $metadata | ConvertTo-Json -Depth 10 | Set-Content -Path metadata.json
+      
+      - name: Velopack
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        run: |
+          vpk pack \
+              --packId org.vatsim.vatis \
+              --packTitle "vATIS" \
+              --packVersion $RELEASE_VERSION \
+              --packAuthors "Justin Shannon" \
+              --packDir ./build \
+              --mainExe vATIS.exe \
+              --icon ./vATIS.Desktop/Assets/MainIcon.ico \
+              --outputDir ./velopack \
+              --azureTrustedSignFile ./metadata.json \
+              --noPortable \
+              --skipVeloAppCheck \
+              --verbose
+
+      - name: Upload release assets
+        shell: bash
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set region auto
+          aws configure set output "json"
+
+          # Rename AppImage
+          mv ./velopack/org.vatsim.vatis-win-Setup.exe ./velopack/vATIS-Setup.exe
+
+          # Upload release assets
+          aws s3 sync ./velopack s3://vatis-releases/sandbox/windows \
+            --exclude "$PREVIOUS_RELEASE" \
+            --exclude "assets.win.json" \
+            --exclude "RELEASES" \
+            --endpoint-url "${{secrets.AWS_ENDPOINT}}"
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: ['release-linux','release-macos','release-windows']
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.github-release == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract Release Notes
+        id: release_notes
+        run: |
+          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" '/## v/{if(p) exit; if($0 ~ version) p=1; next}; p' CHANGELOG.md)"
+          RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
+          echo "::set-output name=release_notes::$RELEASE_NOTES"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          body: ${{ steps.release_notes.outputs.release_notes }}
+          prerelease: ${{ github.event.inputs.github-release-prerelease == 'true' }}
+          draft: ${{ github.event.inputs.github-release-draft == 'true' }}
