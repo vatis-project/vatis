@@ -114,6 +114,13 @@ public class App : Application
                 mServiceProvider = new ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
 
+                if (OperatingSystem.IsMacOS() && AppContext.BaseDirectory.StartsWith("/Volumes"))
+                {
+                    ShowError("vATIS cannot be launched from a DMG volume. " +
+                              "Please move vATIS to the Applications folder.", fatal: true);
+                    return;
+                }
+
                 var informationalVersion = Assembly.GetEntryAssembly()
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                 Log.Information($"vATIS version {informationalVersion} starting up");
