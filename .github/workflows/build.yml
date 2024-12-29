@@ -30,18 +30,6 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Remove dummy client auth
-        shell: bash
-        run: |
-          rm -rf Vatsim.Network/ClientAuth.cs
-
-      - name: Clone ClientAuth
-        uses: actions/checkout@v4
-        with:
-          repository: vatis-project/client-auth
-          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          path: Vatsim.Network/ClientAuth.cs
-
       - name: Install .NET Core
         uses: actions/setup-dotnet@v4
         with:
