@@ -43,10 +43,10 @@ public class ProfileListViewModel : ReactiveViewModelBase
         get => mShowOverlay;
         set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
     }
-    
+
     public string ClientVersion { get; }
     #endregion
-    
+
     public ReactiveCommand<Unit, Unit> InitializeCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowNewProfileDialogCommand { get; }
     public ReactiveCommand<ProfileViewModel, Unit> RenameProfileCommand { get; }
@@ -55,7 +55,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
     public ReactiveCommand<Unit, Unit> ExportProfileCommand { get; }
     public ReactiveCommand<ProfileViewModel, Unit> StartClientSessionCommand { get; }
     public ReactiveCommand<Unit, Unit> ExitCommand { get; }
-    
+
     private readonly ISessionManager mSessionManager;
     private readonly IWindowFactory mWindowFactory;
     private readonly IWindowLocationService mWindowLocationService;
@@ -86,7 +86,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
         ImportProfileCommand = ReactiveCommand.CreateFromTask(HandleImportProfile);
         ExportProfileCommand = ReactiveCommand.CreateFromTask(HandleExportProfile, canExecute);
         DeleteProfileCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleDeleteProfile, canExecute);
-        StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession);
+        StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession, canExecute);
         ExitCommand = ReactiveCommand.Create(HandleExit);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
@@ -191,7 +191,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
                         context.SetError("Profile name is required.");
                         return;
                     }
-                    
+
                     var profile = new Profile { Name = context.UserValue.Trim() };
                     mProfileList.Add(new ProfileViewModel(profile));
                     mProfileRepository.Save(profile);
@@ -217,7 +217,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
             foreach (var file in files)
             {
                 var newProfile = await mProfileRepository.Import(file);
-                mProfileList.Add(new ProfileViewModel(newProfile));   
+                mProfileList.Add(new ProfileViewModel(newProfile));
             }
         }
         catch (Exception ex)
@@ -242,7 +242,7 @@ public class ProfileListViewModel : ReactiveViewModelBase
 
         if (file == null)
             return;
-        
+
         mProfileRepository.Export(SelectedProfile.Profile, file.Path.LocalPath);
         await MessageBox.ShowDialog((Window)mDialogOwner, "Profile successfully exported.", "Success",
             MessageBoxButton.Ok, MessageBoxIcon.Information);

@@ -1,0 +1,60 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp', 'cpp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Install C++ build tools
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential cmake
+
+    - name: Build C++ Library
+      run: |
+        mkdir -p NativeAudio/build
+        cmake -S NativeAudio -B NativeAudio/build -DCMAKE_BUILD_TYPE=Release
+        cmake --build NativeAudio/build --config Release
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build Desktop App
+      run: |
+        dotnet restore ./vATIS.Desktop
+        dotnet build ./vATIS.sln /p:Configuration=Release
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
