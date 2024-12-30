@@ -132,7 +132,8 @@ public class MainWindowViewModel : ReactiveViewModelBase
             if (station != null)
             {
                 station.Disconnect();
-
+                station.UnsubscribeFromWebsocketEvents();
+                
                 mAtisStationSource.Remove(station);
 
                 var updatedStation = mSessionManager.CurrentProfile?.Stations?.FirstOrDefault(x => x.Id == evt.Id);
@@ -147,6 +148,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
             var station = mAtisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
             {
+                station.UnsubscribeFromWebsocketEvents();
                 mAtisStationSource.Remove(station);
             }
         });
@@ -247,7 +249,7 @@ public class MainWindowViewModel : ReactiveViewModelBase
                     return;
                 }
             }
-
+            
             mSessionManager.EndSession();
         }
     }
@@ -276,6 +278,11 @@ public class MainWindowViewModel : ReactiveViewModelBase
     public async Task StopWebsocket()
     {
         await mWebsocketService.StopAsync();
+    }
+
+    public void UnsubscribeFromWebsocketEvents()
+    {
+        mWebsocketService.ClearEventHandlers();
     }
 
     public async Task ConnectToHub()
