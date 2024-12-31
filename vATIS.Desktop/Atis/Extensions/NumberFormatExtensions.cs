@@ -199,9 +199,12 @@ public static class NumberFormatExtensions
         return heading;
     }
 
-    public static int ApplyMagVar(this IConvertible value, int? magVar = null)
+    public static int ApplyMagVar(this IConvertible value, bool enabled, int? magVar = null)
     {
         var degrees = Convert.ToInt32(value);
+        
+        if(!enabled)
+            return degrees;
 
         if (magVar == null)
             return degrees;

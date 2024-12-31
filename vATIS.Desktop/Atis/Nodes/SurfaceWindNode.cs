@@ -159,7 +159,8 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
             speedVariationMps = SurfaceWind.ToMps(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
         }
 
-        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarDeg).ToString("000");
+        var magVarEnabled = Station.AtisFormat.SurfaceWind.MagneticVariation?.Enabled ?? false;
+        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
         
         format = Regex.Replace(format, "{wind_dir}", meanDirectionMag.ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_spd}", meanSpeed?.ToString(leadingZero).ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
@@ -168,8 +169,8 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         format = Regex.Replace(format, "{wind_gust}", speedVariations?.ToString(leadingZero).ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{wind_gust\|kt}", speedVariationKts?.ToString(leadingZero).ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{wind_gust\|mps}", speedVariationMps?.ToString(leadingZero).ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_vmin}", minDirectionVariation?.ApplyMagVar(magVarDeg).ToString("000").ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_vmax}", maxDirectionVariation?.ApplyMagVar(magVarDeg).ToString("000").ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_vmin}", minDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000").ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_vmax}", maxDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000").ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_unit}", GetSpokenWindUnit(node.MeanSpeed), RegexOptions.IgnoreCase);
         
         return format;
@@ -225,7 +226,8 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
             speedVariationMps = SurfaceWind.ToMps(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
         }
 
-        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarDeg).ToString("000");
+        var magVarEnabled = Station.AtisFormat.SurfaceWind.MagneticVariation?.Enabled ?? false;
+        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
 
         format = Regex.Replace(format, "{wind_dir}", meanDirectionMag, RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_spd}", meanSpeed?.ToString("00") ?? "", RegexOptions.IgnoreCase);
@@ -234,8 +236,10 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         format = Regex.Replace(format, "{wind_gust}", speedVariations?.ToString("00") ?? "", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{wind_gust\|kt}", speedVariationKts?.ToString("00") ?? "", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{wind_gust\|mps}", speedVariationMps?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_vmin}", minDirectionVariation?.ApplyMagVar(magVarDeg).ToString("000") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_vmax}", maxDirectionVariation?.ApplyMagVar(magVarDeg).ToString("000") ?? "", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_vmin}", minDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? "", 
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_vmax}", maxDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? "", 
+            RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_unit}", node.SpeedUnit.ToString(), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind}", node.RawValue ?? "", RegexOptions.IgnoreCase);
         
