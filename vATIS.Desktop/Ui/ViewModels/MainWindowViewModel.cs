@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -21,8 +22,9 @@ using Vatsim.Vatis.Ui.Services;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class MainWindowViewModel : ReactiveViewModelBase
+public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable mDisposables = new();
     private readonly ISessionManager mSessionManager;
     private readonly IWindowFactory mWindowFactory;
     private readonly IViewModelFactory mViewModelFactory;
@@ -81,6 +83,11 @@ public class MainWindowViewModel : ReactiveViewModelBase
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
         
+        mDisposables.Add(OpenSettingsDialogCommand);
+        mDisposables.Add(OpenProfileConfigurationWindowCommand);
+        mDisposables.Add(EndClientSessionCommand);
+        mDisposables.Add(InvokeCompactViewCommand);
+        
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .Sort(SortExpressionComparer<AtisStationViewModel>
@@ -121,7 +128,9 @@ public class MainWindowViewModel : ReactiveViewModelBase
             var station = mSessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null && mAtisStationSource.Items.All(x => x.Id != station.Id))
             {
-                mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station);
+                mDisposables.Add(atisStationViewModel);
+                mAtisStationSource.Add(atisStationViewModel);
             }
         });
         MessageBus.Current.Listen<AtisStationUpdated>().Subscribe(evt =>
@@ -131,12 +140,15 @@ public class MainWindowViewModel : ReactiveViewModelBase
             {
                 station.Disconnect();
 
+                mDisposables.Remove(station);
                 mAtisStationSource.Remove(station);
 
                 var updatedStation = mSessionManager.CurrentProfile?.Stations?.FirstOrDefault(x => x.Id == evt.Id);
                 if (updatedStation != null)
                 {
-                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(updatedStation));
+                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(updatedStation);
+                    mDisposables.Add(atisStationViewModel);
+                    mAtisStationSource.Add(atisStationViewModel);
                 }
             }
         });
@@ -173,7 +185,9 @@ public class MainWindowViewModel : ReactiveViewModelBase
             {
                 if (mAtisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
                 {
-                    mAtisStationSource.Add(mViewModelFactory.CreateAtisStationViewModel(station));
+                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station);
+                    mDisposables.Add(atisStationViewModel);
+                    mAtisStationSource.Add(atisStationViewModel);
                 }
             }
             catch (Exception ex)
@@ -274,5 +288,11 @@ public class MainWindowViewModel : ReactiveViewModelBase
     public async Task DisconnectFromHub()
     {
         await mAtisHubConnection.Disconnect();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        mDisposables.Dispose();
     }
 }

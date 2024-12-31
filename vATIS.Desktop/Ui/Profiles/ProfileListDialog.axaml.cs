@@ -16,6 +16,12 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         InitializeComponent();
         ViewModel = viewModel;
         Loaded += ProfileListDialog_Loaded;
+        Closed += OnClosed;
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     private async void ProfileListDialog_Loaded(object? sender, RoutedEventArgs e)

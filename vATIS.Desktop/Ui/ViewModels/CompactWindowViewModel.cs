@@ -9,7 +9,7 @@ using ReactiveUI;
 using Vatsim.Vatis.Ui.Services;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
-public class CompactWindowViewModel : ReactiveViewModelBase
+public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IWindowLocationService mWindowLocationService;
 
@@ -67,5 +67,11 @@ public class CompactWindowViewModel : ReactiveViewModelBase
             return;
 
         mWindowLocationService.Restore(window);
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        InvokeMainWindowCommand.Dispose();
     }
 }

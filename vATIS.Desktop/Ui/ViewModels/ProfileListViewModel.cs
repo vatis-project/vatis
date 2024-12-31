@@ -24,7 +24,7 @@ using Vatsim.Vatis.Utils;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class ProfileListViewModel : ReactiveViewModelBase
+public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 {
     #region Reactive Properties
     private readonly SourceList<ProfileViewModel> mProfileList = new();
@@ -275,5 +275,18 @@ public class ProfileListViewModel : ReactiveViewModelBase
     public void SetDialogOwner(IDialogOwner owner)
     {
         mDialogOwner = owner;
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        InitializeCommand.Dispose();
+        ShowNewProfileDialogCommand.Dispose();
+        RenameProfileCommand.Dispose();
+        ImportProfileCommand.Dispose();
+        DeleteProfileCommand.Dispose();
+        ExportProfileCommand.Dispose();
+        StartClientSessionCommand.Dispose();
+        ExitCommand.Dispose();
     }
 }

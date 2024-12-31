@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -10,7 +11,7 @@ using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class SortPresetsDialogViewModel : ReactiveViewModelBase
+public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
     public ReactiveCommand<Unit, Unit> MovePresetUpCommand { get; }
@@ -92,5 +93,13 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase
     private static void HandleCloseWindow(ICloseable window)
     {
         window.Close();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        CloseWindowCommand.Dispose();
+        MovePresetUpCommand.Dispose();
+        MovePresetDownCommand.Dispose();
     }
 }

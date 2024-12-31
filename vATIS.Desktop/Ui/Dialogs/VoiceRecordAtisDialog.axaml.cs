@@ -13,6 +13,12 @@ public partial class VoiceRecordAtisDialog : ReactiveWindow<VoiceRecordAtisDialo
     {
         InitializeComponent();
         ViewModel = viewModel;
+        Closed += OnClosed;
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     public VoiceRecordAtisDialog()

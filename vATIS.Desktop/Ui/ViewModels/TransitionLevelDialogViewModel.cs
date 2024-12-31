@@ -5,7 +5,7 @@ using Vatsim.Vatis.Ui.Dialogs;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class TransitionLevelDialogViewModel : ReactiveViewModelBase
+public class TransitionLevelDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     public event EventHandler<DialogResult>? DialogResultChanged;
     public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
@@ -60,5 +60,13 @@ public class TransitionLevelDialogViewModel : ReactiveViewModelBase
         DialogResultChanged?.Invoke(this, DialogResult.Cancel);
         DialogResult = DialogResult.Cancel;
         window.Close();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        DialogResultChanged = null;
+        CancelButtonCommand.Dispose();
+        OkButtonCommand.Dispose();
     }
 }

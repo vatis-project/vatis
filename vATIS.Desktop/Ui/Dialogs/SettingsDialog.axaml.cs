@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
@@ -11,11 +12,17 @@ public partial class SettingsDialog : ReactiveWindow<SettingsDialogViewModel>, I
     {
         InitializeComponent();
         ViewModel = viewModel;
+        Closed += OnClosed;
     }
 
     public SettingsDialog()
     {
         InitializeComponent();
+    }
+    
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     private void CancelButtonClicked(object sender, RoutedEventArgs e)

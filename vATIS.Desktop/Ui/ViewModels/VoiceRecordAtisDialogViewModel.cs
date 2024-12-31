@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,8 +19,9 @@ using Vatsim.Vatis.Voice.Audio;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class VoiceRecordAtisDialogViewModel : ReactiveObject
+public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable mDisposables = new();
     private readonly IWindowLocationService mWindowLocationService;
     private readonly Stopwatch mRecordingStopwatch;
     private readonly System.Timers.Timer mElapsedTimeUpdateTimer;
@@ -193,6 +195,12 @@ public class VoiceRecordAtisDialogViewModel : ReactiveObject
             x => x.IsRecordingActive,
             x => x.AudioBuffer,
             (recordingActive, audioBuffer) => !recordingActive && audioBuffer.Length > 0));
+        
+        mDisposables.Add(CancelCommand);
+        mDisposables.Add(SaveCommand);
+        mDisposables.Add(StartRecordingCommand);
+        mDisposables.Add(StopRecordingCommand);
+        mDisposables.Add(ListenCommand);
 
         NativeAudio.GetCaptureDevices((idPtr, namePtr, _) =>
         {
@@ -378,5 +386,11 @@ public class VoiceRecordAtisDialogViewModel : ReactiveObject
             return;
 
         mWindowLocationService.Restore(window);
+    }
+
+    public void Dispose()
+    {
+       GC.SuppressFinalize(this);
+       mDisposables.Dispose();
     }
 }

@@ -20,7 +20,7 @@ using Vatsim.Vatis.Ui.Windows;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class StaticNotamsDialogViewModel : ReactiveViewModelBase
+public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IWindowFactory mWindowFactory;
     
@@ -284,5 +284,17 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase
         }
 
         Source.RowSelection?.Clear();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        
+        CloseWindowCommand.Dispose();
+        NewDefinitionCommand.Dispose();
+        DeleteDefinitionCommand.Dispose();
+        EditDefinitionCommand.Dispose();
+        MoveDefinitionDownCommand.Dispose();
+        MoveDefinitionUpCommand.Dispose();
     }
 }
