@@ -31,14 +31,18 @@ public class PresentWeatherNode : BaseNode<WeatherPhenomenon>
 
         if (voiceTemplate != null)
         {
-            VoiceAtis = Regex.Replace(voiceTemplate, "{weather}", string.Join(", ", voiceAtis).Trim(',').Trim(' '),
-                RegexOptions.IgnoreCase);
+            VoiceAtis = voiceAtis.Count > 0
+                ? Regex.Replace(voiceTemplate, "{weather}", string.Join(", ", voiceAtis).Trim(',').Trim(' '),
+                    RegexOptions.IgnoreCase)
+                : string.Empty;
         }
 
         if (textTemplate != null)
         {
-            TextAtis = Regex.Replace(textTemplate, "{weather}", string.Join(" ", textAtis).Trim(' '),
-                RegexOptions.IgnoreCase);
+            TextAtis = textAtis.Count > 0
+                ? Regex.Replace(textTemplate, "{weather}", string.Join(" ", textAtis).Trim(' '),
+                    RegexOptions.IgnoreCase)
+                : string.Empty;
         }
     }
 
