@@ -20,7 +20,7 @@ using Vatsim.Vatis.Ui.Windows;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase
+public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IWindowFactory mWindowFactory;
     
@@ -284,5 +284,16 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase
             RemoveSelected();
         }
         Source.RowSelection?.Clear();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        CloseWindowCommand.Dispose();
+        NewDefinitionCommand.Dispose();
+        EditDefinitionCommand.Dispose();
+        DeleteDefinitionCommand.Dispose();
+        MoveDefinitionUpCommand.Dispose();
+        MoveDefinitionDownCommand.Dispose();
     }
 }

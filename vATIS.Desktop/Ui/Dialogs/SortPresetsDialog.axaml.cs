@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Vatsim.Vatis.Ui.ViewModels;
@@ -10,11 +11,17 @@ public partial class SortPresetsDialog : ReactiveWindow<SortPresetsDialogViewMod
     {
         InitializeComponent();
         ViewModel = viewModel;
+        Closed += OnClosed;
     }
 
     public SortPresetsDialog()
     {
         InitializeComponent();
+    }
+    
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)

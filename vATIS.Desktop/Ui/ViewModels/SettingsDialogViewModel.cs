@@ -8,11 +8,11 @@ using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Ui.Common;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
-public class SettingsDialogViewModel : ReactiveViewModelBase
+public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IAppConfig mAppConfig;
 
-    public ReactiveCommand<ICloseable, Unit> SaveSettingsCommand { get; private set; }
+    public ReactiveCommand<ICloseable, Unit> SaveSettingsCommand { get; }
 
     private string? mName;
     public string? Name
@@ -101,5 +101,11 @@ public class SettingsDialogViewModel : ReactiveViewModelBase
         MessageBus.Current.SendMessage(new GeneralSettingsUpdated());
 
         window.Close();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        SaveSettingsCommand.Dispose();
     }
 }

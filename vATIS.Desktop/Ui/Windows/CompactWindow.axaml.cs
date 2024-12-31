@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -12,6 +13,12 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
     {
         InitializeComponent();
         ViewModel = viewModel;
+        Closed += OnClosed;
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     public CompactWindow()
