@@ -31,6 +31,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         ViewModel?.DisconnectFromHub();
         ViewModel?.StopWebsocket();
+        ViewModel?.Dispose();
     }
 
     public MainWindow()

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Reactive;
 using Avalonia.Controls;
 using ReactiveUI;
@@ -6,7 +7,7 @@ using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class MessageBoxViewModel : ReactiveViewModelBase
+public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
 {
     public Window? Owner { get; set; }
     
@@ -175,5 +176,14 @@ public class MessageBoxViewModel : ReactiveViewModelBase
             default:
                 throw new InvalidEnumArgumentException(nameof(Button));
         }
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        YesButtonCommand.Dispose();
+        NoButtonCommand.Dispose();
+        OkButtonCommand.Dispose();
+        CancelButtonCommand.Dispose();
     }
 }

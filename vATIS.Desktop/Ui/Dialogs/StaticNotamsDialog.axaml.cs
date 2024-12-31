@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.ReactiveUI;
@@ -12,11 +13,17 @@ public partial class StaticNotamsDialog : ReactiveWindow<StaticNotamsDialogViewM
         InitializeComponent();
         ViewModel = viewModel;
         ViewModel.Owner = this;
+        Closed += OnClosed;
     }
 
     public StaticNotamsDialog()
     {
         InitializeComponent();
+    }
+    
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)

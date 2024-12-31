@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Vatsim.Vatis.Ui.ViewModels;
@@ -10,11 +11,17 @@ public partial class NewAtisStationDialog : ReactiveWindow<NewAtisStationDialogV
     {
         InitializeComponent();
         ViewModel = viewModel;
+        Closed += OnClosed;
     }
 
     public NewAtisStationDialog()
     {
         InitializeComponent();
+    }
+    
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)

@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Vatsim.Vatis.Ui.ViewModels;
@@ -10,6 +11,7 @@ public partial class TransitionLevelDialog : ReactiveWindow<TransitionLevelDialo
     {
         InitializeComponent();
         ViewModel = viewModel;
+        Closed += OnClosed;
     }
 
     public TransitionLevelDialog()
@@ -17,6 +19,11 @@ public partial class TransitionLevelDialog : ReactiveWindow<TransitionLevelDialo
         InitializeComponent();
     }
 
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
+    }
+    
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

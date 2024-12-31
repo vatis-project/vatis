@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -15,11 +16,17 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
     {
         InitializeComponent();
         ViewModel = viewModel;
+        Closed += OnClosed;
     }
 
     public NewContractionDialog()
     {
         InitializeComponent();
+    }
+    
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
     
     private void Variable_OnLostFocus(object? sender, RoutedEventArgs e)
