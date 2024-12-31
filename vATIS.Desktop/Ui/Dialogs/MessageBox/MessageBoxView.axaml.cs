@@ -12,6 +12,15 @@ public partial class MessageBoxView : Window, ICloseable
         InitializeComponent();
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        if (DataContext is MessageBoxViewModel vm)
+        {
+            vm.Dispose();
+        }
+    }
+
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);

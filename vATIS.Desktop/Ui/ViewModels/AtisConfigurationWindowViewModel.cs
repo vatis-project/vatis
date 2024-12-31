@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia;
@@ -30,8 +31,9 @@ using Vatsim.Vatis.Voice.Audio;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class AtisConfigurationWindowViewModel : ReactiveViewModelBase
+public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable mDisposables = new();
     private readonly IAppConfig mAppConfig;
     private readonly ISessionManager mSessionManager;
     private readonly IWindowFactory mWindowFactory;
@@ -119,6 +121,17 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase
         RenameAtisCommand = ReactiveCommand.CreateFromTask(HandleRenameAtis);
         CopyAtisCommand = ReactiveCommand.CreateFromTask(HandleCopyAtis);
         ImportAtisStationCommand = ReactiveCommand.Create(HandleImportAtisStation);
+        
+        mDisposables.Add(CloseWindowCommand);
+        mDisposables.Add(SaveAndCloseCommand);
+        mDisposables.Add(ApplyChangesCommand);
+        mDisposables.Add(CancelChangesCommand);
+        mDisposables.Add(NewAtisStationDialogCommand);
+        mDisposables.Add(ExportAtisCommand);
+        mDisposables.Add(DeleteAtisCommand);
+        mDisposables.Add(RenameAtisCommand);
+        mDisposables.Add(CopyAtisCommand);
+        mDisposables.Add(ImportAtisStationCommand);
         
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
@@ -604,5 +617,11 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase
         GeneralConfigViewModel?.Reset();
         SelectedTabControlTabIndex = 0;
         HasUnsavedChanges = false;
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        mDisposables.Dispose();
     }
 }

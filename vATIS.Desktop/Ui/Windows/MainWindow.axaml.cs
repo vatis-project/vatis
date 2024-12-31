@@ -29,6 +29,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.DisconnectFromHub();
+        ViewModel?.Dispose();
     }
 
     public MainWindow()

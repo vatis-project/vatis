@@ -31,7 +31,7 @@ using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
-public class AtisStationViewModel : ReactiveViewModelBase
+public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IAppConfig mAppConfig;
     private readonly IProfileRepository mProfileRepository;
@@ -1016,5 +1016,32 @@ public class AtisStationViewModel : ReactiveViewModelBase
     {
         mNetworkConnection?.Disconnect();
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+
+        if (mNetworkConnection != null)
+        {
+            mNetworkConnection.NetworkConnectionFailed -= OnNetworkConnectionFailed;
+            mNetworkConnection.NetworkErrorReceived -= OnNetworkErrorReceived;
+            mNetworkConnection.NetworkConnected -= OnNetworkConnected;
+            mNetworkConnection.NetworkDisconnected -= OnNetworkDisconnected;
+            mNetworkConnection.ChangeServerReceived -= OnChangeServerReceived;
+            mNetworkConnection.MetarResponseReceived -= OnMetarResponseReceived;
+            mNetworkConnection.KillRequestReceived -= OnKillRequestedReceived;
+        }
+
+        DecrementAtisLetterCommand.Dispose();
+        AcknowledgeOrIncrementAtisLetterCommand.Dispose();
+        AcknowledgeAtisUpdateCommand.Dispose();
+        NetworkConnectCommand.Dispose();
+        VoiceRecordAtisCommand.Dispose();
+        OpenStaticAirportConditionsDialogCommand.Dispose();
+        OpenStaticNotamsDialogCommand.Dispose();
+        SelectedPresetChangedCommand.Dispose();
+        SaveAirportConditionsText.Dispose();
+        SaveNotamsText.Dispose();
     }
 }

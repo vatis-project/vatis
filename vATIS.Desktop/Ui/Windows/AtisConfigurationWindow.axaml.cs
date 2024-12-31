@@ -21,12 +21,18 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         InitializeComponent();
         DataContext = viewModel;
         ViewModel?.Initialize(this);
+        Closed += OnClosed;
 
         this.WhenAnyValue(x => x.ViewModel!.SelectedAtisStation).Subscribe(station =>
         {
             var index = Stations.Items.IndexOf(station);
             Stations.SelectedIndex = index;
         });
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     public AtisConfigurationWindow()

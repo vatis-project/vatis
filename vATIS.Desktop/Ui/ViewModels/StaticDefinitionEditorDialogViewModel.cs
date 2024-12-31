@@ -8,7 +8,7 @@ using Vatsim.Vatis.Ui.Dialogs;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
-public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase
+public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     public event EventHandler<DialogResult>? DialogResultChanged;
     public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
@@ -71,5 +71,13 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase
         {
             window.Close();
         }
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        DialogResultChanged = null;
+        CancelButtonCommand.Dispose();
+        SaveButtonCommand.Dispose();
     }
 }
