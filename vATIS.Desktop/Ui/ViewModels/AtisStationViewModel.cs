@@ -1111,6 +1111,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
+        
+        mWebsocketService.GetAtisReceived -= OnGetAtisReceived;
+        mWebsocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
 
         if (mNetworkConnection != null)
         {
