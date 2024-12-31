@@ -386,6 +386,34 @@ public class FormattingViewModel : ReactiveViewModelBase
         }
     }
 
+    private string? mRecentWeatherTextTemplate;
+    public string? RecentWeatherTextTemplate
+    {
+        get => mRecentWeatherTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref mRecentWeatherTextTemplate, value);
+            if (!mInitializedProperties.Add(nameof(RecentWeatherTextTemplate)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+    
+    private string? mRecentWeatherVoiceTemplate;
+    public string? RecentWeatherVoiceTemplate
+    {
+        get => mRecentWeatherVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref mRecentWeatherVoiceTemplate, value);
+            if (!mInitializedProperties.Add(nameof(RecentWeatherVoiceTemplate)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
     private string? mCloudsTextTemplate;
     public string? CloudsTextTemplate
     {
@@ -1054,6 +1082,8 @@ public class FormattingViewModel : ReactiveViewModelBase
         VisibilityVoiceTemplate = station.AtisFormat.Visibility.Template.Voice;
         PresentWeatherTextTemplate = station.AtisFormat.PresentWeather.Template.Text;
         PresentWeatherVoiceTemplate = station.AtisFormat.PresentWeather.Template.Voice;
+        RecentWeatherVoiceTemplate = station.AtisFormat.RecentWeather.Template.Voice;
+        RecentWeatherTextTemplate = station.AtisFormat.RecentWeather.Template.Text;
         CloudsTextTemplate = station.AtisFormat.Clouds.Template.Text;
         CloudsVoiceTemplate = station.AtisFormat.Clouds.Template.Voice;
         TemperatureTextTemplate = station.AtisFormat.Temperature.Template.Text;
@@ -1372,6 +1402,12 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if (SelectedStation.AtisFormat.PresentWeather.Template.Voice != PresentWeatherVoiceTemplate)
             SelectedStation.AtisFormat.PresentWeather.Template.Voice = PresentWeatherVoiceTemplate;
+        
+        if(SelectedStation.AtisFormat.RecentWeather.Template.Text != RecentWeatherTextTemplate)
+            SelectedStation.AtisFormat.RecentWeather.Template.Text = RecentWeatherTextTemplate;
+        
+        if(SelectedStation.AtisFormat.RecentWeather.Template.Voice != RecentWeatherVoiceTemplate)
+            SelectedStation.AtisFormat.RecentWeather.Template.Voice = RecentWeatherVoiceTemplate;
 
         if (SelectedStation.AtisFormat.Clouds.Template.Text != CloudsTextTemplate)
             SelectedStation.AtisFormat.Clouds.Template.Text = CloudsTextTemplate;

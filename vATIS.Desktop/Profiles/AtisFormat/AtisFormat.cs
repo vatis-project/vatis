@@ -8,6 +8,7 @@ public class AtisFormat
     public SurfaceWind SurfaceWind { get; set; } = new();
     public Visibility Visibility { get; set; } = new();
     public PresentWeather PresentWeather { get; set; } = new();
+    public RecentWeather RecentWeather { get; set; } = new();
     public Clouds Clouds { get; set; } = new();
     public Temperature Temperature { get; set; } = new();
     public Dewpoint Dewpoint { get; set; } = new();
@@ -23,6 +24,7 @@ public class AtisFormat
             SurfaceWind = SurfaceWind.Clone(),
             Visibility = Visibility.Clone(),
             PresentWeather = PresentWeather.Clone(),
+            RecentWeather = RecentWeather.Clone(),
             Clouds = Clouds.Clone(),
             Temperature = Temperature.Clone(),
             Dewpoint = Dewpoint.Clone(),
