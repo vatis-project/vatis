@@ -1108,10 +1108,4 @@ public class AtisStationViewModel : ReactiveViewModelBase
         mNetworkConnection?.Disconnect();
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
     }
-
-    public void UnsubscribeFromWebsocketEvents()
-    {
-        mWebsocketService.GetAtisReceived -= OnGetAtisReceived;
-        mWebsocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
-    }
 }

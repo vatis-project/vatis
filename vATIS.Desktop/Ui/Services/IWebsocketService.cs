@@ -41,9 +41,4 @@ public interface IWebsocketService
     /// </summary>
     /// <returns>A task.</returns>
     Task StopAsync();
-
-    /// <summary>
-    /// Unsubscribes all listeners from the <see cref="GetAtisReceived"/> and <see cref="AcknowledgeAtisUpdateReceived"/> events.
-    /// </summary>
-    void ClearEventHandlers();
 }

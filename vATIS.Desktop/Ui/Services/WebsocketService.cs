@@ -125,15 +125,6 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <summary>
-    /// Unsubscribes all listeners from the <see cref="GetAtisReceived"/> and <see cref="AcknowledgeAtisUpdateReceived"/> events.
-    /// </summary>
-    public void ClearEventHandlers()
-    {
-        GetAtisReceived = (_, _) => { };
-        AcknowledgeAtisUpdateReceived = (_, _) => { };
-    }
-
-    /// <summary>
     /// Sends an ATIS message to a specific session, or to all connected clients if session is null.
     /// </summary>
     /// <param name="session">The session to send the message to.</param>
