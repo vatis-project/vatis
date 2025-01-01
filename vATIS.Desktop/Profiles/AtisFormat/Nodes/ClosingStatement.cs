@@ -5,7 +5,7 @@ public class ClosingStatement : BaseFormat
     {
         Template = new()
         {
-            Text = "...ADVS YOU HAVE INFO {letter}",
+            Text = "...ADVS YOU HAVE INFO {letter}.",
             Voice = "ADVISE ON INITIAL CONTACT, YOU HAVE INFORMATION {letter|word}"
         };
     }
