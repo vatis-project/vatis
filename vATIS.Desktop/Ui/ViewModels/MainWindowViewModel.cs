@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -44,6 +45,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     #region Reactive Properties
 
     private string mCurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
+    
+    private string? mBeforeStationSortSelectedStationId;
 
     private int mSelectedTabIndex;
     public int SelectedTabIndex
@@ -90,6 +93,13 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
+            .Do(_ =>
+            {
+                if (AtisStations != null && AtisStations.Count > SelectedTabIndex)
+                {
+                    mBeforeStationSortSelectedStationId = AtisStations[SelectedTabIndex].Id;
+                }
+            })
             .Sort(SortExpressionComparer<AtisStationViewModel>
                 .Ascending(i => i.NetworkConnectionStatus switch
                 {
@@ -101,8 +111,10 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Bind(out var sortedStations)
             .Subscribe(_ =>
             {
+                
                 AtisStations = sortedStations;
-                SelectedTabIndex = 0;
+                SelectedTabIndex = mBeforeStationSortSelectedStationId == null ? 0 
+                    : AtisStations.IndexOf(AtisStations.FirstOrDefault(it => it.Id == mBeforeStationSortSelectedStationId, AtisStations.First()) );
             });
         
         AtisStations = sortedStations;
