@@ -40,12 +40,18 @@ public class CloudNode : BaseNode<CloudLayer>
 
         if (voiceTemplate != null)
         {
-            VoiceAtis = Regex.Replace(voiceTemplate, "{clouds}", string.Join(", ", voiceAtis).Trim(',').Trim(' '), RegexOptions.IgnoreCase);
+            VoiceAtis = voiceAtis.Count > 0
+                ? Regex.Replace(voiceTemplate, "{clouds}", string.Join(", ", voiceAtis).Trim(',').Trim(' '),
+                    RegexOptions.IgnoreCase)
+                : string.Empty;
         }
 
         if (textTemplate != null)
         {
-            TextAtis = Regex.Replace(textTemplate, "{clouds}", string.Join(" ", textAtis).Trim(' '), RegexOptions.IgnoreCase);
+            TextAtis = textAtis.Count > 0
+                ? Regex.Replace(textTemplate, "{clouds}", string.Join(" ", textAtis).Trim(' '),
+                    RegexOptions.IgnoreCase)
+                : string.Empty;
         }
     }
 
