@@ -53,6 +53,7 @@ public class SessionManager : ISessionManager
         
         mProfileListDialog?.Close();
         CurrentProfile = profile;
+        CurrentConnectionCount = 0;
         mMainWindow = mWindowFactory.CreateMainWindow();
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -66,6 +67,7 @@ public class SessionManager : ISessionManager
     {
         MessageBus.Current.SendMessage(new SessionEnded());
         CurrentProfile = null;
+        CurrentConnectionCount = 0;
         mMainWindow?.Close();
         ShowProfileListDialog();
     }
