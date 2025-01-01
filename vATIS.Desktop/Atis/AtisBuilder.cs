@@ -374,8 +374,8 @@ public class AtisBuilder : IAtisBuilder
         var notamsVoice = "";
         if (station.UseNotamPrefix && !string.IsNullOrEmpty(notams))
         {
-            notamsText += $"NOTAMS... {notams}";
-            notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: {notams}";
+            notamsText += $"NOTAMS... {notams} ";
+            notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: {notams} ";
         }
         
         // translate contraction variables
