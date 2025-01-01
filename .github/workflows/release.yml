@@ -124,7 +124,7 @@ jobs:
           mv ./velopack/org.vatsim.vatis.AppImage ./velopack/vATIS.AppImage
 
           # Upload release assets
-          aws s3 sync ./velopack s3://vatis-releases/sandbox/linux \
+          aws s3 sync ./velopack s3://vatis-releases/linux \
             --exclude "$PREVIOUS_RELEASE" \
             --exclude "assets.linux.json" \
             --exclude "RELEASES-linux" \
@@ -374,7 +374,7 @@ jobs:
           aws configure set output "json"
 
           # Upload release assets
-          aws s3 sync ./velopack s3://vatis-releases/sandbox/macos \
+          aws s3 sync ./velopack s3://vatis-releases/macos \
             --exclude "$PREVIOUS_RELEASE" \
             --exclude "assets.osx.json" \
             --exclude "RELEASES-osx" \
@@ -506,7 +506,7 @@ jobs:
           mv ./velopack/org.vatsim.vatis-win-Setup.exe ./velopack/vATIS-Setup.exe
 
           # Upload release assets
-          aws s3 sync ./velopack s3://vatis-releases/sandbox/windows \
+          aws s3 sync ./velopack s3://vatis-releases/windows \
             --exclude "$PREVIOUS_RELEASE" \
             --exclude "assets.win.json" \
             --exclude "RELEASES" \
