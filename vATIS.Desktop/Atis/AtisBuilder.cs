@@ -372,10 +372,16 @@ public class AtisBuilder : IAtisBuilder
 
         var notamsText = "";
         var notamsVoice = "";
-        if (station.UseNotamPrefix && !string.IsNullOrEmpty(notams))
+        if (station.UseNotamPrefix)
         {
-            notamsText += $"NOTAMS... {notams} ";
-            notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: {notams} ";
+            notamsText += "NOTAMS... ";
+            notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: ";
+        }
+
+        if (!string.IsNullOrEmpty(notams))
+        {
+            notamsText += $"{notams} ";
+            notamsVoice += $"{notams} ";
         }
         
         // translate contraction variables
