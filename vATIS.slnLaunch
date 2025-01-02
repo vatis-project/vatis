@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "Local Dev",
+    "Projects": [
+      {
+        "Path": "vATIS.Desktop\\vATIS.Desktop.csproj",
+        "Action": "Start",
+        "DebugTarget": "vATIS.Desktop - Dev server"
+      },
+      {
+        "Path": "DevServer\\DevServer.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
