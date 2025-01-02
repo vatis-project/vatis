@@ -74,14 +74,14 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
     public MainWindowViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory, IWindowLocationService windowLocationService,
-        IAtisHubConnection atisHubConnection, IWebsocketService websocketService)
+        IHubConnectionFactory hubConnectionFactory, IWebsocketService websocketService)
     {
         mSessionManager = sessionManager;
         mWindowFactory = windowFactory;
         mViewModelFactory = viewModelFactory;
         mWindowLocationService = windowLocationService;
-        mAtisHubConnection = atisHubConnection;
         mWebsocketService = websocketService;
+        mAtisHubConnection = hubConnectionFactory.CreateHubConnection();
 
         OpenSettingsDialogCommand = ReactiveCommand.Create(OpenSettingsDialog);
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
