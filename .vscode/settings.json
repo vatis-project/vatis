@@ -1,7 +1,9 @@
 {
   "files.exclude": {
     "**/.run": true,
-    "**/.vs": true
+    "**/.vs": true,
+    "DevServer/bin": true,
+    "DevServer/obj": true
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
