@@ -139,24 +139,26 @@ public static class NumberFormatExtensions
     /// <returns>Returns the number formatted in serial format. For example, 1500 would yield "one five zero zero".</returns>
     public static string? ToSerialFormat(this string? number, bool useDecimalTerminology = false)
     {
-        var group = new List<string>();
-        if (number != null && Regex.IsMatch(number, @"[0-9]\d*(\.\d+)?"))
-        {
-            foreach (var numberPart in number.Split('.'))
-            {
-                var temp = new List<string>();
-                foreach (var digit in numberPart.ToString().Select(q => new string(q, 1)).ToArray())
-                {
-                    temp.Add(int.Parse(digit).ToWordString());
-                }
+        if (string.IsNullOrEmpty(number) || !Regex.IsMatch(number, @"^-?[0-9]+(\.[0-9]+)?$"))
+            return number;
 
-                group.Add(string.Join(" ", temp).Trim(' '));
+        var group = new List<string>();
+        var isNegative = number.StartsWith('-');
+        var normalizedNumber = isNegative ? number[1..] : number;
+
+        foreach (var numberPart in normalizedNumber.Split('.'))
+        {
+            var temp = new List<string>();
+            foreach (var digit in numberPart.Select(ch => new string(ch, 1)))
+            {
+                temp.Add(int.Parse(digit).ToWordString());
             }
 
-            return string.Join(useDecimalTerminology ? " decimal " : " point ", group);
+            group.Add(string.Join(" ", temp).Trim());
         }
 
-        return number;
+        var result = string.Join(useDecimalTerminology ? " decimal " : " point ", group);
+        return isNegative ? "minus " + result : result;
     }
 
     /// <summary>
@@ -199,9 +201,12 @@ public static class NumberFormatExtensions
         return heading;
     }
 
-    public static int ApplyMagVar(this IConvertible value, int? magVar = null)
+    public static int ApplyMagVar(this IConvertible value, bool enabled, int? magVar = null)
     {
         var degrees = Convert.ToInt32(value);
+        
+        if(!enabled)
+            return degrees;
 
         if (magVar == null)
             return degrees;

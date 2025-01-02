@@ -452,6 +452,29 @@
 							</StackPanel>
 						</controls:GroupBox>
 					</TabItem>
+					<TabItem Header="Recent Weather">
+						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+							<StackPanel Orientation="Vertical" Spacing="10">
+								<StackPanel Orientation="Vertical">
+									<TextBlock Text="Text:" VerticalAlignment="Center"/>
+									<controls:TemplateVariableTextBox Text="{Binding RecentWeatherTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
+								</StackPanel>
+								<StackPanel Orientation="Vertical">
+									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
+									<controls:TemplateVariableTextBox Text="{Binding RecentWeatherVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal" Spacing="10">
+									<Button
+										Theme="{StaticResource DarkVariable}"
+										ToolTip.Tip="The recent weather groups from the METAR (e.g. &quot;SHRA BR&quot;)"
+										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+										CommandParameter="{Binding $self.Content}">
+										{weather}
+									</Button>
+								</StackPanel>
+							</StackPanel>
+						</controls:GroupBox>
+					</TabItem>
 					<TabItem Header="Intensity/Proximity Descriptors">
 						<Grid ColumnDefinitions="125,10,*" RowDefinitions="*,5,*,5,*,5,*">
 							<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" ToolTip.Tip="Spoken text for light intensity (-)">Light Intensity:</TextBlock>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
@@ -9,29 +10,46 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
 {
     public override void Parse(DecodedMetar metar)
     {
-        Parse(metar.RecentWeather);
+        if (metar.RecentWeather != null) 
+            Parse(metar.RecentWeather);
     }
 
-    private void Parse(WeatherPhenomenon? recentWeather)
+    private void Parse(WeatherPhenomenon weather)
     {
-        if (recentWeather == null)
-            return;
-
         ArgumentNullException.ThrowIfNull(Station);
 
-        TextAtis = FormatWeatherText(recentWeather);
-        VoiceAtis = FormatWeatherVoice(recentWeather);
+        var voice = FormatWeatherVoice(weather);
+        var text = FormatWeatherText(weather);
+
+        var voiceTemplate = Station.AtisFormat.RecentWeather.Template.Voice;
+        var textTemplate = Station.AtisFormat.RecentWeather.Template.Text;
+
+        if (voiceTemplate != null)
+        {
+            VoiceAtis = !string.IsNullOrEmpty(voice)
+                ? Regex.Replace(voiceTemplate, "{weather}", string.Join(", ", voice).Trim(',').Trim(' '),
+                    RegexOptions.IgnoreCase)
+                : string.Empty;
+        }
+
+        if (textTemplate != null)
+        {
+            TextAtis = !string.IsNullOrEmpty(voice)
+                ? Regex.Replace(textTemplate, "{weather}", string.Join(" ", text).Trim(' '),
+                    RegexOptions.IgnoreCase)
+                : string.Empty;
+        }
     }
 
     private string FormatWeatherVoice(WeatherPhenomenon? weather)
     {
         if (weather == null)
             return string.Empty;
-
+        
         ArgumentNullException.ThrowIfNull(Station);
 
         var result = new List<string>();
-
+        
         switch (weather.IntensityProximity)
         {
             case "-":
@@ -48,15 +66,14 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         if (!string.IsNullOrEmpty(weather.Characteristics))
             result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Spoken);
 
-        result.AddRange(
-            weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Spoken));
-
-        if (weather.IntensityProximity == "VC")
+        result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Spoken));
+        
+        if(weather.IntensityProximity == "VC")
             result.Add(Station.AtisFormat.PresentWeather.Vicinity);
 
-        return result.Count > 0 ? $"RECENT {string.Join(", ", result.ToArray())}" : string.Empty;
+        return string.Join(" ", result);
     }
-
+    
     private string FormatWeatherText(WeatherPhenomenon? weather)
     {
         if (weather == null)
@@ -90,13 +107,13 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         return string.Join(" ", result);
     }
 
-    public override string ParseVoiceVariables(WeatherPhenomenon node, string? format)
-    {
-        throw new System.NotImplementedException();
-    }
-
     public override string ParseTextVariables(WeatherPhenomenon value, string? format)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
+    }
+
+    public override string ParseVoiceVariables(WeatherPhenomenon node, string? format)
+    {
+        throw new NotImplementedException();
     }
 }

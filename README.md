@@ -16,3 +16,10 @@ vATIS is written in C# (.NET 8.0) using [Avalonia UI](https://github.com/avaloni
 
 # Licensing
 vATIS is licensed under the [GPLv3 open-source license](LICENSE).
+
+## Third-Party Libraries
+
+This application uses the following third-party library:
+
+WatsonWebsocket
+Licensed under the MIT License.

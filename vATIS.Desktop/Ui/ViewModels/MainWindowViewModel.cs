@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -30,6 +31,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     private readonly IViewModelFactory mViewModelFactory;
     private readonly IWindowLocationService mWindowLocationService;
     private readonly IAtisHubConnection mAtisHubConnection;
+    private readonly IWebsocketService mWebsocketService;
 
     public Window? Owner { get; set; }
     private readonly SourceList<AtisStationViewModel> mAtisStationSource = new();
@@ -44,6 +46,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     #region Reactive Properties
 
     private string mCurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
+    
+    private string? mBeforeStationSortSelectedStationId;
 
     private int mSelectedTabIndex;
     public int SelectedTabIndex
@@ -51,7 +55,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         get => mSelectedTabIndex;
         set => this.RaiseAndSetIfChanged(ref mSelectedTabIndex, value);
     }
-    
+
     public string CurrentTime
     {
         get => mCurrentTime;
@@ -70,13 +74,14 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
     public MainWindowViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory, IWindowLocationService windowLocationService,
-        IHubConnectionFactory hubConnectionFactory)
+        IAtisHubConnection atisHubConnection, IWebsocketService websocketService)
     {
         mSessionManager = sessionManager;
         mWindowFactory = windowFactory;
         mViewModelFactory = viewModelFactory;
         mWindowLocationService = windowLocationService;
-        mAtisHubConnection = hubConnectionFactory.CreateHubConnection();
+        mAtisHubConnection = atisHubConnection;
+        mWebsocketService = websocketService;
 
         OpenSettingsDialogCommand = ReactiveCommand.Create(OpenSettingsDialog);
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
@@ -90,6 +95,13 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
+            .Do(_ =>
+            {
+                if (AtisStations != null && AtisStations.Count > SelectedTabIndex)
+                {
+                    mBeforeStationSortSelectedStationId = AtisStations[SelectedTabIndex].Id;
+                }
+            })
             .Sort(SortExpressionComparer<AtisStationViewModel>
                 .Ascending(i => i.NetworkConnectionStatus switch
                 {
@@ -101,12 +113,14 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Bind(out var sortedStations)
             .Subscribe(_ =>
             {
+                
                 AtisStations = sortedStations;
-                SelectedTabIndex = 0;
+                SelectedTabIndex = mBeforeStationSortSelectedStationId == null ? 0 
+                    : AtisStations.IndexOf(AtisStations.FirstOrDefault(it => it.Id == mBeforeStationSortSelectedStationId, AtisStations.First()) );
             });
-        
+
         AtisStations = sortedStations;
-        
+
         mAtisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
@@ -116,7 +130,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             {
                 CompactWindowStations = connectedStations;
             });
-        
+
         CompactWindowStations = connectedStations;
 
         MessageBus.Current.Listen<OpenGenerateSettingsDialog>().Subscribe(_ => OpenSettingsDialog());
@@ -178,7 +192,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         if (mSessionManager.CurrentProfile?.Stations == null)
             return;
-        
+
         foreach (var station in mSessionManager.CurrentProfile.Stations.OrderBy(x => x.Identifier))
         {
             try
@@ -278,6 +292,16 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             return;
 
         mWindowLocationService.Restore(window);
+    }
+
+    public async Task StartWebsocket()
+    {
+        await mWebsocketService.StartAsync();
+    }
+
+    public async Task StopWebsocket()
+    {
+        await mWebsocketService.StopAsync();
     }
 
     public async Task ConnectToHub()
