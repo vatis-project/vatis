@@ -29,6 +29,9 @@ using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
+using Vatsim.Vatis.Ui.Services;
+using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
@@ -41,12 +44,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly NetworkConnection? mNetworkConnection;
     private readonly IVoiceServerConnection? mVoiceServerConnection;
     private readonly IAtisHubConnection mAtisHubConnection;
+    private readonly IWebsocketService mWebsocketService;
+
     private readonly ISessionManager mSessionManager;
     private CancellationTokenSource mCancellationToken;
     private readonly Airport mAtisStationAirport;
     private AtisPreset? mPreviousAtisPreset;
     private IDisposable? mPublishAtisTimer;
     private bool mIsPublishAtisTriggeredInitially;
+    private DecodedMetar? mDecodedMetar;
 
     #region Reactive Properties
     private string? mId;
@@ -228,7 +234,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
         IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
         INavDataRepository navDataRepository, IAtisHubConnection atisHubConnection, ISessionManager sessionManager,
-        IProfileRepository profileRepository)
+        IProfileRepository profileRepository, IWebsocketService websocketService)
     {
         Id = station.Id;
         Identifier = station.Identifier;
@@ -237,6 +243,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         mAtisBuilder = atisBuilder;
         mWindowFactory = windowFactory;
         mAtisHubConnection = atisHubConnection;
+        mWebsocketService = websocketService;
         mSessionManager = sessionManager;
         mProfileRepository = profileRepository;
         mCancellationToken = new CancellationTokenSource();
@@ -286,6 +293,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 x => x.NetworkConnectionStatus,
                 (metar, voiceRecord, networkStatus) => !string.IsNullOrEmpty(metar) && voiceRecord &&
                                                        networkStatus == NetworkConnectionStatus.Connected));
+
+        mWebsocketService.GetAtisReceived += OnGetAtisReceived;
+        mWebsocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
 
         LoadContractionData();
 
@@ -358,6 +368,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             mAtisHubConnection.SubscribeToAtis(new SubscribeDto(mAtisStation.Identifier, mAtisStation.AtisType));
         });
 
+        this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
         this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
         this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(HandleNetworkStatusChanged);
     }
@@ -571,6 +582,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (mVoiceServerConnection == null || mNetworkConnection == null)
                 return;
 
+            await PublishAtisToWebsocket();
+
             switch (status)
             {
                 case NetworkConnectionStatus.Connected:
@@ -721,6 +734,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         mCancellationToken.Dispose();
         mCancellationToken = new CancellationTokenSource();
 
+        mDecodedMetar = null;
+
         Dispatcher.UIThread.Post(() =>
         {
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
@@ -761,6 +776,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 IsNewAtis = true;
             }
 
+            // Save the decoded metar so its individual properties can be sent to clients
+            // connected via the websocket.
+            mDecodedMetar = e.Metar;
+
+            var propertyUpdates = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() =>
             {
                 Metar = e.Metar.RawMetar?.ToUpperInvariant();
@@ -768,7 +788,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
                     : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
                 Wind = e.Metar.SurfaceWind?.RawValue;
+                propertyUpdates.SetResult();
             });
+
+            // Wait for the UI thread to finish updating the properties. Without this it's possible
+            // to publish updated METAR information either via the hub or websocket with old data.
+            await propertyUpdates.Task;
 
             if (mAtisStation.AtisVoice.UseTextToSpeech)
             {
@@ -818,6 +843,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     NativeAudio.EmitSound(SoundType.Error);
                 }
             }
+
+            // This is done at the very end to ensure the TextAtis is updated before the websocket message is sent.
+            await PublishAtisToWebsocket();
         }
         catch (Exception ex)
         {
@@ -829,6 +857,29 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 ErrorMessage = ex.Message;
             });
         }
+    }
+
+    /// <summary>
+    /// Publishes the current ATIS information to connected websocket clients.
+    /// </summary>
+    /// <param name="session">The connected client to publish the data to. If omitted or null the data is broadcast to all connected clients.</param>
+    /// <returns>A task.</returns>
+    public async Task PublishAtisToWebsocket(ClientMetadata? session = null)
+    {
+        await mWebsocketService.SendAtisMessage(session, new AtisMessage.AtisMessageValue
+        {
+            Station = mAtisStation.Identifier,
+            AtisType = mAtisStation.AtisType,
+            AtisLetter = AtisLetter,
+            Metar = Metar?.Trim(),
+            Wind = Wind?.Trim(),
+            Altimeter = Altimeter?.Trim(),
+            TextAtis = mAtisStation.TextAtis,
+            IsNewAtis = IsNewAtis,
+            NetworkConnectionStatus = NetworkConnectionStatus,
+            PressureUnit = mDecodedMetar?.Pressure?.Value?.ActualUnit,
+            PressureValue = mDecodedMetar?.Pressure?.Value?.ActualValue,
+        });
     }
 
     private async Task PublishAtisToHub()
@@ -874,6 +925,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     mCancellationToken.Token);
 
                 await PublishAtisToHub();
+                await PublishAtisToWebsocket();
+
                 await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
 
                 if (mAtisStation.AtisVoice.UseTextToSpeech)
@@ -915,10 +968,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    private async void HandleIsNewAtisChanged(bool isNewAtis)
+    {
+        await PublishAtisToWebsocket();
+    }
+
     private async void HandleAtisLetterChanged(char atisLetter)
     {
         try
         {
+            // Always publish the latest information to the websocket, even if the station isn't
+            // connected or doesn't support text to speech.
+            await PublishAtisToWebsocket();
+
             if (!mAtisStation.AtisVoice.UseTextToSpeech)
                 return;
 
@@ -984,6 +1046,34 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    private async void OnGetAtisReceived(object? sender, GetAtisReceived e)
+    {
+        // If a specific station is specified then both the station identifier and the ATIS type
+        // must match to acknowledge the update.
+        // If a specific station isn't specified then the request is for all stations.
+        if (!string.IsNullOrEmpty(e.Station) &&
+            (e.Station != mAtisStation.Identifier || e.AtisType != mAtisStation.AtisType))
+        {
+            return;
+        }
+
+        await PublishAtisToWebsocket(e.Session);
+    }
+
+    private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
+    {
+        // If a specific station is specified then both the station identifier and the ATIS type
+        // must match to acknowledge the update.
+        // If a specific station isn't specified then the request is for all stations.
+        if (!string.IsNullOrEmpty(e.Station) &&
+            (e.Station != mAtisStation.Identifier || e.AtisType != mAtisStation.AtisType))
+        {
+            return;
+        }
+
+        HandleAcknowledgeAtisUpdate();
+    }
+
     private void HandleAcknowledgeAtisUpdate()
     {
         if (IsNewAtis)
@@ -1021,6 +1111,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
+        
+        mWebsocketService.GetAtisReceived -= OnGetAtisReceived;
+        mWebsocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
 
         if (mNetworkConnection != null)
         {

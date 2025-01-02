@@ -39,6 +39,7 @@ namespace Vatsim.Vatis;
 [Singleton(typeof(IVoiceServerConnection), typeof(VoiceServerConnection))]
 [Singleton(typeof(IAtisHubConnection), typeof(AtisHubConnection))]
 [Singleton(typeof(IProfileRepository), typeof(ProfileRepository))]
+[Singleton(typeof(IWebsocketService), typeof(WebsocketService))]
 [Transient(typeof(IWindowFactory), Factory = nameof(CreateWindowFactory))]
 [Transient(typeof(IViewModelFactory), Factory = nameof(CreateViewModelFactory))]
 [Transient(typeof(INetworkConnectionFactory), Factory = nameof(CreateConnectionFactory))]
@@ -120,7 +121,8 @@ internal class ViewModelFactory : IViewModelFactory
             mProvider.GetService<IAppConfig>(), mProvider.GetService<IVoiceServerConnection>(),
             mProvider.GetService<IAtisBuilder>(), mProvider.GetService<IWindowFactory>(),
             mProvider.GetService<INavDataRepository>(), mProvider.GetService<IAtisHubConnection>(),
-            mProvider.GetService<ISessionManager>(), mProvider.GetService<IProfileRepository>());
+            mProvider.GetService<ISessionManager>(), mProvider.GetService<IProfileRepository>(),
+            mProvider.GetService<IWebsocketService>());
     }
 
     public ContractionsViewModel CreateContractionsViewModel()
@@ -137,14 +139,14 @@ internal class ViewModelFactory : IViewModelFactory
 
     public GeneralConfigViewModel CreateGeneralConfigViewModel()
     {
-        return new GeneralConfigViewModel(mProvider.GetService<IAppConfig>(), 
+        return new GeneralConfigViewModel(mProvider.GetService<IAppConfig>(),
             mProvider.GetService<ISessionManager>(),
             mProvider.GetService<IProfileRepository>());
     }
 
     public PresetsViewModel CreatePresetsViewModel()
     {
-        return new PresetsViewModel(mProvider.GetService<IWindowFactory>(), 
+        return new PresetsViewModel(mProvider.GetService<IWindowFactory>(),
             mProvider.GetService<IDownloader>(),
             mProvider.GetService<IMetarRepository>(),
             mProvider.GetService<IProfileRepository>(),

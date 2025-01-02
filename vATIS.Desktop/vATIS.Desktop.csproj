@@ -65,6 +65,7 @@
 		<PackageReference Include="Slugify.Core" Version="4.0.1" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
 		<PackageReference Include="Velopack" Version="0.0.942" />
+		<PackageReference Include="WatsonWebsocket" Version="4.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>
