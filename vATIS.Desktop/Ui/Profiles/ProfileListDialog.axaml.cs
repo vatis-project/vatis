@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using Serilog;
 using Vatsim.Vatis.Ui.ViewModels;
 
@@ -17,6 +18,17 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         ViewModel = viewModel;
         Loaded += ProfileListDialog_Loaded;
         Closed += OnClosed;
+        Closing += OnClosing;
+    }
+
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        // Check if the window close request was triggered by the user (e.g., ALT+F4 or similar)
+        if (!e.IsProgrammatic)
+        {
+            // Execute the ExitCommand to perform a clean application shutdown
+            Dispatcher.UIThread.InvokeAsync(() => ViewModel?.ExitCommand.Execute().Subscribe());
+        }
     }
 
     private void OnClosed(object? sender, EventArgs e)

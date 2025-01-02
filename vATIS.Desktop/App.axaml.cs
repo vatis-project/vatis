@@ -290,7 +290,7 @@ public class App : Application
     {
         if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            Dispatcher.UIThread.InvokeAsync(() => desktop.Shutdown());
+            Dispatcher.UIThread.Invoke(() => desktop.Shutdown());
         }
     }
 
