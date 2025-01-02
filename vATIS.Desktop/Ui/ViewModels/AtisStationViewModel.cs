@@ -233,7 +233,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
         IVoiceServerConnectionFactory voiceServerConnectionFactory, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
-        INavDataRepository navDataRepository, IAtisHubConnection atisHubConnection, ISessionManager sessionManager,
+        INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
         IProfileRepository profileRepository, IWebsocketService websocketService)
     {
         Id = station.Id;
@@ -242,8 +242,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         mAppConfig = appConfig;
         mAtisBuilder = atisBuilder;
         mWindowFactory = windowFactory;
-        mAtisHubConnection = atisHubConnection;
         mWebsocketService = websocketService;
+        mAtisHubConnection = hubConnection;
         mSessionManager = sessionManager;
         mProfileRepository = profileRepository;
         mCancellationToken = new CancellationTokenSource();
