@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.4
+### Added
+- Added WebSocket API.
+- Added local development support for easier testing and debugging.
+- Added template customization options for the recent weather group.
+- Added "Open" button to the Profile dialog window.
+- Added formatting parameter to the cloud altitude template variable.
+- Added mouse drag support for various windows and dialogs.
+### Changed
+- Updated cloud and weather template text to display only if the respective weather data is available.
+- Improved spacing after the NOTAMs section in the text ATIS.
+- Default closing statement template now includes a closing period.
+- Improved ATIS station tab selection state during ATIS connect/disconnect actions.
+- Adjusted startup logic to prevent the app from launching from a macOS DMG volume.
+- Profile dialog and Voice Record ATIS window now remember their last position.
+### Fixed
+- Resolved a FormatException issue when parsing negative number values.
+- Corrected magnetic variation logic to respect the enabled setting.
+- Fixed ATIS connection count not resetting properly after session start/end.
+- Addressed initialization issues with audio device names in the native audio library.
+- Improved ATIS letter edit mode to handle the escape key and quick mouse clicks more reliably.
+- Fixed the ATIS letter selector to respect the correct code range.
+- Fixed RVR decoding to show all RVRs in the METAR, including unlimited RVR values.
+- Fixed overflow exception when saving malformed ATIS frequency.
+- Fixed issue with ATIS sandbox not clearing values when switching stations.
+
 ## v4.1.0-beta.3
 ### Changed
 - Improved styling for ATIS letter input mode.
