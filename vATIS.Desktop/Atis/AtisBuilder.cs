@@ -361,9 +361,13 @@ public class AtisBuilder : IAtisBuilder
             }
             else
             {
-                notams += string.Join(".", preset.Notams,
-                    string.Join(".", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)));
+                if (!string.IsNullOrEmpty(preset.Notams))
+                {
+                    notams += preset.Notams + ".";
+                }
+                notams += string.Join(".", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text));
             }
+            notams += ".";
         }
         
         // strip extraneous punctuation
