@@ -113,10 +113,20 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Bind(out var sortedStations)
             .Subscribe(_ =>
             {
-                
                 AtisStations = sortedStations;
-                SelectedTabIndex = mBeforeStationSortSelectedStationId == null ? 0 
-                    : AtisStations.IndexOf(AtisStations.FirstOrDefault(it => it.Id == mBeforeStationSortSelectedStationId, AtisStations.First()) );
+                if (mBeforeStationSortSelectedStationId == null || AtisStations.Count == 0)
+                {
+                    SelectedTabIndex = 0; // No valid previous station or empty list
+                }
+                else
+                {
+                    var selectedStation = AtisStations.FirstOrDefault(
+                        it => it.Id == mBeforeStationSortSelectedStationId);
+
+                    SelectedTabIndex = selectedStation != null
+                        ? AtisStations.IndexOf(selectedStation)
+                        : 0; // Default to the first tab if no match
+                }
             });
 
         AtisStations = sortedStations;
