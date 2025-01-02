@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "dotnet",
+      "task": "build vATIS.Desktop/vATIS.Desktop.csproj",
+      "file": "${workspaceFolder}/vATIS.Desktop/vATIS.Desktop.csproj",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "label": "Build vATIS.Desktop"
+    },
+    {
+      "type": "dotnet",
+      "task": "build DevServer/DevServer.csproj",
+      "file": "${workspaceFolder}/DevServer/DevServer.csproj",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "Build DevServer"
+    }
+  ]
+}

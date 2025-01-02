@@ -382,6 +382,7 @@ FodyWeavers.xsd
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/launchSettings.json
 *.code-workspace
 
 # Local History for Visual Studio Code
@@ -401,3 +402,7 @@ FodyWeavers.xsd
 /NativeAudio/build
 /vATIS.Desktop/Voice/Audio/Native
 .DS_Store
+
+# Windows builds
+build/**
+NativeAudio/Out/**

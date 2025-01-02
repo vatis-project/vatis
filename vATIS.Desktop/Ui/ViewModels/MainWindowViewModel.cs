@@ -142,7 +142,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             var station = mSessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null && mAtisStationSource.Items.All(x => x.Id != station.Id))
             {
-                var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station);
+                var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station, mAtisHubConnection);
                 mDisposables.Add(atisStationViewModel);
                 mAtisStationSource.Add(atisStationViewModel);
             }
@@ -160,7 +160,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 var updatedStation = mSessionManager.CurrentProfile?.Stations?.FirstOrDefault(x => x.Id == evt.Id);
                 if (updatedStation != null)
                 {
-                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(updatedStation);
+                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(updatedStation, mAtisHubConnection);
                     mDisposables.Add(atisStationViewModel);
                     mAtisStationSource.Add(atisStationViewModel);
                 }
@@ -199,7 +199,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             {
                 if (mAtisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
                 {
-                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station);
+                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station, mAtisHubConnection);
                     mDisposables.Add(atisStationViewModel);
                     mAtisStationSource.Add(atisStationViewModel);
                 }

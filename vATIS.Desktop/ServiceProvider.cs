@@ -1,4 +1,5 @@
-﻿using Jab;
+﻿using System;
+using Jab;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
@@ -42,7 +43,9 @@ namespace Vatsim.Vatis;
 [Singleton(typeof(IWebsocketService), typeof(WebsocketService))]
 [Transient(typeof(IWindowFactory), Factory = nameof(CreateWindowFactory))]
 [Transient(typeof(IViewModelFactory), Factory = nameof(CreateViewModelFactory))]
-[Transient(typeof(INetworkConnectionFactory), Factory = nameof(CreateConnectionFactory))]
+[Transient(typeof(INetworkConnectionFactory), Factory = nameof(CreateNetworkConnectionFactory))]
+[Transient(typeof(IVoiceServerConnectionFactory), Factory = nameof(CreateVoiceServerConnectionFactory))]
+[Transient(typeof(IHubConnectionFactory), Factory = nameof(CreateHubConnectionFactory))]
 //Views
 [Transient(typeof(MainWindow))]
 [Transient(typeof(CompactWindow))]
@@ -86,7 +89,9 @@ internal sealed partial class ServiceProvider
 {
     public IWindowFactory CreateWindowFactory() => new WindowFactory(this);
     public IViewModelFactory CreateViewModelFactory() => new ViewModelFactory(this);
-    public INetworkConnectionFactory CreateConnectionFactory() => new ConnectionFactory(this);
+    public INetworkConnectionFactory CreateNetworkConnectionFactory() => new ConnectionFactory(this);
+    public IVoiceServerConnectionFactory CreateVoiceServerConnectionFactory() => new VoiceServerConnectionFactory(this);
+    public IHubConnectionFactory CreateHubConnectionFactory() => new HubConnectionFactory(this);
 }
 
 internal class ConnectionFactory : INetworkConnectionFactory
@@ -98,11 +103,62 @@ internal class ConnectionFactory : INetworkConnectionFactory
         mProvider = provider;
     }
 
-    public NetworkConnection CreateConnection(AtisStation station)
+    public INetworkConnection CreateConnection(AtisStation station)
     {
+        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
+        if (!string.IsNullOrEmpty(environmentVariable) &&
+            environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase))
+        {
+            return new MockNetworkConnection(station, mProvider.GetService<IMetarRepository>());
+        }
+
         return new NetworkConnection(station, mProvider.GetService<IAppConfig>(),
             mProvider.GetService<IAuthTokenManager>(), mProvider.GetService<IMetarRepository>(),
             mProvider.GetService<IDownloader>(), mProvider.GetService<INavDataRepository>());
+    }
+}
+
+internal class VoiceServerConnectionFactory : IVoiceServerConnectionFactory
+{
+    private readonly ServiceProvider mProvider;
+
+    public VoiceServerConnectionFactory(ServiceProvider provider)
+    {
+        mProvider = provider;
+    }
+
+    public IVoiceServerConnection CreateVoiceServerConnection()
+    {
+        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
+        if (!string.IsNullOrEmpty(environmentVariable) &&
+            environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase))
+        {
+            return new MockVoiceServerConnection();
+        }
+
+        return new VoiceServerConnection(mProvider.GetService<IDownloader>());
+    }
+}
+
+internal class HubConnectionFactory : IHubConnectionFactory
+{
+    private readonly ServiceProvider mProvider;
+
+    public HubConnectionFactory(ServiceProvider provider)
+    {
+        mProvider = provider;
+    }
+
+    public IAtisHubConnection CreateHubConnection()
+    {
+        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
+        if (!string.IsNullOrEmpty(environmentVariable) &&
+            environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase))
+        {
+            return new MockAtisHubConnection();
+        }
+
+        return new AtisHubConnection(mProvider.GetService<IAppConfigurationProvider>());
     }
 }
 
@@ -115,10 +171,10 @@ internal class ViewModelFactory : IViewModelFactory
         mProvider = provider;
     }
 
-    public AtisStationViewModel CreateAtisStationViewModel(AtisStation station)
+    public AtisStationViewModel CreateAtisStationViewModel(AtisStation station, IAtisHubConnection hubConnection)
     {
         return new AtisStationViewModel(station, mProvider.GetService<INetworkConnectionFactory>(),
-            mProvider.GetService<IAppConfig>(), mProvider.GetService<IVoiceServerConnection>(),
+            mProvider.GetService<IAppConfig>(), mProvider.GetService<IVoiceServerConnectionFactory>(),
             mProvider.GetService<IAtisBuilder>(), mProvider.GetService<IWindowFactory>(),
             mProvider.GetService<INavDataRepository>(), mProvider.GetService<IAtisHubConnection>(),
             mProvider.GetService<ISessionManager>(), mProvider.GetService<IProfileRepository>(),
