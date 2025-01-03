@@ -520,9 +520,9 @@
 							<CheckBox IsChecked="{Binding CloudHeightAltitudeInHundreds, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" IsEnabled="{Binding !#CloudToMetric.IsChecked}" ToolTip.Tip="Cloud height will displayed in hundreds of feet, for example FEW010 will be shown as FEW1000">Display cloud height in hundreds of feet</CheckBox>
 							<Grid ColumnDefinitions="140,5,*,20,140,5,*" Margin="0,10,0,5">
 								<TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the cloud layer height is ///">Undetermined (Voice):</TextBlock>
-								<TextBox Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Grid.Column="2" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBox Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Grid.Column="2" Theme="{StaticResource DarkTextBox}"></TextBox>
 								<TextBlock Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the cloud layer height is ///">Undetermined (Text):</TextBlock>
-								<TextBox Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Grid.Column="6" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBox Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Grid.Column="6" Theme="{StaticResource DarkTextBox}"></TextBox>
 							</Grid>
 							<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,5,0,0">
 								<StackPanel Orientation="Vertical" Spacing="10">
