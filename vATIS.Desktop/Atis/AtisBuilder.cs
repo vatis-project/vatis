@@ -241,6 +241,7 @@ public class AtisBuilder : IAtisBuilder
             template = Regex.Replace(template, @"\[PRESSURE_(\w{4})\]", "", RegexOptions.IgnoreCase);
         }
 
+        template = Regex.Replace(template, @"\+([A-Z0-9]{3,4})", "$1"); // remove airports and navaid identifiers prefix
         template = Regex.Replace(template, @"\s+(?=[.,?!])", ""); // remove extra spaces before punctuation
         template = Regex.Replace(template, @"\s+", " ");
         template = Regex.Replace(template, @"(?<=\*)(-?[\,0-9]+)", "$1");
