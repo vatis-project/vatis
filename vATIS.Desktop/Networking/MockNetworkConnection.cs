@@ -22,6 +22,8 @@ public class MockNetworkConnection : INetworkConnection
 
     public MockNetworkConnection(AtisStation station, IMetarRepository metarRepository)
     {
+        mMetarRepository = metarRepository;
+        
         Station = station;
         Callsign = station.AtisType switch
         {
@@ -30,8 +32,6 @@ public class MockNetworkConnection : INetworkConnection
             AtisType.Arrival => station.Identifier + "_A_ATIS",
             _ => throw new Exception("Unknown AtisType: " + station.AtisType),
         };
-
-        mMetarRepository = metarRepository;
 
         MessageBus.Current.Listen<MetarReceived>().Subscribe(evt =>
         {

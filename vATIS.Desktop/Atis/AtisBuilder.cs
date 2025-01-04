@@ -28,8 +28,8 @@ public class AtisBuilder : IAtisBuilder
     private readonly INavDataRepository? mNavDataRepository;
     private readonly ITextToSpeechService? mTextToSpeechService;
 
-    public AtisBuilder(IDownloader downloader, IMetarRepository metarRepository, INavDataRepository navDataRepository,
-        ITextToSpeechService textToSpeechService)
+    public AtisBuilder(IDownloader downloader, INavDataRepository navDataRepository,
+        ITextToSpeechService textToSpeechService, IMetarRepository metarRepository)
     {
         mDownloader = downloader;
         mMetarRepository = metarRepository;
@@ -38,47 +38,18 @@ public class AtisBuilder : IAtisBuilder
     }
 
     public async Task<AtisBuilderResponse> BuildAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
-        object? stationMetar, CancellationToken cancellationToken, bool sandboxRequest = false)
+        DecodedMetar decodedMetar, CancellationToken cancellationToken, bool sandboxRequest = false)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         ArgumentNullException.ThrowIfNull(station);
         ArgumentNullException.ThrowIfNull(preset);
-
-        if (mMetarRepository == null)
-            throw new NullReferenceException();
-
-        if (stationMetar != null && stationMetar is not string && stationMetar is not DecodedMetar)
-            throw new ArgumentException(@"Invalid metar parameter: must be either a string or DecodedMetar object",
-                nameof(stationMetar));
-
-        DecodedMetar? metar;
-        if (stationMetar is string metarString && !string.IsNullOrEmpty(metarString))
-        {
-            try
-            {
-                var parser = new Weather.Decoder.MetarDecoder();
-                metar = parser.ParseNotStrict(metarString);
-            }
-            catch (Exception ex)
-            {
-                throw new AtisBuilderException("Failed to parse metar.", ex);
-            }
-        }
-        else if (stationMetar is DecodedMetar decodedMetar)
-        {
-            metar = decodedMetar;
-        }
-        else
-        {
-            metar = await mMetarRepository.GetMetar(station.Identifier, triggerMessageBus : false) ?? throw new AtisBuilderException(
-                "The METAR data is unavailable. Please try disconnecting and reconnecting the ATIS.");
-        }
+        ArgumentNullException.ThrowIfNull(decodedMetar);
 
         var airportData = mNavDataRepository?.GetAirport(station.Identifier) ??
                           throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
 
-        var variables = await ParseNodesFromMetar(station, preset, metar, airportData, currentAtisLetter);
+        var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
         var textAtis = await CreateTextAtis(station, preset, currentAtisLetter, variables);
 

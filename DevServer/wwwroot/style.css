@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+body, html {
+    font-family: 'Nunito', sans-serif;
+    height: 100%;
+}
+
+.form-control:focus {
+    border-color: inherit;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.form {
+    max-width: 900px;
+}
+
+.form textarea {
+    resize: none;
+}
+
+input, textarea {
+    text-transform: uppercase;
+}
+::-webkit-input-placeholder {
+    text-transform: none;
+}
+:-moz-placeholder {
+    text-transform: none;
+}
+::-moz-placeholder {
+    text-transform: none;
+}
+:-ms-input-placeholder {
+    text-transform: none;
+}
+::placeholder {
+    text-transform: none;
+}

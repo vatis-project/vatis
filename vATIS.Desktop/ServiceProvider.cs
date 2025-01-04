@@ -30,22 +30,20 @@ namespace Vatsim.Vatis;
 [Singleton(typeof(IAppConfig), typeof(AppConfig))]
 [Singleton(typeof(IClientUpdater), typeof(ClientUpdater))]
 [Singleton(typeof(IDownloader), typeof(Downloader))]
-[Singleton(typeof(IMetarRepository), typeof(MetarRepository))]
 [Singleton(typeof(ISessionManager), typeof(SessionManager))]
 [Singleton(typeof(IAuthTokenManager), typeof(AuthTokenManager))]
 [Singleton(typeof(INavDataRepository), typeof(NavDataRepository))]
 [Singleton(typeof(ITextToSpeechService), typeof(TextToSpeechService))]
 [Singleton(typeof(IAtisBuilder), typeof(AtisBuilder))]
 [Singleton(typeof(IWindowLocationService), typeof(WindowLocationService))]
-[Singleton(typeof(IVoiceServerConnection), typeof(VoiceServerConnection))]
-[Singleton(typeof(IAtisHubConnection), typeof(AtisHubConnection))]
 [Singleton(typeof(IProfileRepository), typeof(ProfileRepository))]
 [Singleton(typeof(IWebsocketService), typeof(WebsocketService))]
-[Transient(typeof(IWindowFactory), Factory = nameof(CreateWindowFactory))]
-[Transient(typeof(IViewModelFactory), Factory = nameof(CreateViewModelFactory))]
-[Transient(typeof(INetworkConnectionFactory), Factory = nameof(CreateNetworkConnectionFactory))]
-[Transient(typeof(IVoiceServerConnectionFactory), Factory = nameof(CreateVoiceServerConnectionFactory))]
-[Transient(typeof(IHubConnectionFactory), Factory = nameof(CreateHubConnectionFactory))]
+[Singleton<IMetarRepository>(Factory = nameof(CreateMetarRepository))]
+[Singleton<IVoiceServerConnection>(Factory = nameof(CreateVoiceServerConnection))]
+[Singleton<IAtisHubConnection>(Factory = nameof(CreateAtisHubConnection))]
+[Transient(typeof(IWindowFactory), Factory = nameof(WindowFactory))]
+[Transient(typeof(IViewModelFactory), Factory = nameof(ViewModelFactory))]
+[Transient(typeof(INetworkConnectionFactory), Factory = nameof(NetworkConnectionFactory))]
 //Views
 [Transient(typeof(MainWindow))]
 [Transient(typeof(CompactWindow))]
@@ -87,27 +85,60 @@ namespace Vatsim.Vatis;
 [Transient(typeof(SandboxViewModel))]
 internal sealed partial class ServiceProvider
 {
-    public IWindowFactory CreateWindowFactory() => new WindowFactory(this);
-    public IViewModelFactory CreateViewModelFactory() => new ViewModelFactory(this);
-    public INetworkConnectionFactory CreateNetworkConnectionFactory() => new ConnectionFactory(this);
-    public IVoiceServerConnectionFactory CreateVoiceServerConnectionFactory() => new VoiceServerConnectionFactory(this);
-    public IHubConnectionFactory CreateHubConnectionFactory() => new HubConnectionFactory(this);
+    public static bool IsDevelopmentEnvironment()
+    {
+        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
+        return !string.IsNullOrEmpty(environmentVariable) &&
+               environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase);
+    }
+    
+    private IMetarRepository CreateMetarRepository()
+    {
+        if(IsDevelopmentEnvironment())
+        {
+            return new MockMetarRepository(GetService<IDownloader>());
+        }
+
+        return new MetarRepository(GetService<IDownloader>(), GetService<IAppConfigurationProvider>());
+    }
+
+    private IAtisHubConnection CreateAtisHubConnection()
+    {
+        if(IsDevelopmentEnvironment())
+        {
+            return new MockAtisHubConnection();
+        }
+
+        return new AtisHubConnection(GetService<IAppConfigurationProvider>());
+    }
+
+    private IVoiceServerConnection CreateVoiceServerConnection()
+    {
+        if(IsDevelopmentEnvironment())
+        {
+            return new MockVoiceServerConnection();
+        }
+
+        return new VoiceServerConnection(GetService<IDownloader>());
+    }
+
+    public IWindowFactory WindowFactory() => new WindowFactory(this);
+    public IViewModelFactory ViewModelFactory() => new ViewModelFactory(this);
+    public INetworkConnectionFactory NetworkConnectionFactory() => new NetworkConnectionFactory(this);
 }
 
-internal class ConnectionFactory : INetworkConnectionFactory
+internal class NetworkConnectionFactory : INetworkConnectionFactory
 {
     private readonly ServiceProvider mProvider;
 
-    public ConnectionFactory(ServiceProvider provider)
+    public NetworkConnectionFactory(ServiceProvider provider)
     {
         mProvider = provider;
     }
 
     public INetworkConnection CreateConnection(AtisStation station)
     {
-        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
-        if (!string.IsNullOrEmpty(environmentVariable) &&
-            environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase))
+        if(ServiceProvider.IsDevelopmentEnvironment())
         {
             return new MockNetworkConnection(station, mProvider.GetService<IMetarRepository>());
         }
@@ -115,50 +146,6 @@ internal class ConnectionFactory : INetworkConnectionFactory
         return new NetworkConnection(station, mProvider.GetService<IAppConfig>(),
             mProvider.GetService<IAuthTokenManager>(), mProvider.GetService<IMetarRepository>(),
             mProvider.GetService<IDownloader>(), mProvider.GetService<INavDataRepository>());
-    }
-}
-
-internal class VoiceServerConnectionFactory : IVoiceServerConnectionFactory
-{
-    private readonly ServiceProvider mProvider;
-
-    public VoiceServerConnectionFactory(ServiceProvider provider)
-    {
-        mProvider = provider;
-    }
-
-    public IVoiceServerConnection CreateVoiceServerConnection()
-    {
-        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
-        if (!string.IsNullOrEmpty(environmentVariable) &&
-            environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase))
-        {
-            return new MockVoiceServerConnection();
-        }
-
-        return new VoiceServerConnection(mProvider.GetService<IDownloader>());
-    }
-}
-
-internal class HubConnectionFactory : IHubConnectionFactory
-{
-    private readonly ServiceProvider mProvider;
-
-    public HubConnectionFactory(ServiceProvider provider)
-    {
-        mProvider = provider;
-    }
-
-    public IAtisHubConnection CreateHubConnection()
-    {
-        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
-        if (!string.IsNullOrEmpty(environmentVariable) &&
-            environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase))
-        {
-            return new MockAtisHubConnection();
-        }
-
-        return new AtisHubConnection(mProvider.GetService<IAppConfigurationProvider>());
     }
 }
 
@@ -171,10 +158,10 @@ internal class ViewModelFactory : IViewModelFactory
         mProvider = provider;
     }
 
-    public AtisStationViewModel CreateAtisStationViewModel(AtisStation station, IAtisHubConnection hubConnection)
+    public AtisStationViewModel CreateAtisStationViewModel(AtisStation station)
     {
         return new AtisStationViewModel(station, mProvider.GetService<INetworkConnectionFactory>(),
-            mProvider.GetService<IAppConfig>(), mProvider.GetService<IVoiceServerConnectionFactory>(),
+            mProvider.GetService<IAppConfig>(), mProvider.GetService<IVoiceServerConnection>(),
             mProvider.GetService<IAtisBuilder>(), mProvider.GetService<IWindowFactory>(),
             mProvider.GetService<INavDataRepository>(), mProvider.GetService<IAtisHubConnection>(),
             mProvider.GetService<ISessionManager>(), mProvider.GetService<IProfileRepository>(),

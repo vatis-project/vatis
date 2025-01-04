@@ -77,4 +77,5 @@ public interface IClientHub
 {
     Task AtisReceived(List<AtisHubDto> dto);
     Task RemoveAtisReceived(AtisHubDto hubDto);
+    Task MetarReceived(string metar);
 }

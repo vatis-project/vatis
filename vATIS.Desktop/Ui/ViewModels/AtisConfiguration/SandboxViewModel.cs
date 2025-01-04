@@ -18,6 +18,7 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Weather;
+using Vatsim.Vatis.Weather.Decoder;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -30,7 +31,8 @@ public class SandboxViewModel : ReactiveViewModelBase
     private readonly IMetarRepository mMetarRepository;
     private CancellationTokenSource mCancellationToken;
     private readonly Random mRandom = new();
-
+    private readonly MetarDecoder mMetarDecoder = new();
+    
     public IDialogOwner? DialogOwner { get; set; }
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
     public ReactiveCommand<Unit, Unit> FetchSandboxMetarCommand { get; }
@@ -281,12 +283,15 @@ public class SandboxViewModel : ReactiveViewModelBase
 
             SelectedPreset.AirportConditions = AirportConditionsText;
             SelectedPreset.Notams = NotamText;
-
-            AtisBuilderResponse = await mAtisBuilder.BuildAtis(SelectedStation, SelectedPreset, randomLetter,
-                SandboxMetar, mCancellationToken.Token, true);
-
-            SandboxTextAtis = AtisBuilderResponse.TextAtis?.ToUpperInvariant();
-            SandboxSpokenTextAtis = AtisBuilderResponse.SpokenText?.ToUpperInvariant();
+            
+            if (SandboxMetar != null)
+            {
+                var decodedMetar = mMetarDecoder.ParseNotStrict(SandboxMetar);
+                AtisBuilderResponse = await mAtisBuilder.BuildAtis(SelectedStation, SelectedPreset, randomLetter,
+                    decodedMetar, mCancellationToken.Token, true);
+                SandboxTextAtis = AtisBuilderResponse.TextAtis?.ToUpperInvariant();
+                SandboxSpokenTextAtis = AtisBuilderResponse.SpokenText?.ToUpperInvariant();
+            }
         }
         catch (Exception)
         {

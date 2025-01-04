@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Weather.Decoder;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
@@ -38,8 +40,23 @@ public class MockAtisHubConnection : IAtisHubConnection
                     MessageBus.Current.SendMessage(new AtisHubAtisReceived(dto));
                 }
             });
-            mHubConnection.On<AtisHubDto>("RemoveAtisReceived",
-                (dto) => { MessageBus.Current.SendMessage(new AtisHubExpiredAtisReceived(dto)); });
+            mHubConnection.On<AtisHubDto>("RemoveAtisReceived", (dto) =>
+            {
+                MessageBus.Current.SendMessage(new AtisHubExpiredAtisReceived(dto));
+            });
+            mHubConnection.On<string>("MetarReceived", (message) =>
+            {
+                try
+                {
+                    var decoder = new MetarDecoder();
+                    var metar = decoder.ParseStrict(message);
+                    MessageBus.Current.SendMessage(new MetarReceived(metar));
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Error parsing dev METAR");
+                }
+            });
 
             SetConnectionState(ConnectionState.Connecting);
             Log.Information($"Connecting to Dev AtisHub.");

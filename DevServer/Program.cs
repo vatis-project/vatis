@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using DevServer.Hub;
+using DevServer.Services;
 using Serilog;
 
 namespace DevServer;
@@ -30,20 +31,17 @@ public static class Program
                 options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
+            builder.Services.AddHttpClient();
             builder.Services.AddSingleton<ICacheService, CacheService>();
+            builder.Services.AddSingleton<IMetarRepository, MetarRepository>();
 
             var app = builder.Build();
             
-            app.UseHttpsRedirection();
+            app.UseDefaultFiles();
             app.UseStaticFiles();
-
             app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.MapGet("/", async (context) => { await context.Response.WriteAsync($"vATIS Dev Server"); });
-
             app.MapControllers();
+            app.MapFallbackToFile("index.html");
             app.MapHub<ClientHub>("/hub");
 
             app.Run();
