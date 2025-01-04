@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
@@ -18,6 +19,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         
         Opened += OnOpened;
         Closed += OnClosed;
+        Closing += OnClosing;
+    }
+
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        // Check if the window close request was triggered by the user (e.g., ALT+F4 or similar)
+        if (!e.IsProgrammatic)
+        {
+            // Terminate the client session and navigate back to the profile dialog
+            Dispatcher.UIThread.Invoke(() => ViewModel?.EndClientSessionCommand.Execute().Subscribe());
+        }
     }
 
     private void OnOpened(object? sender, EventArgs e)
