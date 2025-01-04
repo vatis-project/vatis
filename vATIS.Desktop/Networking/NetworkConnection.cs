@@ -81,7 +81,9 @@ public class NetworkConnection : INetworkConnection
                                                          station.Identifier));
 
         var uniqueId = MachineInfoProvider.GetDefaultProvider().GetMachineGuid();
-        mUniqueDeviceIdentifier = uniqueId != null ? Encoding.UTF8.GetString(uniqueId) : "Unknown";
+        mUniqueDeviceIdentifier = uniqueId != null
+            ? Encoding.UTF8.GetString(uniqueId).Replace("\r", "").Replace("\n", "").Trim()
+            : "Unknown";
 
         mFsdFrequency = (int)((mAtisStation.Frequency / 1000) - 100000);
 
