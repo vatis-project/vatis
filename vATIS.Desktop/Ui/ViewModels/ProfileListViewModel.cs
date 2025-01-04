@@ -220,6 +220,21 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
                 var newProfile = await mProfileRepository.Import(file);
                 mProfileList.Add(new ProfileViewModel(newProfile));
             }
+            try
+            {
+                Log.Information("Checking for profile updates...");
+                await mProfileRepository.CheckForProfileUpdates();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error checking for profile updates");
+                await MessageBox.ShowDialog(
+                    (Window)mDialogOwner,
+                    ex.Message,
+                    "Import Error: Checking for profile updates",
+                    MessageBoxButton.Ok,
+                    MessageBoxIcon.Error);
+            }
         }
         catch (Exception ex)
         {
