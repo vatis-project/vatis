@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.5
+### Added
+- Added web interface to development server to allow manipulating METARs for testing.
+- Created a local development launch profile tailored for Visual Studio.
+### Changed
+- Removed the plus sign (+) correctly from navaid and airport text parsing.
+- Enhanced the shutdown process to prevent leftover processes.
+- Refined default settings for VSCode configurations.
+- Enabled automatic profile updates during profile import.
+### Fixed
+- Resolved an issue where ATIS was not consistently published to ATIS Hub.
+- Addressed authentication timeouts on Linux caused by malformed machine identifier string.
+- Adjusted spacing between dots and NOTAM text for improved clarity.
+- Fixed the NOTAM prefix displaying incorrectly when no NOTAMs were selected.
+- Corrected mishandling of undetermined cloud layer variables.
+- Ensured the ATIS Hub connection respects development server settings.
+- Fixed an InvalidOperationException occurring when adding new ATIS stations.
+
 ## v4.1.0-beta.4
 ### Added
 - Added WebSocket API.
