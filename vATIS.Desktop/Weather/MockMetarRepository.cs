@@ -1,3 +1,4 @@
+using System.Net;
 using System.Threading.Tasks;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
@@ -10,7 +11,7 @@ public class MockMetarRepository : IMetarRepository
 {
     private readonly IDownloader mDownloader;
     private readonly Decoder.MetarDecoder mMetarDecoder;
-    private const string LOCAL_METAR_SERVICE_URL = "http://localhost:5500/metar?id=";
+    private static readonly string LocalMetarServiceUrl = $"http://{IPAddress.Loopback.ToString()}:5500/metar?id=";
 
     public MockMetarRepository(IDownloader downloader)
     {
@@ -20,7 +21,7 @@ public class MockMetarRepository : IMetarRepository
 
     public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
     {
-        var metar = await mDownloader.DownloadStringAsync(LOCAL_METAR_SERVICE_URL + station);
+        var metar = await mDownloader.DownloadStringAsync(LocalMetarServiceUrl + station);
         if (!string.IsNullOrEmpty(metar))
         {
             var decodedMetar = mMetarDecoder.ParseNotStrict(metar);
