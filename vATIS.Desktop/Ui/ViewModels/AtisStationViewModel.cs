@@ -232,7 +232,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
 
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
-        IVoiceServerConnectionFactory voiceServerConnectionFactory, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
+        IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
         INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
         IProfileRepository profileRepository, IWebsocketService websocketService)
     {
@@ -307,7 +307,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         mNetworkConnection.ChangeServerReceived += OnChangeServerReceived;
         mNetworkConnection.MetarResponseReceived += OnMetarResponseReceived;
         mNetworkConnection.KillRequestReceived += OnKillRequestedReceived;
-        mVoiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
+        mVoiceServerConnection = voiceServerConnection;
 
         UseTexToSpeech = !mAtisStation.AtisVoice.UseTextToSpeech;
         MessageBus.Current.Listen<AtisVoiceTypeChanged>().Subscribe(evt =>
@@ -521,6 +521,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (mNetworkConnection == null || mVoiceServerConnection == null)
                 return;
 
+            if (mDecodedMetar == null)
+                return;
+
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
             {
                 if (lifetime.MainWindow == null)
@@ -529,7 +532,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 var window = mWindowFactory.CreateVoiceRecordAtisDialog();
                 if (window.DataContext is VoiceRecordAtisDialogViewModel vm)
                 {
-                    var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, null,
+                    var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, mDecodedMetar,
                         mCancellationToken.Token);
 
                     vm.AtisScript = atisBuilder.TextAtis;
@@ -768,6 +771,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             if (e.IsNewMetar)
             {
+                IsNewAtis = false;
                 if (!mAppConfig.SuppressNotificationSound)
                 {
                     NativeAudio.EmitSound(SoundType.Notification);
@@ -804,7 +808,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     mCancellationToken.Dispose();
                     mCancellationToken = new CancellationTokenSource();
 
-                    var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, null,
+                    var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, e.Metar,
                         mCancellationToken.Token);
 
                     mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
@@ -921,7 +925,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 if (NetworkConnectionStatus != NetworkConnectionStatus.Connected || mNetworkConnection == null)
                     return;
 
-                var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, null,
+                if (mDecodedMetar == null)
+                    return;
+
+                var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, mDecodedMetar,
                     mCancellationToken.Token);
 
                 await PublishAtisToHub();
@@ -993,6 +1000,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (mNetworkConnection == null || mVoiceServerConnection == null)
                 return;
 
+            if (mDecodedMetar == null)
+                return;
+
             // Cancel previous request
             await mCancellationToken.CancelAsync();
             mCancellationToken.Dispose();
@@ -1003,7 +1013,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 try
                 {
                     var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, atisLetter,
-                        null, mCancellationToken.Token);
+                        mDecodedMetar, mCancellationToken.Token);
 
                     mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
 
