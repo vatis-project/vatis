@@ -352,42 +352,42 @@ public class AtisBuilder : IAtisBuilder
         var airportConditionsVoice = ReplaceContractionVariable(airportConditions, station, voiceVariable: true);
 
         var notams = "";
+        var notamsText = "";
+        var notamsVoice = "";
         if (!string.IsNullOrEmpty(preset.Notams) || station.NotamDefinitions.Any(x => x.Enabled))
         {
             if (station.NotamsBeforeFreeText)
             {
-                notams += string.Join(".",
-                    string.Join(".", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)),
+                notams += string.Join(". ",
+                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)),
                     preset.Notams);
             }
             else
             {
-                notams += string.Join(".", preset.Notams,
-                    string.Join(".", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)));
+                notams += string.Join(". ", preset.Notams,
+                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)));
             }
-        }
         
-        // strip extraneous punctuation
-        notams = Regex.Replace(notams, @"[!?.]*([!?.])", "$1");
-        notams = Regex.Replace(notams, "\\s+([.,!\":])", "$1");
+            // strip extraneous punctuation
+            notams = Regex.Replace(notams, @"[!?.]*([!?.])", "$1");
+            notams = Regex.Replace(notams, "\\s+([.,!\":])", "$1");
 
-        var notamsText = "";
-        var notamsVoice = "";
-        if (station.UseNotamPrefix)
-        {
-            notamsText += "NOTAMS... ";
-            notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: ";
-        }
+            if (station.UseNotamPrefix)
+            {
+                notamsText += "NOTAMS... ";
+                notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: ";
+            }
 
-        if (!string.IsNullOrEmpty(notams))
-        {
-            notamsText += $"{notams} ";
-            notamsVoice += $"{notams} ";
-        }
+            if (!string.IsNullOrEmpty(notams))
+            {
+                notamsText += $"{notams} ";
+                notamsVoice += $"{notams} ";
+            }
         
-        // translate contraction variables
-        notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
-        notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
+            // translate contraction variables
+            notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
+            notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
+        }
 
         var variables = new List<AtisVariable>
         {
