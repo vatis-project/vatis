@@ -1,4 +1,14 @@
 {
+  "compounds": [
+    {
+      "name": "Launch dev server & debug vATIS.Desktop",
+      "configurations": [
+        "Launch dev server",
+        "Launch vATIS.Desktop - Dev server"
+      ],
+      "stopAll": true
+    }
+  ],
   "configurations": [
     {
       "name": "Launch dev server",
@@ -50,16 +60,6 @@
       "logging": {
         "moduleLoad": false
       }
-    }
-  ],
-  "compounds": [
-    {
-      "name": "Launch dev server & debug vATIS.Desktop",
-      "configurations": [
-        "Launch dev server",
-        "Launch vATIS.Desktop - Dev server"
-      ],
-      "stopAll": true
     }
   ]
 }
