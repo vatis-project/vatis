@@ -51,7 +51,7 @@ public class AtisStation : ReactiveObject
 
     [JsonIgnore] public bool IsFaaAtis => (Identifier.StartsWith('K') || Identifier.StartsWith('P'));
     [JsonIgnore] public string? TextAtis { get; set; }
-    [JsonIgnore] public string? AtisLetter { get; set; }
+    [JsonIgnore] public char AtisLetter { get; set; }
 
     // Legacy
     [Obsolete("Use 'Frequency' instead")]

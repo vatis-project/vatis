@@ -249,7 +249,7 @@ public class NetworkConnection : INetworkConnection
                 if (mAtisStation?.AtisLetter != null)
                 {
                     mFsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.PDU.From, ClientQueryType.ATIS,
-                        ["A", mAtisStation.AtisLetter]));
+                        ["A", mAtisStation.AtisLetter.ToString()]));
                 }
 
                 break;
