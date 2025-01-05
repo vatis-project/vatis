@@ -28,7 +28,7 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
         if (found.Count <= 1)
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.BAD_DAY_HOUR_MINUTE_INFORMATION);
+                MetarChunkDecoderException.Messages.BadDayHourMinuteInformation);
         }
 
         // retrieve found params and check them
@@ -39,7 +39,7 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
         if (!CheckValidity(day, hour, minute))
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.INVALID_DAY_HOUR_MINUTE_RANGES);
+                MetarChunkDecoderException.Messages.InvalidDayHourMinuteRanges);
         }
 
         result.Add(HourParameterName, hour);

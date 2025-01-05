@@ -67,7 +67,7 @@ public sealed class Value
     /// <summary>
     /// Conversions maps, internal usage only
     /// </summary>
-    private readonly Dictionary<Unit, Dictionary<Unit, double>> mConversionMaps = new() {
+    private readonly Dictionary<Unit, Dictionary<Unit, double>> _conversionMaps = new() {
         {
             Unit.MeterPerSecond, new Dictionary<Unit, double>()
             {
@@ -132,7 +132,7 @@ public sealed class Value
     /// <returns></returns>
     private KeyValuePair<Unit, Dictionary<Unit, double>> GetConversionMap()
     {
-        foreach (var conversionMap in mConversionMaps)
+        foreach (var conversionMap in _conversionMaps)
         {
             if (conversionMap.Value.ContainsKey(ActualUnit))
             {

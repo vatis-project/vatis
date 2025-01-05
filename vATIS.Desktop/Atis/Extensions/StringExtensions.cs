@@ -6,13 +6,13 @@ using System.Text.RegularExpressions;
 namespace Vatsim.Vatis.Atis.Extensions;
 public static class StringExtensions
 {
-    public static string StripNewLineChars(this string input)
+    public static string StripNewLineChars(this string? input)
     {
         return Regex.Replace(input ?? "", @"\t|\n|\r", "");
     }
 
     /// <summary>
-    /// Converts alphanumeric strings to human readable format. Useful for translating taxiways.
+    /// Converts alphanumeric strings to human-readable format. Useful for translating taxiways.
     /// </summary>
     public static string ToAlphaNumericWordGroup(this string s)
     {
@@ -20,8 +20,7 @@ public static class StringExtensions
         var num = new string(s.Where(char.IsNumber).ToArray());
         if (num.Length > 0)
         {
-            int numOut;
-            if (int.TryParse(num, out numOut))
+            if (int.TryParse(num, out var numOut))
             {
                 return $"{string.Join(" ", alpha.Select(x => Alphabet[x]).ToArray())} {numOut.ToGroupForm()}";
             }
@@ -49,23 +48,24 @@ public static class StringExtensions
     }
 
     /// <summary>
-    /// Translates runway numbers to human readable format for the voice synthesizer.
+    /// Translates runway numbers to human-readable format for the voice synthesizer.
     /// For example, RWY 25R would translate to "Runway Two Five Right"
     /// </summary>
     /// <param name="number">The runway number 1-360</param>
     /// <param name="identifier">The runway position identifier (L, R, C, null)</param>
     /// <param name="prefix"></param>
     /// <param name="plural"></param>
+    /// <param name="leadingZero"></param>
     /// <returns></returns>
     public static string RwyNumbersToWords(int number, string identifier, bool prefix = false, bool plural = false, bool leadingZero = false)
     {
-        string words = "";
-        string result = "";
+        var words = "";
+        var result = "";
 
         if (leadingZero && number < 10)
             words += "zero ";
 
-        if (number >= 1 && number <= 36)
+        if (number is >= 1 and <= 36)
         {
             var unitsMap = new[] { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "niner", "one zero", "one one", "one two", "one three", "one four", "one five", "one six", "one seven", "one eight", "one niner", "two zero", "two one", "two two", "two three", "two four", "two five", "two six", "two seven", "two eight", "two niner", "three zero", "three one", "three two", "three three", "three four", "three five", "three six" };
 
@@ -90,11 +90,11 @@ public static class StringExtensions
         }
 
         if (prefix && plural)
-            result = string.Format(" runways {0} {1}", words, ident);
+            result = $" runways {words} {ident}";
         if (prefix && !plural)
-            result = string.Format(" runway {0} {1}", words, ident);
+            result = $" runway {words} {ident}";
         else if (!prefix && !plural)
-            result = string.Format(" {0} {1}", words, ident);
+            result = $" {words} {ident}";
 
         return result.ToUpper();
     }
@@ -113,7 +113,7 @@ public static class StringExtensions
     }
 
     /// <summary>
-    /// Phoentic Alphabet
+    /// Phonetic Alphabet
     /// </summary>
     private static Dictionary<char, string> Alphabet => new()
     {

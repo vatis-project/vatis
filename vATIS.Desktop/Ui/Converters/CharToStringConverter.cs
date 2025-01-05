@@ -22,6 +22,6 @@ public class CharToStringConverter : IValueConverter
             return s[0];
         }
 
-        return default(char);
+        return '\0';
     }
 }

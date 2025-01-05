@@ -63,7 +63,7 @@ public class CloudType
     [JsonPropertyName("$type")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Obsolete("Do not use")]
-    public string? Type => default;
+    public string? Type => null;
 
     public CloudType(string text, string voice)
     {

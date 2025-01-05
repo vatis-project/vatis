@@ -10,7 +10,7 @@ public sealed class RecentWeatherChunkDecoder : MetarChunkDecoder
 
     public override string GetRegex()
     {
-        return $"^RE({PresentWeatherChunkDecoder.CARAC_REGEX_PATTERN})?({PresentWeatherChunkDecoder.TYPE_REGEX_PATTERN})?({PresentWeatherChunkDecoder.TYPE_REGEX_PATTERN})?({PresentWeatherChunkDecoder.TYPE_REGEX_PATTERN})?()? ";
+        return $"^RE({PresentWeatherChunkDecoder.CaracRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?()? ";
     }
 
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
