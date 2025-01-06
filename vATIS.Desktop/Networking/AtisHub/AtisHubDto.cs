@@ -10,8 +10,9 @@ public class AtisHubDto
     public string? Metar { get; set; }
     public string? Wind { get; set; }
     public string? Altimeter { get; set; }
+    public string? TextAtis { get; set; }
 
-    public AtisHubDto(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter)
+    public AtisHubDto(string stationId, AtisType atisType, char atisLetter, string? metar, string? wind, string? altimeter, string? textAtis)
     {
         StationId = stationId;
         AtisType = atisType;
@@ -19,5 +20,6 @@ public class AtisHubDto
         Metar = metar;
         Wind = wind;
         Altimeter = altimeter;
+        TextAtis = textAtis;
     }
 }

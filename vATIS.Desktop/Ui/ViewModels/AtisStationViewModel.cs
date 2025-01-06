@@ -890,7 +890,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private async Task PublishAtisToHub()
     {
         await mAtisHubConnection.PublishAtis(new AtisHubDto(mAtisStation.Identifier, mAtisStation.AtisType,
-            AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
+            AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), mAtisStation.TextAtis));
 
         // Setup timer to re-publish ATIS every 3 minutes to keep it active in the hub cache
         if (!mIsPublishAtisTriggeredInitially)
@@ -901,7 +901,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             mPublishAtisTimer = Observable.Interval(TimeSpan.FromMinutes(3)).Subscribe(async _ =>
             {
                 await mAtisHubConnection.PublishAtis(new AtisHubDto(mAtisStation.Identifier, mAtisStation.AtisType,
-                    AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
+                    AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), mAtisStation.TextAtis));
             });
         }
     }

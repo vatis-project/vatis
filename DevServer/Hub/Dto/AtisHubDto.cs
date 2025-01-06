@@ -10,4 +10,5 @@ public class AtisHubDto
     public string? Metar { get; set; }
     public string? Wind { get; set; }
     public string? Altimeter { get; set; }
+    public string? TextAtis { get; set; }
 }
