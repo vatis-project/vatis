@@ -42,6 +42,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<Unit, Unit> OpenProfileConfigurationWindowCommand { get; private set; }
     public ReactiveCommand<Unit, Unit> EndClientSessionCommand { get; private set; }
     public ReactiveCommand<Unit, Unit> InvokeCompactViewCommand { get; private set; }
+    public ReactiveCommand<Unit, Unit> GetDigitalAtisLetterCommand { get; }
 
     #region Reactive Properties
 
@@ -87,6 +88,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
+        GetDigitalAtisLetterCommand = ReactiveCommand.CreateFromTask(HandleGetDigitalAtisLetter);
         
         mDisposables.Add(OpenSettingsDialogCommand);
         mDisposables.Add(OpenProfileConfigurationWindowCommand);
@@ -196,6 +198,26 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
         timer.Start();
+    }
+
+    private async Task HandleGetDigitalAtisLetter()
+    {
+        // This should never happen... but then again, I've been wrong before
+        if (SelectedTabIndex < 0 || SelectedTabIndex >= AtisStations.Count)
+            return;
+        
+        var selectedStation = AtisStations[SelectedTabIndex];
+        
+        if (string.IsNullOrEmpty(selectedStation.Identifier))
+            return;
+        
+        var requestDto = new DigitalAtisRequestDto
+        {
+            Id = selectedStation.Identifier,
+            AtisType = selectedStation.AtisType
+        };
+        var atisLetter = await mAtisHubConnection.GetDigitalAtisLetter(requestDto);
+        selectedStation.SetAtisLetterCommand.Execute(atisLetter).Subscribe();
     }
 
     public async Task PopulateAtisStations()

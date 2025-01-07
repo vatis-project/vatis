@@ -8,4 +8,5 @@ public interface IAtisHubConnection
     Task Disconnect();
     Task PublishAtis(AtisHubDto dto);
     Task SubscribeToAtis(SubscribeDto dto);
+    Task<char> GetDigitalAtisLetter(DigitalAtisRequestDto dto);
 }

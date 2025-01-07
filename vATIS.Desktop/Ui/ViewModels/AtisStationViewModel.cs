@@ -218,6 +218,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         get => mHasUnsavedNotams;
         set => this.RaiseAndSetIfChanged(ref mHasUnsavedNotams, value);
     }
+
+    public AtisType AtisType => mAtisStation.AtisType;
     #endregion
 
     public ReactiveCommand<Unit, Unit> DecrementAtisLetterCommand { get; }
@@ -230,6 +232,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveAirportConditionsText { get; }
     public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
+    public ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
 
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
         IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
@@ -276,6 +279,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         OpenStaticAirportConditionsDialogCommand = ReactiveCommand.Create(HandleOpenAirportConditionsDialog);
         OpenStaticNotamsDialogCommand = ReactiveCommand.Create(HandleOpenStaticNotamsDialog);
 
+        SetAtisLetterCommand = ReactiveCommand.Create<char>(HandleSetAtisLetter);
         SaveAirportConditionsText = ReactiveCommand.Create(HandleSaveAirportConditionsText);
         SaveNotamsText = ReactiveCommand.Create(HandleSaveNotamsText);
         SelectedPresetChangedCommand = ReactiveCommand.CreateFromTask<AtisPreset>(HandleSelectedAtisPresetChanged);
@@ -371,6 +375,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
         this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
         this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(HandleNetworkStatusChanged);
+    }
+
+    private void HandleSetAtisLetter(char letter)
+    {
+        if (letter < 'A' || letter > 'Z')
+            return;
+        AtisLetter = letter;
     }
 
     private void HandleSaveNotamsText()

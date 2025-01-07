@@ -96,6 +96,14 @@ public class AtisHubConnection : IAtisHubConnection
         await mHubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
+    public async Task<char> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
+    {
+        if (mHubConnection is not { State: HubConnectionState.Connected })
+            return '\0';
+
+        return await mHubConnection.InvokeAsync<char>("GetDigitalAtisLetter", dto);
+    }
+
     private Task OnHubConnectionClosed(Exception? exception)
     {
         if (exception != null)
