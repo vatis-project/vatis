@@ -61,7 +61,7 @@ public class NetworkConnection : INetworkConnection
     public bool IsConnected => mFsdSession.Connected;
 
     public NetworkConnection(AtisStation station, IAppConfig appConfig, IAuthTokenManager authTokenManager,
-        IMetarRepository metarRepository, IDownloader downloader, INavDataRepository navDataRepository)
+        IMetarRepository metarRepository, IDownloader downloader, INavDataRepository navDataRepository, IClientAuth clientAuth)
     {
         ArgumentNullException.ThrowIfNull(station);
 
@@ -99,7 +99,8 @@ public class NetworkConnection : INetworkConnection
         mFsdPositionUpdateTimer.Interval = 15000; // 15 seconds
         mFsdPositionUpdateTimer.Elapsed += OnFsdPositionUpdateTimerElapsed;
 
-        mFsdSession = new FsdSession(mClientProperties, SynchronizationContext.Current ?? throw new InvalidOperationException())
+        mFsdSession = new FsdSession(clientAuth, mClientProperties,
+            SynchronizationContext.Current ?? throw new InvalidOperationException())
         {
             IgnoreUnknownPackets = true
         };

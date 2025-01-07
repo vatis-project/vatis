@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Serilog;
+using Vatsim.Network;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 
@@ -15,10 +16,12 @@ public class AtisHubConnection : IAtisHubConnection
     private HubConnection? mHubConnection;
     private ConnectionState mConnectionState;
     private readonly IAppConfigurationProvider mAppConfigurationProvider;
+    private readonly IClientAuth mClientAuth;
 
-    public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider)
+    public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider, IClientAuth clientAuth)
     {
         mAppConfigurationProvider = appConfigurationProvider;
+        mClientAuth = clientAuth;
     }
 
     public async Task Connect()
@@ -31,12 +34,15 @@ public class AtisHubConnection : IAtisHubConnection
             var serverUrl = mAppConfigurationProvider.AtisHubUrl;
             
             mHubConnection = new HubConnectionBuilder()
-                .WithUrl(serverUrl)
-                .WithAutomaticReconnect()
+                .WithUrl(serverUrl, options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult(mClientAuth.GenerateHubToken());
+                })
                 .AddJsonProtocol(options =>
                 {
                     options.PayloadSerializerOptions.TypeInfoResolverChain.Add(SourceGenerationContext.NewDefault);
                 })
+                .WithAutomaticReconnect()
                 .Build();
             
             mHubConnection.Closed += OnHubConnectionClosed;
@@ -103,6 +109,7 @@ public class AtisHubConnection : IAtisHubConnection
             Log.Error(exception, "AtisHub connection closed unexpectedly.");
         }
 
+        Log.Information("Disconnected from AtisHub.");
         SetConnectionState(ConnectionState.Disconnected);
         return Task.CompletedTask;
     }
