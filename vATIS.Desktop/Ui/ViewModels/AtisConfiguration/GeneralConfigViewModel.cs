@@ -43,6 +43,13 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         get => mSelectedStation;
         set => this.RaiseAndSetIfChanged(ref mSelectedStation, value);
     }
+
+    private string _profileSerialNumber = "";
+    public string ProfileSerialNumber
+    {
+        get => _profileSerialNumber;
+        set => this.RaiseAndSetIfChanged(ref _profileSerialNumber, value);
+    }
     
     private string? mFrequency;
     public string? Frequency
@@ -193,6 +200,10 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         mProfileRepository = profileRepository;
         
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+        
+        ProfileSerialNumber = mSessionManager.CurrentProfile?.UpdateSerial != null
+            ? $"Profile Serial: {mSessionManager.CurrentProfile.UpdateSerial}"
+            : string.Empty;
     }
 
     private void HandleUpdateProperties(AtisStation? station)
