@@ -25,6 +25,8 @@ public class AppConfig : IAppConfig
     public bool SuppressNotificationSound { get; set; }
 
     public bool AlwaysOnTop { get; set; }
+    
+    public bool CompactWindowAlwaysOnTop { get; set; }
 
     public WindowPosition? MainWindowPosition { get; set; }
 
@@ -64,6 +66,7 @@ public class AppConfig : IAppConfig
             NetworkRating = config.NetworkRating;
             SuppressNotificationSound = config.SuppressNotificationSound;
             AlwaysOnTop = config.AlwaysOnTop;
+            CompactWindowAlwaysOnTop = config.CompactWindowAlwaysOnTop;
             MainWindowPosition = config.MainWindowPosition;
             CompactWindowPosition = config.CompactWindowPosition;
             ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;
