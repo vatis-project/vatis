@@ -129,20 +129,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private bool mUseNotamPrefix;
-    public bool UseNotamPrefix
-    {
-        get => mUseNotamPrefix;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref mUseNotamPrefix, value);
-            if (!mInitializedProperties.Add(nameof(UseNotamPrefix)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
     private bool mUseDecimalTerminology;
     public bool UseDecimalTerminology
     {
@@ -209,7 +195,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         CodeRangeLow = station.CodeRange.Low;
         CodeRangeHigh = station.CodeRange.High;
         UseDecimalTerminology = station.UseDecimalTerminology;
-        UseNotamPrefix = station.UseNotamPrefix;
         IdsEndpoint = station.IdsEndpoint;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
         TextToSpeechVoice = station.AtisVoice.Voice;
@@ -224,7 +209,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         CodeRangeLow = '\0';
         CodeRangeHigh = '\0';
         UseDecimalTerminology = false;
-        UseNotamPrefix = false;
         UseTextToSpeech = true;
         IdsEndpoint = null;
         HasUnsavedChanges = false;
@@ -289,9 +273,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
 
         if (SelectedStation.CodeRange != codeRange)
             SelectedStation.CodeRange = codeRange;
-
-        if (SelectedStation.UseNotamPrefix != UseNotamPrefix)
-            SelectedStation.UseNotamPrefix = UseNotamPrefix;
 
         if (SelectedStation.UseDecimalTerminology != UseDecimalTerminology)
             SelectedStation.UseDecimalTerminology = UseDecimalTerminology;
