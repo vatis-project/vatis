@@ -379,7 +379,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleSetAtisLetter(char letter)
     {
-        if (letter < 'A' || letter > 'Z')
+        if (letter < mAtisStation.CodeRange.Low || letter > mAtisStation.CodeRange.High)
             return;
         AtisLetter = letter;
     }
