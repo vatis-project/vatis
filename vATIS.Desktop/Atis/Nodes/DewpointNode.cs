@@ -37,7 +37,7 @@ public class DewpointNode : BaseNode<Value>
         var match = Regex.Match(format, @"\{dewpoint(?::(?<format>[0-9]*P?))?\}");
         if (!match.Success)
         {
-            throw new ArgumentException("Invalid format string");
+            throw new ArgumentException("Invalid dewpoint format string: " + format);
         }
 
         // Extract the format part (e.g., "00" or "00P")
