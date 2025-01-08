@@ -532,17 +532,17 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 var window = mWindowFactory.CreateVoiceRecordAtisDialog();
                 if (window.DataContext is VoiceRecordAtisDialogViewModel vm)
                 {
-                    var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, mDecodedMetar,
+                    var textAtis = await mAtisBuilder.BuildTextAtis(mAtisStation, SelectedAtisPreset, AtisLetter, mDecodedMetar,
                         mCancellationToken.Token);
 
-                    vm.AtisScript = atisBuilder.TextAtis;
+                    vm.AtisScript = textAtis;
                     window.Topmost = lifetime.MainWindow.Topmost;
 
                     if (await window.ShowDialog<bool>(lifetime.MainWindow))
                     {
                         await Task.Run(async () =>
                         {
-                            mAtisStation.TextAtis = atisBuilder.TextAtis;
+                            mAtisStation.TextAtis = textAtis;
                             
                             await PublishAtisToHub();
                             mNetworkConnection.SendSubscriberNotification(AtisLetter);
@@ -809,20 +809,24 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     mCancellationToken.Dispose();
                     mCancellationToken = new CancellationTokenSource();
 
-                    var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, e.Metar,
+                    var textAtis = await mAtisBuilder.BuildTextAtis(mAtisStation, SelectedAtisPreset, AtisLetter, e.Metar,
                         mCancellationToken.Token);
 
-                    mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
+                    mAtisStation.TextAtis = textAtis?.ToUpperInvariant();
                     
+                    await PublishAtisToWebsocket();
                     await PublishAtisToHub();
                     mNetworkConnection?.SendSubscriberNotification(AtisLetter);
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
 
-                    if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
+                    var voiceAtis = await mAtisBuilder.BuildVoiceAtis(mAtisStation, SelectedAtisPreset, AtisLetter,
+                        e.Metar, mCancellationToken.Token);
+                    
+                    if (voiceAtis.AudioBytes != null && mNetworkConnection != null)
                     {
                         await Task.Run(async () =>
                         {
-                            var dto = AtisBotUtils.AddBotRequest(atisBuilder.AudioBytes, mAtisStation.Frequency,
+                            var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, mAtisStation.Frequency,
                                 mAtisStationAirport.Latitude, mAtisStationAirport.Longitude, 100);
                             await mVoiceServerConnection?.AddOrUpdateBot(mNetworkConnection.Callsign, dto, mCancellationToken.Token)!;
                         }).ContinueWith(t =>
@@ -848,9 +852,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     NativeAudio.EmitSound(SoundType.Error);
                 }
             }
-
-            // This is done at the very end to ensure the TextAtis is updated before the websocket message is sent.
-            await PublishAtisToWebsocket();
         }
         catch (Exception ex)
         {
@@ -930,10 +931,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 if (mDecodedMetar == null)
                     return;
 
-                var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, mDecodedMetar,
+                var textAtis = await mAtisBuilder.BuildTextAtis(mAtisStation, SelectedAtisPreset, AtisLetter, mDecodedMetar,
                     mCancellationToken.Token);
                 
-                mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
+                mAtisStation.TextAtis = textAtis?.ToUpperInvariant();
 
                 await PublishAtisToHub();
                 await PublishAtisToWebsocket();
@@ -946,11 +947,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     mCancellationToken.Dispose();
                     mCancellationToken = new CancellationTokenSource();
 
-                    if (atisBuilder.AudioBytes != null)
+                    var voiceAtis = await mAtisBuilder.BuildVoiceAtis(mAtisStation, SelectedAtisPreset, AtisLetter,
+                        mDecodedMetar, mCancellationToken.Token);
+                    
+                    if (voiceAtis.AudioBytes != null)
                     {
                         await Task.Run(async () =>
                         {
-                            var dto = AtisBotUtils.AddBotRequest(atisBuilder.AudioBytes, mAtisStation.Frequency,
+                            var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, mAtisStation.Frequency,
                                 mAtisStationAirport.Latitude, mAtisStationAirport.Longitude, 100);
                             await mVoiceServerConnection?.AddOrUpdateBot(mNetworkConnection.Callsign, dto,
                                 mCancellationToken.Token)!;
@@ -1011,19 +1015,22 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 try
                 {
-                    var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, atisLetter,
+                    var textAtis = await mAtisBuilder.BuildTextAtis(mAtisStation, SelectedAtisPreset, atisLetter,
                         mDecodedMetar, mCancellationToken.Token);
 
-                    mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
+                    mAtisStation.TextAtis = textAtis?.ToUpperInvariant();
 
                     await PublishAtisToHub();
                     mNetworkConnection?.SendSubscriberNotification(AtisLetter);
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter,
                         mCancellationToken.Token);
 
-                    if (atisBuilder.AudioBytes != null && mNetworkConnection != null)
+                    var voiceAtis = await mAtisBuilder.BuildVoiceAtis(mAtisStation, SelectedAtisPreset, AtisLetter,
+                        mDecodedMetar, mCancellationToken.Token);
+                    
+                    if (voiceAtis.AudioBytes != null && mNetworkConnection != null)
                     {
-                        var dto = AtisBotUtils.AddBotRequest(atisBuilder.AudioBytes, mAtisStation.Frequency,
+                        var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, mAtisStation.Frequency,
                             mAtisStationAirport.Latitude, mAtisStationAirport.Longitude, 100);
                         mVoiceServerConnection?.AddOrUpdateBot(mNetworkConnection.Callsign, dto,
                             mCancellationToken.Token);
