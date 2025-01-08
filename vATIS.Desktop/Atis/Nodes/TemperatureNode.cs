@@ -29,35 +29,43 @@ public class TemperatureNode : BaseNode<Value>
     {
         if (format == null)
             return "";
-    
-        // Parse the input format.
-        // Matches patterns like {temp}, {temp:00}, {temp:00P}, or {temp:P}.
-        // - "P" (optional) suppresses the "M" prefix for negative values.
-        // - Numeric digits (optional) specify the minimum number of digits to display.
-        var match = Regex.Match(format, @"\{temp(?::(?<format>[0]*P?))?\}");
+
+        // Parse the input format using regex to match patterns like {temp}, {temp:##}, {temp:##M}, or {temp:M}
+        var match = Regex.Match(format, @"\{temp(?::(?<format>#*M?))?\}");
         if (!match.Success)
         {
             throw new ArgumentException("Invalid temperature format string: " + format);
         }
 
-        // Extract the format part (e.g., "00" or "00P")
+        // Extract the format part (e.g., "##" or "##M")
         string formatting = match.Groups["format"].Value;
-    
-        // Check if the "P" parameter is present, which suppresses the "M" prefix
-        bool suppressM = formatting.Contains('P');
-    
-        // Remove "P" from the format to get the numeric part (if any)
-        string digitFormat = formatting.Replace("P", "").Trim();
-    
-        // Default to "00" if no digit format is provided
+
+        // Check if the "M" character is present, indicating whether to suppress the "M" prefix
+        bool suppressM = formatting.Contains('M');
+
+        // Remove "M" from the format (if present) to get the numeric part
+        string digitFormat = formatting.Replace("M", "").Trim();
+
+        // Default to "00" if no digit format is provided (i.e., no '#' symbols)
         if (string.IsNullOrEmpty(digitFormat)) digitFormat = "00";
-    
-        // Format the temperature
+
+        // Count the number of '#' symbols to determine the format (e.g., 2 '#' symbols -> "00")
+        int digitCount = digitFormat.Length;
+
+        // Format the temperature value
+        string formattedValue;
+        string formatString = new string('0', digitCount); // Create a format string like "00", "000", etc.
+
         if (value.ActualValue < 0 && !suppressM) // Only prefix "M" if negative and not suppressed
         {
-            return $"M{Math.Abs(value.ActualValue).ToString(digitFormat)}";
+            formattedValue = $"M{Math.Abs(value.ActualValue).ToString(formatString)}";
         }
-        return Math.Abs(value.ActualValue).ToString(digitFormat);
+        else
+        {
+            formattedValue = Math.Abs(value.ActualValue).ToString(formatString);
+        }
+
+        return formattedValue;
     }
 
     public override string ParseVoiceVariables(Value node, string? format)
