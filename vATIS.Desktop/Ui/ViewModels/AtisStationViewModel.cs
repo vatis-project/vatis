@@ -86,10 +86,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref mAtisLetter, value);
     }
 
-    public CodeRangeMeta CodeRange
-    {
-        get { return mAtisStation.CodeRange; }
-    }
+    public CodeRangeMeta CodeRange => mAtisStation.CodeRange;
 
     private bool mIsAtisLetterInputMode;
     public bool IsAtisLetterInputMode
@@ -161,11 +158,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref mErrorMessage, value);
     }
 
-    private string? AirportConditionsFreeText
-    {
-        get => AirportConditionsTextDocument?.Text;
-        set => AirportConditionsTextDocument = new TextDocument(value);
-    }
+    private string? AirportConditionsFreeText => AirportConditionsTextDocument?.Text;
 
     private TextDocument? mAirportConditionsTextDocument = new();
     public TextDocument? AirportConditionsTextDocument
@@ -174,11 +167,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref mAirportConditionsTextDocument, value);
     }
 
-    private string? NotamsFreeText
-    {
-        get => mNotamsTextDocument?.Text;
-        set => NotamsTextDocument = new TextDocument(value);
-    }
+    private string? NotamsFreeText => mNotamsTextDocument?.Text;
 
     private TextDocument? mNotamsTextDocument = new();
     public TextDocument? NotamsTextDocument
