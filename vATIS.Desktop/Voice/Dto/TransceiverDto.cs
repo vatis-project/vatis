@@ -6,7 +6,7 @@ namespace Vatsim.Vatis.Voice.Dto;
 public class TransceiverDto
 {
     [Key(0)]
-    public ushort ID { get; set; }
+    public ushort Id { get; set; }
     [Key(1)]
     public uint Frequency { get; set; }
     [Key(2)]

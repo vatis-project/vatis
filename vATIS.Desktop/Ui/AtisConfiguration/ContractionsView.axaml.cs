@@ -9,8 +9,8 @@ namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
 public partial class ContractionsView : UserControl
 {
-    private static readonly SlugHelper Slug = new();
-    
+    private static readonly SlugHelper s_slug = new();
+
     public ContractionsView()
     {
         InitializeComponent();
@@ -31,14 +31,14 @@ public partial class ContractionsView : UserControl
     {
         if (sender is not DataGrid dataGrid || e.EditAction != DataGridEditAction.Commit)
             return;
-        
+
         if (DataContext is ContractionsViewModel vm)
         {
             if (e.EditingElement is TextBox textBox)
             {
                 if (e.Column.Header.ToString() == "Variable")
                 {
-                    var slug = Slug.GenerateSlug(textBox.Text).Replace("-", "_").ToUpperInvariant();
+                    var slug = s_slug.GenerateSlug(textBox.Text).Replace("-", "_").ToUpperInvariant();
 
                     if (vm.CurrentContractions.Any(x => x.Item1 != e.Row.Index && string.Equals(x.Item2.VariableName,
                             slug, StringComparison.InvariantCultureIgnoreCase)))

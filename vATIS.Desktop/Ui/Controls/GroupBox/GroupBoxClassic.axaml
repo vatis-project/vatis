@@ -1,12 +1,13 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
 				   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 				   xmlns:ctrl="using:Vatsim.Vatis.Ui.Controls"
-				   xmlns:sys="using:System">
+				   xmlns:sys="using:System"
+				   xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox">
 
 
 	<ControlTheme x:Key="GroupBoxClassic"
-				  BasedOn="{StaticResource {x:Type ctrl:GroupBox}}"
-				  TargetType="ctrl:GroupBox">
+				  BasedOn="{StaticResource {x:Type groupBox:GroupBoxControl}}"
+				  TargetType="groupBox:GroupBoxControl">
 		<Setter Property="Template">
 			<ControlTemplate>
 				<Grid Name="GBGrid"
@@ -42,27 +43,27 @@
 							BorderBrush="{DynamicResource ThemeBorderMidBrush}"
 							BorderThickness="1" CornerRadius="3">
 						<Border.Clip>
-							<MultiBinding Converter="{x:Static ctrl:StaticConverters.ConvertBoundsToOuterBorder}">
+							<MultiBinding Converter="{x:Static groupBox:StaticConverters.ConvertBoundsToOuterBorder}">
 								<!--  Parent  -->
 								<Binding Path="#GBGrid.Bounds" />
 								<!--  Header; Exclude from parent geometry  -->
 								<Binding Path="#GBHeaderText.Bounds" />
 								<!--  apply offset of inverse of Margins' Left, Top  -->
-								<Binding Converter="{x:Static ctrl:StaticConverters.ThicknessRectConverter}" Path="#GBBorder.Margin" />
+								<Binding Converter="{x:Static groupBox:StaticConverters.ThicknessRectConverter}" Path="#GBBorder.Margin" />
 							</MultiBinding>
 						</Border.Clip>
 						<Border.Padding>
-							<MultiBinding Converter="{x:Static ctrl:StaticConverters.ConvertDoublesToThickness}">
+							<MultiBinding Converter="{x:Static groupBox:StaticConverters.ConvertDoublesToThickness}">
 								<Binding Source="{StaticResource GBBorderPadding}" />
-								<Binding Converter="{x:Static ctrl:StaticConverters.BoundsToHeaderHeightDividedByTwo}" Path="#GBHeaderText.Bounds" />
+								<Binding Converter="{x:Static groupBox:StaticConverters.BoundsToHeaderHeightDividedByTwo}" Path="#GBHeaderText.Bounds" />
 								<Binding Source="{StaticResource GBBorderPadding}" />
 								<Binding Source="{StaticResource GBBorderPadding}" />
 							</MultiBinding>
 						</Border.Padding>
 						<Border.Margin>
-							<MultiBinding Converter="{x:Static ctrl:StaticConverters.ConvertDoublesToThickness}">
+							<MultiBinding Converter="{x:Static groupBox:StaticConverters.ConvertDoublesToThickness}">
 								<Binding Source="{StaticResource GBBorderMargin}" />
-								<Binding Converter="{x:Static ctrl:StaticConverters.BoundsToHeaderHeightDividedByTwo}" Path="#GBHeaderText.Bounds" />
+								<Binding Converter="{x:Static groupBox:StaticConverters.BoundsToHeaderHeightDividedByTwo}" Path="#GBHeaderText.Bounds" />
 								<Binding Source="{StaticResource GBBorderMargin}" />
 								<Binding Source="{StaticResource GBBorderMargin}" />
 							</MultiBinding>
