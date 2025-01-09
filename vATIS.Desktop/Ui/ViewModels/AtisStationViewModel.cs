@@ -23,7 +23,6 @@ using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
-using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Voice.Audio;
