@@ -1,4 +1,2 @@
 ﻿namespace Vatsim.Vatis.Events;
-public class GeneralSettingsUpdated : IEvent
-{
-}
+public class GeneralSettingsUpdated : IEvent;

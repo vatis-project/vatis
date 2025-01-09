@@ -39,8 +39,8 @@ public abstract class MetarChunkDecoder : IMetarChunkDecoder
         //return result + remaining metar
         return new Dictionary<string, object>()
         {
-            { MetarDecoder.RESULT_KEY, result },
-            { MetarDecoder.REMAINING_METAR_KEY, newRemainingMetar }
+            { MetarDecoder.ResultKey, result },
+            { MetarDecoder.RemainingMetarKey, newRemainingMetar }
         };
     }
     

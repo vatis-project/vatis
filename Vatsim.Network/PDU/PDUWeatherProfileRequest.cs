@@ -1,42 +1,41 @@
 ﻿using System.Text;
 
-namespace Vatsim.Network.PDU
+namespace Vatsim.Network.PDU;
+
+public class PDUWeatherProfileRequest : PDUBase
 {
-    public class PDUWeatherProfileRequest : PDUBase
+    public string Station { get; set; }
+
+    public PDUWeatherProfileRequest(string from, string station)
+        : base(from, SERVER_CALLSIGN)
     {
-        public string Station { get; set; }
+        Station = station;
+    }
 
-        public PDUWeatherProfileRequest(string from, string station)
-            : base(from, SERVER_CALLSIGN)
+    public override string Serialize()
+    {
+        StringBuilder msg = new StringBuilder("#WX");
+        msg.Append(From);
+        msg.Append(DELIMITER);
+        msg.Append(To);
+        msg.Append(DELIMITER);
+        msg.Append(Station);
+        return msg.ToString();
+    }
+
+    public static PDUWeatherProfileRequest Parse(string[] fields)
+    {
+        if (fields.Length < 3) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
+        try
         {
-            Station = station;
+            return new PDUWeatherProfileRequest(
+                fields[0],
+                fields[2]
+            );
         }
-
-        public override string Serialize()
+        catch (Exception ex)
         {
-            StringBuilder msg = new StringBuilder("#WX");
-            msg.Append(From);
-            msg.Append(DELIMITER);
-            msg.Append(To);
-            msg.Append(DELIMITER);
-            msg.Append(Station);
-            return msg.ToString();
-        }
-
-        public static PDUWeatherProfileRequest Parse(string[] fields)
-        {
-            if (fields.Length < 3) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
-            try
-            {
-                return new PDUWeatherProfileRequest(
-                    fields[0],
-                    fields[2]
-                );
-            }
-            catch (Exception ex)
-            {
-                throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
-            }
+            throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
         }
     }
 }

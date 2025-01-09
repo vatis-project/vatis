@@ -8,7 +8,7 @@ public class FocusOnAttachedToVisualTree : Behavior<TextBox>
     protected override void OnAttachedToVisualTree()
     {
         base.OnAttachedToVisualTree();
-        if (AssociatedObject is TextBox textbox)
+        if (AssociatedObject is { } textbox)
         {
             textbox.Focus();
         }

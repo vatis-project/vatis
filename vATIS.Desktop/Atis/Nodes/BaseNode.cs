@@ -7,9 +7,9 @@ namespace Vatsim.Vatis.Atis.Nodes;
 public abstract class BaseNode<T>
 {
     public abstract void Parse(DecodedMetar metar);
-    public AtisStation? Station { get; set; }
-    public string? VoiceAtis { get; set; }
-    public string? TextAtis { get; set; }
+    public AtisStation? Station { get; init; }
+    public string? VoiceAtis { get; protected set; }
+    public string? TextAtis { get; protected set; }
     public abstract string ParseVoiceVariables(T node, string? format);
     public abstract string ParseTextVariables(T value, string? format);
 }

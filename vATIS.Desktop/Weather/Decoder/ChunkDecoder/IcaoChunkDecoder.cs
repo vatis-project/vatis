@@ -24,7 +24,7 @@ public sealed class IcaoChunkDecoder : MetarChunkDecoder
         if (found.Count <= 1)
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.ICAO_NOT_FOUND);
+                MetarChunkDecoderException.Messages.IcaoNotFound);
         }
 
         // retrieve found params

@@ -32,14 +32,14 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
         if (found.Count <= 1)
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.SURFACE_WIND_INFORMATION_BAD_FORMAT);
+                MetarChunkDecoderException.Messages.SurfaceWindInformationBadFormat);
         }
 
         // handle the case where nothing is observed
         if (found[1].Value == "///" && found[2].Value == "//")
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.NO_SURFACE_WIND_INFORMATION_MEASURED);
+                MetarChunkDecoderException.Messages.NoSurfaceWindInformationMeasured);
         }
 
         // get unit used
@@ -72,7 +72,7 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
             if (meanDirection.ActualValue is < 0 or > 360)
             {
                 throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                    MetarChunkDecoderException.Messages.INVALID_WIND_DIRECTION_INTERVAL);
+                    MetarChunkDecoderException.Messages.InvalidWindDirectionInterval);
             }
 
             surfaceWind.VariableDirection = false;
@@ -89,7 +89,7 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
                                                           maximumDirectionVariation.ActualValue > 360)
             {
                 throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                    MetarChunkDecoderException.Messages.INVALID_WIND_DIRECTION_VARIATIONS_INTERVAL);
+                    MetarChunkDecoderException.Messages.InvalidWindDirectionVariationsInterval);
             }
             
             surfaceWind.SetDirectionVariations(minimumDirectionVariation, maximumDirectionVariation);

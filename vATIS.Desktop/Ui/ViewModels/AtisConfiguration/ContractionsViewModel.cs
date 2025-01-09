@@ -18,44 +18,44 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 public class ContractionsViewModel : ReactiveViewModelBase
 {
-    private readonly IWindowFactory mWindowFactory;
-    private readonly IAppConfig mAppConfig;
-    private IDialogOwner? mDialogOwner;
-    
-    public List<Tuple<int, ContractionMeta>> CurrentContractions { get; set; } = [];
+    private readonly IWindowFactory _windowFactory;
+    private readonly IAppConfig _appConfig;
+    private IDialogOwner? _dialogOwner;
+
+    public List<Tuple<int, ContractionMeta>> CurrentContractions { get; private set; } = [];
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
     public ReactiveCommand<DataGridCellEditEndingEventArgs, Unit> CellEditEndingCommand { get; }
     public ReactiveCommand<Unit, Unit> NewContractionCommand { get; }
     public ReactiveCommand<ContractionMeta, Unit> DeleteContractionCommand { get; }
 
     #region Reactive Properties
-    private AtisStation? mSelectedStation;
-    public AtisStation? SelectedStation
+    private AtisStation? _selectedStation;
+    private AtisStation? SelectedStation
     {
-        get => mSelectedStation;
-        set => this.RaiseAndSetIfChanged(ref mSelectedStation, value);
+        get => _selectedStation;
+        set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
     }
-    
-    private bool mHasUnsavedChanges;
+
+    private bool _hasUnsavedChanges;
     public bool HasUnsavedChanges
     {
-        get => mHasUnsavedChanges;
-        set => this.RaiseAndSetIfChanged(ref mHasUnsavedChanges, value);
+        get => _hasUnsavedChanges;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
     }
-    
-    private ObservableCollection<ContractionMeta>? mContractions;
+
+    private ObservableCollection<ContractionMeta>? _contractions;
     public ObservableCollection<ContractionMeta>? Contractions
     {
-        get => mContractions;
-        set => this.RaiseAndSetIfChanged(ref mContractions, value);
+        get => _contractions;
+        set => this.RaiseAndSetIfChanged(ref _contractions, value);
     }
     #endregion
 
     public ContractionsViewModel(IWindowFactory windowFactory, IAppConfig appConfig)
     {
-        mWindowFactory = windowFactory;
-        mAppConfig = appConfig;
-        
+        _windowFactory = windowFactory;
+        _appConfig = appConfig;
+
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEditEndingEventArgs>(HandleCellEditEnding);
         NewContractionCommand = ReactiveCommand.CreateFromTask(HandleNewContraction);
@@ -64,7 +64,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
 
     public void SetDialogOwner(IDialogOwner? dialogOwner)
     {
-        mDialogOwner = dialogOwner;
+        _dialogOwner = dialogOwner;
     }
 
     private void HandleAtisStationChanged(AtisStation? station)
@@ -79,17 +79,17 @@ public class ContractionsViewModel : ReactiveViewModelBase
 
     private async Task HandleDeleteContraction(ContractionMeta? item)
     {
-        if (item == null || Contractions == null || mDialogOwner == null || SelectedStation == null)
+        if (item == null || Contractions == null || _dialogOwner == null || SelectedStation == null)
             return;
 
-        if (await MessageBox.ShowDialog((Window)mDialogOwner,
+        if (await MessageBox.ShowDialog((Window)_dialogOwner,
                 "Are you sure you want to delete the selected contraction?", "Confirm",
                 MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
         {
             if (Contractions.Remove(item))
             {
                 SelectedStation.Contractions.Remove(item);
-                mAppConfig.SaveConfig();
+                _appConfig.SaveConfig();
                 MessageBus.Current.SendMessage(new ContractionsUpdated(SelectedStation.Id));
             }
         }
@@ -97,7 +97,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
 
     private async Task HandleNewContraction()
     {
-        if (mDialogOwner == null || SelectedStation == null)
+        if (_dialogOwner == null || SelectedStation == null)
             return;
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
@@ -109,7 +109,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
             var previousTextValue = "";
             var previousSpokenValue = "";
 
-            var dialog = mWindowFactory.CreateNewContractionDialog();
+            var dialog = _windowFactory.CreateNewContractionDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is NewContractionDialogViewModel context)
             {
@@ -155,7 +155,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
                             Text = context.Text,
                             Voice = context.Spoken
                         });
-                        mAppConfig.SaveConfig();
+                        _appConfig.SaveConfig();
 
                         Contractions = [];
                         foreach (var item in SelectedStation.Contractions)
@@ -166,7 +166,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
                         MessageBus.Current.SendMessage(new ContractionsUpdated(SelectedStation.Id));
                     }
                 };
-                await dialog.ShowDialog((Window)mDialogOwner);
+                await dialog.ShowDialog((Window)_dialogOwner);
             }
         }
     }
