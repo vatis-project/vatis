@@ -5,26 +5,26 @@ namespace Vatsim.Vatis.Weather.Decoder.Entity;
 
 public sealed class PresentWeather
 {
-    private readonly List<int> mPrecipitations = [];
+    private readonly List<int> _precipitations = [];
 
     /// <summary>
     /// Precipitations phenomenon
     /// </summary>
-    public ReadOnlyCollection<int> Precipitations => new(mPrecipitations);
+    public ReadOnlyCollection<int> Precipitations => new(_precipitations);
 
-    private readonly List<int> mObscurations = [];
-
-    /// <summary>
-    /// Obscurations phenomenon
-    /// </summary>
-    public ReadOnlyCollection<int> Obscurations => new(mObscurations);
-
-    private readonly List<int> mVicinities = [];
+    private readonly List<int> _obscurations = [];
 
     /// <summary>
     /// Obscurations phenomenon
     /// </summary>
-    public ReadOnlyCollection<int> Vicinities => new(mVicinities);
+    public ReadOnlyCollection<int> Obscurations => new(_obscurations);
+
+    private readonly List<int> _vicinities = [];
+
+    /// <summary>
+    /// Obscurations phenomenon
+    /// </summary>
+    public ReadOnlyCollection<int> Vicinities => new(_vicinities);
 
     /// <summary>
     /// AddPrecipitation
@@ -32,7 +32,7 @@ public sealed class PresentWeather
     /// <param name="precipitation">precipitation</param>
     public void AddPrecipitation(int precipitation)
     {
-        mPrecipitations.Add(precipitation);
+        _precipitations.Add(precipitation);
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public sealed class PresentWeather
     /// <param name="obscurationPhenomenon">obscurationPhenomenon</param>
     public void AddObscuration(int obscurationPhenomenon)
     {
-        mObscurations.Add(obscurationPhenomenon);
+        _obscurations.Add(obscurationPhenomenon);
     }
 
     /// <summary>
@@ -50,6 +50,6 @@ public sealed class PresentWeather
     /// <param name="vicinity">vicinity</param>
     public void AddVicinity(int vicinity)
     {
-        mVicinities.Add(vicinity);
+        _vicinities.Add(vicinity);
     }
 }

@@ -8,7 +8,7 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 namespace Vatsim.Vatis.Atis.Nodes;
 public class CloudNode : BaseNode<CloudLayer>
 {
-    private CloudLayer? mCeilingLayer;
+    private CloudLayer? _ceilingLayer;
 
     public override void Parse(DecodedMetar metar)
     {
@@ -22,7 +22,7 @@ public class CloudNode : BaseNode<CloudLayer>
         var voiceAtis = new List<string>();
         var textAtis = new List<string>();
 
-        mCeilingLayer = cloudLayers
+        _ceilingLayer = cloudLayers
             .Where(n => n.BaseHeight?.ActualValue > 0 &&
                         n.Amount is CloudLayer.CloudAmount.Overcast or CloudLayer.CloudAmount.Broken)
             .Select(n => n)
@@ -80,8 +80,8 @@ public class CloudNode : BaseNode<CloudLayer>
 
                 // Match {altitude} or {altitude:N}, where N is the number of digits
                 template = Regex.Replace(
-                    template, 
-                    @"\{altitude(?::(\d+))?\}", 
+                    template,
+                    @"\{altitude(?::(\d+))?\}",
                     match =>
                     {
                         var minDigits = 3;
@@ -90,11 +90,11 @@ public class CloudNode : BaseNode<CloudLayer>
                             minDigits = specifiedDigits;
                         }
                         return height.ToString(new string('0', minDigits));
-                    }, 
+                    },
                     RegexOptions.IgnoreCase
                 );
             }
-            
+
             template = layer.Type != CloudLayer.CloudType.None
                 ? Regex.Replace(template, "{convective}", TypeToString(layer.Type), RegexOptions.IgnoreCase)
                 : Regex.Replace(template, "{convective}", "", RegexOptions.IgnoreCase);
@@ -108,11 +108,11 @@ public class CloudNode : BaseNode<CloudLayer>
     private string FormatCloudsVoice(CloudLayer layer)
     {
         ArgumentNullException.ThrowIfNull(Station);
-        
+
         if (Station.AtisFormat.Clouds.Types.TryGetValue(AmountToString(layer.Amount), out var value))
         {
             var template = value.Voice;
-            
+
             if (layer.Type == CloudLayer.CloudType.CannotMeasure || layer.BaseHeight == null)
             {
                 template = Regex.Replace(template, "{altitude}",
@@ -133,7 +133,7 @@ public class CloudNode : BaseNode<CloudLayer>
                     ? Station.AtisFormat.Clouds.ConvectiveTypes.GetValueOrDefault(TypeToString(layer.Type), "")
                     : "", RegexOptions.IgnoreCase);
 
-            return Station.AtisFormat.Clouds.IdentifyCeilingLayer && layer == mCeilingLayer
+            return Station.AtisFormat.Clouds.IdentifyCeilingLayer && layer == _ceilingLayer
                 ? "ceiling " + template.Trim().ToUpperInvariant()
                 : template.Trim().ToUpperInvariant();
         }
@@ -149,7 +149,7 @@ public class CloudNode : BaseNode<CloudLayer>
             CloudLayer.CloudType.ToweringCumulus => "TCU",
             CloudLayer.CloudType.CannotMeasure => "///",
             CloudLayer.CloudType.None => "",
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown CloudType")
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, @"Unknown CloudType")
         };
     }
 
@@ -167,10 +167,10 @@ public class CloudNode : BaseNode<CloudLayer>
             CloudLayer.CloudAmount.NoCloudsDetected => "NCD",
             CloudLayer.CloudAmount.Clear => "CLR",
             CloudLayer.CloudAmount.SkyClear => "SKC",
-            _ => throw new ArgumentOutOfRangeException(nameof(amount), amount, "Unknown CloudAmount")
+            _ => throw new ArgumentOutOfRangeException(nameof(amount), amount, @"Unknown CloudAmount")
         };
     }
-    
+
     public override string ParseTextVariables(CloudLayer value, string? format)
     {
         throw new NotImplementedException();

@@ -10,8 +10,8 @@ namespace Vatsim.Vatis.Ui.Dialogs;
 
 public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogViewModel>, ICloseable
 {
-    private static readonly SlugHelper Slug = new();
-    
+    private static readonly SlugHelper s_slug = new();
+
     public NewContractionDialog(NewContractionDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -23,17 +23,17 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
     {
         InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();
     }
-    
+
     private void Variable_OnLostFocus(object? sender, RoutedEventArgs e)
     {
         if (e.Source is TextBox textBox)
         {
-            textBox.Text = Slug.GenerateSlug(textBox.Text).ToUpperInvariant().Replace("-", "_");
+            textBox.Text = s_slug.GenerateSlug(textBox.Text).ToUpperInvariant().Replace("-", "_");
         }
     }
 

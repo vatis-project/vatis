@@ -1,45 +1,44 @@
 ﻿using System.Text;
 
-namespace Vatsim.Network.PDU
+namespace Vatsim.Network.PDU;
+
+public class PDUTextMessage : PDUBase
 {
-    public class PDUTextMessage : PDUBase
+    public string Message { get; set; }
+
+    public PDUTextMessage(string from, string to, string message)
+        : base(from, to)
     {
-        public string Message { get; set; }
+        Message = message;
+    }
 
-        public PDUTextMessage(string from, string to, string message)
-            : base(from, to)
+    public override string Serialize()
+    {
+        StringBuilder msg = new StringBuilder("#TM");
+        msg.Append(From);
+        msg.Append(DELIMITER);
+        msg.Append(To);
+        msg.Append(DELIMITER);
+        msg.Append(Message);
+        return msg.ToString();
+    }
+
+    public static PDUTextMessage Parse(string[] fields)
+    {
+        if (fields.Length < 3) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
+        StringBuilder msg = new StringBuilder(fields[2]);
+        for (int i = 3; i < fields.Length; i++) msg.AppendFormat(":{0}", fields[i]);
+        try
         {
-            Message = message;
+            return new PDUTextMessage(
+                fields[0],
+                fields[1],
+                msg.ToString()
+            );
         }
-
-        public override string Serialize()
+        catch (Exception ex)
         {
-            StringBuilder msg = new StringBuilder("#TM");
-            msg.Append(From);
-            msg.Append(DELIMITER);
-            msg.Append(To);
-            msg.Append(DELIMITER);
-            msg.Append(Message);
-            return msg.ToString();
-        }
-
-        public static PDUTextMessage Parse(string[] fields)
-        {
-            if (fields.Length < 3) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
-            StringBuilder msg = new StringBuilder(fields[2]);
-            for (int i = 3; i < fields.Length; i++) msg.AppendFormat(":{0}", fields[i]);
-            try
-            {
-                return new PDUTextMessage(
-                    fields[0],
-                    fields[1],
-                    msg.ToString()
-                );
-            }
-            catch (Exception ex)
-            {
-                throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
-            }
+            throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
         }
     }
 }

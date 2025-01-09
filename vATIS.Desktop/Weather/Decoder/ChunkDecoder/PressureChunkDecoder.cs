@@ -28,7 +28,7 @@ public sealed class PressureChunkDecoder : MetarChunkDecoder
         if (found.Count <= 1)
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.ATMOSPHERIC_PRESSURE_NOT_FOUND);
+                MetarChunkDecoderException.Messages.AtmosphericPressureNotFound);
         }
 
         Pressure? pressure = null;

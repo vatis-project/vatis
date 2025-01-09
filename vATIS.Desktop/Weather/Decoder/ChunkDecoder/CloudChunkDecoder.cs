@@ -28,7 +28,7 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
         if (found.Count <= 1 && !withCavok)
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.CLOUDS_INFORMATION_BAD_FORMAT);
+                MetarChunkDecoderException.Messages.CloudsInformationBadFormat);
         }
 
         if (Regex.IsMatch(found[0].Value, NoCloudRegexPattern))

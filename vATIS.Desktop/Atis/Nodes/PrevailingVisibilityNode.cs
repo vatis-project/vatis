@@ -34,18 +34,16 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         {
             return "CAVOK";
         }
-        else
-        {
-            if (value.PrevailingVisibility != null &&
-                value.PrevailingVisibility.ActualUnit == Value.Unit.Meter &&
-                (int)value.PrevailingVisibility.ActualValue == 9999)
-            {
-                return Station.AtisFormat.Visibility.UnlimitedVisibilityText;
-            }
 
-            if (value.RawValue != null)
-                return Regex.Replace(format, "{visibility}", value.RawValue, RegexOptions.IgnoreCase);
+        if (value.PrevailingVisibility is { ActualUnit: Value.Unit.Meter } &&
+            (int)value.PrevailingVisibility.ActualValue == 9999)
+        {
+            return Station.AtisFormat.Visibility.UnlimitedVisibilityText;
         }
+
+        if (value.RawValue != null)
+            return Regex.Replace(format, "{visibility}", value.RawValue, RegexOptions.IgnoreCase);
+        
         return "";
     }
 
@@ -64,7 +62,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         }
         else
         {
-            if (node.PrevailingVisibility != null && node.PrevailingVisibility.ActualUnit == Value.Unit.Meter)
+            if (node.PrevailingVisibility is { ActualUnit: Value.Unit.Meter })
             {
                 if ((int)node.PrevailingVisibility.ActualValue == 9999)
                 {
@@ -130,7 +128,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
             {
                 if (node.RawValue != null && node.RawValue.Contains('/'))
                 {
-                    string result = node.RawValue switch
+                    var result = node.RawValue switch
                     {
                         "M1/4SM" => "less than one quarter.",
                         "1 1/8SM" => "one and one eighth.",
