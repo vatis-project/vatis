@@ -23,6 +23,7 @@ using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Voice.Audio;
@@ -268,8 +269,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         IsCombinedAtis = station.AtisType == AtisType.Combined;
         AtisPresetList = new ObservableCollection<AtisPreset>(station.Presets.OrderBy(x => x.Ordinal));
 
-        OpenStaticAirportConditionsDialogCommand = ReactiveCommand.Create(HandleOpenAirportConditionsDialog);
-        OpenStaticNotamsDialogCommand = ReactiveCommand.Create(HandleOpenStaticNotamsDialog);
+        OpenStaticAirportConditionsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenAirportConditionsDialog);
+        OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
 
         SaveAirportConditionsText = ReactiveCommand.Create(HandleSaveAirportConditionsText);
         SaveNotamsText = ReactiveCommand.Create(HandleSaveNotamsText);
@@ -401,7 +402,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void HandleOpenStaticNotamsDialog()
+    private async Task HandleOpenStaticNotamsDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
             return;
@@ -445,10 +446,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog(lifetime.MainWindow);
+        
+        // Update the free-form text area after the dialog is closed
+        PopulateNotams();
     }
 
-    private void HandleOpenAirportConditionsDialog()
+    private async Task HandleOpenAirportConditionsDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
             return;
@@ -492,7 +496,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog(lifetime.MainWindow);
+        
+        // Update the free-form text area after the dialog is closed
+        PopulateAirportConditions();
     }
 
     private void OnKillRequestedReceived(object? sender, KillRequestReceived e)
@@ -917,87 +924,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 SelectedAtisPreset = preset;
                 mPreviousAtisPreset = preset;
 
-                if (AirportConditionsTextDocument != null)
-                {
-                    // Clear the list of read-only NOTAM text segments.
-                    ReadOnlyAirportConditions.Clear();
-
-                    // Retrieve and sort enabled static airport conditions by their ordinal value.
-                    var staticDefinitions = mAtisStation.AirportConditionDefinitions
-                        .Where(x => x.Enabled)
-                        .OrderBy(x => x.Ordinal)
-                        .ToList();
-
-                    // Start with an empty document.
-                    AirportConditionsTextDocument.Text = "";
-
-                    var startIndex = 0;
-
-                    // If static airport conditions exist, insert them into the document.
-                    if (staticDefinitions.Count > 0)
-                    {
-                        // Combine static airport conditions into a single string, separated by periods.
-                        // A trailing space is added to ensure proper spacing between the static definitions 
-                        // and the subsequent free-form text.
-                        var staticDefinitionsString = string.Join(". ", staticDefinitions) + " ";
-
-                        // Insert static airport conditions at the beginning of the document.
-                        AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
-
-                        // Add the static airport conditions to the read-only list to prevent modification.
-                        ReadOnlyAirportConditions.Add(new TextSegment
-                        {
-                            StartOffset = 0,
-                            EndOffset = staticDefinitionsString.Length
-                        });
-
-                        // Update the starting index for the next insertion.
-                        startIndex = staticDefinitionsString.Length;
-                    }
-
-                    // Always append the free-form airport conditions after the static definitions (if any).
-                    AirportConditionsTextDocument.Insert(startIndex, SelectedAtisPreset.AirportConditions);
-                }
-
-                if (NotamsTextDocument != null)
-                {
-                    // Clear the list of read-only NOTAM text segments.
-                    ReadOnlyNotams.Clear();
-
-                    // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
-                    var staticDefinitions = mAtisStation.NotamDefinitions
-                        .Where(x => x.Enabled)
-                        .OrderBy(x => x.Ordinal)
-                        .ToList();
-
-                    // Start with an empty document.
-                    NotamsTextDocument.Text = "";
-
-                    var startIndex = 0;
-
-                    // If static NOTAM definitions exist, insert them into the document.
-                    if (staticDefinitions.Count > 0)
-                    {
-                        // Combine static NOTAM definitions into a single string, separated by periods.
-                        var staticDefinitionsString = string.Join(". ", staticDefinitions) + " ";
-
-                        // Insert static NOTAM definitions at the beginning of the document.
-                        NotamsTextDocument.Insert(0, staticDefinitionsString);
-
-                        // Add the static NOTAM range to the read-only list to prevent modification.
-                        ReadOnlyNotams.Add(new TextSegment
-                        {
-                            StartOffset = 0,
-                            EndOffset = staticDefinitionsString.Length
-                        });
-
-                        // Update the starting index for the next insertion.
-                        startIndex = staticDefinitionsString.Length;
-                    }
-
-                    // Always append the free-form NOTAM text after the static definitions (if any).
-                    NotamsTextDocument.Insert(startIndex, SelectedAtisPreset.Notams);
-                }
+                PopulateAirportConditions();
+                PopulateNotams();
 
                 HasUnsavedNotams = false;
                 HasUnsavedAirportConditions = false;
@@ -1049,6 +977,94 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Metar = null;
                 ErrorMessage = e.Message;
             });
+        }
+    }
+
+    private void PopulateNotams()
+    {
+        if (NotamsTextDocument != null)
+        {
+            // Clear the list of read-only NOTAM text segments.
+            ReadOnlyNotams.Clear();
+
+            // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
+            var staticDefinitions = mAtisStation.NotamDefinitions
+                .Where(x => x.Enabled)
+                .OrderBy(x => x.Ordinal)
+                .ToList();
+
+            // Start with an empty document.
+            NotamsTextDocument.Text = "";
+
+            var startIndex = 0;
+
+            // If static NOTAM definitions exist, insert them into the document.
+            if (staticDefinitions.Count > 0)
+            {
+                // Combine static NOTAM definitions into a single string, separated by periods.
+                var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+                // Insert static NOTAM definitions at the beginning of the document.
+                NotamsTextDocument.Insert(0, staticDefinitionsString);
+
+                // Add the static NOTAM range to the read-only list to prevent modification.
+                ReadOnlyNotams.Add(new TextSegment
+                {
+                    StartOffset = 0,
+                    EndOffset = staticDefinitionsString.Length
+                });
+
+                // Update the starting index for the next insertion.
+                startIndex = staticDefinitionsString.Length;
+            }
+
+            // Always append the free-form NOTAM text after the static definitions (if any).
+            NotamsTextDocument.Insert(startIndex, SelectedAtisPreset.Notams);
+        }
+    }
+
+    private void PopulateAirportConditions()
+    {
+        if (AirportConditionsTextDocument != null)
+        {
+            // Clear the list of read-only NOTAM text segments.
+            ReadOnlyAirportConditions.Clear();
+
+            // Retrieve and sort enabled static airport conditions by their ordinal value.
+            var staticDefinitions = mAtisStation.AirportConditionDefinitions
+                .Where(x => x.Enabled)
+                .OrderBy(x => x.Ordinal)
+                .ToList();
+
+            // Start with an empty document.
+            AirportConditionsTextDocument.Text = "";
+
+            var startIndex = 0;
+
+            // If static airport conditions exist, insert them into the document.
+            if (staticDefinitions.Count > 0)
+            {
+                // Combine static airport conditions into a single string, separated by periods.
+                // A trailing space is added to ensure proper spacing between the static definitions 
+                // and the subsequent free-form text.
+                var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+                // Insert static airport conditions at the beginning of the document.
+                AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
+
+                // Add the static airport conditions to the read-only list to prevent modification.
+                ReadOnlyAirportConditions.Add(new TextSegment
+                {
+                    StartOffset = 0,
+                    EndOffset = staticDefinitionsString.Length
+                });
+
+                // Update the starting index for the next insertion.
+                startIndex = staticDefinitionsString.Length;
+            }
+
+            // Always append the free-form airport conditions after the static definitions (if any).
+            AirportConditionsTextDocument.Insert(startIndex, SelectedAtisPreset.AirportConditions);
         }
     }
 
