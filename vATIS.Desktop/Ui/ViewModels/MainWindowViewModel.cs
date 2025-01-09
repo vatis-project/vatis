@@ -201,18 +201,18 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         // This should never happen... but then again, I've been wrong before
         if (SelectedTabIndex < 0 || SelectedTabIndex >= AtisStations.Count)
             return;
-        
+
         var selectedStation = AtisStations[SelectedTabIndex];
-        
+
         if (string.IsNullOrEmpty(selectedStation.Identifier))
             return;
-        
+
         var requestDto = new DigitalAtisRequestDto
         {
             Id = selectedStation.Identifier,
             AtisType = selectedStation.AtisType
         };
-        var atisLetter = await mAtisHubConnection.GetDigitalAtisLetter(requestDto);
+        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
         selectedStation.SetAtisLetterCommand.Execute(atisLetter).Subscribe();
     }
 

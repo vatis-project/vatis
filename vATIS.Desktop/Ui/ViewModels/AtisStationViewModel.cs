@@ -219,7 +219,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
     }
 
-    public AtisType AtisType => mAtisStation.AtisType;
+    public AtisType AtisType => _atisStation.AtisType;
     #endregion
 
     public ReactiveCommand<Unit, Unit> DecrementAtisLetterCommand { get; }
@@ -379,7 +379,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleSetAtisLetter(char letter)
     {
-        if (letter < mAtisStation.CodeRange.Low || letter > mAtisStation.CodeRange.High)
+        if (letter < _atisStation.CodeRange.Low || letter > _atisStation.CodeRange.High)
             return;
         AtisLetter = letter;
     }

@@ -25,9 +25,6 @@ public class MockAtisHubConnection : IAtisHubConnection
     {
         _downloader = downloader;
     }
-    
-    private HubConnection? _hubConnection;
-    private ConnectionState _hubConnectionState;
 
     public async Task Connect()
     {
