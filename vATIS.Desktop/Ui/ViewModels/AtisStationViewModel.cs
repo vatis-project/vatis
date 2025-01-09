@@ -941,10 +941,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         // and the subsequent free-form text.
                         var staticDefinitionsString = string.Join(". ", staticDefinitions) + " ";
 
-                        // Insert static NOTAM definitions at the beginning of the document.
+                        // Insert static airport conditions at the beginning of the document.
                         AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
 
-                        // Add the static NOTAM range to the read-only list to prevent modification.
+                        // Add the static airport conditions to the read-only list to prevent modification.
                         ReadOnlyAirportConditions.Add(new TextSegment
                         {
                             StartOffset = 0,
@@ -955,7 +955,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         startIndex = staticDefinitionsString.Length;
                     }
 
-                    // Always append the free-form NOTAM text after the static definitions (if any).
+                    // Always append the free-form airport conditions after the static definitions (if any).
                     AirportConditionsTextDocument.Insert(startIndex, SelectedAtisPreset.AirportConditions);
                 }
 
