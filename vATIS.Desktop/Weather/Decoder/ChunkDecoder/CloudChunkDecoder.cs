@@ -22,9 +22,10 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
     private static CloudLayer? CalculateCeiling(List<CloudLayer> layers)
     {
         var ceiling = layers
-            .Where(n => n.BaseHeight?.ActualValue > 0 &&
-                        n.Amount is CloudLayer.CloudAmount.Overcast or CloudLayer.CloudAmount.Broken)
-            .Select(n => n)
+            .Where(n => n.BaseHeight != null &&
+                    n.BaseHeight.ActualValue > 0 &&
+                    (n.Amount == CloudLayer.CloudAmount.Overcast ||
+                     n.Amount == CloudLayer.CloudAmount.Broken))
             .OrderBy(n => n.BaseHeight?.ActualValue)
             .FirstOrDefault();
 
