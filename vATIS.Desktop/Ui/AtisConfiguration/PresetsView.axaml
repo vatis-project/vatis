@@ -6,6 +6,7 @@
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
              xmlns:controls="using:Vatsim.Vatis.Ui.Controls"
              xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.PresetsView">
 	<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
@@ -189,7 +190,7 @@
 					</Button>
 				</WrapPanel>
 			</StackPanel>
-			<controls:GroupBox Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}">
+			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}">
 				<StackPanel Orientation="Vertical" Spacing="10">
 					<StackPanel Spacing="5">
 						<TextBlock Text="URL:"/>
@@ -255,7 +256,7 @@
 						</TextBox>
 					</StackPanel>
 				</StackPanel>
-			</controls:GroupBox>
+			</groupBox:GroupBoxControl>
 		</StackPanel>
 	</Border>
 </UserControl>

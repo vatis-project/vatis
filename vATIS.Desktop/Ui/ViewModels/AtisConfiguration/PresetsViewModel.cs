@@ -26,12 +26,12 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 public class PresetsViewModel : ReactiveViewModelBase
 {
-    private readonly HashSet<string> mInitializedProperties = [];
-    private readonly IMetarRepository mMetarRepository;
-    private readonly IDownloader mDownloader;
-    private readonly IWindowFactory mWindowFactory;
-    private readonly IProfileRepository mProfileRepository;
-    private readonly ISessionManager mSessionManager;
+    private readonly HashSet<string> _initializedProperties = [];
+    private readonly IMetarRepository _metarRepository;
+    private readonly IDownloader _downloader;
+    private readonly IWindowFactory _windowFactory;
+    private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
 
     public IDialogOwner? DialogOwner { get; set; }
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
@@ -46,178 +46,162 @@ public class PresetsViewModel : ReactiveViewModelBase
     public ReactiveCommand<Unit, Unit> FetchSandboxMetarCommand { get; }
 
     #region Reactive Properties
-
-    private bool mHasUnsavedChanges;
-
+    private bool _hasUnsavedChanges;
     public bool HasUnsavedChanges
     {
-        get => mHasUnsavedChanges;
-        set => this.RaiseAndSetIfChanged(ref mHasUnsavedChanges, value);
+        get => _hasUnsavedChanges;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
     }
 
-    private ObservableCollection<AtisPreset>? mPresets;
-
+    private ObservableCollection<AtisPreset>? _presets;
     public ObservableCollection<AtisPreset>? Presets
     {
-        get => mPresets;
-        set => this.RaiseAndSetIfChanged(ref mPresets, value);
+        get => _presets;
+        set => this.RaiseAndSetIfChanged(ref _presets, value);
     }
 
-    private List<ICompletionData> mContractionCompletionData = [];
-
+    private List<ICompletionData> _contractionCompletionData = [];
     public List<ICompletionData> ContractionCompletionData
     {
-        get => mContractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref mContractionCompletionData, value);
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
     }
 
-    private AtisStation? mSelectedStation;
-
+    private AtisStation? _selectedStation;
     private AtisStation? SelectedStation
     {
-        get => mSelectedStation;
-        set => this.RaiseAndSetIfChanged(ref mSelectedStation, value);
+        get => _selectedStation;
+        set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
     }
 
-    private AtisPreset? mSelectedPreset;
-
+    private AtisPreset? _selectedPreset;
     public AtisPreset? SelectedPreset
     {
-        get => mSelectedPreset;
-        set => this.RaiseAndSetIfChanged(ref mSelectedPreset, value);
+        get => _selectedPreset;
+        set => this.RaiseAndSetIfChanged(ref _selectedPreset, value);
     }
 
-    private bool mUseExternalAtisGenerator;
-
+    private bool _useExternalAtisGenerator;
     public bool UseExternalAtisGenerator
     {
-        get => mUseExternalAtisGenerator;
+        get => _useExternalAtisGenerator;
         set
         {
-            this.RaiseAndSetIfChanged(ref mUseExternalAtisGenerator, value);
-            if (!mInitializedProperties.Add(nameof(UseExternalAtisGenerator)))
+            this.RaiseAndSetIfChanged(ref _useExternalAtisGenerator, value);
+            if (!_initializedProperties.Add(nameof(UseExternalAtisGenerator)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mExternalGeneratorUrl;
-
+    private string? _externalGeneratorUrl;
     public string? ExternalGeneratorUrl
     {
-        get => mExternalGeneratorUrl;
+        get => _externalGeneratorUrl;
         set
         {
-            this.RaiseAndSetIfChanged(ref mExternalGeneratorUrl, value);
-            if (!mInitializedProperties.Add(nameof(ExternalGeneratorUrl)))
+            this.RaiseAndSetIfChanged(ref _externalGeneratorUrl, value);
+            if (!_initializedProperties.Add(nameof(ExternalGeneratorUrl)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mExternalGeneratorArrivalRunways;
-
+    private string? _externalGeneratorArrivalRunways;
     public string? ExternalGeneratorArrivalRunways
     {
-        get => mExternalGeneratorArrivalRunways;
+        get => _externalGeneratorArrivalRunways;
         set
         {
-            this.RaiseAndSetIfChanged(ref mExternalGeneratorArrivalRunways, value);
-            if (!mInitializedProperties.Add(nameof(ExternalGeneratorArrivalRunways)))
+            this.RaiseAndSetIfChanged(ref _externalGeneratorArrivalRunways, value);
+            if (!_initializedProperties.Add(nameof(ExternalGeneratorArrivalRunways)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mExternalGeneratorDepartureRunways;
-
+    private string? _externalGeneratorDepartureRunways;
     public string? ExternalGeneratorDepartureRunways
     {
-        get => mExternalGeneratorDepartureRunways;
+        get => _externalGeneratorDepartureRunways;
         set
         {
-            this.RaiseAndSetIfChanged(ref mExternalGeneratorDepartureRunways, value);
-            if (!mInitializedProperties.Add(nameof(ExternalGeneratorDepartureRunways)))
+            this.RaiseAndSetIfChanged(ref _externalGeneratorDepartureRunways, value);
+            if (!_initializedProperties.Add(nameof(ExternalGeneratorDepartureRunways)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mExternalGeneratorApproaches;
-
+    private string? _externalGeneratorApproaches;
     public string? ExternalGeneratorApproaches
     {
-        get => mExternalGeneratorApproaches;
+        get => _externalGeneratorApproaches;
         set
         {
-            this.RaiseAndSetIfChanged(ref mExternalGeneratorApproaches, value);
-            if (!mInitializedProperties.Add(nameof(ExternalGeneratorApproaches)))
+            this.RaiseAndSetIfChanged(ref _externalGeneratorApproaches, value);
+            if (!_initializedProperties.Add(nameof(ExternalGeneratorApproaches)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mExternalGeneratorRemarks;
-
+    private string? _externalGeneratorRemarks;
     public string? ExternalGeneratorRemarks
     {
-        get => mExternalGeneratorRemarks;
+        get => _externalGeneratorRemarks;
         set
         {
-            this.RaiseAndSetIfChanged(ref mExternalGeneratorRemarks, value);
-            if (!mInitializedProperties.Add(nameof(ExternalGeneratorRemarks)))
+            this.RaiseAndSetIfChanged(ref _externalGeneratorRemarks, value);
+            if (!_initializedProperties.Add(nameof(ExternalGeneratorRemarks)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mExternalGeneratorSandboxResponse;
-
+    private string? _externalGeneratorSandboxResponse;
     public string? ExternalGeneratorSandboxResponse
     {
-        get => mExternalGeneratorSandboxResponse;
-        set => this.RaiseAndSetIfChanged(ref mExternalGeneratorSandboxResponse, value);
+        get => _externalGeneratorSandboxResponse;
+        set => this.RaiseAndSetIfChanged(ref _externalGeneratorSandboxResponse, value);
     }
 
     private string AtisTemplateText
     {
-        get => mAtisTemplateTextDocument?.Text ?? "";
+        get => _atisTemplateTextDocument?.Text ?? "";
         set => AtisTemplateTextDocument = new TextDocument(value);
     }
 
-    private TextDocument? mAtisTemplateTextDocument = new();
-
+    private TextDocument? _atisTemplateTextDocument = new();
     public TextDocument? AtisTemplateTextDocument
     {
-        get => mAtisTemplateTextDocument;
-        set => this.RaiseAndSetIfChanged(ref mAtisTemplateTextDocument, value);
+        get => _atisTemplateTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _atisTemplateTextDocument, value);
     }
 
-    private string? mSandboxMetar;
-
+    private string? _sandboxMetar;
     public string? SandboxMetar
     {
-        get => mSandboxMetar;
-        set => this.RaiseAndSetIfChanged(ref mSandboxMetar, value);
+        get => _sandboxMetar;
+        set => this.RaiseAndSetIfChanged(ref _sandboxMetar, value);
     }
-
     #endregion
 
     public PresetsViewModel(IWindowFactory windowFactory,
         IDownloader downloader, IMetarRepository metarRepository, IProfileRepository profileRepository,
         ISessionManager sessionManager)
     {
-        mWindowFactory = windowFactory;
-        mDownloader = downloader;
-        mMetarRepository = metarRepository;
-        mProfileRepository = profileRepository;
-        mSessionManager = sessionManager;
+        _windowFactory = windowFactory;
+        _downloader = downloader;
+        _metarRepository = metarRepository;
+        _profileRepository = profileRepository;
+        _sessionManager = sessionManager;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
         SelectedPresetChanged = ReactiveCommand.Create<AtisPreset>(HandleSelectedPresetChanged);
@@ -236,7 +220,7 @@ public class PresetsViewModel : ReactiveViewModelBase
         if (SelectedStation == null || string.IsNullOrEmpty(SelectedStation.Identifier))
             return;
 
-        var metar = await mMetarRepository.GetMetar(SelectedStation.Identifier, monitor: false,
+        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, monitor: false,
             triggerMessageBus: false);
         SandboxMetar = metar?.RawMetar;
     }
@@ -302,8 +286,8 @@ public class PresetsViewModel : ReactiveViewModelBase
         if (HasErrors)
             return false;
 
-        if (mSessionManager.CurrentProfile != null)
-            mProfileRepository.Save(mSessionManager.CurrentProfile);
+        if (_sessionManager.CurrentProfile != null)
+            _profileRepository.Save(_sessionManager.CurrentProfile);
 
         HasUnsavedChanges = false;
 
@@ -325,7 +309,7 @@ public class PresetsViewModel : ReactiveViewModelBase
             url = url.Replace("$remarks", ExternalGeneratorRemarks);
             url = url.Replace("$atiscode", StringExtensions.RandomLetter());
 
-            var response = await mDownloader.DownloadStringAsync(url);
+            var response = await _downloader.DownloadStringAsync(url);
 
             response = Regex.Replace(response, @"\[(.*?)\]", " $1 ");
             response = Regex.Replace(response, @"\s+", " ");
@@ -347,7 +331,7 @@ public class PresetsViewModel : ReactiveViewModelBase
             if (lifetime.MainWindow == null)
                 return;
 
-            var dialog = mWindowFactory.CreateSortPresetsDialog();
+            var dialog = _windowFactory.CreateSortPresetsDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is SortPresetsDialogViewModel context)
             {
@@ -363,8 +347,8 @@ public class PresetsViewModel : ReactiveViewModelBase
                         SelectedStation.Presets.Add(item);
                     }
 
-                    if (mSessionManager.CurrentProfile != null)
-                        mProfileRepository.Save(mSessionManager.CurrentProfile);
+                    if (_sessionManager.CurrentProfile != null)
+                        _profileRepository.Save(_sessionManager.CurrentProfile);
 
                     RefreshPresetList();
                 };
@@ -386,8 +370,8 @@ public class PresetsViewModel : ReactiveViewModelBase
                     MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
             {
                 SelectedStation.Presets.Remove(SelectedPreset);
-                if (mSessionManager.CurrentProfile != null)
-                    mProfileRepository.Save(mSessionManager.CurrentProfile);
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
                 RefreshPresetList();
             }
         }
@@ -408,7 +392,7 @@ public class PresetsViewModel : ReactiveViewModelBase
 
             var previousValue = SelectedPreset.Name;
 
-            var dialog = mWindowFactory.CreateUserInputDialog();
+            var dialog = _windowFactory.CreateUserInputDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is UserInputDialogViewModel context)
             {
@@ -439,8 +423,8 @@ public class PresetsViewModel : ReactiveViewModelBase
                             copy.Ordinal = SelectedStation.Presets.Select(x => x.Ordinal).Max() + 1;
                             copy.Name = context.UserValue.Trim();
                             SelectedStation.Presets.Add(copy);
-                            if (mSessionManager.CurrentProfile != null)
-                                mProfileRepository.Save(mSessionManager.CurrentProfile);
+                            if (_sessionManager.CurrentProfile != null)
+                                _profileRepository.Save(_sessionManager.CurrentProfile);
                             RefreshPresetList();
                             context.ClearError();
                         }
@@ -467,7 +451,7 @@ public class PresetsViewModel : ReactiveViewModelBase
 
             var previousValue = SelectedPreset.Name;
 
-            var dialog = mWindowFactory.CreateUserInputDialog();
+            var dialog = _windowFactory.CreateUserInputDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is UserInputDialogViewModel context)
             {
@@ -495,8 +479,8 @@ public class PresetsViewModel : ReactiveViewModelBase
                             }
 
                             SelectedPreset.Name = context.UserValue.Trim();
-                            if (mSessionManager.CurrentProfile != null)
-                                mProfileRepository.Save(mSessionManager.CurrentProfile);
+                            if (_sessionManager.CurrentProfile != null)
+                                _profileRepository.Save(_sessionManager.CurrentProfile);
                             RefreshPresetList();
 
                             context.ClearError();
@@ -553,7 +537,7 @@ public class PresetsViewModel : ReactiveViewModelBase
 
             var previousValue = "";
 
-            var dialog = mWindowFactory.CreateUserInputDialog();
+            var dialog = _windowFactory.CreateUserInputDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is UserInputDialogViewModel context)
             {
@@ -589,8 +573,8 @@ public class PresetsViewModel : ReactiveViewModelBase
                                 Template = "[FACILITY] ATIS INFO [ATIS_CODE] [TIME]. [WX]. [ARPT_COND] [NOTAMS]"
                             };
                             SelectedStation.Presets.Add(preset);
-                            if (mSessionManager.CurrentProfile != null)
-                                mProfileRepository.Save(mSessionManager.CurrentProfile);
+                            if (_sessionManager.CurrentProfile != null)
+                                _profileRepository.Save(_sessionManager.CurrentProfile);
                             RefreshPresetList();
 
                             context.ClearError();

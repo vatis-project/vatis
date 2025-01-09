@@ -55,8 +55,8 @@ internal static class CoreFoundation
 internal static class IoKit
 {
     private const string LibraryName = "/System/Library/Frameworks/IOKit.framework/IOKit";
-    public const uint K_IO_MASTER_PORT_DEFAULT = 0;
-    public const string K_IO_PLATFORM_SERIAL_NUMBER_KEY = "IOPlatformSerialNumber";
+    public const uint KIoMasterPortDefault = 0;
+    public const string KIoPlatformSerialNumberKey = "IOPlatformSerialNumber";
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     public static extern CfTypeRef IORegistryEntryCreateCFProperty(uint entry, CfTypeRef key, CfTypeRef allocator,

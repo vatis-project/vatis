@@ -1,11 +1,11 @@
-﻿using Avalonia.Data.Converters;
-using Avalonia.Media;
-using Avalonia;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia;
+using Avalonia.Data.Converters;
+using Avalonia.Media;
 
-namespace Vatsim.Vatis.Ui.Controls;
+namespace Vatsim.Vatis.Ui.Controls.GroupBox;
 
 public static class StaticConverters
 {

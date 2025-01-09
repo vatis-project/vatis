@@ -11,32 +11,32 @@ public class TransitionLevelDialogViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
     public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
 
-    private string? mQnhLow;
+    private string? _qnhLow;
     public string? QnhLow
     {
-        get => mQnhLow;
-        set => this.RaiseAndSetIfChanged(ref mQnhLow, value);
+        get => _qnhLow;
+        set => this.RaiseAndSetIfChanged(ref _qnhLow, value);
     }
 
-    private string? mQnhHigh;
+    private string? _qnhHigh;
     public string? QnhHigh
     {
-        get => mQnhHigh;
-        set => this.RaiseAndSetIfChanged(ref mQnhHigh, value);
+        get => _qnhHigh;
+        set => this.RaiseAndSetIfChanged(ref _qnhHigh, value);
     }
 
-    private string? mTransitionLevel;
+    private string? _transitionLevel;
     public string? TransitionLevel
     {
-        get => mTransitionLevel;
-        set => this.RaiseAndSetIfChanged(ref mTransitionLevel, value);
+        get => _transitionLevel;
+        set => this.RaiseAndSetIfChanged(ref _transitionLevel, value);
     }
 
-    private DialogResult mDialogResult;
+    private DialogResult _dialogResult;
     public DialogResult DialogResult
     {
-        get => mDialogResult;
-        set => this.RaiseAndSetIfChanged(ref mDialogResult, value);
+        get => _dialogResult;
+        set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
     }
 
     public TransitionLevelDialogViewModel()

@@ -10,61 +10,61 @@ using Vatsim.Vatis.Ui.Common;
 namespace Vatsim.Vatis.Ui.ViewModels;
 public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly IAppConfig mAppConfig;
+    private readonly IAppConfig _appConfig;
 
     public ReactiveCommand<ICloseable, Unit> SaveSettingsCommand { get; }
 
-    private string? mName;
+    private string? _name;
     public string? Name
     {
-        get => mName;
-        set => this.RaiseAndSetIfChanged(ref mName, value);
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
     }
 
-    private string? mUserId;
+    private string? _userId;
     public string? UserId
     {
-        get => mUserId;
-        set => this.RaiseAndSetIfChanged(ref mUserId, value);
+        get => _userId;
+        set => this.RaiseAndSetIfChanged(ref _userId, value);
     }
 
-    private string? mPassword;
+    private string? _password;
     public string? Password
     {
-        get => mPassword;
-        set => this.RaiseAndSetIfChanged(ref mPassword, value);
+        get => _password;
+        set => this.RaiseAndSetIfChanged(ref _password, value);
     }
 
-    private string? mSelectedNetworkRating;
+    private string? _selectedNetworkRating;
     public string? SelectedNetworkRating
     {
-        get => mSelectedNetworkRating;
-        set => this.RaiseAndSetIfChanged(ref mSelectedNetworkRating, value);
+        get => _selectedNetworkRating;
+        set => this.RaiseAndSetIfChanged(ref _selectedNetworkRating, value);
     }
 
-    private ObservableCollection<ComboBoxItemMeta>? mNetworkRatings;
+    private ObservableCollection<ComboBoxItemMeta>? _networkRatings;
     public ObservableCollection<ComboBoxItemMeta>? NetworkRatings
     {
-        get => mNetworkRatings;
-        set => this.RaiseAndSetIfChanged(ref mNetworkRatings, value);
+        get => _networkRatings;
+        set => this.RaiseAndSetIfChanged(ref _networkRatings, value);
     }
 
-    private bool mSuppressNotificationSound;
+    private bool _suppressNotificationSound;
     public bool SuppressNotificationSound
     {
-        get => mSuppressNotificationSound;
-        set => this.RaiseAndSetIfChanged(ref mSuppressNotificationSound, value);
+        get => _suppressNotificationSound;
+        set => this.RaiseAndSetIfChanged(ref _suppressNotificationSound, value);
     }
 
     public SettingsDialogViewModel(IAppConfig appConfig)
     {
-        mAppConfig = appConfig;
+        _appConfig = appConfig;
 
-        Name = mAppConfig.Name;
-        UserId = mAppConfig.UserId;
-        Password = mAppConfig.PasswordDecrypted;
-        SuppressNotificationSound = mAppConfig.SuppressNotificationSound;
-        SelectedNetworkRating = mAppConfig.NetworkRating.ToString();
+        Name = _appConfig.Name;
+        UserId = _appConfig.UserId;
+        Password = _appConfig.PasswordDecrypted;
+        SuppressNotificationSound = _appConfig.SuppressNotificationSound;
+        SelectedNetworkRating = _appConfig.NetworkRating.ToString();
 
         NetworkRatings = [
             new ComboBoxItemMeta("Observer", "OBS"),
@@ -86,18 +86,18 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void SaveSettings(ICloseable window)
     {
-        mAppConfig.Name = Name ?? "";
-        mAppConfig.UserId = UserId?.Trim() ?? "";
-        mAppConfig.PasswordDecrypted = Password?.Trim() ?? "";
-        mAppConfig.SuppressNotificationSound = SuppressNotificationSound;
+        _appConfig.Name = Name ?? "";
+        _appConfig.UserId = UserId?.Trim() ?? "";
+        _appConfig.PasswordDecrypted = Password?.Trim() ?? "";
+        _appConfig.SuppressNotificationSound = SuppressNotificationSound;
 
         if (Enum.TryParse(SelectedNetworkRating, out NetworkRating selectedNetworkRating))
         {
-            mAppConfig.NetworkRating = selectedNetworkRating;
+            _appConfig.NetworkRating = selectedNetworkRating;
         }
 
-        mAppConfig.SaveConfig();
-        
+        _appConfig.SaveConfig();
+
         MessageBus.Current.SendMessage(new GeneralSettingsUpdated());
 
         window.Close();

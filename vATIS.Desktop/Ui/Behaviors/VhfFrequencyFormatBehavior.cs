@@ -7,8 +7,8 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 
 public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
 {
-    private static readonly Regex ValidInputRegex = FrequencyRegex();
-    
+    private static readonly Regex s_validInputRegex = FrequencyRegex();
+
     protected override void OnAttached()
     {
         base.OnAttached();
@@ -18,7 +18,7 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
             AssociatedObject.TextChanged += OnTextChanged;
         }
     }
-    
+
     protected override void OnDetaching()
     {
         base.OnDetaching();
@@ -41,18 +41,9 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
         var text = textBox.Text ?? string.Empty;
         var input = e.Text;
 
-        string newText;
+        var newText = textBox.SelectedText == text ? input : text.Insert(textBox.CaretIndex, input);
 
-        if (textBox.SelectedText == text)
-        {
-            newText = input;
-        }
-        else
-        {
-            newText = text.Insert(textBox.CaretIndex, input);
-        }
-
-        if (!ValidInputRegex.IsMatch(newText.Replace(".", string.Empty)) || newText.Replace(".", string.Empty).Length > 6)
+        if (!s_validInputRegex.IsMatch(newText.Replace(".", string.Empty)) || newText.Replace(".", string.Empty).Length > 6)
         {
             e.Handled = true;
             return;

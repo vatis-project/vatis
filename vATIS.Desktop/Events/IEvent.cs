@@ -1,5 +1,3 @@
 ﻿namespace Vatsim.Vatis.Events;
 
-public interface IEvent
-{
-}
+public interface IEvent;

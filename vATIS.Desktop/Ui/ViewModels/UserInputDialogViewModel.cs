@@ -11,32 +11,32 @@ public class UserInputDialogViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
     public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
 
-    private string mTitle = "";
+    private string _title = "";
     public string Title
     {
-        get => mTitle;
-        set => this.RaiseAndSetIfChanged(ref mTitle, value);
+        get => _title;
+        set => this.RaiseAndSetIfChanged(ref _title, value);
     }
 
-    private string mPrompt = "";
+    private string _prompt = "";
     public string Prompt
     {
-        get => mPrompt;
-        set => this.RaiseAndSetIfChanged(ref mPrompt, value);
+        get => _prompt;
+        set => this.RaiseAndSetIfChanged(ref _prompt, value);
     }
 
-    private string? mUserValue;
+    private string? _userValue;
     public string? UserValue
     {
-        get => mUserValue;
-        set => this.RaiseAndSetIfChanged(ref mUserValue, value);
+        get => _userValue;
+        set => this.RaiseAndSetIfChanged(ref _userValue, value);
     }
 
-    private bool mForceUppercase;
+    private bool _forceUppercase;
     public bool ForceUppercase
     {
-        get => mForceUppercase;
-        set => this.RaiseAndSetIfChanged(ref mForceUppercase, value);
+        get => _forceUppercase;
+        set => this.RaiseAndSetIfChanged(ref _forceUppercase, value);
     }
 
     public UserInputDialogViewModel()

@@ -7,7 +7,7 @@ public class SurfaceWind
 
     public MagneticVariationMeta MagneticVariation { get; set; } = new();
 
-    public BaseFormat Standard { get; set; } = new BaseFormat()
+    public BaseFormat Standard { get; set; } = new()
     {
         Template = new Template
         {
@@ -16,7 +16,7 @@ public class SurfaceWind
         }
     };
 
-    public BaseFormat StandardGust { get; set; } = new BaseFormat()
+    public BaseFormat StandardGust { get; set; } = new()
     {
         Template = new Template
         {
@@ -25,7 +25,7 @@ public class SurfaceWind
         }
     };
 
-    public BaseFormat Variable { get; set; } = new BaseFormat()
+    public BaseFormat Variable { get; set; } = new()
     {
         Template = new Template
         {
@@ -34,7 +34,7 @@ public class SurfaceWind
         }
     };
 
-    public BaseFormat VariableGust { get; set; } = new BaseFormat()
+    public BaseFormat VariableGust { get; set; } = new()
     {
         Template = new Template
         {
@@ -43,7 +43,7 @@ public class SurfaceWind
         }
     };
 
-    public BaseFormat VariableDirection { get; set; } = new BaseFormat()
+    public BaseFormat VariableDirection { get; set; } = new()
     {
         Template = new Template
         {
@@ -52,7 +52,7 @@ public class SurfaceWind
         }
     };
 
-    public CalmWind Calm { get; set; } = new CalmWind();
+    public CalmWind Calm { get; set; } = new();
 
     public SurfaceWind Clone() => (SurfaceWind)MemberwiseClone();
 }
