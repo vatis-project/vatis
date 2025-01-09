@@ -25,7 +25,7 @@ public class PointerPressedEventTrigger : Trigger<Interactive>
         get => GetValue(RightClickCommandProperty);
         set => SetValue(RightClickCommandProperty, value);
     }
-    
+
     protected override void OnAttached()
     {
         base.OnAttached();
@@ -43,11 +43,11 @@ public class PointerPressedEventTrigger : Trigger<Interactive>
         var point = e.GetCurrentPoint(null);
         if (point.Properties.IsLeftButtonPressed)
         {
-            LeftClickCommand?.Execute(null);
+            LeftClickCommand.Execute(null);
         }
         else if (point.Properties.IsRightButtonPressed)
         {
-            RightClickCommand?.Execute(null);
+            RightClickCommand.Execute(null);
         }
     }
 }

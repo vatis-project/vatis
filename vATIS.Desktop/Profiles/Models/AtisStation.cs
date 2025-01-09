@@ -24,13 +24,13 @@ public class AtisStation : ReactiveObject
     public AtisVoiceMeta AtisVoice { get; set; } = new();
     public List<AtisPreset> Presets { get; set; } = [];
 
-    private List<ContractionMeta> mContractionMetas = [];
+    private List<ContractionMeta> _contractionMetas = [];
     public List<ContractionMeta> Contractions
     {
-        get => mContractionMetas;
+        get => _contractionMetas;
         set
         {
-            mContractionMetas = [];
+            _contractionMetas = [];
             foreach (var contractionMeta in value)
             {
                 if (string.IsNullOrEmpty(contractionMeta.VariableName) && !string.IsNullOrEmpty(contractionMeta.Text))
@@ -39,7 +39,7 @@ public class AtisStation : ReactiveObject
                     slug = slug.Replace("-", "_").ToUpperInvariant();
                     contractionMeta.VariableName = slug;
                 }
-                mContractionMetas.Add(contractionMeta);
+                _contractionMetas.Add(contractionMeta);
             }
         }
     }
@@ -58,7 +58,7 @@ public class AtisStation : ReactiveObject
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public uint AtisFrequency
     {
-        get => default;
+        get => 0;
         set => Frequency = value < 100000000 ? (value + 100000) * 1000 : value;
     }
 
@@ -66,7 +66,7 @@ public class AtisStation : ReactiveObject
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public LegacyObservationTime? ObservationTime
     {
-        get => default;
+        get => null;
         set
         {
             if (value is not null)
@@ -80,7 +80,7 @@ public class AtisStation : ReactiveObject
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public LegacyMagneticVariation? MagneticVariation
     {
-        get => default;
+        get => null;
         set
         {
             if (value is not null)

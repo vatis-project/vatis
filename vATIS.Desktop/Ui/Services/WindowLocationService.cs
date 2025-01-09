@@ -9,13 +9,13 @@ using Vatsim.Vatis.Ui.Profiles;
 namespace Vatsim.Vatis.Ui.Services;
 public class WindowLocationService : IWindowLocationService
 {
-    private readonly IAppConfig mAppConfig;
-    private int? mLeft;
-    private int? mTop;
+    private readonly IAppConfig _appConfig;
+    private int? _left;
+    private int? _top;
 
     public WindowLocationService(IAppConfig appConfig)
     {
-        mAppConfig = appConfig;
+        _appConfig = appConfig;
     }
 
     public void Restore(Window? window)
@@ -25,7 +25,7 @@ public class WindowLocationService : IWindowLocationService
 
         if (window.GetType() == typeof(Windows.MainWindow))
         {
-            if (mAppConfig.MainWindowPosition == null)
+            if (_appConfig.MainWindowPosition == null)
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
@@ -35,19 +35,19 @@ public class WindowLocationService : IWindowLocationService
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
                 var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
 
-                mLeft = centeredLeft;
-                mTop = centeredTop;
+                _left = centeredLeft;
+                _top = centeredTop;
 
-                mAppConfig.MainWindowPosition = new WindowPosition(centeredLeft, centeredTop);
-                mAppConfig.SaveConfig();
+                _appConfig.MainWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                _appConfig.SaveConfig();
                 return;
             }
-            mLeft = mAppConfig.MainWindowPosition.X;
-            mTop = mAppConfig.MainWindowPosition.Y;
+            _left = _appConfig.MainWindowPosition.X;
+            _top = _appConfig.MainWindowPosition.Y;
         }
         else if (window.GetType() == typeof(Windows.CompactWindow))
         {
-            if (mAppConfig.CompactWindowPosition == null)
+            if (_appConfig.CompactWindowPosition == null)
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
@@ -57,19 +57,19 @@ public class WindowLocationService : IWindowLocationService
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
                 var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
 
-                mLeft = centeredLeft;
-                mTop = centeredTop;
+                _left = centeredLeft;
+                _top = centeredTop;
 
-                mAppConfig.CompactWindowPosition = new WindowPosition(centeredLeft, centeredTop);
-                mAppConfig.SaveConfig();
+                _appConfig.CompactWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                _appConfig.SaveConfig();
                 return;
             }
-            mLeft = mAppConfig.CompactWindowPosition.X;
-            mTop = mAppConfig.CompactWindowPosition.Y;
+            _left = _appConfig.CompactWindowPosition.X;
+            _top = _appConfig.CompactWindowPosition.Y;
         }
         else if (window.GetType() == typeof(ProfileListDialog))
         {
-            if (mAppConfig.ProfileListDialogWindowPosition == null)
+            if (_appConfig.ProfileListDialogWindowPosition == null)
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
@@ -79,19 +79,19 @@ public class WindowLocationService : IWindowLocationService
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
                 var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
 
-                mLeft = centeredLeft;
-                mTop = centeredTop;
+                _left = centeredLeft;
+                _top = centeredTop;
 
-                mAppConfig.ProfileListDialogWindowPosition = new WindowPosition(centeredLeft, centeredTop);
-                mAppConfig.SaveConfig();
+                _appConfig.ProfileListDialogWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                _appConfig.SaveConfig();
                 return;
             }
-            mLeft = mAppConfig.ProfileListDialogWindowPosition.X;
-            mTop = mAppConfig.ProfileListDialogWindowPosition.Y;
+            _left = _appConfig.ProfileListDialogWindowPosition.X;
+            _top = _appConfig.ProfileListDialogWindowPosition.Y;
         }
         else if (window.GetType() == typeof(VoiceRecordAtisDialog))
         {
-            if (mAppConfig.VoiceRecordAtisDialogWindowPosition == null)
+            if (_appConfig.VoiceRecordAtisDialogWindowPosition == null)
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
@@ -101,21 +101,21 @@ public class WindowLocationService : IWindowLocationService
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
                 var centeredTop = (int)(screenWorkingArea.Y + ((screenWorkingArea.Height - window.Height) / 2));
 
-                mLeft = centeredLeft;
-                mTop = centeredTop;
+                _left = centeredLeft;
+                _top = centeredTop;
 
-                mAppConfig.VoiceRecordAtisDialogWindowPosition = new WindowPosition(centeredLeft, centeredTop);
-                mAppConfig.SaveConfig();
+                _appConfig.VoiceRecordAtisDialogWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                _appConfig.SaveConfig();
                 return;
             }
-            mLeft = mAppConfig.VoiceRecordAtisDialogWindowPosition.X;
-            mTop = mAppConfig.VoiceRecordAtisDialogWindowPosition.Y;
+            _left = _appConfig.VoiceRecordAtisDialogWindowPosition.X;
+            _top = _appConfig.VoiceRecordAtisDialogWindowPosition.Y;
         }
 
-        if (mLeft is null || mTop is null)
+        if (_left is null || _top is null)
             return;
 
-        var savedPosition = new PixelPoint(mLeft.Value, mTop.Value);
+        var savedPosition = new PixelPoint(_left.Value, _top.Value);
         var screen = FindScreenContainingPositionInWorkingArea(window, savedPosition);
         if (screen == null)
         {
@@ -124,8 +124,8 @@ public class WindowLocationService : IWindowLocationService
             return;
         }
         const int minDistance = 50;
-        if (mLeft.Value > screen.WorkingArea.X + screen.WorkingArea.Width - minDistance || 
-            mTop.Value > screen.WorkingArea.Y + screen.WorkingArea.Height - minDistance)
+        if (_left.Value > screen.WorkingArea.X + screen.WorkingArea.Width - minDistance ||
+            _top.Value > screen.WorkingArea.Y + screen.WorkingArea.Height - minDistance)
         {
             // The saved top-left corner (position) is too close to the right or bottom edge
             // of the screen's working area, making the window difficult to access.
@@ -141,30 +141,30 @@ public class WindowLocationService : IWindowLocationService
         if (window is null)
             return;
 
-        mLeft = window.Position.X;
-        mTop = window.Position.Y;
+        _left = window.Position.X;
+        _top = window.Position.Y;
 
-        var savedPosition = new WindowPosition(mLeft.Value, mTop.Value);
+        var savedPosition = new WindowPosition(_left.Value, _top.Value);
 
         if (window.GetType() == typeof(Windows.MainWindow))
         {
-            mAppConfig.MainWindowPosition = savedPosition;
-            mAppConfig.SaveConfig();
+            _appConfig.MainWindowPosition = savedPosition;
+            _appConfig.SaveConfig();
         }
         else if (window.GetType() == typeof(Windows.CompactWindow))
         {
-            mAppConfig.CompactWindowPosition = savedPosition;
-            mAppConfig.SaveConfig();
+            _appConfig.CompactWindowPosition = savedPosition;
+            _appConfig.SaveConfig();
         }
         else if (window.GetType() == typeof(ProfileListDialog))
         {
-            mAppConfig.ProfileListDialogWindowPosition = savedPosition;
-            mAppConfig.SaveConfig();
+            _appConfig.ProfileListDialogWindowPosition = savedPosition;
+            _appConfig.SaveConfig();
         }
         else if (window.GetType() == typeof(VoiceRecordAtisDialog))
         {
-            mAppConfig.VoiceRecordAtisDialogWindowPosition = savedPosition;
-            mAppConfig.SaveConfig();
+            _appConfig.VoiceRecordAtisDialogWindowPosition = savedPosition;
+            _appConfig.SaveConfig();
         }
     }
 
