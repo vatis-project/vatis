@@ -1024,7 +1024,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Always append the free-form NOTAM text after the static definitions (if any).
-        NotamsTextDocument.Insert(mNotamFreeTextOffset, SelectedAtisPreset?.Notams);
+        if (!string.IsNullOrEmpty(SelectedAtisPreset?.Notams))
+        {
+            NotamsTextDocument.Insert(mNotamFreeTextOffset, SelectedAtisPreset?.Notams);
+        }
     }
 
     private void PopulateAirportConditions()
@@ -1070,7 +1073,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Always append the free-form airport conditions after the static definitions (if any).
-        AirportConditionsTextDocument.Insert(mAirportConditionsFreeTextOffset, SelectedAtisPreset?.AirportConditions);
+        if (!string.IsNullOrEmpty(SelectedAtisPreset?.AirportConditions))
+        {
+            AirportConditionsTextDocument.Insert(mAirportConditionsFreeTextOffset,
+                SelectedAtisPreset?.AirportConditions);
+        }
     }
 
     private async void HandleIsNewAtisChanged(bool isNewAtis)
