@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Avalonia.OpenGL.Egl;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Weather.Decoder.Exception;
@@ -8,15 +10,28 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
 public sealed class CloudChunkDecoder : MetarChunkDecoder
 {
+    private const string CeilingParameterName = "Ceiling";
     private const string CloudsParameterName = "Clouds";
     private const string NoCloudRegexPattern = "(NSC|NCD|CLR|SKC)";
     private const string LayerRegexPattern = "(VV|FEW|SCT|BKN|OVC|///)([0-9]{3}|///)(CB|TCU|///)?";
-    
+
     public override string GetRegex()
     {
         return $"^({NoCloudRegexPattern}|({LayerRegexPattern})( {LayerRegexPattern})?( {LayerRegexPattern})?( {LayerRegexPattern})?)( )";
     }
-    
+
+    private static CloudLayer? CalculateCeiling(List<CloudLayer> layers)
+    {
+        var ceiling = layers
+            .Where(n => n.BaseHeight?.ActualValue > 0 &&
+                        n.Amount is CloudLayer.CloudAmount.Overcast or CloudLayer.CloudAmount.Broken)
+            .Select(n => n)
+            .OrderBy(n => n.BaseHeight?.ActualValue)
+            .FirstOrDefault();
+
+        return ceiling;
+    }
+
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
         var consumed = Consume(remainingMetar);
@@ -81,7 +96,8 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
                 }
             }
         }
-        
+
+        result.Add(CeilingParameterName, CalculateCeiling(layers));
         result.Add(CloudsParameterName, layers);
         return GetResults(newRemainingMetar, result);
     }

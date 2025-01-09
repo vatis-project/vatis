@@ -543,12 +543,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         await Task.Run(async () =>
                         {
                             mAtisStation.TextAtis = atisBuilder.TextAtis;
-                            
+
                             await PublishAtisToHub();
                             mNetworkConnection.SendSubscriberNotification(AtisLetter);
                             await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter,
                                 mCancellationToken.Token);
-                            
+
                             var dto = AtisBotUtils.AddBotRequest(vm.AudioBuffer, mAtisStation.Frequency,
                                 mAtisStationAirport.Latitude, mAtisStationAirport.Longitude, 100);
                             await mVoiceServerConnection?.AddOrUpdateBot(mNetworkConnection.Callsign, dto,
@@ -813,7 +813,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         mCancellationToken.Token);
 
                     mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
-                    
+
                     await PublishAtisToHub();
                     mNetworkConnection?.SendSubscriberNotification(AtisLetter);
                     await mAtisBuilder.UpdateIds(mAtisStation, SelectedAtisPreset, AtisLetter, mCancellationToken.Token);
@@ -882,8 +882,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             TextAtis = mAtisStation.TextAtis,
             IsNewAtis = IsNewAtis,
             NetworkConnectionStatus = NetworkConnectionStatus,
-            PressureUnit = mDecodedMetar?.Pressure?.Value?.ActualUnit,
-            PressureValue = mDecodedMetar?.Pressure?.Value?.ActualValue,
+            Pressure = mDecodedMetar?.Pressure?.Value,
+            Ceiling = mDecodedMetar?.Ceiling?.BaseHeight,
+            PrevailingVisibility = mDecodedMetar?.Visibility?.PrevailingVisibility
         });
     }
 
@@ -932,7 +933,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                 var atisBuilder = await mAtisBuilder.BuildAtis(mAtisStation, SelectedAtisPreset, AtisLetter, mDecodedMetar,
                     mCancellationToken.Token);
-                
+
                 mAtisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
 
                 await PublishAtisToHub();
@@ -1120,7 +1121,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        
+
         mWebsocketService.GetAtisReceived -= OnGetAtisReceived;
         mWebsocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
 
