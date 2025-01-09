@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,23 +18,26 @@ namespace Vatsim.Vatis.Networking.AtisHub;
 public class MockAtisHubConnection : IAtisHubConnection
 {
     private readonly IDownloader _downloader;
-    private HubConnection? mHubConnection;
-    private ConnectionState mConnectionState;
+    private HubConnection? _hubConnection;
+    private ConnectionState _hubConnectionState;
 
     public MockAtisHubConnection(IDownloader downloader)
     {
         _downloader = downloader;
     }
     
+    private HubConnection? _hubConnection;
+    private ConnectionState _hubConnectionState;
+
     public async Task Connect()
     {
         try
         {
-            if (mHubConnection is { State: HubConnectionState.Connected })
+            if (_hubConnection is { State: HubConnectionState.Connected })
                 return;
 
-            mHubConnection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5500/hub")
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl($"http://{IPAddress.Loopback.ToString()}:5500/hub")
                 .WithAutomaticReconnect()
                 .AddJsonProtocol(options =>
                 {
@@ -41,19 +45,19 @@ public class MockAtisHubConnection : IAtisHubConnection
                 })
                 .Build();
 
-            mHubConnection.Closed += OnHubConnectionClosed;
-            mHubConnection.On<List<AtisHubDto>>("AtisReceived", (dtoList) =>
+            _hubConnection.Closed += OnHubConnectionClosed;
+            _hubConnection.On<List<AtisHubDto>>("AtisReceived", (dtoList) =>
             {
                 foreach (var dto in dtoList)
                 {
                     MessageBus.Current.SendMessage(new AtisHubAtisReceived(dto));
                 }
             });
-            mHubConnection.On<AtisHubDto>("RemoveAtisReceived", (dto) =>
+            _hubConnection.On<AtisHubDto>("RemoveAtisReceived", (dto) =>
             {
                 MessageBus.Current.SendMessage(new AtisHubExpiredAtisReceived(dto));
             });
-            mHubConnection.On<string>("MetarReceived", (message) =>
+            _hubConnection.On<string>("MetarReceived", (message) =>
             {
                 try
                 {
@@ -69,8 +73,8 @@ public class MockAtisHubConnection : IAtisHubConnection
 
             SetConnectionState(ConnectionState.Connecting);
             Log.Information($"Connecting to Dev AtisHub.");
-            await mHubConnection.StartAsync();
-            Log.Information("Connected to Dev AtisHub with ID: " + mHubConnection.ConnectionId);
+            await _hubConnection.StartAsync();
+            Log.Information("Connected to Dev AtisHub with ID: " + _hubConnection.ConnectionId);
             SetConnectionState(ConnectionState.Connected);
         }
         catch (Exception ex)
@@ -82,9 +86,9 @@ public class MockAtisHubConnection : IAtisHubConnection
 
     private void SetConnectionState(ConnectionState connectionState)
     {
-        mConnectionState = connectionState;
-        MessageBus.Current.SendMessage(new ConnectionStateChanged(mConnectionState));
-        switch (mConnectionState)
+        _hubConnectionState = connectionState;
+        MessageBus.Current.SendMessage(new ConnectionStateChanged(_hubConnectionState));
+        switch (_hubConnectionState)
         {
             case ConnectionState.Connected:
                 MessageBus.Current.SendMessage(new HubConnected());
@@ -97,12 +101,12 @@ public class MockAtisHubConnection : IAtisHubConnection
 
     public async Task Disconnect()
     {
-        if (mHubConnection == null)
+        if (_hubConnection == null)
             return;
 
         try
         {
-            await mHubConnection.StopAsync();
+            await _hubConnection.StopAsync();
         }
         catch (Exception ex)
         {
@@ -112,18 +116,18 @@ public class MockAtisHubConnection : IAtisHubConnection
 
     public async Task PublishAtis(AtisHubDto dto)
     {
-        if (mHubConnection is not { State: HubConnectionState.Connected })
+        if (_hubConnection is not { State: HubConnectionState.Connected })
             return;
 
-        await mHubConnection.InvokeAsync("PublishAtis", dto);
+        await _hubConnection.InvokeAsync("PublishAtis", dto);
     }
 
     public async Task SubscribeToAtis(SubscribeDto dto)
     {
-        if (mHubConnection is not { State: HubConnectionState.Connected })
+        if (_hubConnection is not { State: HubConnectionState.Connected })
             return;
 
-        await mHubConnection.InvokeAsync("SubscribeToAtis", dto);
+        await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
     public async Task<char> GetDigitalAtisLetter(DigitalAtisRequestDto dto)

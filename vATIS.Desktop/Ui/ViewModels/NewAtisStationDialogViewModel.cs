@@ -12,32 +12,32 @@ public class NewAtisStationDialogViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
     public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
 
-    private DialogResult mDialogResult;
+    private DialogResult _dialogResult;
     public DialogResult DialogResult
     {
-        get => mDialogResult;
-        set => this.RaiseAndSetIfChanged(ref mDialogResult, value);
+        get => _dialogResult;
+        set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
     }
 
-    private string? mAirportIdentifier;
+    private string? _airportIdentifier;
     public string? AirportIdentifier
     {
-        get => mAirportIdentifier;
-        set => this.RaiseAndSetIfChanged(ref mAirportIdentifier, value);
+        get => _airportIdentifier;
+        set => this.RaiseAndSetIfChanged(ref _airportIdentifier, value);
     }
 
-    private string? mStationName;
+    private string? _stationName;
     public string? StationName
     {
-        get => mStationName;
-        set => this.RaiseAndSetIfChanged(ref mStationName, value);
+        get => _stationName;
+        set => this.RaiseAndSetIfChanged(ref _stationName, value);
     }
 
-    private AtisType mAtisType = AtisType.Combined;
+    private AtisType _atisType = AtisType.Combined;
     public AtisType AtisType
     {
-        get => mAtisType;
-        set => this.RaiseAndSetIfChanged(ref mAtisType, value);
+        get => _atisType;
+        set => this.RaiseAndSetIfChanged(ref _atisType, value);
     }
 
     public NewAtisStationDialogViewModel()

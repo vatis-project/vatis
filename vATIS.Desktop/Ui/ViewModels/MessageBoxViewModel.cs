@@ -9,92 +9,92 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
 {
-    public Window? Owner { get; set; }
-    
-    public ReactiveCommand<ICloseable, Unit> YesButtonCommand { get; private set; }
-    public ReactiveCommand<ICloseable, Unit> NoButtonCommand { get; private set; }
-    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; private set; }
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; private set; }
+    public Window? Owner { get; init; }
+
+    public ReactiveCommand<ICloseable, Unit> YesButtonCommand { get; }
+    public ReactiveCommand<ICloseable, Unit> NoButtonCommand { get; }
+    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
 
 
-    private string mCaption = "vATIS";
+    private string _caption = "vATIS";
     public string Caption
     {
-        get => mCaption;
-        set => this.RaiseAndSetIfChanged(ref mCaption, value);
+        get => _caption;
+        set => this.RaiseAndSetIfChanged(ref _caption, value);
     }
 
-    private string? mMessage;
+    private string? _message;
     public string? Message
     {
-        get => mMessage;
-        set => this.RaiseAndSetIfChanged(ref mMessage, value);
+        get => _message;
+        set => this.RaiseAndSetIfChanged(ref _message, value);
     }
 
-    private readonly MessageBoxButton mButton;
+    private readonly MessageBoxButton _button;
     public MessageBoxButton Button
     {
-        get => mButton;
+        get => _button;
         init
         {
-            mButton = value;
+            _button = value;
             SetButtons();
-            this.RaiseAndSetIfChanged(ref mButton, value);
+            this.RaiseAndSetIfChanged(ref _button, value);
         }
     }
 
-    private readonly MessageBoxIcon mIcon;
+    private readonly MessageBoxIcon _icon;
     public MessageBoxIcon Icon
     {
-        get => mIcon;
+        get => _icon;
         init
         {
-            mIcon = value;
+            _icon = value;
             SetIcon();
-            this.RaiseAndSetIfChanged(ref mIcon, value);
+            this.RaiseAndSetIfChanged(ref _icon, value);
         }
     }
 
-    private MessageBoxResult mResult;
+    private MessageBoxResult _result;
     public MessageBoxResult Result
     {
-        get => mResult;
-        private set => this.RaiseAndSetIfChanged(ref mResult, value);
+        get => _result;
+        private set => this.RaiseAndSetIfChanged(ref _result, value);
     }
 
-    private bool mIsOkVisible;
+    private bool _isOkVisible;
     public bool IsOkVisible
     {
-        get => mIsOkVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsOkVisible, value);
+        get => _isOkVisible;
+        set => this.RaiseAndSetIfChanged(ref _isOkVisible, value);
     }
 
-    private bool mIsYesVisible;
+    private bool _isYesVisible;
     public bool IsYesVisible
     {
-        get => mIsYesVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsYesVisible, value);
+        get => _isYesVisible;
+        set => this.RaiseAndSetIfChanged(ref _isYesVisible, value);
     }
 
-    private bool mIsNoVisible;
+    private bool _isNoVisible;
     public bool IsNoVisible
     {
-        get => mIsNoVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsNoVisible, value);
+        get => _isNoVisible;
+        set => this.RaiseAndSetIfChanged(ref _isNoVisible, value);
     }
 
-    private bool mIsCancelVisible;
+    private bool _isCancelVisible;
     public bool IsCancelVisible
     {
-        get => mIsCancelVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsCancelVisible, value);
+        get => _isCancelVisible;
+        set => this.RaiseAndSetIfChanged(ref _isCancelVisible, value);
     }
 
-    private string? mIconPath;
+    private string? _iconPath;
     public string? IconPath
     {
-        get => mIconPath;
-        set => this.RaiseAndSetIfChanged(ref mIconPath, value);
+        get => _iconPath;
+        set => this.RaiseAndSetIfChanged(ref _iconPath, value);
     }
 
     public MessageBoxViewModel()

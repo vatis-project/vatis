@@ -11,32 +11,32 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
     public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
 
-    private DialogResult mDialogResult;
+    private DialogResult _dialogResult;
     public DialogResult DialogResult
     {
-        get => mDialogResult;
-        set => this.RaiseAndSetIfChanged(ref mDialogResult, value);
+        get => _dialogResult;
+        set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
     }
 
-    private string? mVariable;
+    private string? _variable;
     public string? Variable
     {
-        get => mVariable;
-        set => this.RaiseAndSetIfChanged(ref mVariable, value);
-    }
-    
-    private string? mText;
-    public string? Text
-    {
-        get => mText;
-        set => this.RaiseAndSetIfChanged(ref mText, value);
+        get => _variable;
+        set => this.RaiseAndSetIfChanged(ref _variable, value);
     }
 
-    private string? mSpoken;
+    private string? _text;
+    public string? Text
+    {
+        get => _text;
+        set => this.RaiseAndSetIfChanged(ref _text, value);
+    }
+
+    private string? _spoken;
     public string? Spoken
     {
-        get => mSpoken;
-        set => this.RaiseAndSetIfChanged(ref mSpoken, value);
+        get => _spoken;
+        set => this.RaiseAndSetIfChanged(ref _spoken, value);
     }
 
     public NewContractionDialogViewModel()
@@ -44,7 +44,7 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
         CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCancelButtonCommand);
         OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButtonCommand);
     }
-    
+
     private void HandleOkButtonCommand(ICloseable window)
     {
         DialogResultChanged?.Invoke(this, DialogResult.Ok);

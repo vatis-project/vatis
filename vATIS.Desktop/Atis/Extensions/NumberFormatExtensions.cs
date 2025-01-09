@@ -71,10 +71,10 @@ public static class NumberFormatExtensions
     }
 
     /// <summary>
-    /// Converts the numebr into a word string.
+    /// Converts the value into a word string.
     /// </summary>
-    /// <param name="number">The number to convert</param>
-    /// <returns>Returns the numebr in word string format. For example, 10,500 would yield "one zero thousand five hundred"</returns>
+    /// <param name="value">The number to convert</param>
+    /// <returns>Returns the value in word string format. For example, 10,500 would yield "one zero thousand five hundred"</returns>
     public static string ToWordString(this IConvertible value)
     {
         var number = Convert.ToInt32(value);
@@ -87,9 +87,9 @@ public static class NumberFormatExtensions
             return "zero";
 
         if (isNegative)
-            return "minus " + Math.Abs(number).ToWordString();
+            return "minus " + number.ToWordString();
 
-        string words = "";
+        var words = "";
 
         if (number / 1000000 > 0)
         {
@@ -164,7 +164,7 @@ public static class NumberFormatExtensions
     /// <summary>
     /// Converts a number into serial format
     /// </summary>
-    /// <param name="number">The number to format</param>
+    /// <param name="value">The number to format</param>
     /// <param name="leadingZero">Whether to prefix number with leading zero if less than 10.</param>
     /// <returns>Returns the number in serial format.</returns>
     public static string ToSerialFormat(this IConvertible value, bool leadingZero = false)
@@ -184,7 +184,7 @@ public static class NumberFormatExtensions
         return $"{(number < 0 ? "minus " : "")}{string.Join(" ", temp)}";
     }
 
-    public static int NormalizeHeading(this IConvertible value)
+    private static int NormalizeHeading(this IConvertible value)
     {
         var heading = Convert.ToInt32(value);
 
@@ -204,7 +204,7 @@ public static class NumberFormatExtensions
     public static int ApplyMagVar(this IConvertible value, bool enabled, int? magVar = null)
     {
         var degrees = Convert.ToInt32(value);
-        
+
         if(!enabled)
             return degrees;
 

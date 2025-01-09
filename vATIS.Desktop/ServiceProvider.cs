@@ -91,7 +91,7 @@ internal sealed partial class ServiceProvider
         return !string.IsNullOrEmpty(environmentVariable) &&
                environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase);
     }
-    
+
     private IMetarRepository CreateMetarRepository()
     {
         if(IsDevelopmentEnvironment())
@@ -129,173 +129,172 @@ internal sealed partial class ServiceProvider
 
 internal class NetworkConnectionFactory : INetworkConnectionFactory
 {
-    private readonly ServiceProvider mProvider;
+    private readonly ServiceProvider _provider;
 
     public NetworkConnectionFactory(ServiceProvider provider)
     {
-        mProvider = provider;
+        _provider = provider;
     }
 
     public INetworkConnection CreateConnection(AtisStation station)
     {
         if(ServiceProvider.IsDevelopmentEnvironment())
         {
-            return new MockNetworkConnection(station, mProvider.GetService<IMetarRepository>());
+            return new MockNetworkConnection(station, _provider.GetService<IMetarRepository>());
         }
 
-        return new NetworkConnection(station, mProvider.GetService<IAppConfig>(),
-            mProvider.GetService<IAuthTokenManager>(), mProvider.GetService<IMetarRepository>(),
-            mProvider.GetService<IDownloader>(), mProvider.GetService<INavDataRepository>());
+        return new NetworkConnection(station, _provider.GetService<IAppConfig>(),
+            _provider.GetService<IAuthTokenManager>(), _provider.GetService<IMetarRepository>(),
+            _provider.GetService<IDownloader>(), _provider.GetService<INavDataRepository>());
     }
 }
 
 internal class ViewModelFactory : IViewModelFactory
 {
-    private readonly ServiceProvider mProvider;
+    private readonly ServiceProvider _provider;
 
     public ViewModelFactory(ServiceProvider provider)
     {
-        mProvider = provider;
+        _provider = provider;
     }
 
     public AtisStationViewModel CreateAtisStationViewModel(AtisStation station)
     {
-        return new AtisStationViewModel(station, mProvider.GetService<INetworkConnectionFactory>(),
-            mProvider.GetService<IAppConfig>(), mProvider.GetService<IVoiceServerConnection>(),
-            mProvider.GetService<IAtisBuilder>(), mProvider.GetService<IWindowFactory>(),
-            mProvider.GetService<INavDataRepository>(), mProvider.GetService<IAtisHubConnection>(),
-            mProvider.GetService<ISessionManager>(), mProvider.GetService<IProfileRepository>(),
-            mProvider.GetService<IWebsocketService>());
+        return new AtisStationViewModel(station, _provider.GetService<INetworkConnectionFactory>(),
+            _provider.GetService<IAppConfig>(), _provider.GetService<IVoiceServerConnection>(),
+            _provider.GetService<IAtisBuilder>(), _provider.GetService<IWindowFactory>(),
+            _provider.GetService<INavDataRepository>(), _provider.GetService<IAtisHubConnection>(),
+            _provider.GetService<ISessionManager>(), _provider.GetService<IProfileRepository>(),
+            _provider.GetService<IWebsocketService>());
     }
 
     public ContractionsViewModel CreateContractionsViewModel()
     {
-        return new ContractionsViewModel(mProvider.GetService<IWindowFactory>(), mProvider.GetService<IAppConfig>());
+        return new ContractionsViewModel(_provider.GetService<IWindowFactory>(), _provider.GetService<IAppConfig>());
     }
 
     public FormattingViewModel CreateFormattingViewModel()
     {
-        return new FormattingViewModel(mProvider.GetService<IWindowFactory>(),
-            mProvider.GetService<IProfileRepository>(),
-            mProvider.GetService<ISessionManager>());
+        return new FormattingViewModel(_provider.GetService<IWindowFactory>(),
+            _provider.GetService<IProfileRepository>(),
+            _provider.GetService<ISessionManager>());
     }
 
     public GeneralConfigViewModel CreateGeneralConfigViewModel()
     {
-        return new GeneralConfigViewModel(mProvider.GetService<IAppConfig>(),
-            mProvider.GetService<ISessionManager>(),
-            mProvider.GetService<IProfileRepository>());
+        return new GeneralConfigViewModel(_provider.GetService<ISessionManager>(),
+            _provider.GetService<IProfileRepository>());
     }
 
     public PresetsViewModel CreatePresetsViewModel()
     {
-        return new PresetsViewModel(mProvider.GetService<IWindowFactory>(),
-            mProvider.GetService<IDownloader>(),
-            mProvider.GetService<IMetarRepository>(),
-            mProvider.GetService<IProfileRepository>(),
-            mProvider.GetService<ISessionManager>());
+        return new PresetsViewModel(_provider.GetService<IWindowFactory>(),
+            _provider.GetService<IDownloader>(),
+            _provider.GetService<IMetarRepository>(),
+            _provider.GetService<IProfileRepository>(),
+            _provider.GetService<ISessionManager>());
     }
 
     public SandboxViewModel CreateSandboxViewModel()
     {
-        return new SandboxViewModel(mProvider.GetService<IWindowFactory>(),
-            mProvider.GetService<IAtisBuilder>(),
-            mProvider.GetService<IMetarRepository>(),
-            mProvider.GetService<IProfileRepository>(),
-            mProvider.GetService<ISessionManager>());
+        return new SandboxViewModel(_provider.GetService<IWindowFactory>(),
+            _provider.GetService<IAtisBuilder>(),
+            _provider.GetService<IMetarRepository>(),
+            _provider.GetService<IProfileRepository>(),
+            _provider.GetService<ISessionManager>());
     }
 }
 
 internal class WindowFactory : IWindowFactory
 {
-    private readonly ServiceProvider mProvider;
+    private readonly ServiceProvider _provider;
 
     public WindowFactory(ServiceProvider provider)
     {
-        mProvider = provider;
+        _provider = provider;
     }
 
     public MainWindow CreateMainWindow()
     {
-        var viewModel = mProvider.GetService<MainWindowViewModel>();
+        var viewModel = _provider.GetService<MainWindowViewModel>();
         return new MainWindow(viewModel);
     }
 
     public ProfileListDialog CreateProfileListDialog()
     {
-        var viewModel = mProvider.GetService<ProfileListViewModel>();
+        var viewModel = _provider.GetService<ProfileListViewModel>();
         return new ProfileListDialog(viewModel);
     }
 
     public SettingsDialog CreateSettingsDialog()
     {
-        var viewModel = mProvider.GetService<SettingsDialogViewModel>();
+        var viewModel = _provider.GetService<SettingsDialogViewModel>();
         return new SettingsDialog(viewModel);
     }
 
     public CompactWindow CreateCompactWindow()
     {
-        var viewModel = mProvider.GetService<CompactWindowViewModel>();
+        var viewModel = _provider.GetService<CompactWindowViewModel>();
         return new CompactWindow(viewModel);
     }
 
     public AtisConfigurationWindow CreateProfileConfigurationWindow()
     {
-        var viewModel = mProvider.GetService<AtisConfigurationWindowViewModel>();
+        var viewModel = _provider.GetService<AtisConfigurationWindowViewModel>();
         return new AtisConfigurationWindow(viewModel);
     }
 
     public UserInputDialog CreateUserInputDialog()
     {
-        var viewModel = mProvider.GetService<UserInputDialogViewModel>();
+        var viewModel = _provider.GetService<UserInputDialogViewModel>();
         return new UserInputDialog(viewModel);
     }
 
     public NewAtisStationDialog CreateNewAtisStationDialog()
     {
-        var viewModel = mProvider.GetService<NewAtisStationDialogViewModel>();
+        var viewModel = _provider.GetService<NewAtisStationDialogViewModel>();
         return new NewAtisStationDialog(viewModel);
     }
 
     public VoiceRecordAtisDialog CreateVoiceRecordAtisDialog()
     {
-        var viewModel = mProvider.GetService<VoiceRecordAtisDialogViewModel>();
+        var viewModel = _provider.GetService<VoiceRecordAtisDialogViewModel>();
         return new VoiceRecordAtisDialog(viewModel);
     }
 
     public TransitionLevelDialog CreateTransitionLevelDialog()
     {
-        var viewModel = mProvider.GetService<TransitionLevelDialogViewModel>();
+        var viewModel = _provider.GetService<TransitionLevelDialogViewModel>();
         return new TransitionLevelDialog(viewModel);
     }
 
     public NewContractionDialog CreateNewContractionDialog()
     {
-        var viewModel = mProvider.GetService<NewContractionDialogViewModel>();
+        var viewModel = _provider.GetService<NewContractionDialogViewModel>();
         return new NewContractionDialog(viewModel);
     }
 
     public StaticAirportConditionsDialog CreateStaticAirportConditionsDialog()
     {
-        var viewModel = mProvider.GetService<StaticAirportConditionsDialogViewModel>();
+        var viewModel = _provider.GetService<StaticAirportConditionsDialogViewModel>();
         return new StaticAirportConditionsDialog(viewModel);
     }
 
     public StaticNotamsDialog CreateStaticNotamsDialog()
     {
-        var viewModel = mProvider.GetService<StaticNotamsDialogViewModel>();
+        var viewModel = _provider.GetService<StaticNotamsDialogViewModel>();
         return new StaticNotamsDialog(viewModel);
     }
 
     public StaticDefinitionEditorDialog CreateStaticDefinitionEditorDialog()
     {
-        var viewModel = mProvider.GetService<StaticDefinitionEditorDialogViewModel>();
+        var viewModel = _provider.GetService<StaticDefinitionEditorDialogViewModel>();
         return new StaticDefinitionEditorDialog(viewModel);
     }
 
     public SortPresetsDialog CreateSortPresetsDialog()
     {
-        var viewModel = mProvider.GetService<SortPresetsDialogViewModel>();
+        var viewModel = _provider.GetService<SortPresetsDialogViewModel>();
         return new SortPresetsDialog(viewModel);
     }
 }

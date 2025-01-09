@@ -25,83 +25,79 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly CompositeDisposable mDisposables = new();
-    private readonly ISessionManager mSessionManager;
-    private readonly IWindowFactory mWindowFactory;
-    private readonly IViewModelFactory mViewModelFactory;
-    private readonly IWindowLocationService mWindowLocationService;
-    private readonly IAtisHubConnection mAtisHubConnection;
-    private readonly IWebsocketService mWebsocketService;
+    private readonly CompositeDisposable _disposables = new();
+    private readonly ISessionManager _sessionManager;
+    private readonly IWindowFactory _windowFactory;
+    private readonly IViewModelFactory _viewModelFactory;
+    private readonly IWindowLocationService _windowLocationService;
+    private readonly IAtisHubConnection _atisHubConnection;
+    private readonly IWebsocketService _websocketService;
+    private readonly SourceList<AtisStationViewModel> _atisStationSource = new();
+    private string? _beforeStationSortSelectedStationId;
 
     public Window? Owner { get; set; }
-    private readonly SourceList<AtisStationViewModel> mAtisStationSource = new();
     public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
     private ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
 
-    public ReactiveCommand<Unit, Unit> OpenSettingsDialogCommand { get; private set; }
-    public ReactiveCommand<Unit, Unit> OpenProfileConfigurationWindowCommand { get; private set; }
-    public ReactiveCommand<Unit, Unit> EndClientSessionCommand { get; private set; }
-    public ReactiveCommand<Unit, Unit> InvokeCompactViewCommand { get; private set; }
     public ReactiveCommand<Unit, Unit> GetDigitalAtisLetterCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenSettingsDialogCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenProfileConfigurationWindowCommand { get; }
+    public ReactiveCommand<Unit, Unit> EndClientSessionCommand { get; }
+    public ReactiveCommand<Unit, Unit> InvokeCompactViewCommand { get; }
 
     #region Reactive Properties
-
-    private string mCurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
-    
-    private string? mBeforeStationSortSelectedStationId;
-
-    private int mSelectedTabIndex;
+    private int _selectedTabIndex;
     public int SelectedTabIndex
     {
-        get => mSelectedTabIndex;
-        set => this.RaiseAndSetIfChanged(ref mSelectedTabIndex, value);
+        get => _selectedTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
     }
 
+    private string _currentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
     public string CurrentTime
     {
-        get => mCurrentTime;
-        set => this.RaiseAndSetIfChanged(ref mCurrentTime, value);
+        get => _currentTime;
+        set => this.RaiseAndSetIfChanged(ref _currentTime, value);
     }
 
-    private bool mShowOverlay;
-
+    private bool _showOverlay;
     public bool ShowOverlay
     {
-        get => mShowOverlay;
-        set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
+        get => _showOverlay;
+        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
     }
-
     #endregion
 
     public MainWindowViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory, IWindowLocationService windowLocationService,
         IAtisHubConnection atisHubConnection, IWebsocketService websocketService)
     {
-        mSessionManager = sessionManager;
-        mWindowFactory = windowFactory;
-        mViewModelFactory = viewModelFactory;
-        mWindowLocationService = windowLocationService;
-        mWebsocketService = websocketService;
-        mAtisHubConnection = atisHubConnection;
+        _sessionManager = sessionManager;
+        _windowFactory = windowFactory;
+        _viewModelFactory = viewModelFactory;
+        _windowLocationService = windowLocationService;
+        _websocketService = websocketService;
+        _atisHubConnection = atisHubConnection;
 
         OpenSettingsDialogCommand = ReactiveCommand.Create(OpenSettingsDialog);
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
         GetDigitalAtisLetterCommand = ReactiveCommand.CreateFromTask(HandleGetDigitalAtisLetter);
-        
-        mDisposables.Add(OpenSettingsDialogCommand);
-        mDisposables.Add(OpenProfileConfigurationWindowCommand);
-        mDisposables.Add(EndClientSessionCommand);
-        mDisposables.Add(InvokeCompactViewCommand);
-        
-        mAtisStationSource.Connect()
+
+        _disposables.Add(OpenSettingsDialogCommand);
+        _disposables.Add(OpenProfileConfigurationWindowCommand);
+        _disposables.Add(EndClientSessionCommand);
+        _disposables.Add(InvokeCompactViewCommand);
+        _disposables.Add(GetDigitalAtisLetterCommand);
+
+        _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .Do(_ =>
             {
                 if (AtisStations != null && AtisStations.Count > SelectedTabIndex)
                 {
-                    mBeforeStationSortSelectedStationId = AtisStations[SelectedTabIndex].Id;
+                    _beforeStationSortSelectedStationId = AtisStations[SelectedTabIndex].Id;
                 }
             })
             .Sort(SortExpressionComparer<AtisStationViewModel>
@@ -116,14 +112,14 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Subscribe(_ =>
             {
                 AtisStations = sortedStations;
-                if (mBeforeStationSortSelectedStationId == null || AtisStations.Count == 0)
+                if (_beforeStationSortSelectedStationId == null || AtisStations.Count == 0)
                 {
                     SelectedTabIndex = 0; // No valid previous station or empty list
                 }
                 else
                 {
                     var selectedStation = AtisStations.FirstOrDefault(
-                        it => it.Id == mBeforeStationSortSelectedStationId);
+                        it => it.Id == _beforeStationSortSelectedStationId);
 
                     SelectedTabIndex = selectedStation != null
                         ? AtisStations.IndexOf(selectedStation)
@@ -133,7 +129,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         AtisStations = sortedStations;
 
-        mAtisStationSource.Connect()
+        _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
             .Sort(SortExpressionComparer<AtisStationViewModel>.Ascending(i => i.Identifier ?? string.Empty))
@@ -148,42 +144,42 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         MessageBus.Current.Listen<OpenGenerateSettingsDialog>().Subscribe(_ => OpenSettingsDialog());
         MessageBus.Current.Listen<AtisStationAdded>().Subscribe(evt =>
         {
-            if (mSessionManager.CurrentProfile?.Stations == null)
+            if (_sessionManager.CurrentProfile?.Stations == null)
                 return;
 
-            var station = mSessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
-            if (station != null && mAtisStationSource.Items.All(x => x.Id != station.Id))
+            var station = _sessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
+            if (station != null && _atisStationSource.Items.All(x => x.Id != station.Id))
             {
-                var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station);
-                mDisposables.Add(atisStationViewModel);
-                mAtisStationSource.Add(atisStationViewModel);
+                var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(station);
+                _disposables.Add(atisStationViewModel);
+                _atisStationSource.Add(atisStationViewModel);
             }
         });
         MessageBus.Current.Listen<AtisStationUpdated>().Subscribe(evt =>
         {
-            var station = mAtisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
+            var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
             {
                 station.Disconnect();
 
-                mDisposables.Remove(station);
-                mAtisStationSource.Remove(station);
+                _disposables.Remove(station);
+                _atisStationSource.Remove(station);
 
-                var updatedStation = mSessionManager.CurrentProfile?.Stations?.FirstOrDefault(x => x.Id == evt.Id);
+                var updatedStation = _sessionManager.CurrentProfile?.Stations?.FirstOrDefault(x => x.Id == evt.Id);
                 if (updatedStation != null)
                 {
-                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(updatedStation);
-                    mDisposables.Add(atisStationViewModel);
-                    mAtisStationSource.Add(atisStationViewModel);
+                    var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(updatedStation);
+                    _disposables.Add(atisStationViewModel);
+                    _atisStationSource.Add(atisStationViewModel);
                 }
             }
         });
         MessageBus.Current.Listen<AtisStationDeleted>().Subscribe(evt =>
         {
-            var station = mAtisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
+            var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
             {
-                mAtisStationSource.Remove(station);
+                _atisStationSource.Remove(station);
             }
         });
 
@@ -222,18 +218,18 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
     public async Task PopulateAtisStations()
     {
-        if (mSessionManager.CurrentProfile?.Stations == null)
+        if (_sessionManager.CurrentProfile?.Stations == null)
             return;
 
-        foreach (var station in mSessionManager.CurrentProfile.Stations.OrderBy(x => x.Identifier))
+        foreach (var station in _sessionManager.CurrentProfile.Stations.OrderBy(x => x.Identifier))
         {
             try
             {
-                if (mAtisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
+                if (_atisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
                 {
-                    var atisStationViewModel = mViewModelFactory.CreateAtisStationViewModel(station);
-                    mDisposables.Add(atisStationViewModel);
-                    mAtisStationSource.Add(atisStationViewModel);
+                    var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(station);
+                    _disposables.Add(atisStationViewModel);
+                    _atisStationSource.Add(atisStationViewModel);
                 }
             }
             catch (Exception ex)
@@ -255,7 +251,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         if (lifetime.MainWindow == null)
             return;
 
-        var window = mWindowFactory.CreateProfileConfigurationWindow();
+        var window = _windowFactory.CreateProfileConfigurationWindow();
         window.Topmost = lifetime.MainWindow.Topmost;
         await window.ShowDialog(lifetime.MainWindow);
     }
@@ -267,7 +263,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         lifetime.MainWindow?.Hide();
 
-        var compactView = mWindowFactory.CreateCompactWindow();
+        var compactView = _windowFactory.CreateCompactWindow();
         if (compactView.DataContext is CompactWindowViewModel context)
         {
             context.Stations = CompactWindowStations;
@@ -283,7 +279,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             if (lifetime.MainWindow == null)
                 return;
 
-            var dialog = mWindowFactory.CreateSettingsDialog();
+            var dialog = _windowFactory.CreateSettingsDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             dialog.ShowDialog(lifetime.MainWindow);
         }
@@ -306,7 +302,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 }
             }
 
-            mSessionManager.EndSession();
+            _sessionManager.EndSession();
         }
     }
 
@@ -315,7 +311,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         if (window == null)
             return;
 
-        mWindowLocationService.Update(window);
+        _windowLocationService.Update(window);
     }
 
     public void RestorePosition(Window? window)
@@ -323,32 +319,32 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         if (window == null)
             return;
 
-        mWindowLocationService.Restore(window);
+        _windowLocationService.Restore(window);
     }
 
     public async Task StartWebsocket()
     {
-        await mWebsocketService.StartAsync();
+        await _websocketService.StartAsync();
     }
 
     public async Task StopWebsocket()
     {
-        await mWebsocketService.StopAsync();
+        await _websocketService.StopAsync();
     }
 
     public async Task ConnectToHub()
     {
-        await mAtisHubConnection.Connect();
+        await _atisHubConnection.Connect();
     }
 
     public async Task DisconnectFromHub()
     {
-        await mAtisHubConnection.Disconnect();
+        await _atisHubConnection.Disconnect();
     }
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        mDisposables.Dispose();
+        _disposables.Dispose();
     }
 }

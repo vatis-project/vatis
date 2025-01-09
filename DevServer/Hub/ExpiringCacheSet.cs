@@ -50,9 +50,9 @@ public class ExpiringCacheSet<TKey, TValue> where TKey : notnull
         }
     }
 
-    private static Task RunPeriodic(Action action, TimeSpan interval)
+    private static void RunPeriodic(Action action, TimeSpan interval)
     {
-        return Task.Run(async () =>
+        Task.Run(async () =>
         {
             while (true)
             {
@@ -67,6 +67,7 @@ public class ExpiringCacheSet<TKey, TValue> where TKey : notnull
 
                 await Task.Delay(interval);
             }
+            // ReSharper disable once FunctionNeverReturns
         });
     }
 }

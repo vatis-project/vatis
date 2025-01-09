@@ -19,8 +19,11 @@ public class CacheService : ICacheService
             (key, dto) =>
             {
                 // remove expired ATIS
-                _hubContext.Clients.All.RemoveAtisReceived(dto.Dto);
-                Log.Information("Deleting expired ATIS: " + key);
+                if (dto.Dto != null)
+                {
+                    _hubContext.Clients.All.RemoveAtisReceived(dto.Dto);
+                    Log.Information("Deleting expired ATIS: " + key);
+                }
             });
     }
 
@@ -57,7 +60,10 @@ public class CacheService : ICacheService
         _cache?.Set(key, dto);
         foreach (var subscriber in _subscribers)
         {
-            _hubContext.Clients.Client(subscriber.Key).AtisReceived([dto.Dto]);
+            if (dto.Dto != null)
+            {
+                _hubContext.Clients.Client(subscriber.Key).AtisReceived([dto.Dto]);
+            }
         }
     }
 }
@@ -65,7 +71,7 @@ public class CacheService : ICacheService
 public interface ICacheService
 {
     void AddSubscriber(string connectionId, SubscribeDto dto);
-    void RemoveSubscriber(string connectionId); 
+    void RemoveSubscriber(string connectionId);
     AtisHubDto? GetCachedAtis(string stationId, AtisType type);
     void CacheAtis(string key, ServerDto dto);
 }
