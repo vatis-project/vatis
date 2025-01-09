@@ -245,7 +245,7 @@ public class NetworkConnection : INetworkConnection
                 if (_atisStation?.AtisLetter != null)
                 {
                     _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
-                        ["A", _atisStation.AtisLetter]));
+                        ["A", _atisStation.AtisLetter.ToString()]));
                 }
 
                 break;
