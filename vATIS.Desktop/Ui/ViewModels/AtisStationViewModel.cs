@@ -419,14 +419,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
                 mAtisStation.NotamsBeforeFreeText = val;
-                mAppConfig.SaveConfig();
+                if (mSessionManager.CurrentProfile != null)
+                    mProfileRepository.Save(mSessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
             {
                 mAtisStation.NotamDefinitions.Clear();
                 mAtisStation.NotamDefinitions.AddRange(changes);
-                mAppConfig.SaveConfig();
+                if (mSessionManager.CurrentProfile != null)
+                    mProfileRepository.Save(mSessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
@@ -464,14 +466,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
                 mAtisStation.AirportConditionsBeforeFreeText = val;
-                mAppConfig.SaveConfig();
+                if (mSessionManager.CurrentProfile != null)
+                    mProfileRepository.Save(mSessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
             {
                 mAtisStation.AirportConditionDefinitions.Clear();
                 mAtisStation.AirportConditionDefinitions.AddRange(changes);
-                mAppConfig.SaveConfig();
+                if (mSessionManager.CurrentProfile != null)
+                    mProfileRepository.Save(mSessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
