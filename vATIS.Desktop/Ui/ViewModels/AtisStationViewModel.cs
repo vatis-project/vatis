@@ -927,7 +927,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 if (AirportConditionsTextDocument != null)
                 {
                     // Clear the list of read-only NOTAM text segments.
-                    ReadOnlyNotams.Clear();
+                    ReadOnlyAirportConditions.Clear();
 
                     // Retrieve and sort enabled static airport conditions by their ordinal value.
                     var staticDefinitions = mAtisStation.AirportConditionDefinitions
