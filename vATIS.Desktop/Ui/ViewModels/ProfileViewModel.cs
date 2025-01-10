@@ -5,18 +5,18 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class ProfileViewModel : ReactiveViewModelBase
 {
-    private Profile mProfile = null!;
+    private Profile _profile = null!;
     public Profile Profile
     {
-        get => mProfile;
-        private set => this.RaiseAndSetIfChanged(ref mProfile, value);
+        get => _profile;
+        private set => this.RaiseAndSetIfChanged(ref _profile, value);
     }
 
-    private string mName = "";
+    private string _name = "";
     public string Name
     {
-        get => mName;
-        set => this.RaiseAndSetIfChanged(ref mName, value);
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
     }
 
     public ProfileViewModel(Profile profile)

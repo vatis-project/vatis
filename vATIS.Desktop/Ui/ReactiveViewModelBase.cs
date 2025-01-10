@@ -6,12 +6,12 @@ using System.ComponentModel;
 
 namespace Vatsim.Vatis.Ui;
 
-public abstract partial class ReactiveViewModelBase : ReactiveObject, INotifyDataErrorInfo
+public abstract class ReactiveViewModelBase : ReactiveObject, INotifyDataErrorInfo
 {
-    private readonly Dictionary<string, List<string>> mErrors = [];
+    private readonly Dictionary<string, List<string>> _errors = [];
 
     public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
-    public bool HasErrors => mErrors.Count != 0;
+    public bool HasErrors => _errors.Count != 0;
 
     IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName)
     {
@@ -20,15 +20,15 @@ public abstract partial class ReactiveViewModelBase : ReactiveObject, INotifyDat
 
     private IEnumerable? GetErrors(string propertyName)
     {
-        return mErrors.TryGetValue(propertyName, out var v) ? v : null;
+        return _errors.GetValueOrDefault(propertyName);
     }
 
     public void RaiseError(string propertyName, string error)
     {
-        if (!mErrors.TryGetValue(propertyName, out List<string>? value))
+        if (!_errors.TryGetValue(propertyName, out List<string>? value))
         {
             value = [];
-            mErrors[propertyName] = value;
+            _errors[propertyName] = value;
         }
 
         value.Add(error);
@@ -37,8 +37,8 @@ public abstract partial class ReactiveViewModelBase : ReactiveObject, INotifyDat
 
     public void ClearAllErrors()
     {
-        var propertyNames = new List<string>(mErrors.Keys);
-        mErrors.Clear();
+        var propertyNames = new List<string>(_errors.Keys);
+        _errors.Clear();
 
         foreach (var propertyName in propertyNames)
         {
@@ -48,7 +48,7 @@ public abstract partial class ReactiveViewModelBase : ReactiveObject, INotifyDat
 
     public void ClearErrors(string propertyName)
     {
-        mErrors.Remove(propertyName);
+        _errors.Remove(propertyName);
         OnErrorsChanged(propertyName);
     }
 

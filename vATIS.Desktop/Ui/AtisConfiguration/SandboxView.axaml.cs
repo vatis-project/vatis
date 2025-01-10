@@ -6,8 +6,8 @@ namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
 public partial class SandboxView : UserControl
 {
-    private bool mAirportConditionsInitialized;
-    private bool mNotamsInitialized;
+    private bool _airportConditionsInitialized;
+    private bool _notamsInitialized;
 
     public SandboxView()
     {
@@ -21,15 +21,15 @@ public partial class SandboxView : UserControl
             if (vm.SelectedPreset == null)
                 return;
 
-            if (mAirportConditionsInitialized)
+            if (_airportConditionsInitialized)
             {
                 if (!AirportConditions.TextArea.IsFocused)
                     return;
-                
+
                 vm.HasUnsavedAirportConditions = true;
             }
 
-            mAirportConditionsInitialized = true;
+            _airportConditionsInitialized = true;
         }
     }
 
@@ -39,16 +39,16 @@ public partial class SandboxView : UserControl
         {
             if (vm.SelectedPreset == null)
                 return;
-            
-            if (mNotamsInitialized)
+
+            if (_notamsInitialized)
             {
                 if (!NotamFreeText.TextArea.IsFocused)
                     return;
-                
+
                 vm.HasUnsavedNotams = true;
             }
 
-            mNotamsInitialized = true;
+            _notamsInitialized = true;
         }
     }
 }

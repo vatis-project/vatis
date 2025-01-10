@@ -8,6 +8,7 @@
              xmlns:profiles="using:Vatsim.Vatis.Profiles"
              xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
+             xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.FormattingView">
 	<UserControl.Resources>
@@ -34,7 +35,7 @@
 						</Interaction.Behaviors>
 					</TextBox>
 				</StackPanel>
-				<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 					<StackPanel Orientation="Vertical" Spacing="10">
 						<StackPanel Orientation="Vertical">
 							<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -75,7 +76,7 @@
 							</Button>
 						</StackPanel>
 					</StackPanel>
-				</controls:GroupBox>
+				</groupBox:GroupBoxControl>
 			</StackPanel>
 			<!--Wind-->
 			<StackPanel Spacing="10" Margin="10,0,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind'}">
@@ -92,7 +93,7 @@
 				</StackPanel>
 				<TabControl Margin="-3">
 					<TabItem Header="Standard">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -133,10 +134,10 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Standard Gust">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -184,10 +185,10 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Variable">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -214,10 +215,10 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Variable Gust">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -258,10 +259,10 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Variable Direction">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -295,7 +296,7 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Calm">
 						<StackPanel Orientation="Vertical">
@@ -307,7 +308,7 @@
 									</Interaction.Behaviors>
 								</TextBox>
 							</StackPanel>
-							<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+							<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 								<StackPanel Orientation="Vertical" Spacing="10">
 									<StackPanel Orientation="Vertical">
 										<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -348,7 +349,7 @@
 										</Button>
 									</StackPanel>
 								</StackPanel>
-							</controls:GroupBox>
+							</groupBox:GroupBoxControl>
 						</StackPanel>
 					</TabItem>
 				</TabControl>
@@ -357,7 +358,7 @@
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Visibility'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -377,7 +378,7 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="ICAO Formatting" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
 						<StackPanel Orientation="Vertical">
@@ -402,7 +403,7 @@
 									<TextBox Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
 								</StackPanel>
 							</StackPanel>
-							<controls:GroupBox Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
+							<groupBox:GroupBoxControl Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
 								<Grid ColumnDefinitions="80,*,15,80,*" RowDefinitions="*,5,*,5,*,5,*">
 									<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">North:</TextBlock>
 									<TextBox Text="{Binding VisibilityNorth, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
@@ -421,7 +422,7 @@
 									<TextBlock Grid.Column="3" Grid.Row="6" VerticalAlignment="Center">North West:</TextBlock>
 									<TextBox Text="{Binding VisibilityNorthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
 								</Grid>
-							</controls:GroupBox>
+							</groupBox:GroupBoxControl>
 						</StackPanel>
 					</TabItem>
 				</TabControl>
@@ -430,7 +431,7 @@
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -450,10 +451,10 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Recent Weather">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -473,7 +474,7 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Intensity/Proximity Descriptors">
 						<Grid ColumnDefinitions="125,10,*" RowDefinitions="*,5,*,5,*,5,*">
@@ -524,7 +525,7 @@
 								<TextBlock Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the cloud layer height is ///">Undetermined (Text):</TextBlock>
 								<TextBox Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Grid.Column="6" Theme="{StaticResource DarkTextBox}"></TextBox>
 							</Grid>
-							<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,5,0,0">
+							<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,5,0,0">
 								<StackPanel Orientation="Vertical" Spacing="10">
 									<StackPanel Orientation="Vertical">
 										<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -544,7 +545,7 @@
 										</Button>
 									</StackPanel>
 								</StackPanel>
-							</controls:GroupBox>
+							</groupBox:GroupBoxControl>
 						</StackPanel>
 					</TabItem>
 					<TabItem Header="Cloud Types">
@@ -589,7 +590,7 @@
 						<CheckBox IsChecked="{Binding TemperatureUsePlusPrefix, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, positive temperature values will be prefixed with the world &quot;plus&quot; in the voice ATIS (e.g. temperature PLUS two five)">Prefix positive temperature with &quot;plus&quot; in voice ATIS.</CheckBox>
 						<CheckBox IsChecked="{Binding TemperatureSpeakLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the leading zero will be spoken (e.g. temperature zero six).">Speak leading zero in voice ATIS</CheckBox>
 					</StackPanel>
-					<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+					<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
 						<StackPanel Orientation="Vertical" Spacing="10">
 							<StackPanel Orientation="Vertical">
 								<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -616,7 +617,7 @@
 								</Button>
 							</StackPanel>
 						</StackPanel>
-					</controls:GroupBox>
+					</groupBox:GroupBoxControl>
 				</StackPanel>
 			</StackPanel>
 			<!--Dewpoint-->
@@ -626,7 +627,7 @@
 						<CheckBox IsChecked="{Binding DewpointUsePlusPrefix, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, positive dewpoint will be prefixed with the world &quot;plus&quot; in the voice ATIS (e.g. temperature PLUS two five)">Prefix positive dewpoint with &quot;plus&quot; in voice ATIS.</CheckBox>
 						<CheckBox IsChecked="{Binding DewpointSpeakLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the leading zero will be spoken (e.g. dewpoint zero six).">Speak leading zero in voice ATIS</CheckBox>
 					</StackPanel>
-					<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+					<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
 						<StackPanel Orientation="Vertical" Spacing="10">
 							<StackPanel Orientation="Vertical">
 								<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -653,12 +654,12 @@
 								</Button>
 							</StackPanel>
 						</StackPanel>
-					</controls:GroupBox>
+					</groupBox:GroupBoxControl>
 				</StackPanel>
 			</StackPanel>
 			<!--Altimeter-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Altimeter'}">
-				<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
 					<StackPanel Orientation="Vertical" Spacing="10">
 						<StackPanel Orientation="Vertical">
 							<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -707,13 +708,13 @@
 							</Button>
 						</StackPanel>
 					</StackPanel>
-				</controls:GroupBox>
+				</groupBox:GroupBoxControl>
 			</StackPanel>
 			<!--Transition Level-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Transition Level'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
-						<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -740,7 +741,7 @@
 									</Button>
 								</StackPanel>
 							</StackPanel>
-						</controls:GroupBox>
+						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Transition Levels">
 						<StackPanel Orientation="Vertical" Spacing="10">
@@ -770,7 +771,7 @@
 			<!--Closing Statement-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Closing Statement'}">
 				<CheckBox IsChecked="{Binding ClosingStatementAutoIncludeClosingStatement, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the closing statement will be automatically appended to the end of the ATIS without requiring the [CLOSING] variable in the ATIS preset template. This is useful if you want to customize the position of the closing statement in the ATIS.">Automatically include closing statement at the end of the ATIS</CheckBox>
-				<controls:GroupBox Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
 					<StackPanel Orientation="Vertical" Spacing="10">
 						<StackPanel Orientation="Vertical">
 							<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -797,7 +798,7 @@
 							</Button>
 						</StackPanel>
 					</StackPanel>
-				</controls:GroupBox>
+				</groupBox:GroupBoxControl>
 			</StackPanel>
 		</StackPanel>
 	</Border>

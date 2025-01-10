@@ -10,8 +10,8 @@ namespace Vatsim.Vatis.Updates;
 
 public class ClientUpdater : IClientUpdater
 {
-    private readonly UpdateManager mUpdateManager;
-    private UpdateInfo? mUpdateInfo;
+    private readonly UpdateManager _updateManager;
+    private UpdateInfo? _updateInfo;
 
     public ClientUpdater(IAppConfigurationProvider appConfigurationProvider)
     {
@@ -32,8 +32,8 @@ public class ClientUpdater : IClientUpdater
         {
             throw new PlatformNotSupportedException();
         }
-        
-        mUpdateManager = new UpdateManager(versionUrl, new UpdateOptions
+
+        _updateManager = new UpdateManager(versionUrl, new UpdateOptions
         {
             AllowVersionDowngrade = true
         });
@@ -46,12 +46,12 @@ public class ClientUpdater : IClientUpdater
         if (Debugger.IsAttached)
             return false;
 
-        if (!mUpdateManager.IsInstalled) return false;
-        mUpdateInfo = await mUpdateManager.CheckForUpdatesAsync();
+        if (!_updateManager.IsInstalled) return false;
+        _updateInfo = await _updateManager.CheckForUpdatesAsync();
 
-        if (mUpdateInfo == null) return false;
-        await mUpdateManager.DownloadUpdatesAsync(mUpdateInfo, ReportProgress);
-        await mUpdateManager.WaitExitThenApplyUpdatesAsync(mUpdateInfo, silent: true);
+        if (_updateInfo == null) return false;
+        await _updateManager.DownloadUpdatesAsync(_updateInfo, ReportProgress);
+        await _updateManager.WaitExitThenApplyUpdatesAsync(_updateInfo, silent: true);
 
         return true;
     }
