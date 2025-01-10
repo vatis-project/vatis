@@ -106,7 +106,7 @@ internal sealed partial class ServiceProvider
     {
         if(IsDevelopmentEnvironment())
         {
-            return new MockAtisHubConnection(GetService<IDownloader>());
+            return new MockAtisHubConnection(GetService<IDownloader>(), GetService<IAppConfigurationProvider>());
         }
 
         return new AtisHubConnection(GetService<IAppConfigurationProvider>());

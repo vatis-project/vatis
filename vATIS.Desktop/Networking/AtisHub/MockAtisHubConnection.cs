@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Serilog;
+using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
@@ -18,12 +19,14 @@ namespace Vatsim.Vatis.Networking.AtisHub;
 public class MockAtisHubConnection : IAtisHubConnection
 {
     private readonly IDownloader _downloader;
+    private readonly IAppConfigurationProvider _appConfigurationProvider;
     private HubConnection? _hubConnection;
     private ConnectionState _hubConnectionState;
 
-    public MockAtisHubConnection(IDownloader downloader)
+    public MockAtisHubConnection(IDownloader downloader, IAppConfigurationProvider appConfigurationProvider)
     {
         _downloader = downloader;
+        _appConfigurationProvider = appConfigurationProvider;
     }
 
     public async Task Connect()
@@ -132,7 +135,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         if (string.IsNullOrEmpty(dto.Id))
             return null;
 
-        var response = await _downloader.GetAsync("https://datis.clowd.io/api/" + dto.Id);
+        var response = await _downloader.GetAsync(_appConfigurationProvider.DigitalAtisApiUrl + "/" + dto.Id);
         if (response.IsSuccessStatusCode)
         {
             var json = JsonSerializer.Deserialize(await response.Content.ReadAsStringAsync(),
