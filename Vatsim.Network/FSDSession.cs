@@ -85,26 +85,27 @@ public class FsdSession
     public bool IgnoreUnknownPackets { get; init; }
     public ClientProperties ClientProperties { get; set; }
 
-    private FsdSession(ClientProperties properties, object? userData, SynchronizationContext? syncContext)
+    private FsdSession(IClientAuth clientAuth, ClientProperties properties, object? userData,
+        SynchronizationContext? syncContext)
     {
         ClientProperties = properties;
         _userData = userData;
         _syncContext = syncContext;
-        _clientAuth = new ClientAuth();
+        _clientAuth = clientAuth;
     }
 
-    public FsdSession(ClientProperties properties, object userData)
-        : this(properties, userData, null)
+    public FsdSession(IClientAuth clientAuth, ClientProperties properties, object userData)
+        : this(clientAuth, properties, userData, null)
     {
     }
 
-    public FsdSession(ClientProperties properties, SynchronizationContext syncContext)
-        : this(properties, null, syncContext)
+    public FsdSession(IClientAuth clientAuth, ClientProperties properties, SynchronizationContext syncContext)
+        : this(clientAuth, properties, null, syncContext)
     {
     }
 
-    public FsdSession(ClientProperties properties)
-        : this(properties, null, null)
+    public FsdSession(IClientAuth clientAuth, ClientProperties properties)
+        : this(clientAuth, properties, null, null)
     {
     }
 
