@@ -13,7 +13,7 @@ public class ContractionMeta
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? String
     {
-        get => default;
+        get => null;
         set => Text = value ?? string.Empty;
     }
 
@@ -21,7 +21,7 @@ public class ContractionMeta
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Spoken
     {
-        get => default;
+        get => null;
         set => Voice = value ?? string.Empty;
     }
 

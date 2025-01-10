@@ -7,12 +7,12 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 public sealed class PresentWeatherChunkDecoder : MetarChunkDecoder
 {
     private const string PresentWeatherParameterName = "PresentWeather";
-    public const string CARAC_REGEX_PATTERN = "TS|FZ|SH|BL|DR|MI|BC|PR";
-    public const string TYPE_REGEX_PATTERN = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|//";
+    public const string CaracRegexPattern = "TS|FZ|SH|BL|DR|MI|BC|PR";
+    public const string TypeRegexPattern = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|//";
 
     public override string GetRegex()
     {
-        const string presentWeatherRegexPattern = $"([-+]|VC)?({CARAC_REGEX_PATTERN})?({TYPE_REGEX_PATTERN})?({TYPE_REGEX_PATTERN})?({TYPE_REGEX_PATTERN})?";
+        const string presentWeatherRegexPattern = $"([-+]|VC)?({CaracRegexPattern})?({TypeRegexPattern})?({TypeRegexPattern})?({TypeRegexPattern})?";
         return $"^({presentWeatherRegexPattern} )?({presentWeatherRegexPattern} )?({presentWeatherRegexPattern} )?()?";
     }
 

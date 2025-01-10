@@ -28,28 +28,28 @@ public class DecodedMetar
         Nil,
     }
 
-    private readonly string? mRawMetar;
+    private readonly string? _rawMetar;
 
     /// <summary>
     /// Raw METAR
     /// </summary>
     public string? RawMetar
     {
-        get => mRawMetar?.Trim();
-        private init => mRawMetar = value;
+        get => _rawMetar?.Trim();
+        private init => _rawMetar = value;
     }
 
     /// <summary>
     /// Decoding exceptions, if any
     /// </summary>
-    private List<MetarChunkDecoderException> mDecodingExceptions = [];
+    private List<MetarChunkDecoderException> _decodingExceptions = [];
 
     /// <summary>
     /// If the decoded metar is invalid, get all the exceptions that occurred during decoding
     /// Note that in strict mode, only the first encountered exception will be reported as parsing stops on error
     /// Else return null;.
     /// </summary>
-    public ReadOnlyCollection<MetarChunkDecoderException> DecodingExceptions => new(mDecodingExceptions);
+    public ReadOnlyCollection<MetarChunkDecoderException> DecodingExceptions => new(_decodingExceptions);
 
     /// <summary>
     /// Report type (METAR, METAR COR or SPECI)
@@ -137,7 +137,7 @@ public class DecodedMetar
     /// Windshear runway information (which runways, or "all")
     /// </summary>
     public List<string>? WindshearRunways { get; set; }
-    
+
     /// <summary>
     /// TREND forecast
     /// </summary>
@@ -153,7 +153,7 @@ public class DecodedMetar
     /// </summary>
     public void ResetDecodingExceptions()
     {
-        mDecodingExceptions = new List<MetarChunkDecoderException>();
+        _decodingExceptions = new List<MetarChunkDecoderException>();
     }
 
     /// <summary>
@@ -167,6 +167,6 @@ public class DecodedMetar
     /// <param name="ex"></param>
     public void AddDecodingException(MetarChunkDecoderException ex)
     {
-        mDecodingExceptions.Add(ex);
+        _decodingExceptions.Add(ex);
     }
 }

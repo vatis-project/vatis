@@ -8,37 +8,37 @@ namespace Vatsim.Vatis.Voice.Utils;
 
 public static class AtisBotUtils
 {
-	private const int FRAME_SIZE = 960;
-	private const int SAMPLE_RATE = 48000;
-	private const double BYTES_PER_SECOND = 96000.0;
-	private const int BIT_RATE = 8192;
-	private const int MAX_OPUS_PACKET_LENGTH = 1275;
-	private static readonly byte[] EncodedBuffer = new byte[MAX_OPUS_PACKET_LENGTH];
+	private const int FrameSize = 960;
+	private const int SampleRate = 48000;
+	private const double BytesPerSecond = 96000.0;
+	private const int BitRate = 8192;
+	private const int MaxOpusPacketLength = 1275;
+	private static readonly byte[] s_encodedBuffer = new byte[MaxOpusPacketLength];
 	public static PutBotRequestDto AddBotRequest(byte[] audioData, uint frequency, double latDeg, double lonDeg,
 		double altM)
 	{
 		var audioBuffer = ConvertBytesTo16BitPcm(audioData);
-		
-		var encoder = OpusCodecFactory.CreateEncoder(SAMPLE_RATE, 1, OpusApplication.OPUS_APPLICATION_VOIP);
-		encoder.Bitrate = BIT_RATE;
-		
-		Array.Clear(EncodedBuffer, 0, EncodedBuffer.Length);
 
-		var segmentCount = (int)Math.Floor((double)audioBuffer.Length / FRAME_SIZE);
+		var encoder = OpusCodecFactory.CreateEncoder(SampleRate, 1, OpusApplication.OPUS_APPLICATION_VOIP);
+		encoder.Bitrate = BitRate;
+
+		Array.Clear(s_encodedBuffer, 0, s_encodedBuffer.Length);
+
+		var segmentCount = (int)Math.Floor((double)audioBuffer.Length / FrameSize);
 		var bufferOffset = 0;
 		List<byte[]> opusData = [];
 
 		for (var i = 0; i < segmentCount; i++)
 		{
-			var pcmSegment = new ReadOnlySpan<short>(audioBuffer, bufferOffset, FRAME_SIZE);
-			Span<byte> outputBuffer = EncodedBuffer;
+			var pcmSegment = new ReadOnlySpan<short>(audioBuffer, bufferOffset, FrameSize);
+			Span<byte> outputBuffer = s_encodedBuffer;
 
-			var len = encoder.Encode(pcmSegment, FRAME_SIZE, outputBuffer, EncodedBuffer.Length);
+			var len = encoder.Encode(pcmSegment, FrameSize, outputBuffer, s_encodedBuffer.Length);
 			var trimmedBuffer = new byte[len];
-			Buffer.BlockCopy(EncodedBuffer, 0, trimmedBuffer, 0, len);
+			Buffer.BlockCopy(s_encodedBuffer, 0, trimmedBuffer, 0, len);
 			opusData.Add(trimmedBuffer);
 
-			bufferOffset += FRAME_SIZE;
+			bufferOffset += FrameSize;
 		}
 
 		return new PutBotRequestDto
@@ -47,7 +47,7 @@ public static class AtisBotUtils
 			[
 				new TransceiverDto
 				{
-					ID = 0,
+					Id = 0,
 					Frequency = frequency,
 					LatDeg = latDeg,
 					LonDeg = lonDeg,
@@ -55,11 +55,11 @@ public static class AtisBotUtils
 					HeightMslM = altM
 				}
 			],
-			Interval = TimeSpan.FromSeconds(audioData.Length / BYTES_PER_SECOND + 3.0),
+			Interval = TimeSpan.FromSeconds(audioData.Length / BytesPerSecond + 3.0),
 			OpusData = opusData
 		};
 	}
-	
+
 	private static short[] ConvertBytesTo16BitPcm(byte[] input)
 	{
 		var inputSamples = input.Length / 2;

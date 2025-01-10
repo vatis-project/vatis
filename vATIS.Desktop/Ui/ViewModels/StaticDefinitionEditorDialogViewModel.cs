@@ -14,47 +14,46 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
     public ReactiveCommand<ICloseable, Unit> SaveButtonCommand { get; }
 
-    private DialogResult mDialogResult;
+    private DialogResult _dialogResult;
 
     public DialogResult DialogResult
     {
-        get => mDialogResult;
-        set => this.RaiseAndSetIfChanged(ref mDialogResult, value);
+        get => _dialogResult;
+        set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
     }
 
-    private string? mTitle = "Definition Editor";
-
+    private string? _title = "Definition Editor";
     public string? Title
     {
-        get => mTitle;
-        set => this.RaiseAndSetIfChanged(ref mTitle, value);
+        get => _title;
+        set => this.RaiseAndSetIfChanged(ref _title, value);
     }
-    
+
     public string? DefinitionText
     {
-        get => mTextDocument?.Text;
+        get => _textDocument?.Text;
         set => TextDocument = new TextDocument(value);
     }
-    
-    private TextDocument? mTextDocument = new();
+
+    private TextDocument? _textDocument = new();
     public TextDocument? TextDocument
     {
-        get => mTextDocument;
-        set => this.RaiseAndSetIfChanged(ref mTextDocument, value);
+        get => _textDocument;
+        set => this.RaiseAndSetIfChanged(ref _textDocument, value);
     }
-    
-    private List<ICompletionData> mContractionCompletionData = [];
+
+    private List<ICompletionData> _contractionCompletionData = [];
     public List<ICompletionData> ContractionCompletionData
     {
-        get => mContractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref mContractionCompletionData, value);
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
     }
-    
-    private string? mDataValidation;
+
+    private string? _dataValidation;
     public string? DataValidation
     {
-        get => mDataValidation;
-        set => this.RaiseAndSetIfChanged(ref mDataValidation, value);
+        get => _dataValidation;
+        set => this.RaiseAndSetIfChanged(ref _dataValidation, value);
     }
 
     public StaticDefinitionEditorDialogViewModel()

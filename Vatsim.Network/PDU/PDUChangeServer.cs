@@ -1,47 +1,46 @@
 ﻿using System.Text;
 
-namespace Vatsim.Network.PDU
+namespace Vatsim.Network.PDU;
+
+public class PDUChangeServer : PDUBase
 {
-    public class PDUChangeServer : PDUBase
+    public string NewServer { get; set; }
+
+    public PDUChangeServer(string from, string to, string newServer)
+        : base(from, to)
     {
-        public string NewServer { get; set; }
+        NewServer = newServer;
+    }
 
-        public PDUChangeServer(string from, string to, string newServer)
-            : base(from, to)
+    public override string Serialize()
+    {
+        StringBuilder msg = new StringBuilder("$XX");
+        msg.Append(From);
+        msg.Append(DELIMITER);
+        msg.Append(To);
+        msg.Append(DELIMITER);
+        msg.Append(NewServer);
+        return msg.ToString();
+    }
+
+    public static PDUChangeServer Parse(string[] fields)
+    {
+        if (fields.Length < 3)
         {
-            NewServer = newServer;
+            throw new PDUFormatException("Invalid field count.", Reassemble(fields));
         }
 
-        public override string Serialize()
+        try
         {
-            StringBuilder msg = new StringBuilder("$XX");
-            msg.Append(From);
-            msg.Append(DELIMITER);
-            msg.Append(To);
-            msg.Append(DELIMITER);
-            msg.Append(NewServer);
-            return msg.ToString();
+            return new PDUChangeServer(
+                fields[0],
+                fields[1],
+                fields[2]
+            );
         }
-
-        public static PDUChangeServer Parse(string[] fields)
+        catch (Exception ex)
         {
-            if (fields.Length < 3)
-            {
-                throw new PDUFormatException("Invalid field count.", Reassemble(fields));
-            }
-
-            try
-            {
-                return new PDUChangeServer(
-                    fields[0],
-                    fields[1],
-                    fields[2]
-                );
-            }
-            catch (Exception ex)
-            {
-                throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
-            }
+            throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
         }
     }
 }

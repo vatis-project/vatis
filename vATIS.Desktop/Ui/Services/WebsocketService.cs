@@ -17,10 +17,10 @@ namespace Vatsim.Vatis.Ui.Services;
 public class WebsocketService : IWebsocketService
 {
     // The websocket server.
-    private readonly WatsonWsServer mServer;
+    private readonly WatsonWsServer _server;
 
     // A list of connected clients so messages can be broadcast to all connected clients when requested.
-    private readonly ConcurrentDictionary<Guid, ClientMetadata> mSessions = new();
+    private readonly ConcurrentDictionary<Guid, ClientMetadata> _sessions = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WebsocketService"/> class.
@@ -29,11 +29,11 @@ public class WebsocketService : IWebsocketService
     {
         // The loopback address is used to avoid Windows prompting for firewall permissions
         // when vATIS runs.
-        mServer = new WatsonWsServer(hostname: IPAddress.Loopback.ToString(), port: 49082);
-        mServer.Logger = Log.Information;
-        mServer.ClientConnected += OnClientConnected;
-        mServer.ClientDisconnected += OnClientDisconnected;
-        mServer.MessageReceived += OnMessageReceived;
+        _server = new WatsonWsServer(hostname: IPAddress.Loopback.ToString(), port: 49082);
+        _server.Logger = Log.Information;
+        _server.ClientConnected += OnClientConnected;
+        _server.ClientDisconnected += OnClientDisconnected;
+        _server.MessageReceived += OnMessageReceived;
     }
 
     /// <summary>
@@ -56,28 +56,28 @@ public class WebsocketService : IWebsocketService
                     Message = ex.Message,
                 },
             };
-            await mServer.SendAsync(e.Client.Guid, JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
+            await _server.SendAsync(e.Client.Guid, JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
         }
     }
 
     /// <summary>
-    /// Handles clients disconnecting from the service.  
+    /// Handles clients disconnecting from the service.
     /// </summary>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The data about the client that disconnected.</param>
     private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
     {
-        mSessions.TryRemove(e.Client.Guid, out _);
+        _sessions.TryRemove(e.Client.Guid, out _);
     }
 
     /// <summary>
-    /// Handles clients connecting to the service.  
+    /// Handles clients connecting to the service.
     /// </summary>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The data about the client that connected.</param>
     private void OnClientConnected(object? sender, ConnectionEventArgs e)
     {
-        mSessions.TryAdd(e.Client.Guid, e.Client);
+        _sessions.TryAdd(e.Client.Guid, e.Client);
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class WebsocketService : IWebsocketService
     {
         try
         {
-            await mServer.StartAsync();
+            await _server.StartAsync();
         }
         catch (Exception e)
         {
@@ -116,7 +116,7 @@ public class WebsocketService : IWebsocketService
         try
         {
             await CloseAllClientsAsync();
-            mServer.Stop();
+            _server.Stop();
         }
         catch (Exception e)
         {
@@ -139,7 +139,7 @@ public class WebsocketService : IWebsocketService
 
         if (session is not null)
         {
-            await mServer.SendAsync(session.Guid, JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
+            await _server.SendAsync(session.Guid, JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
         else
         {
@@ -184,13 +184,13 @@ public class WebsocketService : IWebsocketService
     {
         var tasks = new List<Task>();
 
-        foreach (var session in mSessions.Values)
+        foreach (var session in _sessions.Values)
         {
             tasks.Add(Task.Run(() =>
             {
                 try
                 {
-                    mServer.DisconnectClient(session.Guid);
+                    _server.DisconnectClient(session.Guid);
                 }
                 catch (Exception ex)
                 {
@@ -213,13 +213,13 @@ public class WebsocketService : IWebsocketService
     {
         var tasks = new List<Task>();
 
-        foreach (var session in mSessions.Values)
+        foreach (var session in _sessions.Values)
         {
             tasks.Add(Task.Run(async () =>
             {
                 try
                 {
-                    await mServer.SendAsync(session.Guid, message);
+                    await _server.SendAsync(session.Guid, message);
                 }
                 catch (Exception ex)
                 {

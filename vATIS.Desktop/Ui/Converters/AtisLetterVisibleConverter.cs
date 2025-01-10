@@ -7,7 +7,7 @@ namespace Vatsim.Vatis.Ui.Converters;
 
 public class AtisLetterVisibleConverter : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is NetworkConnectionStatus status)
         {
@@ -17,7 +17,7 @@ public class AtisLetterVisibleConverter : IValueConverter
         return false;
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

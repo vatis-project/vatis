@@ -13,8 +13,8 @@ namespace Vatsim.Vatis.Weather.Decoder;
 /// </summary>
 public class MetarDecoder
 {
-    public const string RESULT_KEY = "Result";
-    public const string REMAINING_METAR_KEY = "RemainingMetar";
+    public const string ResultKey = "Result";
+    public const string RemainingMetarKey = "RemainingMetar";
     private const string ExceptionKey = "Exception";
 
     /// <summary>
@@ -22,10 +22,10 @@ public class MetarDecoder
     /// </summary>
     public MetarDecoder()
     {
-        
+
     }
 
-    private static readonly ReadOnlyCollection<MetarChunkDecoder> DecoderChain = new((List<MetarChunkDecoder>)
+    private static readonly ReadOnlyCollection<MetarChunkDecoder> s_decoderChain = new((List<MetarChunkDecoder>)
     [
         new ReportTypeChunkDecoder(),
         new IcaoChunkDecoder(),
@@ -43,7 +43,7 @@ public class MetarDecoder
         new TrendChunkDecoder()
     ]);
 
-    private bool mGlobalStrictParsing = false;
+    private bool _globalStrictParsing;
 
     /// <summary>
     /// Set global parsing mode (strict/not strict) for the whole object.
@@ -51,7 +51,7 @@ public class MetarDecoder
     /// <param name="isStrict"></param>
     public void SetStrictParsing(bool isStrict)
     {
-        mGlobalStrictParsing = isStrict;
+        _globalStrictParsing = isStrict;
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class MetarDecoder
     /// <param name="rawMetar">Metar String</param>
     public DecodedMetar Parse(string rawMetar)
     {
-        return ParseWithMode(rawMetar, mGlobalStrictParsing);
+        return ParseWithMode(rawMetar, _globalStrictParsing);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class MetarDecoder
     /// <returns></returns>
     public DecodedMetar ParseNotStrict(string rawMetar)
     {
-        return ParseWithMode(rawMetar, false);
+        return ParseWithMode(rawMetar);
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ public class MetarDecoder
         var withCavok = false;
 
         // call each decoder in the chain and use results to populate decoded metar
-        foreach (var chunkDecoder in DecoderChain)
+        foreach (var chunkDecoder in s_decoderChain)
         {
             try
             {
@@ -120,7 +120,7 @@ public class MetarDecoder
                 }
 
                 // map obtained fields (if any) to the final decoded object
-                if (decodedData.TryGetValue(RESULT_KEY, out var value) && value is Dictionary<string, object>)
+                if (decodedData.TryGetValue(ResultKey, out var value) && value is Dictionary<string, object>)
                 {
                     if (value is Dictionary<string, object> result)
                     {
@@ -132,7 +132,7 @@ public class MetarDecoder
                 }
 
                 // update remaining metar for next round
-                remainingMetar = decodedData[REMAINING_METAR_KEY] as string;
+                remainingMetar = decodedData[RemainingMetarKey] as string;
             }
             catch (MetarChunkDecoderException metarChunkDecoderException)
             {
