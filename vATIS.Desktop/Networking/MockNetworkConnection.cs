@@ -9,9 +9,9 @@ namespace Vatsim.Vatis.Networking;
 
 public class MockNetworkConnection : INetworkConnection
 {
-    private readonly IMetarRepository mMetarRepository;
-    private string? mPreviousMetar;
-    
+    private readonly IMetarRepository _metarRepository;
+    private string? _previousMetar;
+
     public event EventHandler? NetworkConnected = delegate { };
     public event EventHandler? NetworkDisconnected = delegate { };
     public event EventHandler? NetworkConnectionFailed = delegate { };
@@ -22,8 +22,8 @@ public class MockNetworkConnection : INetworkConnection
 
     public MockNetworkConnection(AtisStation station, IMetarRepository metarRepository)
     {
-        mMetarRepository = metarRepository;
-        
+        _metarRepository = metarRepository;
+
         Station = station;
         Callsign = station.AtisType switch
         {
@@ -37,12 +37,12 @@ public class MockNetworkConnection : INetworkConnection
         {
             if (evt.Metar.Icao == station.Identifier)
             {
-                var isNewMetar = !string.IsNullOrEmpty(mPreviousMetar) &&
-                                 evt.Metar.RawMetar?.Trim() != mPreviousMetar?.Trim();
-                if (mPreviousMetar != evt.Metar.RawMetar)
+                var isNewMetar = !string.IsNullOrEmpty(_previousMetar) &&
+                                 evt.Metar.RawMetar?.Trim() != _previousMetar?.Trim();
+                if (_previousMetar != evt.Metar.RawMetar)
                 {
                     MetarResponseReceived?.Invoke(this, new MetarResponseReceived(evt.Metar, isNewMetar));
-                    mPreviousMetar = evt.Metar.RawMetar;
+                    _previousMetar = evt.Metar.RawMetar;
                 }
             }
         });
@@ -56,8 +56,8 @@ public class MockNetworkConnection : INetworkConnection
 
     public Task Connect(string? serverAddress)
     {
-        mMetarRepository.GetMetar(Station.Identifier, monitor: true);
-        
+        _metarRepository.GetMetar(Station.Identifier, monitor: true);
+
         NetworkConnected?.Invoke(this, EventArgs.Empty);
         IsConnected = true;
 
@@ -67,12 +67,12 @@ public class MockNetworkConnection : INetworkConnection
     public void Disconnect()
     {
         if (!string.IsNullOrEmpty(Station.Identifier))
-            mMetarRepository.RemoveMetar(Station.Identifier);
+            _metarRepository.RemoveMetar(Station.Identifier);
 
         NetworkDisconnected?.Invoke(this, EventArgs.Empty);
         IsConnected = false;
 
-        mPreviousMetar = null;
+        _previousMetar = null;
     }
 
     public void SendSubscriberNotification(char atisLetter)

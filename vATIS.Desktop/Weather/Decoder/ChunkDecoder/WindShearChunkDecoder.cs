@@ -50,7 +50,7 @@ public sealed class WindShearChunkDecoder : MetarChunkDecoder
                         if (qfuAsInt > 36 || qfuAsInt < 1)
                         {
                             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                                MetarChunkDecoderException.Messages.INVALID_RUNWAY_QFU_RUNWA_VISUAL_RANGE_INFORMATION);
+                                MetarChunkDecoderException.Messages.InvalidRunwayQfuRunwaVisualRangeInformation);
                         }
                         runways.Add(runway);
                     }

@@ -1,11 +1,17 @@
-﻿using ReactiveUI;
+using System;
 using System.Reactive;
+using ReactiveUI;
 using Vatsim.Vatis.Config;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
-public class TopMostViewModel : ReactiveViewModelBase
+
+public class CompactWindowTopMostViewModel : ReactiveViewModelBase
 {
     private IAppConfig? _appConfig;
+
+    private static readonly Lazy<CompactWindowTopMostViewModel> s_instance = new(() =>
+        new CompactWindowTopMostViewModel());
+    public static CompactWindowTopMostViewModel Instance => s_instance.Value;
 
     public ReactiveCommand<Unit, Unit> ToggleIsTopMost { get; private set; }
 
@@ -16,9 +22,7 @@ public class TopMostViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isTopMost, value);
     }
 
-    public static TopMostViewModel Instance { get; } = new();
-
-    private TopMostViewModel()
+    private CompactWindowTopMostViewModel()
     {
         ToggleIsTopMost = ReactiveCommand.Create(HandleToggleIsTopMost);
     }
@@ -26,7 +30,7 @@ public class TopMostViewModel : ReactiveViewModelBase
     public void Initialize(IAppConfig appConfig)
     {
         _appConfig = appConfig;
-        IsTopMost = _appConfig.AlwaysOnTop;
+        IsTopMost = _appConfig.CompactWindowAlwaysOnTop;
     }
 
     private void HandleToggleIsTopMost()
@@ -35,7 +39,7 @@ public class TopMostViewModel : ReactiveViewModelBase
 
         if (_appConfig != null)
         {
-            _appConfig.AlwaysOnTop = IsTopMost;
+            _appConfig.CompactWindowAlwaysOnTop = IsTopMost;
             _appConfig.SaveConfig();
         }
     }

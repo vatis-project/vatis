@@ -23,18 +23,18 @@ namespace Vatsim.Vatis.Atis;
 
 public class AtisBuilder : IAtisBuilder
 {
-    private readonly IDownloader? mDownloader;
-    private readonly IMetarRepository? mMetarRepository;
-    private readonly INavDataRepository? mNavDataRepository;
-    private readonly ITextToSpeechService? mTextToSpeechService;
+    private readonly IDownloader? _downloader;
+    private readonly IMetarRepository? _metarRepository;
+    private readonly INavDataRepository? _navDataRepository;
+    private readonly ITextToSpeechService? _textToSpeechService;
 
     public AtisBuilder(IDownloader downloader, INavDataRepository navDataRepository,
         ITextToSpeechService textToSpeechService, IMetarRepository metarRepository)
     {
-        mDownloader = downloader;
-        mMetarRepository = metarRepository;
-        mNavDataRepository = navDataRepository;
-        mTextToSpeechService = textToSpeechService;
+        _downloader = downloader;
+        _metarRepository = metarRepository;
+        _navDataRepository = navDataRepository;
+        _textToSpeechService = textToSpeechService;
     }
 
     public async Task<AtisBuilderResponse> BuildAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
@@ -46,7 +46,7 @@ public class AtisBuilder : IAtisBuilder
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentNullException.ThrowIfNull(decodedMetar);
 
-        var airportData = mNavDataRepository?.GetAirport(station.Identifier) ??
+        var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
                           throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
 
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
@@ -64,7 +64,7 @@ public class AtisBuilder : IAtisBuilder
         bool sandboxRequest = false)
     {
         var template = preset.Template ?? "";
-        
+
         template = ReplaceContractionVariable(template, station, voiceVariable: true);
 
         // Custom station altimeter
@@ -78,8 +78,8 @@ public class AtisBuilder : IAtisBuilder
                 tasks.Add(Task.Run(async () =>
                 {
                     var icao = match.Groups[1].Value;
-                    var icaoMetar = await mMetarRepository!.GetMetar(icao, triggerMessageBus: false);
-                    
+                    var icaoMetar = await _metarRepository!.GetMetar(icao, triggerMessageBus: false);
+
                     if (icaoMetar?.Pressure != null)
                     {
                         return icaoMetar.Pressure.Value?.ActualValue.ToSerialFormat() ?? "";
@@ -90,7 +90,7 @@ public class AtisBuilder : IAtisBuilder
             }
 
             var results = await Task.WhenAll(tasks);
-        
+
             // Replace matches with results
             for (var i = 0; i < matches.Count; i++)
             {
@@ -140,10 +140,10 @@ public class AtisBuilder : IAtisBuilder
             // catches multiple ATIS letter button presses in quick succession
             await Task.Delay(sandboxRequest ? 0 : 5000, cancellationToken);
 
-            if (mTextToSpeechService == null)
+            if (_textToSpeechService == null)
                 throw new AtisBuilderException("TextToSpeech service not initialized");
 
-            var synthesizedAudio = await mTextToSpeechService.RequestAudio(text, station, cancellationToken);
+            var synthesizedAudio = await _textToSpeechService.RequestAudio(text, station, cancellationToken);
             return (text, synthesizedAudio);
         }
 
@@ -154,7 +154,7 @@ public class AtisBuilder : IAtisBuilder
         List<AtisVariable> variables)
     {
         var template = preset.Template ?? "";
-        
+
         template = ReplaceContractionVariable(template, station, voiceVariable: false);
 
         foreach (var variable in variables)
@@ -188,7 +188,7 @@ public class AtisBuilder : IAtisBuilder
                 tasks.Add(Task.Run(async () =>
                 {
                     var icao = match.Groups[1].Value;
-                    var icaoMetar = await mMetarRepository!.GetMetar(icao, triggerMessageBus: false);
+                    var icaoMetar = await _metarRepository!.GetMetar(icao, triggerMessageBus: false);
 
                     if (icaoMetar?.Pressure != null)
                     {
@@ -258,10 +258,10 @@ public class AtisBuilder : IAtisBuilder
 
         try
         {
-            ArgumentNullException.ThrowIfNull(mDownloader);
+            ArgumentNullException.ThrowIfNull(_downloader);
 
             var jsonSerialized = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.IdsUpdateRequest);
-            await mDownloader.PostJson(station.IdsEndpoint, jsonSerialized);
+            await _downloader.PostJson(station.IdsEndpoint, jsonSerialized);
         }
         catch (OperationCanceledException)
         {
@@ -289,7 +289,7 @@ public class AtisBuilder : IAtisBuilder
         var temp = NodeParser.Parse<TemperatureNode, Value>(metar, station);
         var dew = NodeParser.Parse<DewpointNode, Value>(metar, station);
         var pressure = await NodeParser.Parse<AltimeterSettingNode, Value>(metar, station,
-            mMetarRepository ?? throw new InvalidOperationException());
+            _metarRepository ?? throw new InvalidOperationException());
         var trends = NodeParser.Parse<TrendNode, TrendForecast>(metar, station);
         var recentWeather = NodeParser.Parse<RecentWeatherNode, WeatherPhenomenon>(metar, station);
 
@@ -303,14 +303,19 @@ public class AtisBuilder : IAtisBuilder
         {
             if (station.AirportConditionsBeforeFreeText)
             {
-                airportConditions = string.Join(" ",
+                airportConditions = string.Join(" ", new[]
+                {
                     string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text)),
-                    preset.AirportConditions);
+                    preset.AirportConditions
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
             else
             {
-                airportConditions = string.Join(" ", preset.AirportConditions,
-                    string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text)));
+                airportConditions = string.Join(" ", new[]
+                {
+                    preset.AirportConditions,
+                    string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text))
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
         }
 
@@ -329,35 +334,42 @@ public class AtisBuilder : IAtisBuilder
         {
             if (station.NotamsBeforeFreeText)
             {
-                notams += string.Join(". ",
+                notams += string.Join(". ", new[]
+                {
                     string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)),
-                    preset.Notams);
+                    preset.Notams
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
             else
             {
-                notams += string.Join(". ", preset.Notams,
-                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)));
+                notams += string.Join(". ", new[]
+                {
+                    preset.Notams,
+                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text))
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
-        
+
             // strip extraneous punctuation
             notams = Regex.Replace(notams, @"[!?.]*([!?.])", "$1");
             notams = Regex.Replace(notams, "\\s+([.,!\":])", "$1");
+        }
 
-            if (station.UseNotamPrefix)
+        if (!string.IsNullOrEmpty(notams))
+        {
+            var template = station.AtisFormat.Notams.Template;
+            if (template.Text != null)
             {
-                notamsText += "NOTAMS... ";
-                notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: ";
+                notamsText = Regex.Replace(template.Text, "{notams}", notams, RegexOptions.IgnoreCase);
+                // replace contraction variables
+                notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
             }
 
-            if (!string.IsNullOrEmpty(notams))
+            if (template.Voice != null)
             {
-                notamsText += $"{notams} ";
-                notamsVoice += $"{notams} ";
+                notamsVoice = Regex.Replace(template.Voice, "{notams}", notams, RegexOptions.IgnoreCase);
+                // replace contraction variables
+                notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
             }
-        
-            // translate contraction variables
-            notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
-            notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
         }
 
         var variables = new List<AtisVariable>
@@ -449,14 +461,14 @@ public class AtisBuilder : IAtisBuilder
                 if (match.Groups.Count == 0)
                     continue;
 
-                var navaid = mNavDataRepository?.GetNavaid(match.Groups[1].Value);
+                var navaid = _navDataRepository?.GetNavaid(match.Groups[1].Value);
                 if (navaid != null)
                 {
                     input = Regex.Replace(input, $@"(?<![\w\d]){Regex.Escape(match.Value)}(?![\w\d])", navaid.Name);
                 }
                 else
                 {
-                    var airport = mNavDataRepository?.GetAirport(match.Groups[1].Value);
+                    var airport = _navDataRepository?.GetAirport(match.Groups[1].Value);
                     if (airport != null)
                     {
                         input = Regex.Replace(input, $@"(?<![\w\d]){Regex.Escape(match.Value)}(?![\w\d])",
@@ -544,7 +556,7 @@ public class AtisBuilder : IAtisBuilder
 
         return input.ToUpper();
     }
-    
+
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
         return Regex.Replace(text, @"\@([\w]+(?:_[\w]+)*)", match =>

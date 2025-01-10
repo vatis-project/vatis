@@ -99,7 +99,7 @@
 							<Button Theme="{StaticResource Dark}" Width="70" Height="26" Command="{Binding EditDefinitionCommand, DataType=vm:StaticNotamsDialogViewModel}">Edit</Button>
 							<Button Theme="{StaticResource Dark}" Width="70" Height="26" Command="{Binding DeleteDefinitionCommand, DataType=vm:StaticNotamsDialogViewModel}">Delete</Button>
 						</StackPanel>
-						<CheckBox Grid.Column="1"  HorizontalAlignment="Right" Theme="{StaticResource CheckBox}" IsChecked="{Binding IncludeBeforeFreeText, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}">Include before free-form NOTAMs.</CheckBox>
+						<CheckBox Grid.Column="1"  HorizontalAlignment="Right" Theme="{StaticResource CheckBox}" IsChecked="{Binding IncludeBeforeFreeText, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}" ToolTip.Tip="When enabled, the selected definitions will be included before the free-form NOTAMs text in the generated ATIS.&#x0a;&#x0a;Note: the selected definitions will always appear first in the main UI, regardless of whether this setting is checked.">Include before free-form NOTAMs.</CheckBox>
 					</Grid>
 				</StackPanel>
 			</StackPanel>

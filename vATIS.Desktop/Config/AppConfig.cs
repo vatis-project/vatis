@@ -20,11 +20,13 @@ public class AppConfig : IAppConfig
 
     public string Password { get; set; } = "";
 
-    public NetworkRating NetworkRating { get; set; } = NetworkRating.OBS;
+    public NetworkRating NetworkRating { get; set; } = NetworkRating.Obs;
 
     public bool SuppressNotificationSound { get; set; }
 
     public bool AlwaysOnTop { get; set; }
+    
+    public bool CompactWindowAlwaysOnTop { get; set; }
 
     public WindowPosition? MainWindowPosition { get; set; }
 
@@ -64,6 +66,7 @@ public class AppConfig : IAppConfig
             NetworkRating = config.NetworkRating;
             SuppressNotificationSound = config.SuppressNotificationSound;
             AlwaysOnTop = config.AlwaysOnTop;
+            CompactWindowAlwaysOnTop = config.CompactWindowAlwaysOnTop;
             MainWindowPosition = config.MainWindowPosition;
             CompactWindowPosition = config.CompactWindowPosition;
             ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;
@@ -85,15 +88,15 @@ public class AppConfig : IAppConfig
     {
         if (string.IsNullOrEmpty(value)) return "";
 
-        var cyrptoProvider = TripleDES.Create();
+        var cryptoProvider = TripleDES.Create();
 
         var byteHash = MD5.HashData(Encoding.UTF8.GetBytes(EncryptionKey));
-        cyrptoProvider.Key = byteHash;
-        cyrptoProvider.Mode = CipherMode.ECB;
+        cryptoProvider.Key = byteHash;
+        cryptoProvider.Mode = CipherMode.ECB;
         var byteBuff = Encoding.UTF8.GetBytes(value);
 
         return Convert.ToBase64String(
-            cyrptoProvider.CreateEncryptor().TransformFinalBlock(byteBuff, 0, byteBuff.Length));
+            cryptoProvider.CreateEncryptor().TransformFinalBlock(byteBuff, 0, byteBuff.Length));
     }
 
     private static string Decrypt(string value)

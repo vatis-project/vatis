@@ -14,42 +14,42 @@ namespace Vatsim.Vatis.Weather;
 
 public sealed class MetarRepository : IMetarRepository, IDisposable
 {
-    private const int UPDATE_INTERVAL_SECONDS = 300;
-    private readonly IDownloader mDownloader;
-    private readonly Decoder.MetarDecoder mMetarDecoder;
-    private readonly DispatcherTimer mUpdateTimer = new() { Interval = TimeSpan.FromSeconds(UPDATE_INTERVAL_SECONDS) };
-    private readonly HashSet<string> mMonitoredStations = [];
-    private readonly Dictionary<string, DecodedMetar> mMetars = [];
-    private static readonly string[] Separators = ["\r\n", "\r", "\n"];
-    private readonly string? mMetarUrl;
-    private bool mIsDisposed;
+    private const int UpdateIntervalSeconds = 300;
+    private readonly IDownloader _downloader;
+    private readonly Decoder.MetarDecoder _metarDecoder;
+    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromSeconds(UpdateIntervalSeconds) };
+    private readonly HashSet<string> _monitoredStations = [];
+    private readonly Dictionary<string, DecodedMetar> _metars = [];
+    private static readonly string[] s_separators = ["\r\n", "\r", "\n"];
+    private readonly string? _metarUrl;
+    private bool _isDisposed;
 
     public MetarRepository(IDownloader downloader, IAppConfigurationProvider appConfigurationProvider)
     {
-        mDownloader = downloader;
-        mMetarDecoder = new Decoder.MetarDecoder();
+        _downloader = downloader;
+        _metarDecoder = new Decoder.MetarDecoder();
 
-        mUpdateTimer.Tick += async delegate { await Update(); };
-        mUpdateTimer.Start();
+        _updateTimer.Tick += async delegate { await UpdateAsync(); };
+        _updateTimer.Start();
 
-        mMetarUrl = appConfigurationProvider.MetarUrl;
+        _metarUrl = appConfigurationProvider.MetarUrl;
     }
 
-    private async Task Update()
+    private async Task UpdateAsync()
     {
-        if (mMonitoredStations.Count != 0)
+        if (_monitoredStations.Count != 0)
         {
-            await FetchMetars(mMonitoredStations.ToList());
+            await FetchMetarsAsync(_monitoredStations.ToList());
         }
     }
 
-    private async Task FetchMetars(List<string> stations)
+    private async Task FetchMetarsAsync(List<string> stations)
     {
         try
         {
-            var url = $"{mMetarUrl}?id={string.Join(',', stations)}&ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+            var url = $"{_metarUrl}?id={string.Join(',', stations)}&ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
             Log.Information($"Downloading METARs from {url}");
-            var array = (await mDownloader.DownloadStringAsync(url)).Split(Separators, StringSplitOptions.None);
+            var array = (await _downloader.DownloadStringAsync(url)).Split(s_separators, StringSplitOptions.None);
             foreach (var rawMetar in array)
             {
                 ProcessMetarResponse(rawMetar);
@@ -64,11 +64,11 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
     private void ProcessMetarResponse(string rawMetar)
     {
         Log.Information($"Processing METAR: {rawMetar}");
-        
+
         try
         {
-            var metar = mMetarDecoder.ParseNotStrict(rawMetar);
-            mMetars[metar.Icao] = metar;
+            var metar = _metarDecoder.ParseNotStrict(rawMetar);
+            _metars[metar.Icao] = metar;
             MessageBus.Current.SendMessage(new MetarReceived(metar));
         }
         catch (Exception exception)
@@ -76,14 +76,14 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
             Log.Warning(exception, $"ProcessMetarResponse Failed: {rawMetar}");
         }
     }
-    
-    private async Task<string> DownloadMetar(string station)
+
+    private async Task<string> DownloadMetarAsync(string station)
     {
         try
         {
-            var url = $"{mMetarUrl}?id={station}&ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+            var url = $"{_metarUrl}?id={station}&ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
             Log.Information($"Downloading METAR {station} from {url}");
-            return await mDownloader.DownloadStringAsync(url);
+            return await _downloader.DownloadStringAsync(url);
         }
         catch (Exception ex)
         {
@@ -95,23 +95,23 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
 
     public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
     {
-        if (mMetars.TryGetValue(station, out var metar))
+        if (_metars.TryGetValue(station, out var metar))
         {
             return metar;
         }
 
         if (monitor)
         {
-            mMonitoredStations.Add(station);
+            _monitoredStations.Add(station);
         }
 
-        var rawMetar = await DownloadMetar(station);
+        var rawMetar = await DownloadMetarAsync(station);
         if (string.IsNullOrWhiteSpace(rawMetar))
         {
             return null;
         }
 
-        var parsedMetar = mMetarDecoder.ParseNotStrict(rawMetar);
+        var parsedMetar = _metarDecoder.ParseNotStrict(rawMetar);
         if (triggerMessageBus)
         {
             MessageBus.Current.SendMessage(new MetarReceived(parsedMetar));
@@ -122,20 +122,20 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
 
     public void RemoveMetar(string station)
     {
-        mMetars.Remove(station);
-        mMonitoredStations.Remove(station);
+        _metars.Remove(station);
+        _monitoredStations.Remove(station);
     }
 
     private void Dispose(bool disposing)
     {
-        if (!mIsDisposed)
+        if (!_isDisposed)
         {
             if (disposing)
             {
-                mUpdateTimer.Stop();
+                _updateTimer.Stop();
             }
 
-            mIsDisposed = true;
+            _isDisposed = true;
         }
     }
 

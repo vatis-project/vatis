@@ -19,18 +19,17 @@ public class AtisStation : ReactiveObject
     public bool AirportConditionsBeforeFreeText { get; set; }
     public uint Frequency { get; set; }
     public string? IdsEndpoint { get; set; }
-    public bool UseNotamPrefix { get; set; }
     public bool UseDecimalTerminology { get; set; }
     public AtisVoiceMeta AtisVoice { get; set; } = new();
     public List<AtisPreset> Presets { get; set; } = [];
 
-    private List<ContractionMeta> mContractionMetas = [];
+    private List<ContractionMeta> _contractionMetas = [];
     public List<ContractionMeta> Contractions
     {
-        get => mContractionMetas;
+        get => _contractionMetas;
         set
         {
-            mContractionMetas = [];
+            _contractionMetas = [];
             foreach (var contractionMeta in value)
             {
                 if (string.IsNullOrEmpty(contractionMeta.VariableName) && !string.IsNullOrEmpty(contractionMeta.Text))
@@ -39,7 +38,7 @@ public class AtisStation : ReactiveObject
                     slug = slug.Replace("-", "_").ToUpperInvariant();
                     contractionMeta.VariableName = slug;
                 }
-                mContractionMetas.Add(contractionMeta);
+                _contractionMetas.Add(contractionMeta);
             }
         }
     }
@@ -51,14 +50,14 @@ public class AtisStation : ReactiveObject
 
     [JsonIgnore] public bool IsFaaAtis => (Identifier.StartsWith('K') || Identifier.StartsWith('P'));
     [JsonIgnore] public string? TextAtis { get; set; }
-    [JsonIgnore] public string? AtisLetter { get; set; }
+    [JsonIgnore] public char AtisLetter { get; set; }
 
     // Legacy
     [Obsolete("Use 'Frequency' instead")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public uint AtisFrequency
     {
-        get => default;
+        get => 0;
         set => Frequency = value < 100000000 ? (value + 100000) * 1000 : value;
     }
 
@@ -66,7 +65,7 @@ public class AtisStation : ReactiveObject
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public LegacyObservationTime? ObservationTime
     {
-        get => default;
+        get => null;
         set
         {
             if (value is not null)
@@ -80,7 +79,7 @@ public class AtisStation : ReactiveObject
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public LegacyMagneticVariation? MagneticVariation
     {
-        get => default;
+        get => null;
         set
         {
             if (value is not null)
@@ -131,7 +130,6 @@ public class AtisStation : ReactiveObject
             AirportConditionsBeforeFreeText = AirportConditionsBeforeFreeText,
             Frequency = Frequency,
             IdsEndpoint = IdsEndpoint,
-            UseNotamPrefix = UseNotamPrefix,
             UseDecimalTerminology = UseDecimalTerminology,
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),

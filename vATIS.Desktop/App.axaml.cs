@@ -33,12 +33,10 @@ namespace Vatsim.Vatis;
 
 public class App : Application
 {
-    private const string SINGLE_INSTANCE_ID = "{93C4C697-85B2-42B4-936F-E07AB2C53B82}";
-    private ServiceProvider? mServiceProvider;
-    private StartupWindow? mStartupWindow;
-    private static Mutex? _singleInstanceMutex;
-
-    private readonly string mAppDataPath =
+    private ServiceProvider? _serviceProvider;
+    private StartupWindow? _startupWindow;
+    private const string SingleInstanceId = "{93C4C697-85B2-42B4-936F-E07AB2C53B82}";
+    private readonly string _appDataPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "org.vatsim.vatis");
 
     public override void Initialize()
@@ -50,7 +48,7 @@ public class App : Application
                 options.Dsn = "https://0df6303309d591db70c9848473373990@o477107.ingest.us.sentry.io/4508223788548096";
                 options.AutoSessionTracking = true;
                 options.TracesSampleRate = 1.0;
-                options.CacheDirectoryPath = mAppDataPath;
+                options.CacheDirectoryPath = _appDataPath;
             });
         }
 
@@ -65,7 +63,7 @@ public class App : Application
                 SentrySdk.CaptureException(ex);
             }
 
-            ShowError(ex.Message);
+            ShowErrorAsync(ex.Message);
         });
         AvaloniaXamlLoader.Load(this);
     }
@@ -80,7 +78,7 @@ public class App : Application
                 SentrySdk.CaptureException(ex.Exception);
             }
 
-            ShowError(ex.Exception.Message);
+            ShowErrorAsync(ex.Exception.Message);
         }
         finally
         {
@@ -94,11 +92,11 @@ public class App : Application
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                if (!Directory.Exists(mAppDataPath))
+                if (!Directory.Exists(_appDataPath))
                 {
                     try
                     {
-                        Directory.CreateDirectory(mAppDataPath);
+                        Directory.CreateDirectory(_appDataPath);
                     }
                     catch (Exception ex)
                     {
@@ -107,16 +105,16 @@ public class App : Application
                     }
                 }
 
-                PathProvider.SetAppDataPath(mAppDataPath);
-                
+                PathProvider.SetAppDataPath(_appDataPath);
+
                 var arguments = ParseArguments(desktop.Args ?? []);
 
-                mServiceProvider = new ServiceProvider();
+                _serviceProvider = new ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
 
                 if (OperatingSystem.IsMacOS() && AppContext.BaseDirectory.StartsWith("/Volumes"))
                 {
-                    ShowError("vATIS cannot be launched from a DMG volume. " +
+                    ShowErrorAsync("vATIS cannot be launched from a DMG volume. " +
                               "Please move vATIS to the Applications folder.", fatal: true);
                     return;
                 }
@@ -125,7 +123,7 @@ public class App : Application
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                 Log.Information($"vATIS version {informationalVersion} starting up");
 
-                var appConfig = mServiceProvider.GetService<IAppConfig>();
+                var appConfig = _serviceProvider.GetService<IAppConfig>();
                 try
                 {
                     appConfig.LoadConfig();
@@ -136,22 +134,23 @@ public class App : Application
                 }
 
                 TopMostViewModel.Instance.Initialize(appConfig);
+                CompactWindowTopMostViewModel.Instance.Initialize(appConfig);
 
-                mStartupWindow = mServiceProvider.GetService<StartupWindow>();
-                desktop.MainWindow = mStartupWindow;
-                mStartupWindow.Show();
-                mStartupWindow.Activate();
+                _startupWindow = _serviceProvider.GetService<StartupWindow>();
+                desktop.MainWindow = _startupWindow;
+                _startupWindow.Show();
+                _startupWindow.Activate();
 
-                _singleInstanceMutex = new Mutex(true, SINGLE_INSTANCE_ID, out var createdNew);
+                _ = new Mutex(true, SingleInstanceId, out var createdNew);
                 if (!createdNew)
                 {
                     Shutdown();
                     return;
                 }
-                
+
                 try
                 {
-                    await mServiceProvider.GetService<IAppConfigurationProvider>().Initialize();
+                    await _serviceProvider.GetService<IAppConfigurationProvider>().Initialize();
                 }
                 catch (Exception ex)
                 {
@@ -162,7 +161,7 @@ public class App : Application
                 try
                 {
                     Log.Information("Checking for new client version...");
-                    if (await mServiceProvider.GetService<IClientUpdater>().Run())
+                    if (await _serviceProvider.GetService<IClientUpdater>().Run())
                     {
                         SentrySdk.Close();
                         await Log.CloseAndFlushAsync();
@@ -182,13 +181,13 @@ public class App : Application
                     Log.Error(ex, "Error running client updater.");
                 }
 
-                await CheckForProfileUpdates();
-                await UpdateNavData();
-                await UpdateAvailableVoices();
+                await CheckForProfileUpdatesAsync();
+                await UpdateNavDataAsync();
+                await UpdateAvailableVoicesAsync();
 
-                mStartupWindow.Close();
+                _startupWindow.Close();
 
-                var sessionManager = mServiceProvider.GetService<ISessionManager>();
+                var sessionManager = _serviceProvider.GetService<ISessionManager>();
                 if (arguments.TryGetValue("--profile", out var profileId))
                 {
                     Log.Information($"Launching vATIS with --profile {profileId}");
@@ -198,7 +197,7 @@ public class App : Application
                 {
                     sessionManager.Run();
                 }
-                
+
                 NativeAudio.Initialize();
 
                 base.OnFrameworkInitializationCompleted();
@@ -214,14 +213,14 @@ public class App : Application
         }
     }
 
-    private async Task CheckForProfileUpdates()
+    private async Task CheckForProfileUpdatesAsync()
     {
-        if (mServiceProvider != null)
+        if (_serviceProvider != null)
         {
             try
             {
                 Log.Information("Checking for profile updates...");
-                await mServiceProvider.GetService<IProfileRepository>().CheckForProfileUpdates();
+                await _serviceProvider.GetService<IProfileRepository>().CheckForProfileUpdates();
             }
             catch (Exception ex)
             {
@@ -230,22 +229,22 @@ public class App : Application
         }
     }
 
-    private async Task UpdateAvailableVoices()
+    private async Task UpdateAvailableVoicesAsync()
     {
-        if (mServiceProvider != null)
+        if (_serviceProvider != null)
         {
             MessageBus.Current.SendMessage(new StartupStatusChanged("Updating available voices..."));
-            await mServiceProvider.GetService<ITextToSpeechService>().Initialize();
+            await _serviceProvider.GetService<ITextToSpeechService>().Initialize();
         }
     }
 
-    private async Task UpdateNavData()
+    private async Task UpdateNavDataAsync()
     {
         MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for navdata updates..."));
-        if (mServiceProvider != null)
+        if (_serviceProvider != null)
         {
-            await mServiceProvider.GetService<INavDataRepository>().CheckForUpdates();
-            await mServiceProvider.GetService<INavDataRepository>().Initialize();
+            await _serviceProvider.GetService<INavDataRepository>().CheckForUpdates();
+            await _serviceProvider.GetService<INavDataRepository>().Initialize();
         }
     }
 
@@ -259,7 +258,7 @@ public class App : Application
                 SentrySdk.CaptureException(ex);
             }
 
-            ShowError(ex.Message);
+            ShowErrorAsync(ex.Message);
         }
     }
 
@@ -271,7 +270,7 @@ public class App : Application
             SentrySdk.CaptureException(ex.Exception);
         }
 
-        ShowError(ex.Exception.Message);
+        ShowErrorAsync(ex.Exception.Message);
     }
 
     private static void SetupLogging(bool debugMode)
@@ -294,13 +293,13 @@ public class App : Application
         }
     }
 
-    private static async void ShowError(string error, bool fatal = false)
+    private static async void ShowErrorAsync(string error, bool fatal = false)
     {
         try
         {
             if (!Dispatcher.UIThread.CheckAccess())
             {
-                Dispatcher.UIThread.Invoke(() => ShowError(error, fatal));
+                Dispatcher.UIThread.Invoke(() => ShowErrorAsync(error, fatal));
                 return;
             }
 
@@ -314,7 +313,9 @@ public class App : Application
                         MessageBoxButton.Ok, MessageBoxIcon.Error);
 
                     if (fatal)
+                    {
                         Shutdown();
+                    }
                 }
                 else
                 {
@@ -338,26 +339,26 @@ public class App : Application
 
     private void HandleError(Exception ex, string context, bool fatal)
     {
-        mStartupWindow?.Close();
+        _startupWindow?.Close();
         Log.Error(ex, context);
         if (SentrySdk.IsEnabled)
         {
             SentrySdk.CaptureException(ex);
         }
 
-        ShowError(ex.Message, fatal);
+        ShowErrorAsync(ex.Message, fatal);
     }
-    
+
     private static Dictionary<string, string> ParseArguments(string[] args)
     {
         var parsedArgs = new Dictionary<string, string>();
 
-        for (int i = 0; i < args.Length; i++)
+        for (var i = 0; i < args.Length; i++)
         {
             // Check if the argument starts with a flag (e.g., --uri, --profile)
             if (args[i].StartsWith("--"))
             {
-                string flag = args[i];
+                var flag = args[i];
 
                 if (i + 1 < args.Length && !args[i + 1].StartsWith("--"))
                 {

@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using ReactiveUI;
-using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
@@ -15,184 +14,179 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 public class GeneralConfigViewModel : ReactiveViewModelBase
 {
-    private readonly IProfileRepository mProfileRepository;
-    private readonly ISessionManager mSessionManager;
-    private readonly IAppConfig mAppConfig;
-    private readonly HashSet<string> mInitializedProperties = [];
-    
+    private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
+    private readonly HashSet<string> _initializedProperties = [];
+
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
-    
+
     #region Reactive Properties
-    private bool mHasUnsavedChanges;
+    private bool _hasUnsavedChanges;
     public bool HasUnsavedChanges
     {
-        get => mHasUnsavedChanges;
-        private set => this.RaiseAndSetIfChanged(ref mHasUnsavedChanges, value);
+        get => _hasUnsavedChanges;
+        private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
     }
 
-    private int mSelectedTabIndex;
+    private int _selectedTabIndex;
     public int SelectedTabIndex
     {
-        get => mSelectedTabIndex;
-        set => this.RaiseAndSetIfChanged(ref mSelectedTabIndex, value);
+        get => _selectedTabIndex;
+        private set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
     }
-    
-    private AtisStation? mSelectedStation;
-    public AtisStation? SelectedStation
+
+    private AtisStation? _selectedStation;
+    private AtisStation? SelectedStation
     {
-        get => mSelectedStation;
-        set => this.RaiseAndSetIfChanged(ref mSelectedStation, value);
+        get => _selectedStation;
+        set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
     }
-    
-    private string? mFrequency;
+
+    private string _profileSerialNumber = "";
+    public string ProfileSerialNumber
+    {
+        get => _profileSerialNumber;
+        set => this.RaiseAndSetIfChanged(ref _profileSerialNumber, value);
+    }
+
+    private string? _frequency;
     public string? Frequency
     {
-        get => mFrequency;
+        get => _frequency;
         set
         {
-            this.RaiseAndSetIfChanged(ref mFrequency, value);
-            if (!mInitializedProperties.Add(nameof(Frequency)))
+            this.RaiseAndSetIfChanged(ref _frequency, value);
+            if (!_initializedProperties.Add(nameof(Frequency)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private AtisType mAtisType = AtisType.Combined;
+    private AtisType _atisType = AtisType.Combined;
     public AtisType AtisType
     {
-        get => mAtisType;
+        get => _atisType;
         set
         {
-            this.RaiseAndSetIfChanged(ref mAtisType, value);
-            if (!mInitializedProperties.Add(nameof(AtisType)))
+            this.RaiseAndSetIfChanged(ref _atisType, value);
+            if (!_initializedProperties.Add(nameof(AtisType)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private char mCodeRangeLow = 'A';
+    private char _codeRangeLow = 'A';
     public char CodeRangeLow
     {
-        get => mCodeRangeLow;
+        get => _codeRangeLow;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCodeRangeLow, value);
-            if (!mInitializedProperties.Add(nameof(CodeRangeLow)))
+            this.RaiseAndSetIfChanged(ref _codeRangeLow, value);
+            if (!_initializedProperties.Add(nameof(CodeRangeLow)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private char mCodeRangeHigh = 'Z';
+    private char _codeRangeHigh = 'Z';
     public char CodeRangeHigh
     {
-        get => mCodeRangeHigh;
+        get => _codeRangeHigh;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCodeRangeHigh, value);
-            if (!mInitializedProperties.Add(nameof(CodeRangeHigh)))
+            this.RaiseAndSetIfChanged(ref _codeRangeHigh, value);
+            if (!_initializedProperties.Add(nameof(CodeRangeHigh)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mUseTextToSpeech;
+    private bool _useTextToSpeech;
     public bool UseTextToSpeech
     {
-        get => mUseTextToSpeech;
+        get => _useTextToSpeech;
         set
         {
-            this.RaiseAndSetIfChanged(ref mUseTextToSpeech, value);
-            if (!mInitializedProperties.Add(nameof(UseTextToSpeech)))
+            this.RaiseAndSetIfChanged(ref _useTextToSpeech, value);
+            if (!_initializedProperties.Add(nameof(UseTextToSpeech)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mTextToSpeechVoice;
+    private string? _textToSpeechVoice;
     public string? TextToSpeechVoice
     {
-        get => mTextToSpeechVoice;
+        get => _textToSpeechVoice;
         set
         {
-            if (mTextToSpeechVoice == value || string.IsNullOrEmpty(value)) return;
-            this.RaiseAndSetIfChanged(ref mTextToSpeechVoice, value);
-            if (!mInitializedProperties.Add(nameof(TextToSpeechVoice)))
+            if (_textToSpeechVoice == value || string.IsNullOrEmpty(value)) return;
+            this.RaiseAndSetIfChanged(ref _textToSpeechVoice, value);
+            if (!_initializedProperties.Add(nameof(TextToSpeechVoice)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mUseNotamPrefix;
-    public bool UseNotamPrefix
-    {
-        get => mUseNotamPrefix;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref mUseNotamPrefix, value);
-            if (!mInitializedProperties.Add(nameof(UseNotamPrefix)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private bool mUseDecimalTerminology;
+    private bool _useDecimalTerminology;
     public bool UseDecimalTerminology
     {
-        get => mUseDecimalTerminology;
+        get => _useDecimalTerminology;
         set
         {
-            this.RaiseAndSetIfChanged(ref mUseDecimalTerminology, value);
-            if (!mInitializedProperties.Add(nameof(UseDecimalTerminology)))
+            this.RaiseAndSetIfChanged(ref _useDecimalTerminology, value);
+            if (!_initializedProperties.Add(nameof(UseDecimalTerminology)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mIdsEndpoint;
+    private string? _idsEndpoint;
     public string? IdsEndpoint
     {
-        get => mIdsEndpoint;
+        get => _idsEndpoint;
         set
         {
-            this.RaiseAndSetIfChanged(ref mIdsEndpoint, value);
-            if (!mInitializedProperties.Add(nameof(IdsEndpoint)))
+            this.RaiseAndSetIfChanged(ref _idsEndpoint, value);
+            if (!_initializedProperties.Add(nameof(IdsEndpoint)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
-    
-    private ObservableCollection<VoiceMetaData>? mAvailableVoices;
+
+    private ObservableCollection<VoiceMetaData>? _availableVoices;
     public ObservableCollection<VoiceMetaData>? AvailableVoices
     {
-        get => mAvailableVoices;
-        set => this.RaiseAndSetIfChanged(ref mAvailableVoices, value);
+        get => _availableVoices;
+        set => this.RaiseAndSetIfChanged(ref _availableVoices, value);
     }
-    
-    private bool mShowDuplicateAtisTypeError;
+
+    private bool _showDuplicateAtisTypeError;
     public bool ShowDuplicateAtisTypeError
     {
-        get => mShowDuplicateAtisTypeError;
-        set => this.RaiseAndSetIfChanged(ref mShowDuplicateAtisTypeError, value);
+        get => _showDuplicateAtisTypeError;
+        set => this.RaiseAndSetIfChanged(ref _showDuplicateAtisTypeError, value);
     }
     #endregion
 
-    public GeneralConfigViewModel(IAppConfig appConfig, ISessionManager sessionManager, IProfileRepository profileRepository)
+    public GeneralConfigViewModel(ISessionManager sessionManager, IProfileRepository profileRepository)
     {
-        mAppConfig = appConfig;
-        mSessionManager = sessionManager;
-        mProfileRepository = profileRepository;
-        
+        _sessionManager = sessionManager;
+        _profileRepository = profileRepository;
+
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+
+        ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
+            ? $"Profile Serial: {_sessionManager.CurrentProfile.UpdateSerial}"
+            : string.Empty;
     }
 
     private void HandleUpdateProperties(AtisStation? station)
@@ -200,8 +194,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         if (station == null)
             return;
 
-        mInitializedProperties.Clear();
-        
+        _initializedProperties.Clear();
+
         SelectedTabIndex = -1;
         SelectedStation = station;
         Frequency = station.Frequency > 0 ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US")) : "";
@@ -209,7 +203,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         CodeRangeLow = station.CodeRange.Low;
         CodeRangeHigh = station.CodeRange.High;
         UseDecimalTerminology = station.UseDecimalTerminology;
-        UseNotamPrefix = station.UseNotamPrefix;
         IdsEndpoint = station.IdsEndpoint;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
         TextToSpeechVoice = station.AtisVoice.Voice;
@@ -224,7 +217,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         CodeRangeLow = '\0';
         CodeRangeHigh = '\0';
         UseDecimalTerminology = false;
-        UseNotamPrefix = false;
         UseTextToSpeech = true;
         IdsEndpoint = null;
         HasUnsavedChanges = false;
@@ -247,7 +239,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
                 RaiseError(nameof(Frequency),
                     "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
             }
-            
+
             if (frequency is >= 0 and <= uint.MaxValue)
             {
                 if (frequency != SelectedStation.Frequency)
@@ -262,7 +254,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
 
         if (SelectedStation.AtisType != AtisType)
         {
-            if (mSessionManager.CurrentProfile?.Stations != null && mSessionManager.CurrentProfile.Stations.Any(x =>
+            if (_sessionManager.CurrentProfile?.Stations != null && _sessionManager.CurrentProfile.Stations.Any(x =>
                     x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
                     x.AtisType == AtisType))
             {
@@ -290,9 +282,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         if (SelectedStation.CodeRange != codeRange)
             SelectedStation.CodeRange = codeRange;
 
-        if (SelectedStation.UseNotamPrefix != UseNotamPrefix)
-            SelectedStation.UseNotamPrefix = UseNotamPrefix;
-
         if (SelectedStation.UseDecimalTerminology != UseDecimalTerminology)
             SelectedStation.UseDecimalTerminology = UseDecimalTerminology;
 
@@ -311,8 +300,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         if (HasErrors || ShowDuplicateAtisTypeError)
             return false;
 
-        if (mSessionManager.CurrentProfile != null)
-            mProfileRepository.Save(mSessionManager.CurrentProfile);
+        if (_sessionManager.CurrentProfile != null)
+            _profileRepository.Save(_sessionManager.CurrentProfile);
 
         HasUnsavedChanges = false;
         return true;

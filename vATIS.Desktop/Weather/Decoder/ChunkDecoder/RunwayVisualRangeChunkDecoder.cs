@@ -50,7 +50,7 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
                     if (qfuAsInt > 36 || qfuAsInt < 1)
                     {
                         throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                            MetarChunkDecoderException.Messages.INVALID_RUNWAY_QFU_RUNWAY_VISUAL_RANGE_INFORMATION);
+                            MetarChunkDecoderException.Messages.InvalidRunwayQfuRunwayVisualRangeInformation);
                     }
 
                     // get distance unit
