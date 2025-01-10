@@ -1,14 +1,25 @@
+// <copyright file="SandboxView.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using Avalonia.Controls;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
+/// <summary>
+/// Represents a view for the sandbox section used within the ATIS configuration UI.
+/// </summary>
 public partial class SandboxView : UserControl
 {
-    private bool _airportConditionsInitialized;
-    private bool _notamsInitialized;
+    private bool airportConditionsInitialized;
+    private bool notamsInitialized;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SandboxView"/> class.
+    /// </summary>
     public SandboxView()
     {
         this.InitializeComponent();
@@ -23,7 +34,7 @@ public partial class SandboxView : UserControl
                 return;
             }
 
-            if (this._airportConditionsInitialized)
+            if (this.airportConditionsInitialized)
             {
                 if (!this.AirportConditions.TextArea.IsFocused)
                 {
@@ -33,7 +44,7 @@ public partial class SandboxView : UserControl
                 vm.HasUnsavedAirportConditions = true;
             }
 
-            this._airportConditionsInitialized = true;
+            this.airportConditionsInitialized = true;
         }
     }
 
@@ -46,7 +57,7 @@ public partial class SandboxView : UserControl
                 return;
             }
 
-            if (this._notamsInitialized)
+            if (this.notamsInitialized)
             {
                 if (!this.NotamFreeText.TextArea.IsFocused)
                 {
@@ -56,7 +67,7 @@ public partial class SandboxView : UserControl
                 vm.HasUnsavedNotams = true;
             }
 
-            this._notamsInitialized = true;
+            this.notamsInitialized = true;
         }
     }
 }

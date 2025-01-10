@@ -1,3 +1,8 @@
+// <copyright file="AtisStationView.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Reactive.Linq;
 using Avalonia.Input;
@@ -14,11 +19,18 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Components;
 
+/// <summary>
+/// Represents a view for the ATIS station, providing user interaction and data display for the associated
+/// <see cref="AtisStationViewModel"/>.
+/// </summary>
 public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 {
-    private bool _airportConditionsInitialized;
-    private bool _notamsInitialized;
+    private bool airportConditionsInitialized;
+    private bool notamsInitialized;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisStationView"/> class.
+    /// </summary>
     public AtisStationView()
     {
         this.InitializeComponent();
@@ -29,6 +41,35 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         this.AtisLetter.PointerPressed += this.AtisLetterOnPointerPressed;
 
         this.Loaded += this.OnLoaded;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        this.ViewModel.WhenAnyValue(x => x.IsAtisLetterInputMode).Subscribe(
+            mode =>
+            {
+                if (mode)
+                {
+                    this.TypeAtisLetter.Text = string.Empty;
+                    this.TypeAtisLetter.Focus();
+                    this.TypeAtisLetter.SelectAll();
+                }
+            });
+
+        if (this.ViewModel != null)
+        {
+            this.AirportConditions.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(this.ViewModel.ReadOnlyAirportConditions);
+            this.NotamFreeText.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(this.ViewModel.ReadOnlyNotams);
+            this.AirportConditions.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(this.ViewModel.ReadOnlyAirportConditions));
+            this.NotamFreeText.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(this.ViewModel.ReadOnlyNotams));
+        }
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -197,34 +238,6 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         }
     }
 
-    protected override void OnDataContextChanged(EventArgs e)
-    {
-        base.OnDataContextChanged(e);
-
-        this.ViewModel.WhenAnyValue(x => x.IsAtisLetterInputMode).Subscribe(
-            mode =>
-            {
-                if (mode)
-                {
-                    this.TypeAtisLetter.Text = "";
-                    this.TypeAtisLetter.Focus();
-                    this.TypeAtisLetter.SelectAll();
-                }
-            });
-
-        if (this.ViewModel != null)
-        {
-            this.AirportConditions.TextArea.ReadOnlySectionProvider =
-                new TextSegmentReadOnlySectionProvider<TextSegment>(this.ViewModel.ReadOnlyAirportConditions);
-            this.NotamFreeText.TextArea.ReadOnlySectionProvider =
-                new TextSegmentReadOnlySectionProvider<TextSegment>(this.ViewModel.ReadOnlyNotams);
-            this.AirportConditions.TextArea.TextView.LineTransformers.Add(
-                new ReadOnlySegmentTransformer(this.ViewModel.ReadOnlyAirportConditions));
-            this.NotamFreeText.TextArea.TextView.LineTransformers.Add(
-                new ReadOnlySegmentTransformer(this.ViewModel.ReadOnlyNotams));
-        }
-    }
-
     private void AirportConditions_OnTextChanged(object? sender, EventArgs e)
     {
         if (this.ViewModel?.SelectedAtisPreset == null)
@@ -237,12 +250,12 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             return;
         }
 
-        if (this._airportConditionsInitialized)
+        if (this.airportConditionsInitialized)
         {
             this.ViewModel.HasUnsavedAirportConditions = true;
         }
 
-        this._airportConditionsInitialized = true;
+        this.airportConditionsInitialized = true;
     }
 
     private void NotamFreeText_OnTextChanged(object? sender, EventArgs e)
@@ -257,26 +270,26 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             return;
         }
 
-        if (this._notamsInitialized)
+        if (this.notamsInitialized)
         {
             this.ViewModel.HasUnsavedNotams = true;
         }
 
-        this._notamsInitialized = true;
+        this.notamsInitialized = true;
     }
 
     private class ReadOnlySegmentTransformer : DocumentColorizingTransformer
     {
-        private readonly TextSegmentCollection<TextSegment> _readOnlySegments;
+        private readonly TextSegmentCollection<TextSegment> readOnlySegments;
 
         public ReadOnlySegmentTransformer(TextSegmentCollection<TextSegment> readOnlySegments)
         {
-            this._readOnlySegments = readOnlySegments;
+            this.readOnlySegments = readOnlySegments;
         }
 
         protected override void ColorizeLine(DocumentLine line)
         {
-            foreach (var segment in this._readOnlySegments.FindOverlappingSegments(line.Offset, line.Length))
+            foreach (var segment in this.readOnlySegments.FindOverlappingSegments(line.Offset, line.Length))
             {
                 this.ChangeLinePart(
                     Math.Max(segment.StartOffset, line.Offset),

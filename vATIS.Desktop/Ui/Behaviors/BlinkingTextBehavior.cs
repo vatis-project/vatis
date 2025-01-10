@@ -1,3 +1,8 @@
+// <copyright file="BlinkingTextBehavior.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using Avalonia;
@@ -8,84 +13,113 @@ using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// Provides a behavior that alternates the foreground color of a control
+/// between two specified colors, creating a blinking effect.
+/// </summary>
 public class BlinkingTextBehavior : Behavior<Control>
 {
-    private static bool s_isBlinking;
-    private static readonly List<BlinkingTextBehavior> s_instances = [];
-
+    /// <summary>
+    /// Identifies the <see cref="IsBlinkingProperty"/> dependency property, determining whether
+    /// the associated control should have its text alternate between two colors, creating a blinking effect.
+    /// </summary>
     public static readonly StyledProperty<bool> IsBlinkingProperty =
         AvaloniaProperty.Register<BlinkingTextBehavior, bool>(nameof(IsBlinking));
 
+    /// <summary>
+    /// Identifies the <see cref="Color1Property"/> dependency property, specifying
+    /// the first foreground color used by the associated control when creating a blinking effect.
+    /// </summary>
     public static readonly StyledProperty<IBrush> Color1Property =
         AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(Color1), Brushes.Aqua);
 
+    /// <summary>
+    /// Identifies the <see cref="Color2Property"/> dependency property, specifying
+    /// the second foreground color used by the associated control when creating a blinking effect.
+    /// </summary>
     public static readonly StyledProperty<IBrush> Color2Property =
         AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(
             nameof(Color2),
             new SolidColorBrush(Color.FromRgb(255, 204, 1)));
 
-    private IBrush? _originalBrush;
+    private static readonly List<BlinkingTextBehavior> Instances = [];
+    private static bool isBlinking;
+    private IBrush? originalBrush;
 
     static BlinkingTextBehavior()
     {
         DispatcherTimer.Run(OnTimerTick, TimeSpan.FromMilliseconds(500));
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the associated control
+    /// should alternate its text color between two specified colors, creating a blinking effect.
+    /// </summary>
     public bool IsBlinking
     {
         get => this.GetValue(IsBlinkingProperty);
         set => this.SetValue(IsBlinkingProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the first foreground color used by the associated control
+    /// when creating a blinking effect.
+    /// </summary>
     public IBrush Color1
     {
         get => this.GetValue(Color1Property);
         set => this.SetValue(Color1Property, value);
     }
 
+    /// <summary>
+    /// Gets or sets the second foreground color used by the associated control
+    /// when creating a blinking effect.
+    /// </summary>
     public IBrush Color2
     {
         get => this.GetValue(Color2Property);
         set => this.SetValue(Color2Property, value);
     }
 
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
 
         if (this.AssociatedObject is not null)
         {
-            this._originalBrush = GetForeground(this.AssociatedObject);
-            s_instances.Add(this);
+            this.originalBrush = GetForeground(this.AssociatedObject);
+            Instances.Add(this);
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         base.OnDetaching();
 
         if (this.AssociatedObject is not null)
         {
-            SetForeground(this.AssociatedObject, this._originalBrush);
-            s_instances.Remove(this);
+            SetForeground(this.AssociatedObject, this.originalBrush);
+            Instances.Remove(this);
         }
     }
 
     private static bool OnTimerTick()
     {
-        s_isBlinking = !s_isBlinking;
+        isBlinking = !isBlinking;
 
-        foreach (var instance in s_instances)
+        foreach (var instance in Instances)
         {
             if (instance.AssociatedObject is not null)
             {
                 if (instance.IsBlinking)
                 {
-                    SetForeground(instance.AssociatedObject, s_isBlinking ? instance.Color1 : instance.Color2);
+                    SetForeground(instance.AssociatedObject, isBlinking ? instance.Color1 : instance.Color2);
                 }
                 else
                 {
-                    SetForeground(instance.AssociatedObject, instance._originalBrush);
+                    SetForeground(instance.AssociatedObject, instance.originalBrush);
                 }
             }
         }
@@ -99,7 +133,7 @@ public class BlinkingTextBehavior : Behavior<Control>
         {
             Button button => button.Foreground,
             TextBlock textBlock => textBlock.Foreground,
-            _ => throw new ArgumentException("Control must be a TextBlock or Button.")
+            _ => throw new ArgumentException("Control must be a TextBlock or Button."),
         };
     }
 

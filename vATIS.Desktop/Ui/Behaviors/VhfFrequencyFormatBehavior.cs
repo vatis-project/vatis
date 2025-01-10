@@ -1,4 +1,9 @@
-﻿using System.Text.RegularExpressions;
+﻿// <copyright file="VhfFrequencyFormatBehavior.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -6,10 +11,14 @@ using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// Provides behavior for formatting VHF frequency input in a <see cref="TextBox"/>.
+/// </summary>
 public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
 {
-    private static readonly Regex s_validInputRegex = FrequencyRegex();
+    private static readonly Regex ValidInputRegex = FrequencyRegex();
 
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
@@ -23,6 +32,7 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         base.OnDetaching();
@@ -32,6 +42,9 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
             this.AssociatedObject.TextChanged -= this.OnTextChanged;
         }
     }
+
+    [GeneratedRegex(@"^\d*\.?\d*$")]
+    private static partial Regex FrequencyRegex();
 
     private void TextInputHandler(object? sender, TextInputEventArgs e)
     {
@@ -51,7 +64,7 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
 
         var newText = textBox.SelectedText == text ? input : text.Insert(textBox.CaretIndex, input);
 
-        if (!s_validInputRegex.IsMatch(newText.Replace(".", string.Empty)) ||
+        if (!ValidInputRegex.IsMatch(newText.Replace(".", string.Empty)) ||
             newText.Replace(".", string.Empty).Length > 6)
         {
             e.Handled = true;
@@ -103,7 +116,4 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
             textBox.CaretIndex = text.Length;
         }
     }
-
-    [GeneratedRegex(@"^\d*\.?\d*$")]
-    private static partial Regex FrequencyRegex();
 }
