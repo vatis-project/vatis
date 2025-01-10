@@ -45,15 +45,15 @@ public class AtisBuilder : IAtisBuilder
         ArgumentNullException.ThrowIfNull(station);
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentNullException.ThrowIfNull(decodedMetar);
-        
-        var airportData = mNavDataRepository?.GetAirport(station.Identifier) ??
+
+        var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
                           throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
 
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
         var (spokenText, audioBytes) = await CreateVoiceAtis(station, preset, currentAtisLetter, variables,
             cancellationToken, sandboxRequest);
-        
+
         return new AtisBuilderVoiceAtisResponse(spokenText, audioBytes);
     }
 
@@ -68,9 +68,9 @@ public class AtisBuilder : IAtisBuilder
 
         var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
                           throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
-        
+
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
-        
+
         return await CreateTextAtis(station, preset, currentAtisLetter, variables);
     }
 

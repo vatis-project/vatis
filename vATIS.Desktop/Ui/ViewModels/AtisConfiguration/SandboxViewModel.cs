@@ -271,11 +271,11 @@ public class SandboxViewModel : ReactiveViewModelBase
 
             if (SandboxMetar != null)
             {
-                var decodedMetar = mMetarDecoder.ParseNotStrict(SandboxMetar);
-                var textAtis = await mAtisBuilder.BuildTextAtis(SelectedStation, SelectedPreset, randomLetter,
-                    decodedMetar, mCancellationToken.Token);
-                AtisBuilderVoiceAtisResponse = await mAtisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
-                    decodedMetar, mCancellationToken.Token, true);
+                var decodedMetar = _metarDecoder.ParseNotStrict(SandboxMetar);
+                var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, SelectedPreset, randomLetter,
+                    decodedMetar, _cancellationToken.Token);
+                AtisBuilderVoiceAtisResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
+                    decodedMetar, _cancellationToken.Token, true);
                 SandboxTextAtis = textAtis?.ToUpperInvariant();
                 SandboxSpokenTextAtis = AtisBuilderVoiceAtisResponse.SpokenText?.ToUpperInvariant();
             }
