@@ -1,4 +1,2 @@
 ﻿namespace Vatsim.Vatis.Ui;
-public interface IDialogOwner
-{
-}
+public interface IDialogOwner;

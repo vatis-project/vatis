@@ -1,15 +1,14 @@
 ﻿using System;
 using Avalonia;
-using Avalonia.Controls;
 
-namespace Vatsim.Vatis.Ui.Controls;
+namespace Vatsim.Vatis.Ui.Controls.DataGrid;
 
-public class CustomDataGrid : DataGrid
+public class CustomDataGrid : Avalonia.Controls.DataGrid
 {
-    protected override Type StyleKeyOverride => typeof(DataGrid);
+    protected override Type StyleKeyOverride => typeof(Avalonia.Controls.DataGrid);
 
     public static readonly StyledProperty<bool> CanUserAddRowsProperty =
-        AvaloniaProperty.Register<DataGrid, bool>(nameof(CanUserAddRows));
+        AvaloniaProperty.Register<Avalonia.Controls.DataGrid, bool>(nameof(CanUserAddRows));
 
     public bool CanUserAddRows
     {
@@ -18,16 +17,11 @@ public class CustomDataGrid : DataGrid
     }
 
     public static readonly StyledProperty<bool> CanUserDeleteRowsProperty =
-    AvaloniaProperty.Register<DataGrid, bool>(nameof(CanUserDeleteRows));
+    AvaloniaProperty.Register<Avalonia.Controls.DataGrid, bool>(nameof(CanUserDeleteRows));
 
     public bool CanUserDeleteRows
     {
         get { return GetValue(CanUserDeleteRowsProperty); }
         set { SetValue(CanUserDeleteRowsProperty, value); }
-    }
-
-    protected override void OnRowEditEnding(DataGridRowEditEndingEventArgs e)
-    {
-        base.OnRowEditEnding(e);
     }
 }

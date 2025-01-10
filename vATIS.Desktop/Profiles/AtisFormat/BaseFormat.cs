@@ -1,7 +1,7 @@
 ﻿namespace Vatsim.Vatis.Profiles.AtisFormat;
 public class BaseFormat
 {
-    public Template Template { get; set; } = new Template();
+    public Template Template { get; set; } = new();
 }
 
 public class Template

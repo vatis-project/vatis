@@ -5,15 +5,15 @@ using Vatsim.Vatis.Config;
 namespace Vatsim.Vatis.Ui.ViewModels;
 public class TopMostViewModel : ReactiveViewModelBase
 {
-    private IAppConfig? mAppConfig;
+    private IAppConfig? _appConfig;
 
     public ReactiveCommand<Unit, Unit> ToggleIsTopMost { get; private set; }
 
-    private bool mIsTopMost;
+    private bool _isTopMost;
     public bool IsTopMost
     {
-        get => mIsTopMost;
-        set => this.RaiseAndSetIfChanged(ref mIsTopMost, value);
+        get => _isTopMost;
+        set => this.RaiseAndSetIfChanged(ref _isTopMost, value);
     }
 
     public static TopMostViewModel Instance { get; } = new();
@@ -25,18 +25,18 @@ public class TopMostViewModel : ReactiveViewModelBase
 
     public void Initialize(IAppConfig appConfig)
     {
-        mAppConfig = appConfig;
-        IsTopMost = mAppConfig.AlwaysOnTop;
+        _appConfig = appConfig;
+        IsTopMost = _appConfig.AlwaysOnTop;
     }
 
     private void HandleToggleIsTopMost()
     {
         IsTopMost = !IsTopMost;
 
-        if (mAppConfig != null)
+        if (_appConfig != null)
         {
-            mAppConfig.AlwaysOnTop = IsTopMost;
-            mAppConfig.SaveConfig();
+            _appConfig.AlwaysOnTop = IsTopMost;
+            _appConfig.SaveConfig();
         }
     }
 }
