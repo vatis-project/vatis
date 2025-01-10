@@ -127,7 +127,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private bool mUseDecimalTerminology;
+    private bool _useDecimalTerminology;
     public bool UseDecimalTerminology
     {
         get => _useDecimalTerminology;

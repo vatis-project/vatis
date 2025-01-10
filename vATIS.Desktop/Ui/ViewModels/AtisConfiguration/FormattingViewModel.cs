@@ -561,13 +561,13 @@ public class FormattingViewModel : ReactiveViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _notamsTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(NotamsTextTemplate)))
+            if (!_initializedProperties.Add(nameof(NotamsTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
-    
+
     private string? _notamsVoiceTemplate;
     public string? NotamsVoiceTemplate
     {
@@ -575,14 +575,14 @@ public class FormattingViewModel : ReactiveViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _notamsVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(NotamsVoiceTemplate)))
+            if (!_initializedProperties.Add(nameof(NotamsVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityNorth;
+    private string? _visibilityNorth;
     public string? VisibilityNorth
     {
         get => _visibilityNorth;
@@ -1578,13 +1578,13 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if(SelectedStation.AtisFormat.TransitionLevel.Template.Voice != TransitionLevelVoiceTemplate)
             SelectedStation.AtisFormat.TransitionLevel.Template.Voice = TransitionLevelVoiceTemplate;
-        
+
         if(SelectedStation.AtisFormat.Notams.Template.Text != NotamsTextTemplate)
             SelectedStation.AtisFormat.Notams.Template.Text = NotamsTextTemplate;
-        
+
         if(SelectedStation.AtisFormat.Notams.Template.Voice != NotamsVoiceTemplate)
             SelectedStation.AtisFormat.Notams.Template.Voice = NotamsVoiceTemplate;
-        
+
         if (HasErrors)
             return false;
 
