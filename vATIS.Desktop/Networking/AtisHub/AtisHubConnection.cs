@@ -38,7 +38,6 @@ public class AtisHubConnection : IAtisHubConnection
                 {
                     options.AccessTokenProvider = () => Task.FromResult(_clientAuth.GenerateHubToken());
                 })
-                .WithAutomaticReconnect()
                 .AddJsonProtocol(options =>
                 {
                     options.PayloadSerializerOptions.TypeInfoResolverChain.Add(SourceGenerationContext.NewDefault);
