@@ -1,3 +1,8 @@
+// <copyright file="AtisHubConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,36 +16,43 @@ using Vatsim.Vatis.Events;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
+/// <inheritdoc />
 public class AtisHubConnection : IAtisHubConnection
 {
-    private readonly IAppConfigurationProvider _appConfigurationProvider;
-    private readonly IClientAuth _clientAuth;
-    private ConnectionState _connectionState;
-    private HubConnection? _hubConnection;
+    private readonly IAppConfigurationProvider appConfigurationProvider;
+    private readonly IClientAuth clientAuth;
+    private ConnectionState connectionState;
+    private HubConnection? hubConnection;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisHubConnection"/> class.
+    /// </summary>
+    /// <param name="appConfigurationProvider">The application configuration provider used for accessing configuration settings.</param>
+    /// <param name="clientAuth">The client authentication mechanism for validating requests to the ATIS hub.</param>
     public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider, IClientAuth clientAuth)
     {
-        this._appConfigurationProvider = appConfigurationProvider;
-        this._clientAuth = clientAuth;
+        this.appConfigurationProvider = appConfigurationProvider;
+        this.clientAuth = clientAuth;
     }
 
+    /// <inheritdoc/>
     public async Task Connect()
     {
         try
         {
-            if (this._hubConnection is { State: HubConnectionState.Connected })
+            if (this.hubConnection is { State: HubConnectionState.Connected })
             {
                 return;
             }
 
-            var serverUrl = this._appConfigurationProvider.AtisHubUrl;
+            var serverUrl = this.appConfigurationProvider.AtisHubUrl;
 
-            this._hubConnection = new HubConnectionBuilder()
+            this.hubConnection = new HubConnectionBuilder()
                 .WithUrl(
                     serverUrl,
                     options =>
                     {
-                        options.AccessTokenProvider = () => Task.FromResult(this._clientAuth.GenerateHubToken());
+                        options.AccessTokenProvider = () => Task.FromResult(this.clientAuth.GenerateHubToken());
                     })
                 .AddJsonProtocol(
                     options =>
@@ -50,8 +62,8 @@ public class AtisHubConnection : IAtisHubConnection
                 .WithAutomaticReconnect()
                 .Build();
 
-            this._hubConnection.Closed += this.OnHubConnectionClosed;
-            this._hubConnection.On<List<AtisHubDto>>(
+            this.hubConnection.Closed += this.OnHubConnectionClosed;
+            this.hubConnection.On<List<AtisHubDto>>(
                 "AtisReceived",
                 dtoList =>
                 {
@@ -60,14 +72,14 @@ public class AtisHubConnection : IAtisHubConnection
                         MessageBus.Current.SendMessage(new AtisHubAtisReceived(dto));
                     }
                 });
-            this._hubConnection.On<AtisHubDto>(
+            this.hubConnection.On<AtisHubDto>(
                 "RemoveAtisReceived",
                 dto => { MessageBus.Current.SendMessage(new AtisHubExpiredAtisReceived(dto)); });
 
             this.SetConnectionState(ConnectionState.Connecting);
             Log.Information($"Connecting to AtisHub server: {serverUrl}");
-            await this._hubConnection.StartAsync();
-            Log.Information("Connected to AtisHub with ID: " + this._hubConnection.ConnectionId);
+            await this.hubConnection.StartAsync();
+            Log.Information("Connected to AtisHub with ID: " + this.hubConnection.ConnectionId);
             this.SetConnectionState(ConnectionState.Connected);
         }
         catch (Exception ex)
@@ -77,16 +89,17 @@ public class AtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc/>
     public async Task Disconnect()
     {
-        if (this._hubConnection == null)
+        if (this.hubConnection == null)
         {
             return;
         }
 
         try
         {
-            await this._hubConnection.StopAsync();
+            await this.hubConnection.StopAsync();
         }
         catch (Exception ex)
         {
@@ -94,24 +107,26 @@ public class AtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc/>
     public async Task PublishAtis(AtisHubDto dto)
     {
-        if (this._hubConnection is not { State: HubConnectionState.Connected })
+        if (this.hubConnection is not { State: HubConnectionState.Connected })
         {
             return;
         }
 
-        await this._hubConnection.InvokeAsync("PublishAtis", dto);
+        await this.hubConnection.InvokeAsync("PublishAtis", dto);
     }
 
+    /// <inheritdoc/>
     public async Task SubscribeToAtis(SubscribeDto dto)
     {
-        if (this._hubConnection is not { State: HubConnectionState.Connected })
+        if (this.hubConnection is not { State: HubConnectionState.Connected })
         {
             return;
         }
 
-        await this._hubConnection.InvokeAsync("SubscribeToAtis", dto);
+        await this.hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
     private Task OnHubConnectionClosed(Exception? exception)
@@ -126,11 +141,11 @@ public class AtisHubConnection : IAtisHubConnection
         return Task.CompletedTask;
     }
 
-    private void SetConnectionState(ConnectionState connectionState)
+    private void SetConnectionState(ConnectionState state)
     {
-        this._connectionState = connectionState;
-        MessageBus.Current.SendMessage(new ConnectionStateChanged(this._connectionState));
-        switch (this._connectionState)
+        this.connectionState = state;
+        MessageBus.Current.SendMessage(new ConnectionStateChanged(this.connectionState));
+        switch (this.connectionState)
         {
             case ConnectionState.Connected:
                 MessageBus.Current.SendMessage(new HubConnected());

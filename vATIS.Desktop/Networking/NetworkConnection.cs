@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="NetworkConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -23,30 +28,40 @@ using Timer = System.Timers.Timer;
 
 namespace Vatsim.Vatis.Networking;
 
+/// <inheritdoc />
 public class NetworkConnection : INetworkConnection
 {
     private const string VatsimServerEndpoint = "http://fsd.vatsim.net";
     private const string ClientName = "vATIS";
     private const ushort ClientId = 0x579f;
-    private readonly Airport? _airportData;
-    private readonly IAppConfig _appConfig;
+    private readonly Airport? airportData;
+    private readonly IAppConfig appConfig;
+    private readonly AtisStation? atisStation;
+    private readonly IAuthTokenManager authTokenManager;
+    private readonly List<string> clientCapabilitiesReceived = [];
+    private readonly ClientProperties clientProperties;
+    private readonly IDownloader downloader;
+    private readonly List<string> euroscopeSubscribers = [];
+    private readonly int fsdFrequency;
+    private readonly Timer fsdPositionUpdateTimer;
+    private readonly FsdSession fsdSession;
+    private readonly IMetarRepository metarRepository;
+    private readonly List<string> subscribers = [];
+    private readonly string uniqueDeviceIdentifier;
+    private DecodedMetar? decodedMetar;
+    private string? previousMetar;
+    private string? publicIp;
 
-    private readonly AtisStation? _atisStation;
-    private readonly IAuthTokenManager _authTokenManager;
-    private readonly List<string> _clientCapabilitiesReceived = [];
-    private readonly ClientProperties _clientProperties;
-    private readonly IDownloader _downloader;
-    private readonly List<string> _euroscopeSubscribers = [];
-    private readonly int _fsdFrequency;
-    private readonly Timer _fsdPositionUpdateTimer;
-    private readonly FsdSession _fsdSession;
-    private readonly IMetarRepository _metarRepository;
-    private readonly List<string> _subscribers = [];
-    private readonly string _uniqueDeviceIdentifier;
-    private DecodedMetar? _decodedMetar;
-    private string? _previousMetar;
-    private string? _publicIp;
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NetworkConnection"/> class.
+    /// </summary>
+    /// <param name="station">The ATIS station associated with the network connection.</param>
+    /// <param name="appConfig">The application configuration.</param>
+    /// <param name="authTokenManager">The authentication token manager.</param>
+    /// <param name="metarRepository">The METAR repository used for weather data.</param>
+    /// <param name="downloader">The downloader used for data retrieval.</param>
+    /// <param name="navDataRepository">The navigation data repository for airport information.</param>
+    /// <param name="clientAuth">The client authentication interface.</param>
     public NetworkConnection(
         AtisStation station,
         IAppConfig appConfig,
@@ -58,77 +73,74 @@ public class NetworkConnection : INetworkConnection
     {
         ArgumentNullException.ThrowIfNull(station);
 
-        this._atisStation = station;
-        this._appConfig = appConfig;
-        this._authTokenManager = authTokenManager;
-        this._metarRepository = metarRepository;
-        this._downloader = downloader;
+        this.atisStation = station;
+        this.appConfig = appConfig;
+        this.authTokenManager = authTokenManager;
+        this.metarRepository = metarRepository;
+        this.downloader = downloader;
 
-        this._clientProperties = new ClientProperties(
-            ClientName,
-            Assembly.GetExecutingAssembly().GetName().Version ??
-            throw new ApplicationException("Application version not found"));
+        this.clientProperties = new ClientProperties(ClientName, Assembly.GetExecutingAssembly().GetName().Version ?? throw new ApplicationException("Application version not found"));
 
-        this._airportData = navDataRepository.GetAirport(
+        this.airportData = navDataRepository.GetAirport(
             station.Identifier ??
             throw new ApplicationException(
                 "Airport identifier not found: " +
                 station.Identifier));
 
         var uniqueId = MachineInfoProvider.GetDefaultProvider().GetMachineGuid();
-        this._uniqueDeviceIdentifier = uniqueId != null
-            ? Encoding.UTF8.GetString(uniqueId).Replace("\r", "").Replace("\n", "").Trim()
+        this.uniqueDeviceIdentifier = uniqueId != null
+            ? Encoding.UTF8.GetString(uniqueId).Replace("\r", string.Empty).Replace("\n", string.Empty).Trim()
             : "Unknown";
 
-        this._fsdFrequency = (int)((this._atisStation.Frequency / 1000) - 100000);
+        this.fsdFrequency = (int)((this.atisStation.Frequency / 1000) - 100000);
 
         this.Callsign = station.AtisType switch
         {
             AtisType.Combined => station.Identifier + "_ATIS",
             AtisType.Departure => station.Identifier + "_D_ATIS",
             AtisType.Arrival => station.Identifier + "_A_ATIS",
-            _ => throw new Exception("Unknown AtisType: " + station.AtisType)
+            _ => throw new Exception("Unknown AtisType: " + station.AtisType),
         };
 
-        this._fsdPositionUpdateTimer = new Timer();
-        this._fsdPositionUpdateTimer.Interval = 15000; // 15 seconds
-        this._fsdPositionUpdateTimer.Elapsed += this.OnFsdPositionUpdateTimerElapsed;
+        this.fsdPositionUpdateTimer = new Timer();
+        this.fsdPositionUpdateTimer.Interval = 15000; // 15 seconds
+        this.fsdPositionUpdateTimer.Elapsed += this.OnFsdPositionUpdateTimerElapsed;
 
-        this._fsdSession = new FsdSession(
+        this.fsdSession = new FsdSession(
             clientAuth,
-            this._clientProperties,
+            this.clientProperties,
             SynchronizationContext.Current ?? throw new InvalidOperationException())
         {
-            IgnoreUnknownPackets = true
+            IgnoreUnknownPackets = true,
         };
-        this._fsdSession.NetworkConnected += this.OnNetworkConnected;
-        this._fsdSession.NetworkDisconnected += this.OnNetworkDisconnected;
-        this._fsdSession.NetworkConnectionFailed += this.OnNetworkConnectionFailed;
-        this._fsdSession.NetworkError += this.OnNetworkError;
-        this._fsdSession.ProtocolErrorReceived += this.OnProtocolErrorReceived;
-        this._fsdSession.ServerIdentificationReceived += this.OnServerIdentificationReceived;
-        this._fsdSession.ClientQueryReceived += this.OnClientQueryReceived;
-        this._fsdSession.ClientQueryResponseReceived += this.OnClientQueryResponseReceived;
-        this._fsdSession.KillRequestReceived += this.OnKillRequestReceived;
-        this._fsdSession.TextMessageReceived += this.OnTextMessageReceived;
-        this._fsdSession.AtcPositionReceived += this.OnATCPositionReceived;
-        this._fsdSession.DeleteAtcReceived += this.OnDeleteATCReceived;
-        this._fsdSession.ChangeServerReceived += this.OnChangeServerReceived;
-        this._fsdSession.RawDataReceived += this.OnRawDataReceived;
-        this._fsdSession.RawDataSent += this.OnRawDataSent;
+        this.fsdSession.NetworkConnected += this.OnNetworkConnected;
+        this.fsdSession.NetworkDisconnected += this.OnNetworkDisconnected;
+        this.fsdSession.NetworkConnectionFailed += this.OnNetworkConnectionFailed;
+        this.fsdSession.NetworkError += this.OnNetworkError;
+        this.fsdSession.ProtocolErrorReceived += this.OnProtocolErrorReceived;
+        this.fsdSession.ServerIdentificationReceived += this.OnServerIdentificationReceived;
+        this.fsdSession.ClientQueryReceived += this.OnClientQueryReceived;
+        this.fsdSession.ClientQueryResponseReceived += this.OnClientQueryResponseReceived;
+        this.fsdSession.KillRequestReceived += this.OnKillRequestReceived;
+        this.fsdSession.TextMessageReceived += this.OnTextMessageReceived;
+        this.fsdSession.AtcPositionReceived += this.OnATCPositionReceived;
+        this.fsdSession.DeleteAtcReceived += this.OnDeleteATCReceived;
+        this.fsdSession.ChangeServerReceived += this.OnChangeServerReceived;
+        this.fsdSession.RawDataReceived += this.OnRawDataReceived;
+        this.fsdSession.RawDataSent += this.OnRawDataSent;
 
         MessageBus.Current.Listen<MetarReceived>().Subscribe(
             evt =>
             {
                 if (evt.Metar.Icao == station.Identifier)
                 {
-                    var isNewMetar = !string.IsNullOrEmpty(this._previousMetar) &&
-                                     evt.Metar.RawMetar?.Trim() != this._previousMetar?.Trim();
-                    if (this._previousMetar != evt.Metar.RawMetar)
+                    var isNewMetar = !string.IsNullOrEmpty(this.previousMetar) &&
+                                     evt.Metar.RawMetar?.Trim() != this.previousMetar?.Trim();
+                    if (this.previousMetar != evt.Metar.RawMetar)
                     {
                         this.MetarResponseReceived(this, new MetarResponseReceived(evt.Metar, isNewMetar));
-                        this._previousMetar = evt.Metar.RawMetar;
-                        this._decodedMetar = evt.Metar;
+                        this.previousMetar = evt.Metar.RawMetar;
+                        this.decodedMetar = evt.Metar;
                     }
                 }
             });
@@ -136,37 +148,47 @@ public class NetworkConnection : INetworkConnection
         MessageBus.Current.Listen<SessionEnded>().Subscribe(_ => { this.Disconnect(); });
     }
 
-    public event EventHandler NetworkConnected = delegate { };
+    /// <inheritdoc/>
+    public event EventHandler NetworkConnected = (_, _) => { };
 
-    public event EventHandler NetworkDisconnected = delegate { };
+    /// <inheritdoc/>
+    public event EventHandler NetworkDisconnected = (_, _) => { };
 
-    public event EventHandler NetworkConnectionFailed = delegate { };
+    /// <inheritdoc/>
+    public event EventHandler NetworkConnectionFailed = (_, _) => { };
 
-    public event EventHandler<MetarResponseReceived> MetarResponseReceived = delegate { };
+    /// <inheritdoc/>
+    public event EventHandler<MetarResponseReceived> MetarResponseReceived = (_, _) => { };
 
-    public event EventHandler<NetworkErrorReceived> NetworkErrorReceived = delegate { };
+    /// <inheritdoc/>
+    public event EventHandler<NetworkErrorReceived> NetworkErrorReceived = (_, _) => { };
 
-    public event EventHandler<KillRequestReceived> KillRequestReceived = delegate { };
+    /// <inheritdoc/>
+    public event EventHandler<KillRequestReceived> KillRequestReceived = (_, _) => { };
 
-    public event EventHandler<ClientEventArgs<string>> ChangeServerReceived = delegate { };
+    /// <inheritdoc/>
+    public event EventHandler<ClientEventArgs<string>> ChangeServerReceived = (_, _) => { };
 
+    /// <inheritdoc/>
     public string Callsign { get; }
 
-    public bool IsConnected => this._fsdSession.Connected;
+    /// <inheritdoc/>
+    public bool IsConnected => this.fsdSession.Connected;
 
+    /// <inheritdoc/>
     public async Task Connect(string? serverAddress = null)
     {
-        ArgumentNullException.ThrowIfNull(this._atisStation);
+        ArgumentNullException.ThrowIfNull(this.atisStation);
 
-        await this._authTokenManager.GetAuthToken();
+        await this.authTokenManager.GetAuthToken();
 
-        var bestServer = await this._downloader.DownloadStringAsync(VatsimServerEndpoint);
+        var bestServer = await this.downloader.DownloadStringAsync(VatsimServerEndpoint);
         if (!string.IsNullOrEmpty(bestServer))
         {
             if (Regex.IsMatch(bestServer, @"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", RegexOptions.CultureInvariant))
             {
-                this._fsdSession.Connect(serverAddress ?? bestServer, 6809);
-                this._previousMetar = "";
+                this.fsdSession.Connect(serverAddress ?? bestServer, 6809);
+                this.previousMetar = string.Empty;
             }
             else
             {
@@ -178,66 +200,67 @@ public class NetworkConnection : INetworkConnection
             throw new Exception("Server address returned null.");
         }
 
-        ArgumentNullException.ThrowIfNull(this._atisStation.Identifier);
-        await this._metarRepository.GetMetar(this._atisStation.Identifier, true);
+        ArgumentNullException.ThrowIfNull(this.atisStation.Identifier);
+        await this.metarRepository.GetMetar(this.atisStation.Identifier, true);
     }
 
+    /// <inheritdoc/>
     public void Disconnect()
     {
-        this._fsdSession.SendPdu(new PDUDeleteATC(this.Callsign, this._appConfig.UserId.Trim()));
-        this._fsdSession.Disconnect();
-        this._fsdPositionUpdateTimer.Stop();
-        this._previousMetar = "";
-        this._clientCapabilitiesReceived.Clear();
-        this._subscribers.Clear();
-        this._euroscopeSubscribers.Clear();
+        this.fsdSession.SendPdu(new PDUDeleteATC(this.Callsign, this.appConfig.UserId.Trim()));
+        this.fsdSession.Disconnect();
+        this.fsdPositionUpdateTimer.Stop();
+        this.previousMetar = string.Empty;
+        this.clientCapabilitiesReceived.Clear();
+        this.subscribers.Clear();
+        this.euroscopeSubscribers.Clear();
     }
 
+    /// <inheritdoc/>
     public void SendSubscriberNotification(char currentAtisLetter)
     {
-        if (this._decodedMetar == null)
+        if (this.decodedMetar == null)
         {
             return;
         }
 
-        if (this._atisStation == null)
+        if (this.atisStation == null)
         {
             return;
         }
 
-        foreach (var subscriber in this._subscribers.ToList())
+        foreach (var subscriber in this.subscribers.ToList())
         {
-            this._fsdSession.SendPdu(
+            this.fsdSession.SendPdu(
                 new PDUTextMessage(
                     this.Callsign,
                     subscriber,
-                    $"***{this._atisStation.Identifier.ToUpperInvariant()} ATIS UPDATE: {currentAtisLetter} " +
-                    $"{this._decodedMetar.SurfaceWind?.RawValue?.Trim()} - {this._decodedMetar.Pressure?.RawValue?.Trim()}"));
+                    $"***{this.atisStation.Identifier.ToUpperInvariant()} ATIS UPDATE: {currentAtisLetter} {this.decodedMetar.SurfaceWind?.RawValue?.Trim()} - {this.decodedMetar.Pressure?.RawValue?.Trim()}"));
         }
 
-        foreach (var subscriber in this._euroscopeSubscribers.ToList())
+        foreach (var subscriber in this.euroscopeSubscribers.ToList())
         {
-            this._fsdSession.SendPdu(
+            this.fsdSession.SendPdu(
                 new PDUTextMessage(
                     this.Callsign,
                     subscriber,
-                    $"ATIS info:{this._atisStation.Identifier.ToUpperInvariant()}:{currentAtisLetter}:"));
+                    $"ATIS info:{this.atisStation.Identifier.ToUpperInvariant()}:{currentAtisLetter}:"));
         }
 
-        this._fsdSession.SendPdu(
+        this.fsdSession.SendPdu(
             new PDUClientQuery(
                 this.Callsign,
                 PDUBase.CLIENT_QUERY_BROADCAST_RECIPIENT,
                 ClientQueryType.NewAtis,
                 [
-                    $"{currentAtisLetter}:{this._decodedMetar.SurfaceWind?.RawValue?.Trim()} {this._decodedMetar.Pressure?.RawValue?.Trim()}"
+                    $"{currentAtisLetter}:{this.decodedMetar.SurfaceWind?.RawValue?.Trim()} {this.decodedMetar.Pressure?.RawValue?.Trim()}"
                 ]));
     }
 
     private void OnDeleteATCReceived(object? sender, DataReceivedEventArgs<PDUDeleteATC> e)
     {
-        this._subscribers.Remove(e.Pdu.From.ToUpperInvariant());
-        this._euroscopeSubscribers.Remove(e.Pdu.From.ToUpperInvariant());
+        this.subscribers.Remove(e.Pdu.From.ToUpperInvariant());
+        this.euroscopeSubscribers.Remove(e.Pdu.From.ToUpperInvariant());
     }
 
     private void OnNetworkConnectionFailed(object? sender, NetworkEventArgs e)
@@ -262,13 +285,13 @@ public class NetworkConnection : INetworkConnection
 
     private void OnNetworkDisconnected(object? sender, NetworkEventArgs e)
     {
-        if (this._atisStation?.Identifier != null)
+        if (this.atisStation?.Identifier != null)
         {
-            this._metarRepository.RemoveMetar(this._atisStation.Identifier);
+            this.metarRepository.RemoveMetar(this.atisStation.Identifier);
         }
 
         this.NetworkDisconnected(this, EventArgs.Empty);
-        this._previousMetar = "";
+        this.previousMetar = string.Empty;
     }
 
     private void OnNetworkError(object? sender, NetworkErrorEventArgs e)
@@ -312,7 +335,7 @@ public class NetworkConnection : INetworkConnection
         this.SendClientIdentification();
         this.SendAddAtc();
         this.SendAtcPositionPacket();
-        this._fsdPositionUpdateTimer.Start();
+        this.fsdPositionUpdateTimer.Start();
     }
 
     private void OnClientQueryReceived(object? sender, DataReceivedEventArgs<PDUClientQuery> e)
@@ -320,7 +343,7 @@ public class NetworkConnection : INetworkConnection
         switch (e.Pdu.QueryType)
         {
             case ClientQueryType.Capabilities:
-                this._fsdSession.SendPdu(
+                this.fsdSession.SendPdu(
                     new PDUClientQueryResponse(
                         this.Callsign,
                         e.Pdu.From,
@@ -331,56 +354,56 @@ public class NetworkConnection : INetworkConnection
                         ]));
                 break;
             case ClientQueryType.RealName:
-                this._fsdSession.SendPdu(
+                this.fsdSession.SendPdu(
                     new PDUClientQueryResponse(
                         this.Callsign,
                         e.Pdu.From,
                         ClientQueryType.RealName,
                         [
-                            this._appConfig.Name,
-                            "vATIS Connection " + this._atisStation!.Identifier,
-                            ((int)this._appConfig.NetworkRating).ToString()
+                            this.appConfig.Name,
+                            "vATIS Connection " + this.atisStation!.Identifier,
+                            ((int)this.appConfig.NetworkRating).ToString()
                         ]));
                 break;
             case ClientQueryType.Atis:
                 var num = 0;
-                if (this._atisStation != null && !string.IsNullOrEmpty(this._atisStation.TextAtis))
+                if (this.atisStation != null && !string.IsNullOrEmpty(this.atisStation.TextAtis))
                 {
                     // break up the text into 64 characters per line
                     var regex = new Regex(@"(.{1,64})(?:\s|$)");
-                    var collection = regex.Matches(this._atisStation.TextAtis).Select(x => x.Groups[1].Value).ToList();
+                    var collection = regex.Matches(this.atisStation.TextAtis).Select(x => x.Groups[1].Value).ToList();
                     foreach (var line in collection)
                     {
                         num++;
-                        this._fsdSession.SendPdu(
+                        this.fsdSession.SendPdu(
                             new PDUClientQueryResponse(
                                 this.Callsign,
                                 e.Pdu.From,
                                 ClientQueryType.Atis,
-                                ["T", line.Replace(":", "").ToUpperInvariant()]));
+                                ["T", line.Replace(":", string.Empty).ToUpperInvariant()]));
                     }
                 }
 
                 num++;
-                this._fsdSession.SendPdu(
+                this.fsdSession.SendPdu(
                     new PDUClientQueryResponse(
                         this.Callsign,
                         e.Pdu.From,
                         ClientQueryType.Atis,
                         ["E", num.ToString()]));
-                this._fsdSession.SendPdu(
+                this.fsdSession.SendPdu(
                     new PDUClientQueryResponse(
                         this.Callsign,
                         e.Pdu.From,
                         ClientQueryType.Atis,
-                        ["A", this._atisStation?.AtisLetter.ToString() ?? string.Empty]));
+                        ["A", this.atisStation?.AtisLetter.ToString() ?? string.Empty]));
 
                 break;
             case ClientQueryType.Inf:
                 var msg =
-                    $"CID={this._appConfig.UserId.Trim()} {this._clientProperties.Name} {this._clientProperties.Version} IP={this._publicIp} SYS_UID={this._uniqueDeviceIdentifier} FSVER=N/A LT={this._airportData?.Latitude} LO={this._airportData?.Longitude} AL=0 {this._appConfig.Name}";
-                this._fsdSession.SendPdu(new PDUTextMessage(this.Callsign, e.Pdu.From, msg));
-                this._fsdSession.SendPdu(
+                    $"CID={this.appConfig.UserId.Trim()} {this.clientProperties.Name} {this.clientProperties.Version} IP={this.publicIp} SYS_UID={this.uniqueDeviceIdentifier} FSVER=N/A LT={this.airportData?.Latitude} LO={this.airportData?.Longitude} AL=0 {this.appConfig.Name}";
+                this.fsdSession.SendPdu(new PDUTextMessage(this.Callsign, e.Pdu.From, msg));
+                this.fsdSession.SendPdu(
                     new PDUClientQueryResponse(this.Callsign, e.Pdu.From, ClientQueryType.Inf, [msg]));
                 break;
         }
@@ -391,19 +414,19 @@ public class NetworkConnection : INetworkConnection
         switch (e.Pdu.QueryType)
         {
             case ClientQueryType.PublicIp:
-                this._publicIp = e.Pdu.Payload.Count > 0 ? e.Pdu.Payload[0] : "";
+                this.publicIp = e.Pdu.Payload.Count > 0 ? e.Pdu.Payload[0] : string.Empty;
                 break;
             case ClientQueryType.Capabilities:
-                if (!this._clientCapabilitiesReceived.Contains(e.Pdu.From))
+                if (!this.clientCapabilitiesReceived.Contains(e.Pdu.From))
                 {
-                    this._clientCapabilitiesReceived.Add(e.Pdu.From);
+                    this.clientCapabilitiesReceived.Add(e.Pdu.From);
                 }
 
                 if (e.Pdu.Payload.Contains("ONGOINGCOORD=1"))
                 {
-                    if (!this._euroscopeSubscribers.Contains(e.Pdu.From))
+                    if (!this.euroscopeSubscribers.Contains(e.Pdu.From))
                     {
-                        this._euroscopeSubscribers.Add(e.Pdu.From);
+                        this.euroscopeSubscribers.Add(e.Pdu.From);
                     }
                 }
 
@@ -425,10 +448,10 @@ public class NetworkConnection : INetworkConnection
         switch (message)
         {
             case "SUBSCRIBE":
-                if (!this._subscribers.Contains(from))
+                if (!this.subscribers.Contains(from))
                 {
-                    this._subscribers.Add(from);
-                    this._fsdSession.SendPdu(
+                    this.subscribers.Add(from);
+                    this.fsdSession.SendPdu(
                         new PDUTextMessage(
                             this.Callsign,
                             from,
@@ -436,7 +459,7 @@ public class NetworkConnection : INetworkConnection
                 }
                 else
                 {
-                    this._fsdSession.SendPdu(
+                    this.fsdSession.SendPdu(
                         new PDUTextMessage(
                             this.Callsign,
                             from,
@@ -445,10 +468,10 @@ public class NetworkConnection : INetworkConnection
 
                 break;
             case "UNSUBSCRIBE":
-                if (this._subscribers.Contains(from))
+                if (this.subscribers.Contains(from))
                 {
-                    this._subscribers.Remove(from);
-                    this._fsdSession.SendPdu(
+                    this.subscribers.Remove(from);
+                    this.fsdSession.SendPdu(
                         new PDUTextMessage(
                             this.Callsign,
                             from,
@@ -461,9 +484,9 @@ public class NetworkConnection : INetworkConnection
 
     private void OnATCPositionReceived(object? sender, DataReceivedEventArgs<PDUATCPosition> e)
     {
-        if (!this._clientCapabilitiesReceived.Contains(e.Pdu.From))
+        if (!this.clientCapabilitiesReceived.Contains(e.Pdu.From))
         {
-            this._fsdSession.SendPdu(new PDUClientQuery(this.Callsign, e.Pdu.From, ClientQueryType.Capabilities, []));
+            this.fsdSession.SendPdu(new PDUClientQuery(this.Callsign, e.Pdu.From, ClientQueryType.Capabilities, []));
         }
     }
 
@@ -479,47 +502,47 @@ public class NetworkConnection : INetworkConnection
 
     private void SendClientIdentification()
     {
-        this._fsdSession.SendPdu(
+        this.fsdSession.SendPdu(
             new PDUClientIdentification(
                 this.Callsign,
                 ClientId,
-                this._clientProperties.Name,
-                this._clientProperties.Version.Major,
-                this._clientProperties.Version.Minor,
-                this._appConfig.UserId.Trim(),
-                this._uniqueDeviceIdentifier,
-                ""));
+                this.clientProperties.Name,
+                this.clientProperties.Version.Major,
+                this.clientProperties.Version.Minor,
+                this.appConfig.UserId.Trim(),
+                this.uniqueDeviceIdentifier,
+                string.Empty));
     }
 
     private void SendAddAtc()
     {
-        this._fsdSession.SendPdu(
+        this.fsdSession.SendPdu(
             new PDUAddATC(
                 this.Callsign,
-                this._appConfig.Name,
-                this._appConfig.UserId.Trim(),
-                this._authTokenManager.AuthToken ?? throw new ApplicationException("AuthToken is null or empty."),
-                this._appConfig.NetworkRating,
+                this.appConfig.Name,
+                this.appConfig.UserId.Trim(),
+                this.authTokenManager.AuthToken ?? throw new ApplicationException("AuthToken is null or empty."),
+                this.appConfig.NetworkRating,
                 ProtocolRevision.VatsimAuth));
 
-        this._fsdSession.SendPdu(new PDUClientQuery(this.Callsign, PDUBase.SERVER_CALLSIGN, ClientQueryType.PublicIp));
+        this.fsdSession.SendPdu(new PDUClientQuery(this.Callsign, PDUBase.SERVER_CALLSIGN, ClientQueryType.PublicIp));
     }
 
     private void SendAtcPositionPacket()
     {
-        if (this._airportData == null)
+        if (this.airportData == null)
         {
             throw new ApplicationException("Airport data is null");
         }
 
-        this._fsdSession.SendPdu(
+        this.fsdSession.SendPdu(
             new PDUATCPosition(
                 this.Callsign,
-                this._fsdFrequency,
+                this.fsdFrequency,
                 NetworkFacility.Twr,
                 50,
-                this._appConfig.NetworkRating,
-                this._airportData.Latitude,
-                this._airportData.Longitude));
+                this.appConfig.NetworkRating,
+                this.airportData.Latitude,
+                this.airportData.Longitude));
     }
 }

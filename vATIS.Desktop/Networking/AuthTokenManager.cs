@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="AuthTokenManager.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -9,47 +14,54 @@ using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.Networking;
 
+/// <inheritdoc />
 public class AuthTokenManager : IAuthTokenManager
 {
     private const string AuthTokenUrl = "https://auth.vatsim.net/api/fsd-jwt";
     private const double AuthTokenShelfLifeMinutes = 2.0;
-    private readonly IAppConfig _appConfig;
+    private readonly IAppConfig appConfig;
+    private readonly IDownloader downloader;
+    private DateTime authTokenGeneratedAt;
 
-    private readonly IDownloader _downloader;
-    private DateTime _authTokenGeneratedAt;
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthTokenManager"/> class.
+    /// </summary>
+    /// <param name="downloader">The downloader instance used for managing download operations.</param>
+    /// <param name="appConfig">The application configuration settings.</param>
     public AuthTokenManager(IDownloader downloader, IAppConfig appConfig)
     {
-        this._downloader = downloader;
-        this._appConfig = appConfig;
+        this.downloader = downloader;
+        this.appConfig = appConfig;
 
         MessageBus.Current.Listen<GeneralSettingsUpdated>().Subscribe(_ => { this.AuthToken = null; });
     }
 
+    /// <inheritdoc/>
     public string? AuthToken { get; private set; }
 
+    /// <inheritdoc/>
     public async Task<string?> GetAuthToken()
     {
         if (this.AuthToken != null &&
-            (DateTime.UtcNow - this._authTokenGeneratedAt).TotalMinutes < AuthTokenShelfLifeMinutes)
+            (DateTime.UtcNow - this.authTokenGeneratedAt).TotalMinutes < AuthTokenShelfLifeMinutes)
         {
             return this.AuthToken;
         }
 
-        if (string.IsNullOrEmpty(this._appConfig.UserId) || string.IsNullOrEmpty(this._appConfig.Password))
+        if (string.IsNullOrEmpty(this.appConfig.UserId) || string.IsNullOrEmpty(this.appConfig.Password))
         {
             throw new AuthTokenException("VATSIM User ID and/or Password are not set.");
         }
 
         var request = new JsonObject
         {
-            ["cid"] = this._appConfig.UserId,
-            ["password"] = this._appConfig.PasswordDecrypted
+            ["cid"] = this.appConfig.UserId,
+            ["password"] = this.appConfig.PasswordDecrypted,
         };
 
         var jsonRequest = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.JsonObject);
 
-        var response = await this._downloader.PostJsonResponse(AuthTokenUrl, jsonRequest);
+        var response = await this.downloader.PostJsonResponse(AuthTokenUrl, jsonRequest);
         {
             try
             {
@@ -83,7 +95,7 @@ public class AuthTokenManager : IAuthTokenManager
                             "Authentication failed. No authentication token was provided in the response.");
 
             this.AuthToken = token.ToString();
-            this._authTokenGeneratedAt = DateTime.UtcNow;
+            this.authTokenGeneratedAt = DateTime.UtcNow;
 
             return this.AuthToken;
         }

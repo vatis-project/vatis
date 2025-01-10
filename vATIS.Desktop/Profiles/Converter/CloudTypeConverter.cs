@@ -1,3 +1,8 @@
+// <copyright file="CloudTypeConverter.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -6,8 +11,18 @@ using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 
 namespace Vatsim.Vatis.Profiles.Converter;
 
+/// <summary>
+/// Converts JSON data to and from a dictionary of cloud types.
+/// </summary>
 public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
 {
+    /// <summary>
+    /// Reads and converts the JSON to a dictionary of cloud types.
+    /// </summary>
+    /// <param name="reader">The reader.</param>
+    /// <param name="typeToConvert">The type to convert.</param>
+    /// <param name="options">The serializer options.</param>
+    /// <returns>A dictionary of cloud types.</returns>
     public override Dictionary<string, CloudType> Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
@@ -25,7 +40,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
             // List of required cloud types to ensure they are always present
             var requiredKeys = new List<string>
             {
-                "FEW", "SCT", "BKN", "OVC", "VV", "NSC", "NCD", "CLR", "SKC"
+                "FEW", "SCT", "BKN", "OVC", "VV", "NSC", "NCD", "CLR", "SKC",
             };
 
             // Iterate through each property in the "types" object
@@ -56,7 +71,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
                         "NCD" => new CloudType("NCD", property.Value.GetString() ?? string.Empty),
                         "CLR" => new CloudType("CLR", property.Value.GetString() ?? string.Empty),
                         "SKC" => new CloudType("SKC", property.Value.GetString() ?? string.Empty),
-                        _ => throw new ArgumentException($"Unknown cloud type: {property.Name}")
+                        _ => throw new ArgumentException($"Unknown cloud type: {property.Name}"),
                     };
                     result.Add(property.Name, cloudType);
                 }
@@ -83,6 +98,25 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
         throw new JsonException("Invalid JSON format.");
     }
 
+    /// <summary>
+    /// Writes the dictionary of cloud types to JSON.
+    /// </summary>
+    /// <param name="writer">The writer.</param>
+    /// <param name="value">The value.</param>
+    /// <param name="options">The serializer options.</param>
+    public override void Write(
+        Utf8JsonWriter writer,
+        Dictionary<string, CloudType> value,
+        JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, value, SourceGenerationContext.NewDefault.DictionaryStringCloudType);
+    }
+
+    /// <summary>
+    /// Creates a default cloud type for the given key.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>A default cloud type.</returns>
     private CloudType CreateDefaultCloudType(string key)
     {
         return key switch
@@ -96,15 +130,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
             "NCD" => new CloudType("NCD", "no clouds detected"),
             "CLR" => new CloudType("CLR", "sky clear below one-two thousand"),
             "SKC" => new CloudType("SKC", "sky clear"),
-            _ => throw new ArgumentException($"Unknown cloud type: {key}")
+            _ => throw new ArgumentException($"Unknown cloud type: {key}"),
         };
-    }
-
-    public override void Write(
-        Utf8JsonWriter writer,
-        Dictionary<string, CloudType> value,
-        JsonSerializerOptions options)
-    {
-        JsonSerializer.Serialize(writer, value, SourceGenerationContext.NewDefault.DictionaryStringCloudType);
     }
 }

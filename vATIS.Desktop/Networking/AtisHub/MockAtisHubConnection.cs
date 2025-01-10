@@ -1,3 +1,8 @@
+// <copyright file="MockAtisHubConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -11,21 +16,23 @@ using Vatsim.Vatis.Weather.Decoder;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
+/// <inheritdoc />
 public class MockAtisHubConnection : IAtisHubConnection
 {
-    private HubConnection? _hubConnection;
-    private ConnectionState _hubConnectionState;
+    private HubConnection? hubConnection;
+    private ConnectionState hubConnectionState;
 
+    /// <inheritdoc/>
     public async Task Connect()
     {
         try
         {
-            if (this._hubConnection is { State: HubConnectionState.Connected })
+            if (this.hubConnection is { State: HubConnectionState.Connected })
             {
                 return;
             }
 
-            this._hubConnection = new HubConnectionBuilder()
+            this.hubConnection = new HubConnectionBuilder()
                 .WithUrl($"http://{IPAddress.Loopback.ToString()}:5500/hub")
                 .WithAutomaticReconnect()
                 .AddJsonProtocol(
@@ -35,8 +42,8 @@ public class MockAtisHubConnection : IAtisHubConnection
                     })
                 .Build();
 
-            this._hubConnection.Closed += this.OnHubConnectionClosed;
-            this._hubConnection.On<List<AtisHubDto>>(
+            this.hubConnection.Closed += this.OnHubConnectionClosed;
+            this.hubConnection.On<List<AtisHubDto>>(
                 "AtisReceived",
                 dtoList =>
                 {
@@ -45,10 +52,10 @@ public class MockAtisHubConnection : IAtisHubConnection
                         MessageBus.Current.SendMessage(new AtisHubAtisReceived(dto));
                     }
                 });
-            this._hubConnection.On<AtisHubDto>(
+            this.hubConnection.On<AtisHubDto>(
                 "RemoveAtisReceived",
                 dto => { MessageBus.Current.SendMessage(new AtisHubExpiredAtisReceived(dto)); });
-            this._hubConnection.On<string>(
+            this.hubConnection.On<string>(
                 "MetarReceived",
                 message =>
                 {
@@ -66,8 +73,8 @@ public class MockAtisHubConnection : IAtisHubConnection
 
             this.SetConnectionState(ConnectionState.Connecting);
             Log.Information("Connecting to Dev AtisHub.");
-            await this._hubConnection.StartAsync();
-            Log.Information("Connected to Dev AtisHub with ID: " + this._hubConnection.ConnectionId);
+            await this.hubConnection.StartAsync();
+            Log.Information("Connected to Dev AtisHub with ID: " + this.hubConnection.ConnectionId);
             this.SetConnectionState(ConnectionState.Connected);
         }
         catch (Exception ex)
@@ -77,16 +84,17 @@ public class MockAtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc/>
     public async Task Disconnect()
     {
-        if (this._hubConnection == null)
+        if (this.hubConnection == null)
         {
             return;
         }
 
         try
         {
-            await this._hubConnection.StopAsync();
+            await this.hubConnection.StopAsync();
         }
         catch (Exception ex)
         {
@@ -94,31 +102,33 @@ public class MockAtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc/>
     public async Task PublishAtis(AtisHubDto dto)
     {
-        if (this._hubConnection is not { State: HubConnectionState.Connected })
+        if (this.hubConnection is not { State: HubConnectionState.Connected })
         {
             return;
         }
 
-        await this._hubConnection.InvokeAsync("PublishAtis", dto);
+        await this.hubConnection.InvokeAsync("PublishAtis", dto);
     }
 
+    /// <inheritdoc/>
     public async Task SubscribeToAtis(SubscribeDto dto)
     {
-        if (this._hubConnection is not { State: HubConnectionState.Connected })
+        if (this.hubConnection is not { State: HubConnectionState.Connected })
         {
             return;
         }
 
-        await this._hubConnection.InvokeAsync("SubscribeToAtis", dto);
+        await this.hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
     private void SetConnectionState(ConnectionState connectionState)
     {
-        this._hubConnectionState = connectionState;
-        MessageBus.Current.SendMessage(new ConnectionStateChanged(this._hubConnectionState));
-        switch (this._hubConnectionState)
+        this.hubConnectionState = connectionState;
+        MessageBus.Current.SendMessage(new ConnectionStateChanged(this.hubConnectionState));
+        switch (this.hubConnectionState)
         {
             case ConnectionState.Connected:
                 MessageBus.Current.SendMessage(new HubConnected());
