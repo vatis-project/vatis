@@ -7,6 +7,7 @@ using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 

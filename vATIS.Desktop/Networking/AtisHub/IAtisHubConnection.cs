@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 

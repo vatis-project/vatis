@@ -10,6 +10,7 @@ using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather.Decoder;
 

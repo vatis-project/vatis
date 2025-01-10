@@ -1,6 +1,6 @@
 using Vatsim.Vatis.Profiles.Models;
 
-namespace Vatsim.Vatis.Networking.AtisHub;
+namespace Vatsim.Vatis.Networking.AtisHub.Dto;
 
 public class DigitalAtisRequestDto
 {

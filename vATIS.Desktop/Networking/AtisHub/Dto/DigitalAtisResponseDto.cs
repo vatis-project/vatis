@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Vatsim.Vatis.Networking.AtisHub;
+namespace Vatsim.Vatis.Networking.AtisHub.Dto;
 
 public class DigitalAtisResponseDto
 {
