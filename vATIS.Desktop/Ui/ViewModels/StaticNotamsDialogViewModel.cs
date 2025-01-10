@@ -1,3 +1,8 @@
+// <copyright file="StaticNotamsDialogViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,33 +25,36 @@ using Vatsim.Vatis.Ui.Windows;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
+/// <summary>
+/// Represents the view model for the Static NOTAMs dialog, providing commands
+/// and properties for managing static NOTAM definitions and related functionality.
+/// </summary>
 public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly IWindowFactory _windowFactory;
+    private readonly IWindowFactory windowFactory;
+    private List<ICompletionData> contractionCompletionData = [];
+    private ObservableCollection<StaticDefinition> definitions = [];
+    private bool hasDefinitions;
+    private bool includeBeforeFreeText;
+    private bool showOverlay;
 
-    private List<ICompletionData> _contractionCompletionData = [];
-
-    private ObservableCollection<StaticDefinition> _definitions = [];
-
-    private bool _hasDefinitions;
-
-    private bool _includeBeforeFreeText;
-
-    private bool _showOverlay;
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StaticNotamsDialogViewModel"/> class.
+    /// </summary>
+    /// <param name="windowFactory">An instance of the factory used to create and manage application windows.</param>
     public StaticNotamsDialogViewModel(IWindowFactory windowFactory)
     {
-        this._windowFactory = windowFactory;
+        this.windowFactory = windowFactory;
 
         var textColumnLength = new GridLength(1, GridUnitType.Star);
-        var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) => { r.Enabled = v; });
+        var enabledColumn = new CheckBoxColumn<StaticDefinition>(string.Empty, x => x.Enabled, (r, v) => { r.Enabled = v; });
         var descriptionColumn = new TextColumn<StaticDefinition, string>(
-            "",
-            x => x.ToString()!.ToUpperInvariant(),
+            string.Empty,
+            x => x.ToString().ToUpperInvariant(),
             textColumnLength,
             new TextColumnOptions<StaticDefinition>
             {
-                TextWrapping = TextWrapping.Wrap
+                TextWrapping = TextWrapping.Wrap,
             });
 
         this.Source = new FlatTreeDataGridSource<StaticDefinition>(this.Definitions)
@@ -54,8 +62,8 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
             Columns =
             {
                 enabledColumn,
-                descriptionColumn
-            }
+                descriptionColumn,
+            },
         };
         this.Source.RowSelection!.SingleSelect = false;
 
@@ -85,57 +93,98 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets or sets the window that serves as the owner of the current dialog.
+    /// </summary>
     public Window? Owner { get; set; }
 
+    /// <summary>
+    /// Gets the command used to close a window.
+    /// </summary>
     public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
 
+    /// <summary>
+    /// Gets the command that creates a new definition.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> NewDefinitionCommand { get; }
 
+    /// <summary>
+    /// Gets the command used to handle editing an existing definition.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> EditDefinitionCommand { get; }
 
+    /// <summary>
+    /// Gets the command that deletes the selected definition from the list.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> DeleteDefinitionCommand { get; }
 
+    /// <summary>
+    /// Gets the command to move the selected definition up within the list.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> MoveDefinitionUpCommand { get; }
 
+    /// <summary>
+    /// Gets the command to move the selected definition down within the list.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> MoveDefinitionDownCommand { get; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether an overlay is shown to obscure the background.
+    /// </summary>
     public bool ShowOverlay
     {
-        get => this._showOverlay;
-        set => this.RaiseAndSetIfChanged(ref this._showOverlay, value);
+        get => this.showOverlay;
+        set => this.RaiseAndSetIfChanged(ref this.showOverlay, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether definitions are available.
+    /// </summary>
     public bool HasDefinitions
     {
-        get => this._hasDefinitions;
-        set => this.RaiseAndSetIfChanged(ref this._hasDefinitions, value);
+        get => this.hasDefinitions;
+        set => this.RaiseAndSetIfChanged(ref this.hasDefinitions, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the selected definitions
+    /// should be included before the free-form NOTAMs text in the generated ATIS.
+    /// </summary>
     public bool IncludeBeforeFreeText
     {
-        get => this._includeBeforeFreeText;
-        set => this.RaiseAndSetIfChanged(ref this._includeBeforeFreeText, value);
+        get => this.includeBeforeFreeText;
+        set => this.RaiseAndSetIfChanged(ref this.includeBeforeFreeText, value);
     }
 
+    /// <summary>
+    /// Gets or sets the list of completion data used for contraction suggestions in the NOTAM editor dialog.
+    /// </summary>
     public List<ICompletionData> ContractionCompletionData
     {
-        get => this._contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref this._contractionCompletionData, value);
+        get => this.contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref this.contractionCompletionData, value);
     }
 
+    /// <summary>
+    /// Gets or sets the collection of static definitions used in the dialog.
+    /// </summary>
     public ObservableCollection<StaticDefinition> Definitions
     {
-        get => this._definitions;
+        get => this.definitions;
         set
         {
-            this.RaiseAndSetIfChanged(ref this._definitions, value);
-            this.Source.Items = this._definitions.OrderBy(x => x.Ordinal);
-            this.HasDefinitions = this._definitions.Count != 0;
+            this.RaiseAndSetIfChanged(ref this.definitions, value);
+            this.Source.Items = this.definitions.OrderBy(x => x.Ordinal);
+            this.HasDefinitions = this.definitions.Count != 0;
         }
     }
 
+    /// <summary>
+    /// Gets the data source for the static definitions displayed in the grid.
+    /// </summary>
     public FlatTreeDataGridSource<StaticDefinition> Source { get; }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         GC.SuppressFinalize(this);
@@ -210,7 +259,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 
             if (this.Source.RowSelection?.SelectedItem is { } definition)
             {
-                var dlg = this._windowFactory.CreateStaticDefinitionEditorDialog();
+                var dlg = this.windowFactory.CreateStaticDefinitionEditorDialog();
                 dlg.Topmost = lifetime.MainWindow.Topmost;
                 if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
                 {
@@ -274,7 +323,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                 return;
             }
 
-            var dlg = this._windowFactory.CreateStaticDefinitionEditorDialog();
+            var dlg = this.windowFactory.CreateStaticDefinitionEditorDialog();
             dlg.Topmost = lifetime.MainWindow.Topmost;
             if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
             {

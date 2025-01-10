@@ -1,3 +1,8 @@
+// <copyright file="MainWindow.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -8,8 +13,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
 
+/// <summary>
+/// Represents the main window of the application, providing the primary UI and functionality for user interaction.
+/// </summary>
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainWindow"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with the main window.</param>
     public MainWindow(MainWindowViewModel viewModel)
     {
         this.InitializeComponent();
@@ -22,9 +34,27 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         this.Closing += this.OnClosing;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainWindow"/> class.
+    /// </summary>
     public MainWindow()
     {
         this.InitializeComponent();
+    }
+
+    /// <summary>
+    /// Called when the window has finished loading.
+    /// </summary>
+    /// <param name="e">The event data.</param>
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        this.PositionChanged += this.OnPositionChanged;
+        if (this.DataContext is MainWindowViewModel model)
+        {
+            model.RestorePosition(this);
+        }
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -62,17 +92,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnMinimizeWindow(object sender, RoutedEventArgs e)
     {
         this.WindowState = WindowState.Minimized;
-    }
-
-    protected override void OnLoaded(RoutedEventArgs e)
-    {
-        base.OnLoaded(e);
-
-        this.PositionChanged += this.OnPositionChanged;
-        if (this.DataContext is MainWindowViewModel model)
-        {
-            model.RestorePosition(this);
-        }
     }
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)

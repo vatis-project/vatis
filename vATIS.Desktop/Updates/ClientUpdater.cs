@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="ClientUpdater.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -8,11 +13,21 @@ using Velopack;
 
 namespace Vatsim.Vatis.Updates;
 
+/// <inheritdoc />
 public class ClientUpdater : IClientUpdater
 {
-    private readonly UpdateManager _updateManager;
-    private UpdateInfo? _updateInfo;
+    private readonly UpdateManager updateManager;
+    private UpdateInfo? updateInfo;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClientUpdater"/> class.
+    /// </summary>
+    /// <param name="appConfigurationProvider">
+    /// The application configuration provider used to determine the version URL based on the current operating system.
+    /// </param>
+    /// <exception cref="PlatformNotSupportedException">
+    /// Thrown if the current operating system is not supported.
+    /// </exception>
     public ClientUpdater(IAppConfigurationProvider appConfigurationProvider)
     {
         var versionUrl = appConfigurationProvider.VersionUrl;
@@ -33,14 +48,15 @@ public class ClientUpdater : IClientUpdater
             throw new PlatformNotSupportedException();
         }
 
-        this._updateManager = new UpdateManager(
+        this.updateManager = new UpdateManager(
             versionUrl,
             new UpdateOptions
             {
-                AllowVersionDowngrade = true
+                AllowVersionDowngrade = true,
             });
     }
 
+    /// <inheritdoc/>
     public async Task<bool> Run()
     {
         MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new client version..."));
@@ -50,20 +66,20 @@ public class ClientUpdater : IClientUpdater
             return false;
         }
 
-        if (!this._updateManager.IsInstalled)
+        if (!this.updateManager.IsInstalled)
         {
             return false;
         }
 
-        this._updateInfo = await this._updateManager.CheckForUpdatesAsync();
+        this.updateInfo = await this.updateManager.CheckForUpdatesAsync();
 
-        if (this._updateInfo == null)
+        if (this.updateInfo == null)
         {
             return false;
         }
 
-        await this._updateManager.DownloadUpdatesAsync(this._updateInfo, ReportProgress);
-        await this._updateManager.WaitExitThenApplyUpdatesAsync(this._updateInfo, true);
+        await this.updateManager.DownloadUpdatesAsync(this.updateInfo, ReportProgress);
+        await this.updateManager.WaitExitThenApplyUpdatesAsync(this.updateInfo, true);
 
         return true;
     }
