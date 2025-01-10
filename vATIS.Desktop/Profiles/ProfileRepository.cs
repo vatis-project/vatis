@@ -1,3 +1,8 @@
+// <copyright file="ProfileRepository.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,16 +16,22 @@ using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Profiles;
 
+/// <inheritdoc />
 public class ProfileRepository : IProfileRepository
 {
-    private readonly IDownloader _downloader;
+    private readonly IDownloader downloader;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfileRepository"/> class.
+    /// </summary>
+    /// <param name="downloader">The downloader instance used to facilitate downloading operations.</param>
     public ProfileRepository(IDownloader downloader)
     {
-        this._downloader = downloader;
+        this.downloader = downloader;
         this.EnsureProfilesFolderExists();
     }
 
+    /// <inheritdoc/>
     public async Task CheckForProfileUpdates()
     {
         var profiles = await this.LoadAll();
@@ -33,7 +44,7 @@ public class ProfileRepository : IProfileRepository
                     continue;
                 }
 
-                var response = await this._downloader.GetAsync(localProfile.UpdateUrl);
+                var response = await this.downloader.GetAsync(localProfile.UpdateUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var remoteProfileJson = await response.Content.ReadAsStringAsync();
@@ -74,6 +85,7 @@ public class ProfileRepository : IProfileRepository
         }
     }
 
+    /// <inheritdoc/>
     public void Save(Profile profile)
     {
         var path = PathProvider.GetProfilePath(profile.Id);
@@ -81,6 +93,7 @@ public class ProfileRepository : IProfileRepository
         File.WriteAllText(path, JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile));
     }
 
+    /// <inheritdoc/>
     public async Task Rename(string profileId, string newName)
     {
         var profile = await Load(PathProvider.GetProfilePath(profileId));
@@ -88,6 +101,7 @@ public class ProfileRepository : IProfileRepository
         this.Save(profile);
     }
 
+    /// <inheritdoc/>
     public async Task<List<Profile>> LoadAll()
     {
         var paths = Directory.GetFiles(PathProvider.ProfilesFolderPath, "*.json");
@@ -108,6 +122,7 @@ public class ProfileRepository : IProfileRepository
         return profiles;
     }
 
+    /// <inheritdoc/>
     public async Task<Profile> Copy(Profile profile)
     {
         var profiles = await this.LoadAll();
@@ -122,6 +137,7 @@ public class ProfileRepository : IProfileRepository
         return newProfile;
     }
 
+    /// <inheritdoc/>
     public void Delete(Profile profile)
     {
         var path = PathProvider.GetProfilePath(profile.Id);
@@ -129,6 +145,7 @@ public class ProfileRepository : IProfileRepository
         File.Delete(path);
     }
 
+    /// <inheritdoc/>
     public async Task<Profile> Import(string path)
     {
         var profile = await Load(path);
@@ -138,21 +155,13 @@ public class ProfileRepository : IProfileRepository
         return profile;
     }
 
+    /// <inheritdoc/>
     public void Export(Profile profile, string path)
     {
         var scrubbed = JsonSerializer.Deserialize(
             JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile),
             SourceGenerationContext.NewDefault.Profile) ?? throw new JsonException("Result is null");
         File.WriteAllText(path, JsonSerializer.Serialize(scrubbed, SourceGenerationContext.NewDefault.Profile));
-    }
-
-    private void EnsureProfilesFolderExists()
-    {
-        if (!Directory.Exists(PathProvider.ProfilesFolderPath))
-        {
-            Log.Information($"Creating Profiles folder {PathProvider.ProfilesFolderPath}");
-            Directory.CreateDirectory(PathProvider.ProfilesFolderPath);
-        }
     }
 
     private static async Task<Profile> Load(string path)
@@ -173,5 +182,14 @@ public class ProfileRepository : IProfileRepository
         }
 
         return newName;
+    }
+
+    private void EnsureProfilesFolderExists()
+    {
+        if (!Directory.Exists(PathProvider.ProfilesFolderPath))
+        {
+            Log.Information($"Creating Profiles folder {PathProvider.ProfilesFolderPath}");
+            Directory.CreateDirectory(PathProvider.ProfilesFolderPath);
+        }
     }
 }
