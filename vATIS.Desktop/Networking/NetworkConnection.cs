@@ -242,11 +242,8 @@ public class NetworkConnection : INetworkConnection
                 num++;
                 _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
                     ["E", num.ToString()]));
-                if (_atisStation?.AtisLetter != null)
-                {
-                    _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
-                        ["A", _atisStation.AtisLetter.ToString()]));
-                }
+                _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
+                    ["A", _atisStation?.AtisLetter.ToString() ?? string.Empty]));
 
                 break;
             case ClientQueryType.Inf:
