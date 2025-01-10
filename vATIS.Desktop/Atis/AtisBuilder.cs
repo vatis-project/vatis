@@ -356,19 +356,17 @@ public class AtisBuilder : IAtisBuilder
 
         if (!string.IsNullOrEmpty(notams))
         {
-            if (station.AtisFormat.Notams.Template.Text != null)
+            var template = station.AtisFormat.Notams.Template;
+            if (template.Text != null)
             {
-                notamsText = Regex.Replace(station.AtisFormat.Notams.Template.Text, "{notams}", notams, RegexOptions.IgnoreCase);
+                notamsText = Regex.Replace(template.Text, "{notams}", notams, RegexOptions.IgnoreCase);
                 // replace contraction variables
                 notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
             }
-        }
 
-        if (!string.IsNullOrEmpty(notams))
-        {
-            if (station.AtisFormat.Notams.Template.Voice != null)
+            if (template.Voice != null)
             {
-                notamsVoice = Regex.Replace(station.AtisFormat.Notams.Template.Voice, "{notams}", notams, RegexOptions.IgnoreCase);
+                notamsVoice = Regex.Replace(template.Voice, "{notams}", notams, RegexOptions.IgnoreCase);
                 // replace contraction variables
                 notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
             }
