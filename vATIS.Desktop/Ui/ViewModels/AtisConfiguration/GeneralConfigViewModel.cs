@@ -1,3 +1,8 @@
+// <copyright file="GeneralConfigViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -12,51 +17,242 @@ using Vatsim.Vatis.TextToSpeech;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
+/// <summary>
+/// Represents the general configuration view model for ATIS configurations.
+/// Inherits from <see cref="ReactiveViewModelBase"/>.
+/// </summary>
 public class GeneralConfigViewModel : ReactiveViewModelBase
 {
-    private readonly HashSet<string> _initializedProperties = [];
-    private readonly IProfileRepository _profileRepository;
-    private readonly ISessionManager _sessionManager;
+    private readonly HashSet<string> initializedProperties = [];
+    private readonly IProfileRepository profileRepository;
+    private readonly ISessionManager sessionManager;
+    private bool hasUnsavedChanges;
+    private int selectedTabIndex;
+    private AtisStation? selectedStation;
+    private string profileSerialNumber = string.Empty;
+    private string? frequency;
+    private AtisType atisType = AtisType.Combined;
+    private char codeRangeLow = 'A';
+    private char codeRangeHigh = 'Z';
+    private bool useTextToSpeech;
+    private string? textToSpeechVoice;
+    private bool useDecimalTerminology;
+    private string? idsEndpoint;
+    private ObservableCollection<VoiceMetaData>? availableVoices;
+    private bool showDuplicateAtisTypeError;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GeneralConfigViewModel"/> class.
+    /// </summary>
+    /// <param name="sessionManager">The session manager responsible for managing current session data.</param>
+    /// <param name="profileRepository">The profile repository for accessing and managing profile data.</param>
     public GeneralConfigViewModel(ISessionManager sessionManager, IProfileRepository profileRepository)
     {
-        this._sessionManager = sessionManager;
-        this._profileRepository = profileRepository;
+        this.sessionManager = sessionManager;
+        this.profileRepository = profileRepository;
 
         this.AtisStationChanged = ReactiveCommand.Create<AtisStation>(this.HandleUpdateProperties);
 
-        this.ProfileSerialNumber = this._sessionManager.CurrentProfile?.UpdateSerial != null
-            ? $"Profile Serial: {this._sessionManager.CurrentProfile.UpdateSerial}"
+        this.ProfileSerialNumber = this.sessionManager.CurrentProfile?.UpdateSerial != null
+            ? $"Profile Serial: {this.sessionManager.CurrentProfile.UpdateSerial}"
             : string.Empty;
     }
 
+    /// <summary>
+    /// Gets the command that is triggered when the ATIS station changes.
+    /// </summary>
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
 
-    private void HandleUpdateProperties(AtisStation? station)
+     /// <summary>
+    /// Gets a value indicating whether there are unsaved changes.
+    /// </summary>
+    public bool HasUnsavedChanges
     {
-        if (station == null)
-        {
-            return;
-        }
-
-        this._initializedProperties.Clear();
-
-        this.SelectedTabIndex = -1;
-        this.SelectedStation = station;
-        this.Frequency = station.Frequency > 0
-            ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US"))
-            : "";
-        this.AtisType = station.AtisType;
-        this.CodeRangeLow = station.CodeRange.Low;
-        this.CodeRangeHigh = station.CodeRange.High;
-        this.UseDecimalTerminology = station.UseDecimalTerminology;
-        this.IdsEndpoint = station.IdsEndpoint;
-        this.UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
-        this.TextToSpeechVoice = station.AtisVoice.Voice;
-
-        this.HasUnsavedChanges = false;
+        get => this.hasUnsavedChanges;
+        private set => this.RaiseAndSetIfChanged(ref this.hasUnsavedChanges, value);
     }
 
+    /// <summary>
+    /// Gets the selected tab index.
+    /// </summary>
+    public int SelectedTabIndex
+    {
+        get => this.selectedTabIndex;
+        private set => this.RaiseAndSetIfChanged(ref this.selectedTabIndex, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the selected ATIS station.
+    /// </summary>
+    public AtisStation? SelectedStation
+    {
+        get => this.selectedStation;
+        set => this.RaiseAndSetIfChanged(ref this.selectedStation, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the profile serial number.
+    /// </summary>
+    public string ProfileSerialNumber
+    {
+        get => this.profileSerialNumber;
+        set => this.RaiseAndSetIfChanged(ref this.profileSerialNumber, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the frequency.
+    /// </summary>
+    public string? Frequency
+    {
+        get => this.frequency;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.frequency, value);
+            if (!this.initializedProperties.Add(nameof(this.Frequency)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the ATIS type.
+    /// </summary>
+    public AtisType AtisType
+    {
+        get => this.atisType;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.atisType, value);
+            if (!this.initializedProperties.Add(nameof(this.AtisType)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the low range of the code.
+    /// </summary>
+    public char CodeRangeLow
+    {
+        get => this.codeRangeLow;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.codeRangeLow, value);
+            if (!this.initializedProperties.Add(nameof(this.CodeRangeLow)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the high range of the code.
+    /// </summary>
+    public char CodeRangeHigh
+    {
+        get => this.codeRangeHigh;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.codeRangeHigh, value);
+            if (!this.initializedProperties.Add(nameof(this.CodeRangeHigh)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to use text-to-speech.
+    /// </summary>
+    public bool UseTextToSpeech
+    {
+        get => this.useTextToSpeech;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.useTextToSpeech, value);
+            if (!this.initializedProperties.Add(nameof(this.UseTextToSpeech)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the text-to-speech voice.
+    /// </summary>
+    public string? TextToSpeechVoice
+    {
+        get => this.textToSpeechVoice;
+        set
+        {
+            if (this.textToSpeechVoice == value || string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            this.RaiseAndSetIfChanged(ref this.textToSpeechVoice, value);
+            if (!this.initializedProperties.Add(nameof(this.TextToSpeechVoice)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to use decimal terminology.
+    /// </summary>
+    public bool UseDecimalTerminology
+    {
+        get => this.useDecimalTerminology;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.useDecimalTerminology, value);
+            if (!this.initializedProperties.Add(nameof(this.UseDecimalTerminology)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the IDS endpoint.
+    /// </summary>
+    public string? IdsEndpoint
+    {
+        get => this.idsEndpoint;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.idsEndpoint, value);
+            if (!this.initializedProperties.Add(nameof(this.IdsEndpoint)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the available voices.
+    /// </summary>
+    public ObservableCollection<VoiceMetaData>? AvailableVoices
+    {
+        get => this.availableVoices;
+        set => this.RaiseAndSetIfChanged(ref this.availableVoices, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show duplicate ATIS type error.
+    /// </summary>
+    public bool ShowDuplicateAtisTypeError
+    {
+        get => this.showDuplicateAtisTypeError;
+        set => this.RaiseAndSetIfChanged(ref this.showDuplicateAtisTypeError, value);
+    }
+
+    /// <summary>
+    /// Resets the state of the <see cref="GeneralConfigViewModel"/> instance to its default configuration.
+    /// </summary>
     public void Reset()
     {
         this.Frequency = null;
@@ -69,6 +265,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         this.HasUnsavedChanges = false;
     }
 
+    /// <summary>
+    /// Applies the general configuration settings for the current session and validates the input data.
+    /// </summary>
+    /// <returns>
+    /// A boolean value indicating whether the configuration was successfully applied.
+    /// </returns>
     public bool ApplyConfig()
     {
         if (this.SelectedStation == null)
@@ -79,10 +281,10 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         this.ClearAllErrors();
         this.ShowDuplicateAtisTypeError = false;
 
-        if (decimal.TryParse(this.Frequency, CultureInfo.InvariantCulture, out var frequency))
+        if (decimal.TryParse(this.Frequency, CultureInfo.InvariantCulture, out var parsedFrequency))
         {
-            frequency = frequency * 1000 * 1000;
-            if (frequency is < 118000000 or > 137000000)
+            parsedFrequency = parsedFrequency * 1000 * 1000;
+            if (parsedFrequency is < 118000000 or > 137000000)
             {
                 this.SelectedTabIndex = 0;
                 this.RaiseError(
@@ -90,11 +292,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
                     "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
             }
 
-            if (frequency is >= 0 and <= uint.MaxValue)
+            if (parsedFrequency is >= 0 and <= uint.MaxValue)
             {
-                if (frequency != this.SelectedStation.Frequency)
+                if (parsedFrequency != this.SelectedStation.Frequency)
                 {
-                    this.SelectedStation.Frequency = (uint)frequency;
+                    this.SelectedStation.Frequency = (uint)parsedFrequency;
                 }
             }
         }
@@ -106,8 +308,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
 
         if (this.SelectedStation.AtisType != this.AtisType)
         {
-            if (this._sessionManager.CurrentProfile?.Stations != null &&
-                this._sessionManager.CurrentProfile.Stations.Any(
+            if (this.sessionManager.CurrentProfile?.Stations != null &&
+                this.sessionManager.CurrentProfile.Stations.Any(
                     x =>
                         x != this.SelectedStation && x.Identifier == this.SelectedStation.Identifier &&
                         x.AtisType == this.AtisType))
@@ -145,7 +347,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
 
         if (this.SelectedStation.IdsEndpoint != this.IdsEndpoint)
         {
-            this.SelectedStation.IdsEndpoint = this.IdsEndpoint ?? "";
+            this.SelectedStation.IdsEndpoint = this.IdsEndpoint ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisVoice.UseTextToSpeech != this.UseTextToSpeech)
@@ -164,189 +366,37 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
             return false;
         }
 
-        if (this._sessionManager.CurrentProfile != null)
+        if (this.sessionManager.CurrentProfile != null)
         {
-            this._profileRepository.Save(this._sessionManager.CurrentProfile);
+            this.profileRepository.Save(this.sessionManager.CurrentProfile);
         }
 
         this.HasUnsavedChanges = false;
         return true;
     }
 
-    #region Reactive Properties
-
-    private bool _hasUnsavedChanges;
-
-    public bool HasUnsavedChanges
+    private void HandleUpdateProperties(AtisStation? station)
     {
-        get => this._hasUnsavedChanges;
-        private set => this.RaiseAndSetIfChanged(ref this._hasUnsavedChanges, value);
-    }
-
-    private int _selectedTabIndex;
-
-    public int SelectedTabIndex
-    {
-        get => this._selectedTabIndex;
-        private set => this.RaiseAndSetIfChanged(ref this._selectedTabIndex, value);
-    }
-
-    private AtisStation? _selectedStation;
-
-    private AtisStation? SelectedStation
-    {
-        get => this._selectedStation;
-        set => this.RaiseAndSetIfChanged(ref this._selectedStation, value);
-    }
-
-    private string _profileSerialNumber = "";
-
-    public string ProfileSerialNumber
-    {
-        get => this._profileSerialNumber;
-        set => this.RaiseAndSetIfChanged(ref this._profileSerialNumber, value);
-    }
-
-    private string? _frequency;
-
-    public string? Frequency
-    {
-        get => this._frequency;
-        set
+        if (station == null)
         {
-            this.RaiseAndSetIfChanged(ref this._frequency, value);
-            if (!this._initializedProperties.Add(nameof(this.Frequency)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            return;
         }
+
+        this.initializedProperties.Clear();
+
+        this.SelectedTabIndex = -1;
+        this.SelectedStation = station;
+        this.Frequency = station.Frequency > 0
+            ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US"))
+            : string.Empty;
+        this.AtisType = station.AtisType;
+        this.CodeRangeLow = station.CodeRange.Low;
+        this.CodeRangeHigh = station.CodeRange.High;
+        this.UseDecimalTerminology = station.UseDecimalTerminology;
+        this.IdsEndpoint = station.IdsEndpoint;
+        this.UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
+        this.TextToSpeechVoice = station.AtisVoice.Voice;
+
+        this.HasUnsavedChanges = false;
     }
-
-    private AtisType _atisType = AtisType.Combined;
-
-    public AtisType AtisType
-    {
-        get => this._atisType;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._atisType, value);
-            if (!this._initializedProperties.Add(nameof(this.AtisType)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private char _codeRangeLow = 'A';
-
-    public char CodeRangeLow
-    {
-        get => this._codeRangeLow;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._codeRangeLow, value);
-            if (!this._initializedProperties.Add(nameof(this.CodeRangeLow)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private char _codeRangeHigh = 'Z';
-
-    public char CodeRangeHigh
-    {
-        get => this._codeRangeHigh;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._codeRangeHigh, value);
-            if (!this._initializedProperties.Add(nameof(this.CodeRangeHigh)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private bool _useTextToSpeech;
-
-    public bool UseTextToSpeech
-    {
-        get => this._useTextToSpeech;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._useTextToSpeech, value);
-            if (!this._initializedProperties.Add(nameof(this.UseTextToSpeech)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _textToSpeechVoice;
-
-    public string? TextToSpeechVoice
-    {
-        get => this._textToSpeechVoice;
-        set
-        {
-            if (this._textToSpeechVoice == value || string.IsNullOrEmpty(value))
-            {
-                return;
-            }
-
-            this.RaiseAndSetIfChanged(ref this._textToSpeechVoice, value);
-            if (!this._initializedProperties.Add(nameof(this.TextToSpeechVoice)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private bool _useDecimalTerminology;
-
-    public bool UseDecimalTerminology
-    {
-        get => this._useDecimalTerminology;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._useDecimalTerminology, value);
-            if (!this._initializedProperties.Add(nameof(this.UseDecimalTerminology)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _idsEndpoint;
-
-    public string? IdsEndpoint
-    {
-        get => this._idsEndpoint;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._idsEndpoint, value);
-            if (!this._initializedProperties.Add(nameof(this.IdsEndpoint)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private ObservableCollection<VoiceMetaData>? _availableVoices;
-
-    public ObservableCollection<VoiceMetaData>? AvailableVoices
-    {
-        get => this._availableVoices;
-        set => this.RaiseAndSetIfChanged(ref this._availableVoices, value);
-    }
-
-    private bool _showDuplicateAtisTypeError;
-
-    public bool ShowDuplicateAtisTypeError
-    {
-        get => this._showDuplicateAtisTypeError;
-        set => this.RaiseAndSetIfChanged(ref this._showDuplicateAtisTypeError, value);
-    }
-
-    #endregion
 }

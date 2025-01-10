@@ -1,3 +1,8 @@
+// <copyright file="FormattingViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -20,21 +25,105 @@ using Vatsim.Vatis.Ui.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
+/// <summary>
+/// Represents the view model for formatting configuration within the ATIS system.
+/// </summary>
 public class FormattingViewModel : ReactiveViewModelBase
 {
-    private readonly HashSet<string> _initializedProperties = [];
-    private readonly IProfileRepository _profileRepository;
-    private readonly ISessionManager _sessionManager;
-    private readonly IWindowFactory _windowFactory;
+    private readonly HashSet<string> initializedProperties = [];
+    private readonly IProfileRepository profileRepository;
+    private readonly ISessionManager sessionManager;
+    private readonly IWindowFactory windowFactory;
+    private ObservableCollection<string>? formattingOptions;
+    private AtisStation? selectedStation;
+    private bool hasUnsavedChanges;
+    private string? selectedFormattingOption;
+    private string? routineObservationTime;
+    private string? observationTimeTextTemplate;
+    private string? observationTimeVoiceTemplate;
+    private bool speakWindSpeedLeadingZero;
+    private bool magneticVariationEnabled;
+    private string? magneticVariationValue;
+    private string? standardWindTextTemplate;
+    private string? standardWindVoiceTemplate;
+    private string? standardGustWindTextTemplate;
+    private string? standardGustWindVoiceTemplate;
+    private string? variableWindTextTemplate;
+    private string? variableWindVoiceTemplate;
+    private string? variableGustWindTextTemplate;
+    private string? variableGustWindVoiceTemplate;
+    private string? variableDirectionWindTextTemplate;
+    private string? variableDirectionWindVoiceTemplate;
+    private string? calmWindTextTemplate;
+    private string? calmWindVoiceTemplate;
+    private string? calmWindSpeed;
+    private string? visibilityTextTemplate;
+    private string? visibilityVoiceTemplate;
+    private string? presentWeatherTextTemplate;
+    private string? presentWeatherVoiceTemplate;
+    private string? recentWeatherTextTemplate;
+    private string? recentWeatherVoiceTemplate;
+    private string? cloudsTextTemplate;
+    private string? cloudsVoiceTemplate;
+    private string? temperatureTextTemplate;
+    private string? temperatureVoiceTemplate;
+    private string? dewpointTextTemplate;
+    private string? dewpointVoiceTemplate;
+    private string? altimeterTextTemplate;
+    private string? altimeterVoiceTemplate;
+    private string? closingStatementTextTemplate;
+    private string? closingStatementVoiceTemplate;
+    private string? notamsTextTemplate;
+    private string? notamsVoiceTemplate;
+    private string? visibilityNorth;
+    private string? visibilityNorthEast;
+    private string? visibilityEast;
+    private string? visibilitySouthEast;
+    private string? visibilitySouth;
+    private string? visibilitySouthWest;
+    private string? visibilityWest;
+    private string? visibilityNorthWest;
+    private string? visibilityUnlimitedVisibilityVoice;
+    private string? visibilityUnlimitedVisibilityText;
+    private bool visibilityIncludeVisibilitySuffix;
+    private int visibilityMetersCutoff;
+    private string? presentWeatherLightIntensity;
+    private string? presentWeatherModerateIntensity;
+    private string? presentWeatherHeavyIntensity;
+    private string? presentWeatherVicinity;
+    private bool cloudsIdentifyCeilingLayer;
+    private bool cloudsConvertToMetric;
+    private string? undeterminedLayerAltitudeText;
+    private string? undeterminedLayerAltitudeVoice;
+    private bool cloudHeightAltitudeInHundreds;
+    private bool temperatureUsePlusPrefix;
+    private bool temperatureSpeakLeadingZero;
+    private bool dewpointUsePlusPrefix;
+    private bool dewpointSpeakLeadingZero;
+    private bool altimeterSpeakDecimal;
+    private bool closingStatementAutoIncludeClosingStatement;
+    private ObservableCollection<TransitionLevelMeta>? transitionLevelMetas;
+    private string? transitionLevelTextTemplate;
+    private string? transitionLevelVoiceTemplate;
+    private ObservableCollection<PresentWeatherMeta>? presentWeatherTypes;
+    private ObservableCollection<CloudTypeMeta>? cloudTypes;
+    private ObservableCollection<ConvectiveCloudTypeMeta>? convectiveCloudTypes;
+    private List<ICompletionData> contractionCompletionData = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FormattingViewModel"/> class.
+    /// </summary>
+    /// <param name="windowFactory">An instance of <see cref="IWindowFactory"/> for creating windows in the UI layer.</param>
+    /// <param name="profileRepository">An instance of <see cref="IProfileRepository"/> for managing user profiles.</param>
+    /// <param name="sessionManager">An instance of <see cref="ISessionManager"/> for managing session-related data and operations.</param>
     public FormattingViewModel(
         IWindowFactory windowFactory,
         IProfileRepository profileRepository,
         ISessionManager sessionManager)
     {
-        this._windowFactory = windowFactory;
-        this._profileRepository = profileRepository;
-        this._sessionManager = sessionManager;
+        this.windowFactory = windowFactory;
+        this.profileRepository = profileRepository;
+        this.sessionManager = sessionManager;
 
         this.FormattingOptions = [];
 
@@ -46,314 +135,1184 @@ public class FormattingViewModel : ReactiveViewModelBase
             ReactiveCommand.CreateFromTask<TransitionLevelMeta>(this.HandleDeleteTransitionLevel);
     }
 
+    /// <summary>
+    /// Gets or sets the dialog owner used for displaying dialogs within the view model.
+    /// </summary>
     public IDialogOwner? DialogOwner { get; set; }
 
+    /// <summary>
+    /// Gets the command executed when the ATIS station changes.
+    /// </summary>
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
 
+    /// <summary>
+    /// Gets the command executed when a template variable is clicked.
+    /// </summary>
     public ReactiveCommand<string, Unit> TemplateVariableClicked { get; }
 
+    /// <summary>
+    /// Gets the command executed when cell editing ends in a data grid.
+    /// </summary>
     public ReactiveCommand<DataGridCellEditEndingEventArgs, Unit> CellEditEndingCommand { get; }
 
+    /// <summary>
+    /// Gets the command used to add a transition level in the view model.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> AddTransitionLevelCommand { get; }
 
+    /// <summary>
+    /// Gets the command used to delete a transition level from the configuration.
+    /// </summary>
     public ReactiveCommand<TransitionLevelMeta, Unit> DeleteTransitionLevelCommand { get; }
 
-    private void HandleAtisStationChanged(AtisStation? station)
+    /// <summary>
+    /// Gets or sets the collection of formatting options available in the view model.
+    /// </summary>
+    public ObservableCollection<string>? FormattingOptions
     {
-        if (station == null)
-        {
-            return;
-        }
-
-        this.SelectedStation = station;
-
-        this.FormattingOptions = [];
-        if (station.IsFaaAtis)
-        {
-            this.FormattingOptions =
-            [
-                "Observation Time",
-                "Wind",
-                "Visibility",
-                "Weather",
-                "Clouds",
-                "Temperature",
-                "Dewpoint",
-                "Altimeter",
-                "NOTAMs",
-                "Closing Statement"
-            ];
-        }
-        else
-        {
-            this.FormattingOptions =
-            [
-                "Observation Time",
-                "Wind",
-                "Visibility",
-                "Weather",
-                "Clouds",
-                "Temperature",
-                "Dewpoint",
-                "Altimeter",
-                "Transition Level",
-                "NOTAMs",
-                "Closing Statement"
-            ];
-        }
-
-        this.SpeakWindSpeedLeadingZero = station.AtisFormat.SurfaceWind.SpeakLeadingZero;
-        this.MagneticVariationEnabled = station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
-        this.MagneticVariationValue = station.AtisFormat.SurfaceWind.MagneticVariation.MagneticDegrees.ToString();
-        this.RoutineObservationTime = string.Join(",", station.AtisFormat.ObservationTime.StandardUpdateTime ?? []);
-        this.ObservationTimeTextTemplate = station.AtisFormat.ObservationTime.Template.Text;
-        this.ObservationTimeVoiceTemplate = station.AtisFormat.ObservationTime.Template.Voice;
-        this.StandardWindTextTemplate = station.AtisFormat.SurfaceWind.Standard.Template.Text;
-        this.StandardWindVoiceTemplate = station.AtisFormat.SurfaceWind.Standard.Template.Voice;
-        this.StandardGustWindTextTemplate = station.AtisFormat.SurfaceWind.StandardGust.Template.Text;
-        this.StandardGustWindVoiceTemplate = station.AtisFormat.SurfaceWind.StandardGust.Template.Voice;
-        this.VariableWindTextTemplate = station.AtisFormat.SurfaceWind.Variable.Template.Text;
-        this.VariableWindVoiceTemplate = station.AtisFormat.SurfaceWind.Variable.Template.Voice;
-        this.VariableGustWindTextTemplate = station.AtisFormat.SurfaceWind.VariableGust.Template.Text;
-        this.VariableGustWindVoiceTemplate = station.AtisFormat.SurfaceWind.VariableGust.Template.Voice;
-        this.VariableDirectionWindTextTemplate = station.AtisFormat.SurfaceWind.VariableDirection.Template.Text;
-        this.VariableDirectionWindVoiceTemplate = station.AtisFormat.SurfaceWind.VariableDirection.Template.Voice;
-        this.CalmWindTextTemplate = station.AtisFormat.SurfaceWind.Calm.Template.Text;
-        this.CalmWindVoiceTemplate = station.AtisFormat.SurfaceWind.Calm.Template.Voice;
-        this.CalmWindSpeed = station.AtisFormat.SurfaceWind.Calm.CalmWindSpeed.ToString();
-        this.VisibilityTextTemplate = station.AtisFormat.Visibility.Template.Text;
-        this.VisibilityVoiceTemplate = station.AtisFormat.Visibility.Template.Voice;
-        this.PresentWeatherTextTemplate = station.AtisFormat.PresentWeather.Template.Text;
-        this.PresentWeatherVoiceTemplate = station.AtisFormat.PresentWeather.Template.Voice;
-        this.RecentWeatherVoiceTemplate = station.AtisFormat.RecentWeather.Template.Voice;
-        this.RecentWeatherTextTemplate = station.AtisFormat.RecentWeather.Template.Text;
-        this.CloudsTextTemplate = station.AtisFormat.Clouds.Template.Text;
-        this.CloudsVoiceTemplate = station.AtisFormat.Clouds.Template.Voice;
-        this.TemperatureTextTemplate = station.AtisFormat.Temperature.Template.Text;
-        this.TemperatureVoiceTemplate = station.AtisFormat.Temperature.Template.Voice;
-        this.DewpointTextTemplate = station.AtisFormat.Dewpoint.Template.Text;
-        this.DewpointVoiceTemplate = station.AtisFormat.Dewpoint.Template.Voice;
-        this.AltimeterTextTemplate = station.AtisFormat.Altimeter.Template.Text;
-        this.AltimeterVoiceTemplate = station.AtisFormat.Altimeter.Template.Voice;
-        this.ClosingStatementTextTemplate = station.AtisFormat.ClosingStatement.Template.Text;
-        this.ClosingStatementVoiceTemplate = station.AtisFormat.ClosingStatement.Template.Voice;
-        this.VisibilityNorth = station.AtisFormat.Visibility.North;
-        this.VisibilityNorthEast = station.AtisFormat.Visibility.NorthEast;
-        this.VisibilityEast = station.AtisFormat.Visibility.East;
-        this.VisibilitySouthEast = station.AtisFormat.Visibility.SouthEast;
-        this.VisibilitySouth = station.AtisFormat.Visibility.South;
-        this.VisibilitySouthWest = station.AtisFormat.Visibility.SouthWest;
-        this.VisibilityWest = station.AtisFormat.Visibility.West;
-        this.VisibilityNorthWest = station.AtisFormat.Visibility.NorthWest;
-        this.VisibilityUnlimitedVisibilityVoice = station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
-        this.VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
-        this.VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
-        this.VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
-        this.PresentWeatherLightIntensity = station.AtisFormat.PresentWeather.LightIntensity;
-        this.PresentWeatherModerateIntensity = station.AtisFormat.PresentWeather.ModerateIntensity;
-        this.PresentWeatherHeavyIntensity = station.AtisFormat.PresentWeather.HeavyIntensity;
-        this.PresentWeatherVicinity = station.AtisFormat.PresentWeather.Vicinity;
-        this.CloudsIdentifyCeilingLayer = station.AtisFormat.Clouds.IdentifyCeilingLayer;
-        this.CloudsConvertToMetric = station.AtisFormat.Clouds.ConvertToMetric;
-        this.CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
-        this.UndeterminedLayerAltitudeText = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text;
-        this.UndeterminedLayerAltitudeVoice = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice;
-        this.TemperatureUsePlusPrefix = station.AtisFormat.Temperature.UsePlusPrefix;
-        this.TemperatureSpeakLeadingZero = station.AtisFormat.Temperature.SpeakLeadingZero;
-        this.DewpointUsePlusPrefix = station.AtisFormat.Dewpoint.UsePlusPrefix;
-        this.DewpointSpeakLeadingZero = station.AtisFormat.Dewpoint.SpeakLeadingZero;
-        this.AltimeterSpeakDecimal = station.AtisFormat.Altimeter.PronounceDecimal;
-        this.NotamsTextTemplate = station.AtisFormat.Notams.Template.Text;
-        this.NotamsVoiceTemplate = station.AtisFormat.Notams.Template.Voice;
-        this.ClosingStatementAutoIncludeClosingStatement =
-            station.AtisFormat.ClosingStatement.AutoIncludeClosingStatement;
-
-        this.PresentWeatherTypes = [];
-        foreach (var kvp in station.AtisFormat.PresentWeather.PresentWeatherTypes)
-        {
-            this.PresentWeatherTypes.Add(new PresentWeatherMeta(kvp.Key, kvp.Value.Text, kvp.Value.Spoken));
-        }
-
-        this.CloudTypes = [];
-        foreach (var item in station.AtisFormat.Clouds.Types)
-        {
-            this.CloudTypes.Add(new CloudTypeMeta(item.Key, item.Value.Voice, item.Value.Text));
-        }
-
-        this.ConvectiveCloudTypes = [];
-        foreach (var item in station.AtisFormat.Clouds.ConvectiveTypes)
-        {
-            this.ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(item.Key, item.Value));
-        }
-
-        this.TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
-        this.TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
-
-        this.TransitionLevels = [];
-        foreach (var item in station.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low))
-        {
-            this.TransitionLevels.Add(item);
-        }
-
-        this.ContractionCompletionData = [];
-        foreach (var contraction in station.Contractions)
-        {
-            if (!string.IsNullOrEmpty(contraction.VariableName) && !string.IsNullOrEmpty(contraction.Voice))
-            {
-                this.ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
-            }
-        }
-
-        this.HasUnsavedChanges = false;
+        get => this.formattingOptions;
+        set => this.RaiseAndSetIfChanged(ref this.formattingOptions, value);
     }
 
-    private async Task HandleAddTransitionLevel()
+    /// <summary>
+    /// Gets the selected ATIS station.
+    /// </summary>
+    public AtisStation? SelectedStation
     {
-        if (this.DialogOwner == null || this.SelectedStation == null)
+        get => this.selectedStation;
+        private set => this.RaiseAndSetIfChanged(ref this.selectedStation, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether there are unsaved changes.
+    /// </summary>
+    public bool HasUnsavedChanges
+    {
+        get => this.hasUnsavedChanges;
+        private set => this.RaiseAndSetIfChanged(ref this.hasUnsavedChanges, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the currently selected formatting option from the collection.
+    /// </summary>
+    public string? SelectedFormattingOption
+    {
+        get => this.selectedFormattingOption;
+        set => this.RaiseAndSetIfChanged(ref this.selectedFormattingOption, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the routine observation time.
+    /// </summary>
+    public string? RoutineObservationTime
+    {
+        get => this.routineObservationTime;
+        set
         {
-            return;
-        }
-
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-        {
-            if (lifetime.MainWindow == null)
+            this.RaiseAndSetIfChanged(ref this.routineObservationTime, value);
+            if (!this.initializedProperties.Add(nameof(this.RoutineObservationTime)))
             {
-                return;
-            }
-
-            string? previousQnhLow = null;
-            string? previousQnhHigh = null;
-            string? previousTransitionLevel = null;
-
-            var dialog = this._windowFactory.CreateTransitionLevelDialog();
-            dialog.Topmost = lifetime.MainWindow.Topmost;
-            if (dialog.DataContext is TransitionLevelDialogViewModel context)
-            {
-                context.QnhLow = previousQnhLow;
-                context.QnhHigh = previousQnhHigh;
-                context.TransitionLevel = previousTransitionLevel;
-
-                context.DialogResultChanged += (_, dialogResult) =>
-                {
-                    if (dialogResult == DialogResult.Ok)
-                    {
-                        context.ClearAllErrors();
-
-                        previousQnhLow = context.QnhLow;
-                        previousQnhHigh = context.QnhHigh;
-                        previousTransitionLevel = context.TransitionLevel;
-
-                        if (string.IsNullOrEmpty(context.QnhLow))
-                        {
-                            context.RaiseError("QnhLow", "Value is required.");
-                        }
-
-                        if (string.IsNullOrEmpty(context.QnhHigh))
-                        {
-                            context.RaiseError("QnhHigh", "Value is required.");
-                        }
-
-                        if (string.IsNullOrEmpty(context.TransitionLevel))
-                        {
-                            context.RaiseError("TransitionLevel", "Value is required.");
-                        }
-
-                        int.TryParse(context.QnhLow, out var intLow);
-                        int.TryParse(context.QnhHigh, out var intHigh);
-                        int.TryParse(context.TransitionLevel, out var intLevel);
-
-                        if (this.SelectedStation.AtisFormat.TransitionLevel.Values.Any(
-                                x =>
-                                    x.Low == intLow && x.High == intHigh))
-                        {
-                            context.RaiseError("QnhLow", "Duplicate transition level.");
-                        }
-
-                        if (context.HasErrors)
-                        {
-                            return;
-                        }
-
-                        this.SelectedStation.AtisFormat.TransitionLevel.Values.Add(
-                            new TransitionLevelMeta(intLow, intHigh, intLevel));
-
-                        this.TransitionLevels = [];
-                        var sorted = this.SelectedStation.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low);
-                        foreach (var item in sorted)
-                        {
-                            this.TransitionLevels.Add(item);
-                        }
-
-                        if (this._sessionManager.CurrentProfile != null)
-                        {
-                            this._profileRepository.Save(this._sessionManager.CurrentProfile);
-                        }
-                    }
-                };
-                await dialog.ShowDialog((Window)this.DialogOwner);
+                this.HasUnsavedChanges = true;
             }
         }
     }
 
-    private async Task HandleDeleteTransitionLevel(TransitionLevelMeta? obj)
+    /// <summary>
+    /// Gets or sets the observation time text template.
+    /// </summary>
+    public string? ObservationTimeTextTemplate
     {
-        if (obj == null || this.TransitionLevels == null || this.DialogOwner == null || this.SelectedStation == null)
+        get => this.observationTimeTextTemplate;
+        set
         {
-            return;
-        }
-
-        if (await MessageBox.ShowDialog(
-                (Window)this.DialogOwner,
-                "Are you sure you want to delete the selected transition level?",
-                "Confirm",
-                MessageBoxButton.YesNo,
-                MessageBoxIcon.Information) == MessageBoxResult.Yes)
-        {
-            if (this.TransitionLevels.Remove(obj))
+            this.RaiseAndSetIfChanged(ref this.observationTimeTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.ObservationTimeTextTemplate)))
             {
-                this.SelectedStation.AtisFormat.TransitionLevel.Values.Remove(obj);
-                if (this._sessionManager.CurrentProfile != null)
-                {
-                    this._profileRepository.Save(this._sessionManager.CurrentProfile);
-                }
+                this.HasUnsavedChanges = true;
             }
         }
     }
 
-    private void HandleCellEditEnding(DataGridCellEditEndingEventArgs e)
+    /// <summary>
+    /// Gets or sets the observation time voice template.
+    /// </summary>
+    public string? ObservationTimeVoiceTemplate
     {
-        if (e.EditAction == DataGridEditAction.Commit)
+        get => this.observationTimeVoiceTemplate;
+        set
         {
-            this.HasUnsavedChanges = true;
-        }
-    }
-
-    private void HandleTemplateVariableClicked(string? variable)
-    {
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-        {
-            if (lifetime.MainWindow == null)
+            this.RaiseAndSetIfChanged(ref this.observationTimeVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.ObservationTimeVoiceTemplate)))
             {
-                return;
-            }
-
-            var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
-            var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
-
-            if (focusedElement is TemplateVariableTextBox focusedTextBox)
-            {
-                focusedTextBox.Text += variable?.Replace("__", "_");
-                focusedTextBox.CaretIndex = focusedTextBox.Text.Length;
-            }
-
-            if (focusedElement is TextArea focusedTextEditor)
-            {
-                focusedTextEditor.Document.Text += variable?.Replace("__", "_");
-                focusedTextEditor.Caret.Offset = focusedTextEditor.Document.Text.Length;
+                this.HasUnsavedChanges = true;
             }
         }
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to speak wind speed leading zero.
+    /// </summary>
+    public bool SpeakWindSpeedLeadingZero
+    {
+        get => this.speakWindSpeedLeadingZero;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.speakWindSpeedLeadingZero, value);
+            if (!this.initializedProperties.Add(nameof(this.SpeakWindSpeedLeadingZero)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether magnetic variation is enabled.
+    /// </summary>
+    public bool MagneticVariationEnabled
+    {
+        get => this.magneticVariationEnabled;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.magneticVariationEnabled, value);
+            if (!this.initializedProperties.Add(nameof(this.MagneticVariationEnabled)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the magnetic variation value.
+    /// </summary>
+    public string? MagneticVariationValue
+    {
+        get => this.magneticVariationValue;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.magneticVariationValue, value);
+            if (!this.initializedProperties.Add(nameof(this.MagneticVariationValue)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the standard wind text template.
+    /// </summary>
+    public string? StandardWindTextTemplate
+    {
+        get => this.standardWindTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.standardWindTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.StandardWindTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the standard wind voice template.
+    /// </summary>
+    public string? StandardWindVoiceTemplate
+    {
+        get => this.standardWindVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.standardWindVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.StandardWindVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the standard gust wind text template.
+    /// </summary>
+    public string? StandardGustWindTextTemplate
+    {
+        get => this.standardGustWindTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.standardGustWindTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.StandardGustWindTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the standard gust wind voice template.
+    /// </summary>
+    public string? StandardGustWindVoiceTemplate
+    {
+        get => this.standardGustWindVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.standardGustWindVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.StandardGustWindVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the variable wind text template.
+    /// </summary>
+    public string? VariableWindTextTemplate
+    {
+        get => this.variableWindTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.variableWindTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VariableWindTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the variable wind voice template.
+    /// </summary>
+    public string? VariableWindVoiceTemplate
+    {
+        get => this.variableWindVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.variableWindVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VariableWindVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the variable gust wind text template.
+    /// </summary>
+    public string? VariableGustWindTextTemplate
+    {
+        get => this.variableGustWindTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.variableGustWindTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VariableGustWindTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the variable gust wind voice template.
+    /// </summary>
+    public string? VariableGustWindVoiceTemplate
+    {
+        get => this.variableGustWindVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.variableGustWindVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VariableGustWindVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the variable direction wind text template.
+    /// </summary>
+    public string? VariableDirectionWindTextTemplate
+    {
+        get => this.variableDirectionWindTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.variableDirectionWindTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VariableDirectionWindTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the variable direction wind voice template.
+    /// </summary>
+    public string? VariableDirectionWindVoiceTemplate
+    {
+        get => this.variableDirectionWindVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.variableDirectionWindVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VariableDirectionWindVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the calm wind text template.
+    /// </summary>
+    public string? CalmWindTextTemplate
+    {
+        get => this.calmWindTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.calmWindTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.CalmWindTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the calm wind voice template.
+    /// </summary>
+    public string? CalmWindVoiceTemplate
+    {
+        get => this.calmWindVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.calmWindVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.CalmWindVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the calm wind speed.
+    /// </summary>
+    public string? CalmWindSpeed
+    {
+        get => this.calmWindSpeed;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.calmWindSpeed, value);
+            if (!this.initializedProperties.Add(nameof(this.CalmWindSpeed)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility text template.
+    /// </summary>
+    public string? VisibilityTextTemplate
+    {
+        get => this.visibilityTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility voice template.
+    /// </summary>
+    public string? VisibilityVoiceTemplate
+    {
+        get => this.visibilityVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather text template.
+    /// </summary>
+    public string? PresentWeatherTextTemplate
+    {
+        get => this.presentWeatherTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.presentWeatherTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.PresentWeatherTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather voice template.
+    /// </summary>
+    public string? PresentWeatherVoiceTemplate
+    {
+        get => this.presentWeatherVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.presentWeatherVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.PresentWeatherVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the recent weather text template.
+    /// </summary>
+    public string? RecentWeatherTextTemplate
+    {
+        get => this.recentWeatherTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.recentWeatherTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.RecentWeatherTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the recent weather voice template.
+    /// </summary>
+    public string? RecentWeatherVoiceTemplate
+    {
+        get => this.recentWeatherVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.recentWeatherVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.RecentWeatherVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the clouds text template.
+    /// </summary>
+    public string? CloudsTextTemplate
+    {
+        get => this.cloudsTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.cloudsTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.CloudsTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the clouds voice template.
+    /// </summary>
+    public string? CloudsVoiceTemplate
+    {
+        get => this.cloudsVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.cloudsVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.CloudsVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the temperature text template.
+    /// </summary>
+    public string? TemperatureTextTemplate
+    {
+        get => this.temperatureTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.temperatureTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.TemperatureTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the temperature voice template.
+    /// </summary>
+    public string? TemperatureVoiceTemplate
+    {
+        get => this.temperatureVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.temperatureVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.TemperatureVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the dewpoint text template.
+    /// </summary>
+    public string? DewpointTextTemplate
+    {
+        get => this.dewpointTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.dewpointTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.DewpointTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the dewpoint voice template.
+    /// </summary>
+    public string? DewpointVoiceTemplate
+    {
+        get => this.dewpointVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.dewpointVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.DewpointVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the altimeter text template.
+    /// </summary>
+    public string? AltimeterTextTemplate
+    {
+        get => this.altimeterTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.altimeterTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.AltimeterTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the altimeter voice template.
+    /// </summary>
+    public string? AltimeterVoiceTemplate
+    {
+        get => this.altimeterVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.altimeterVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.AltimeterVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the closing statement text template.
+    /// </summary>
+    public string? ClosingStatementTextTemplate
+    {
+        get => this.closingStatementTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.closingStatementTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.ClosingStatementTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the closing statement voice template.
+    /// </summary>
+    public string? ClosingStatementVoiceTemplate
+    {
+        get => this.closingStatementVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.closingStatementVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.ClosingStatementVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the NOTAMs text template.
+    /// </summary>
+    public string? NotamsTextTemplate
+    {
+        get => this.notamsTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.notamsTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.NotamsTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the NOTAMs voice template.
+    /// </summary>
+    public string? NotamsVoiceTemplate
+    {
+        get => this.notamsVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.notamsVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.NotamsVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility north.
+    /// </summary>
+    public string? VisibilityNorth
+    {
+        get => this.visibilityNorth;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityNorth, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityNorth)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility north-east.
+    /// </summary>
+    public string? VisibilityNorthEast
+    {
+        get => this.visibilityNorthEast;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityNorthEast, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityNorthEast)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility east.
+    /// </summary>
+    public string? VisibilityEast
+    {
+        get => this.visibilityEast;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityEast, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityEast)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility south-east.
+    /// </summary>
+    public string? VisibilitySouthEast
+    {
+        get => this.visibilitySouthEast;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilitySouthEast, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilitySouthEast)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility south.
+    /// </summary>
+    public string? VisibilitySouth
+    {
+        get => this.visibilitySouth;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilitySouth, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilitySouth)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility south-west.
+    /// </summary>
+    public string? VisibilitySouthWest
+    {
+        get => this.visibilitySouthWest;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilitySouthWest, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilitySouthWest)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility west.
+    /// </summary>
+    public string? VisibilityWest
+    {
+        get => this.visibilityWest;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityWest, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityWest)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility north-west.
+    /// </summary>
+    public string? VisibilityNorthWest
+    {
+        get => this.visibilityNorthWest;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityNorthWest, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityNorthWest)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the unlimited visibility voice template.
+    /// </summary>
+    public string? VisibilityUnlimitedVisibilityVoice
+    {
+        get => this.visibilityUnlimitedVisibilityVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityUnlimitedVisibilityVoice, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityUnlimitedVisibilityVoice)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the unlimited visibility text template.
+    /// </summary>
+    public string? VisibilityUnlimitedVisibilityText
+    {
+        get => this.visibilityUnlimitedVisibilityText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityUnlimitedVisibilityText, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityUnlimitedVisibilityText)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to include visibility suffix.
+    /// </summary>
+    public bool VisibilityIncludeVisibilitySuffix
+    {
+        get => this.visibilityIncludeVisibilitySuffix;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityIncludeVisibilitySuffix, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityIncludeVisibilitySuffix)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the visibility meters cutoff.
+    /// </summary>
+    public int VisibilityMetersCutoff
+    {
+        get => this.visibilityMetersCutoff;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.visibilityMetersCutoff, value);
+            if (!this.initializedProperties.Add(nameof(this.VisibilityMetersCutoff)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather light intensity.
+    /// </summary>
+    public string? PresentWeatherLightIntensity
+    {
+        get => this.presentWeatherLightIntensity;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.presentWeatherLightIntensity, value);
+            if (!this.initializedProperties.Add(nameof(this.PresentWeatherLightIntensity)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather moderate intensity.
+    /// </summary>
+    public string? PresentWeatherModerateIntensity
+    {
+        get => this.presentWeatherModerateIntensity;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.presentWeatherModerateIntensity, value);
+            if (!this.initializedProperties.Add(nameof(this.PresentWeatherModerateIntensity)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather heavy intensity.
+    /// </summary>
+    public string? PresentWeatherHeavyIntensity
+    {
+        get => this.presentWeatherHeavyIntensity;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.presentWeatherHeavyIntensity, value);
+            if (!this.initializedProperties.Add(nameof(this.PresentWeatherHeavyIntensity)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather vicinity.
+    /// </summary>
+    public string? PresentWeatherVicinity
+    {
+        get => this.presentWeatherVicinity;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.presentWeatherVicinity, value);
+            if (!this.initializedProperties.Add(nameof(this.PresentWeatherVicinity)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to identify ceiling layer.
+    /// </summary>
+    public bool CloudsIdentifyCeilingLayer
+    {
+        get => this.cloudsIdentifyCeilingLayer;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.cloudsIdentifyCeilingLayer, value);
+            if (!this.initializedProperties.Add(nameof(this.CloudsIdentifyCeilingLayer)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to convert clouds to metric.
+    /// </summary>
+    public bool CloudsConvertToMetric
+    {
+        get => this.cloudsConvertToMetric;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.cloudsConvertToMetric, value);
+            if (!this.initializedProperties.Add(nameof(this.CloudsConvertToMetric)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the undetermined layer altitude text.
+    /// </summary>
+    public string? UndeterminedLayerAltitudeText
+    {
+        get => this.undeterminedLayerAltitudeText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.undeterminedLayerAltitudeText, value);
+            if (!this.initializedProperties.Add(nameof(this.UndeterminedLayerAltitudeText)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the undetermined layer altitude voice.
+    /// </summary>
+    public string? UndeterminedLayerAltitudeVoice
+    {
+        get => this.undeterminedLayerAltitudeVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.undeterminedLayerAltitudeVoice, value);
+            if (!this.initializedProperties.Add(nameof(this.UndeterminedLayerAltitudeVoice)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether cloud height altitude is in hundreds.
+    /// </summary>
+    public bool CloudHeightAltitudeInHundreds
+    {
+        get => this.cloudHeightAltitudeInHundreds;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.cloudHeightAltitudeInHundreds, value);
+            if (!this.initializedProperties.Add(nameof(this.CloudHeightAltitudeInHundreds)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to use plus prefix for temperature.
+    /// </summary>
+    public bool TemperatureUsePlusPrefix
+    {
+        get => this.temperatureUsePlusPrefix;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.temperatureUsePlusPrefix, value);
+            if (!this.initializedProperties.Add(nameof(this.TemperatureUsePlusPrefix)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to speak leading zero for temperature.
+    /// </summary>
+    public bool TemperatureSpeakLeadingZero
+    {
+        get => this.temperatureSpeakLeadingZero;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.temperatureSpeakLeadingZero, value);
+            if (!this.initializedProperties.Add(nameof(this.TemperatureSpeakLeadingZero)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to use plus prefix for dewpoint.
+    /// </summary>
+    public bool DewpointUsePlusPrefix
+    {
+        get => this.dewpointUsePlusPrefix;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.dewpointUsePlusPrefix, value);
+            if (!this.initializedProperties.Add(nameof(this.DewpointUsePlusPrefix)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to speak leading zero for dewpoint.
+    /// </summary>
+    public bool DewpointSpeakLeadingZero
+    {
+        get => this.dewpointSpeakLeadingZero;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.dewpointSpeakLeadingZero, value);
+            if (!this.initializedProperties.Add(nameof(this.DewpointSpeakLeadingZero)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to speak decimal for altimeter.
+    /// </summary>
+    public bool AltimeterSpeakDecimal
+    {
+        get => this.altimeterSpeakDecimal;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.altimeterSpeakDecimal, value);
+            if (!this.initializedProperties.Add(nameof(this.AltimeterSpeakDecimal)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to auto-include closing statement.
+    /// </summary>
+    public bool ClosingStatementAutoIncludeClosingStatement
+    {
+        get => this.closingStatementAutoIncludeClosingStatement;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.closingStatementAutoIncludeClosingStatement, value);
+            if (!this.initializedProperties.Add(nameof(this.ClosingStatementAutoIncludeClosingStatement)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the transition levels.
+    /// </summary>
+    public ObservableCollection<TransitionLevelMeta>? TransitionLevels
+    {
+        get => this.transitionLevelMetas;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.transitionLevelMetas, value);
+            if (!this.initializedProperties.Add(nameof(this.TransitionLevels)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the transition level text template.
+    /// </summary>
+    public string? TransitionLevelTextTemplate
+    {
+        get => this.transitionLevelTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.transitionLevelTextTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.TransitionLevelTextTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the transition level voice template.
+    /// </summary>
+    public string? TransitionLevelVoiceTemplate
+    {
+        get => this.transitionLevelVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this.transitionLevelVoiceTemplate, value);
+            if (!this.initializedProperties.Add(nameof(this.TransitionLevelVoiceTemplate)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather types.
+    /// </summary>
+    public ObservableCollection<PresentWeatherMeta>? PresentWeatherTypes
+    {
+        get => this.presentWeatherTypes;
+        set => this.RaiseAndSetIfChanged(ref this.presentWeatherTypes, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the cloud types.
+    /// </summary>
+    public ObservableCollection<CloudTypeMeta>? CloudTypes
+    {
+        get => this.cloudTypes;
+        set => this.RaiseAndSetIfChanged(ref this.cloudTypes, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the convective cloud types.
+    /// </summary>
+    public ObservableCollection<ConvectiveCloudTypeMeta>? ConvectiveCloudTypes
+    {
+        get => this.convectiveCloudTypes;
+        set => this.RaiseAndSetIfChanged(ref this.convectiveCloudTypes, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the contraction completion data.
+    /// </summary>
+    public List<ICompletionData> ContractionCompletionData
+    {
+        get => this.contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref this.contractionCompletionData, value);
+    }
+
+    /// <summary>
+    /// Applies pending, unsaved changes.
+    /// </summary>
+    /// <returns>A value indicating whether changes are applied.</returns>
     public bool ApplyChanges()
     {
         if (this.SelectedStation == null)
@@ -588,56 +1547,56 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if (this.SelectedStation.AtisFormat.Visibility.North != this.VisibilityNorth)
         {
-            this.SelectedStation.AtisFormat.Visibility.North = this.VisibilityNorth ?? "";
+            this.SelectedStation.AtisFormat.Visibility.North = this.VisibilityNorth ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.NorthEast != this.VisibilityNorthEast)
         {
-            this.SelectedStation.AtisFormat.Visibility.NorthEast = this.VisibilityNorthEast ?? "";
+            this.SelectedStation.AtisFormat.Visibility.NorthEast = this.VisibilityNorthEast ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.East != this.VisibilityEast)
         {
-            this.SelectedStation.AtisFormat.Visibility.East = this.VisibilityEast ?? "";
+            this.SelectedStation.AtisFormat.Visibility.East = this.VisibilityEast ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.SouthEast != this.VisibilitySouthEast)
         {
-            this.SelectedStation.AtisFormat.Visibility.SouthEast = this.VisibilitySouthEast ?? "";
+            this.SelectedStation.AtisFormat.Visibility.SouthEast = this.VisibilitySouthEast ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.South != this.VisibilitySouth)
         {
-            this.SelectedStation.AtisFormat.Visibility.South = this.VisibilitySouth ?? "";
+            this.SelectedStation.AtisFormat.Visibility.South = this.VisibilitySouth ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.SouthWest != this.VisibilitySouthWest)
         {
-            this.SelectedStation.AtisFormat.Visibility.SouthWest = this.VisibilitySouthWest ?? "";
+            this.SelectedStation.AtisFormat.Visibility.SouthWest = this.VisibilitySouthWest ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.West != this.VisibilityWest)
         {
-            this.SelectedStation.AtisFormat.Visibility.West = this.VisibilityWest ?? "";
+            this.SelectedStation.AtisFormat.Visibility.West = this.VisibilityWest ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.NorthWest != this.VisibilityNorthWest)
         {
-            this.SelectedStation.AtisFormat.Visibility.NorthWest = this.VisibilityNorthWest ?? "";
+            this.SelectedStation.AtisFormat.Visibility.NorthWest = this.VisibilityNorthWest ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityVoice !=
             this.VisibilityUnlimitedVisibilityVoice)
         {
             this.SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityVoice =
-                this.VisibilityUnlimitedVisibilityVoice ?? "";
+                this.VisibilityUnlimitedVisibilityVoice ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityText !=
             this.VisibilityUnlimitedVisibilityText)
         {
             this.SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityText =
-                this.VisibilityUnlimitedVisibilityText ?? "";
+                this.VisibilityUnlimitedVisibilityText ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Visibility.IncludeVisibilitySuffix !=
@@ -653,23 +1612,25 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if (this.SelectedStation.AtisFormat.PresentWeather.LightIntensity != this.PresentWeatherLightIntensity)
         {
-            this.SelectedStation.AtisFormat.PresentWeather.LightIntensity = this.PresentWeatherLightIntensity ?? "";
+            this.SelectedStation.AtisFormat.PresentWeather.LightIntensity =
+                this.PresentWeatherLightIntensity ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.PresentWeather.ModerateIntensity != this.PresentWeatherModerateIntensity)
         {
             this.SelectedStation.AtisFormat.PresentWeather.ModerateIntensity =
-                this.PresentWeatherModerateIntensity ?? "";
+                this.PresentWeatherModerateIntensity ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.PresentWeather.HeavyIntensity != this.PresentWeatherHeavyIntensity)
         {
-            this.SelectedStation.AtisFormat.PresentWeather.HeavyIntensity = this.PresentWeatherHeavyIntensity ?? "";
+            this.SelectedStation.AtisFormat.PresentWeather.HeavyIntensity =
+                this.PresentWeatherHeavyIntensity ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.PresentWeather.Vicinity != this.PresentWeatherVicinity)
         {
-            this.SelectedStation.AtisFormat.PresentWeather.Vicinity = this.PresentWeatherVicinity ?? "";
+            this.SelectedStation.AtisFormat.PresentWeather.Vicinity = this.PresentWeatherVicinity ?? string.Empty;
         }
 
         if (this.PresentWeatherTypes != null && this.SelectedStation.AtisFormat.PresentWeather.PresentWeatherTypes !=
@@ -700,14 +1661,14 @@ public class FormattingViewModel : ReactiveViewModelBase
         if (this.SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Text != this.UndeterminedLayerAltitudeText)
         {
             this.SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Text =
-                this.UndeterminedLayerAltitudeText ?? "";
+                this.UndeterminedLayerAltitudeText ?? string.Empty;
         }
 
         if (this.SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice !=
             this.UndeterminedLayerAltitudeVoice)
         {
             this.SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice =
-                this.UndeterminedLayerAltitudeVoice ?? "";
+                this.UndeterminedLayerAltitudeVoice ?? string.Empty;
         }
 
         if (this.CloudTypes != null && this.SelectedStation.AtisFormat.Clouds.Types != this.CloudTypes.ToDictionary(
@@ -783,9 +1744,9 @@ public class FormattingViewModel : ReactiveViewModelBase
             return false;
         }
 
-        if (this._sessionManager.CurrentProfile != null)
+        if (this.sessionManager.CurrentProfile != null)
         {
-            this._profileRepository.Save(this._sessionManager.CurrentProfile);
+            this.profileRepository.Save(this.sessionManager.CurrentProfile);
         }
 
         this.HasUnsavedChanges = false;
@@ -793,1080 +1754,299 @@ public class FormattingViewModel : ReactiveViewModelBase
         return true;
     }
 
-    #region UI Properties
+    private void HandleAtisStationChanged(AtisStation? station)
+    {
+        if (station == null)
+        {
+            return;
+        }
+
+        this.SelectedStation = station;
+
+        this.FormattingOptions = [];
+        if (station.IsFaaAtis)
+        {
+            this.FormattingOptions =
+            [
+                "Observation Time",
+                "Wind",
+                "Visibility",
+                "Weather",
+                "Clouds",
+                "Temperature",
+                "Dewpoint",
+                "Altimeter",
+                "NOTAMs",
+                "Closing Statement"
+            ];
+        }
+        else
+        {
+            this.FormattingOptions =
+            [
+                "Observation Time",
+                "Wind",
+                "Visibility",
+                "Weather",
+                "Clouds",
+                "Temperature",
+                "Dewpoint",
+                "Altimeter",
+                "Transition Level",
+                "NOTAMs",
+                "Closing Statement"
+            ];
+        }
+
+        this.SpeakWindSpeedLeadingZero = station.AtisFormat.SurfaceWind.SpeakLeadingZero;
+        this.MagneticVariationEnabled = station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
+        this.MagneticVariationValue = station.AtisFormat.SurfaceWind.MagneticVariation.MagneticDegrees.ToString();
+        this.RoutineObservationTime = string.Join(",", station.AtisFormat.ObservationTime.StandardUpdateTime ?? []);
+        this.ObservationTimeTextTemplate = station.AtisFormat.ObservationTime.Template.Text;
+        this.ObservationTimeVoiceTemplate = station.AtisFormat.ObservationTime.Template.Voice;
+        this.StandardWindTextTemplate = station.AtisFormat.SurfaceWind.Standard.Template.Text;
+        this.StandardWindVoiceTemplate = station.AtisFormat.SurfaceWind.Standard.Template.Voice;
+        this.StandardGustWindTextTemplate = station.AtisFormat.SurfaceWind.StandardGust.Template.Text;
+        this.StandardGustWindVoiceTemplate = station.AtisFormat.SurfaceWind.StandardGust.Template.Voice;
+        this.VariableWindTextTemplate = station.AtisFormat.SurfaceWind.Variable.Template.Text;
+        this.VariableWindVoiceTemplate = station.AtisFormat.SurfaceWind.Variable.Template.Voice;
+        this.VariableGustWindTextTemplate = station.AtisFormat.SurfaceWind.VariableGust.Template.Text;
+        this.VariableGustWindVoiceTemplate = station.AtisFormat.SurfaceWind.VariableGust.Template.Voice;
+        this.VariableDirectionWindTextTemplate = station.AtisFormat.SurfaceWind.VariableDirection.Template.Text;
+        this.VariableDirectionWindVoiceTemplate = station.AtisFormat.SurfaceWind.VariableDirection.Template.Voice;
+        this.CalmWindTextTemplate = station.AtisFormat.SurfaceWind.Calm.Template.Text;
+        this.CalmWindVoiceTemplate = station.AtisFormat.SurfaceWind.Calm.Template.Voice;
+        this.CalmWindSpeed = station.AtisFormat.SurfaceWind.Calm.CalmWindSpeed.ToString();
+        this.VisibilityTextTemplate = station.AtisFormat.Visibility.Template.Text;
+        this.VisibilityVoiceTemplate = station.AtisFormat.Visibility.Template.Voice;
+        this.PresentWeatherTextTemplate = station.AtisFormat.PresentWeather.Template.Text;
+        this.PresentWeatherVoiceTemplate = station.AtisFormat.PresentWeather.Template.Voice;
+        this.RecentWeatherVoiceTemplate = station.AtisFormat.RecentWeather.Template.Voice;
+        this.RecentWeatherTextTemplate = station.AtisFormat.RecentWeather.Template.Text;
+        this.CloudsTextTemplate = station.AtisFormat.Clouds.Template.Text;
+        this.CloudsVoiceTemplate = station.AtisFormat.Clouds.Template.Voice;
+        this.TemperatureTextTemplate = station.AtisFormat.Temperature.Template.Text;
+        this.TemperatureVoiceTemplate = station.AtisFormat.Temperature.Template.Voice;
+        this.DewpointTextTemplate = station.AtisFormat.Dewpoint.Template.Text;
+        this.DewpointVoiceTemplate = station.AtisFormat.Dewpoint.Template.Voice;
+        this.AltimeterTextTemplate = station.AtisFormat.Altimeter.Template.Text;
+        this.AltimeterVoiceTemplate = station.AtisFormat.Altimeter.Template.Voice;
+        this.ClosingStatementTextTemplate = station.AtisFormat.ClosingStatement.Template.Text;
+        this.ClosingStatementVoiceTemplate = station.AtisFormat.ClosingStatement.Template.Voice;
+        this.VisibilityNorth = station.AtisFormat.Visibility.North;
+        this.VisibilityNorthEast = station.AtisFormat.Visibility.NorthEast;
+        this.VisibilityEast = station.AtisFormat.Visibility.East;
+        this.VisibilitySouthEast = station.AtisFormat.Visibility.SouthEast;
+        this.VisibilitySouth = station.AtisFormat.Visibility.South;
+        this.VisibilitySouthWest = station.AtisFormat.Visibility.SouthWest;
+        this.VisibilityWest = station.AtisFormat.Visibility.West;
+        this.VisibilityNorthWest = station.AtisFormat.Visibility.NorthWest;
+        this.VisibilityUnlimitedVisibilityVoice = station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
+        this.VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
+        this.VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
+        this.VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
+        this.PresentWeatherLightIntensity = station.AtisFormat.PresentWeather.LightIntensity;
+        this.PresentWeatherModerateIntensity = station.AtisFormat.PresentWeather.ModerateIntensity;
+        this.PresentWeatherHeavyIntensity = station.AtisFormat.PresentWeather.HeavyIntensity;
+        this.PresentWeatherVicinity = station.AtisFormat.PresentWeather.Vicinity;
+        this.CloudsIdentifyCeilingLayer = station.AtisFormat.Clouds.IdentifyCeilingLayer;
+        this.CloudsConvertToMetric = station.AtisFormat.Clouds.ConvertToMetric;
+        this.CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
+        this.UndeterminedLayerAltitudeText = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text;
+        this.UndeterminedLayerAltitudeVoice = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice;
+        this.TemperatureUsePlusPrefix = station.AtisFormat.Temperature.UsePlusPrefix;
+        this.TemperatureSpeakLeadingZero = station.AtisFormat.Temperature.SpeakLeadingZero;
+        this.DewpointUsePlusPrefix = station.AtisFormat.Dewpoint.UsePlusPrefix;
+        this.DewpointSpeakLeadingZero = station.AtisFormat.Dewpoint.SpeakLeadingZero;
+        this.AltimeterSpeakDecimal = station.AtisFormat.Altimeter.PronounceDecimal;
+        this.NotamsTextTemplate = station.AtisFormat.Notams.Template.Text;
+        this.NotamsVoiceTemplate = station.AtisFormat.Notams.Template.Voice;
+        this.ClosingStatementAutoIncludeClosingStatement =
+            station.AtisFormat.ClosingStatement.AutoIncludeClosingStatement;
 
-    private ObservableCollection<string>? _formattingOptions;
-
-    public ObservableCollection<string>? FormattingOptions
-    {
-        get => this._formattingOptions;
-        set => this.RaiseAndSetIfChanged(ref this._formattingOptions, value);
-    }
-
-    private AtisStation? _selectedStation;
-
-    public AtisStation? SelectedStation
-    {
-        get => this._selectedStation;
-        private set => this.RaiseAndSetIfChanged(ref this._selectedStation, value);
-    }
-
-    private bool _hasUnsavedChanges;
-
-    public bool HasUnsavedChanges
-    {
-        get => this._hasUnsavedChanges;
-        private set => this.RaiseAndSetIfChanged(ref this._hasUnsavedChanges, value);
-    }
-
-    private string? _selectedFormattingOption;
-
-    public string? SelectedFormattingOption
-    {
-        get => this._selectedFormattingOption;
-        set => this.RaiseAndSetIfChanged(ref this._selectedFormattingOption, value);
-    }
-
-    #endregion
-
-    #region Config Properties
-
-    private string? _routineObservationTime;
-
-    public string? RoutineObservationTime
-    {
-        get => this._routineObservationTime;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._routineObservationTime, value);
-            if (!this._initializedProperties.Add(nameof(this.RoutineObservationTime)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _observationTimeTextTemplate;
-
-    public string? ObservationTimeTextTemplate
-    {
-        get => this._observationTimeTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._observationTimeTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.ObservationTimeTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _observationTimeVoiceTemplate;
-
-    public string? ObservationTimeVoiceTemplate
-    {
-        get => this._observationTimeVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._observationTimeVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.ObservationTimeVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private bool _speakWindSpeedLeadingZero;
-
-    public bool SpeakWindSpeedLeadingZero
-    {
-        get => this._speakWindSpeedLeadingZero;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._speakWindSpeedLeadingZero, value);
-            if (!this._initializedProperties.Add(nameof(this.SpeakWindSpeedLeadingZero)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private bool _magneticVariationEnabled;
-
-    public bool MagneticVariationEnabled
-    {
-        get => this._magneticVariationEnabled;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._magneticVariationEnabled, value);
-            if (!this._initializedProperties.Add(nameof(this.MagneticVariationEnabled)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _magneticVariationValue;
-
-    public string? MagneticVariationValue
-    {
-        get => this._magneticVariationValue;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._magneticVariationValue, value);
-            if (!this._initializedProperties.Add(nameof(this.MagneticVariationValue)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _standardWindTextTemplate;
-
-    public string? StandardWindTextTemplate
-    {
-        get => this._standardWindTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._standardWindTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.StandardWindTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _standardWindVoiceTemplate;
-
-    public string? StandardWindVoiceTemplate
-    {
-        get => this._standardWindVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._standardWindVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.StandardWindVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _standardGustWindTextTemplate;
-
-    public string? StandardGustWindTextTemplate
-    {
-        get => this._standardGustWindTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._standardGustWindTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.StandardGustWindTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _standardGustWindVoiceTemplate;
-
-    public string? StandardGustWindVoiceTemplate
-    {
-        get => this._standardGustWindVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._standardGustWindVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.StandardGustWindVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _variableWindTextTemplate;
-
-    public string? VariableWindTextTemplate
-    {
-        get => this._variableWindTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._variableWindTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VariableWindTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _variableWindVoiceTemplate;
-
-    public string? VariableWindVoiceTemplate
-    {
-        get => this._variableWindVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._variableWindVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VariableWindVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _variableGustWindTextTemplate;
-
-    public string? VariableGustWindTextTemplate
-    {
-        get => this._variableGustWindTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._variableGustWindTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VariableGustWindTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _variableGustWindVoiceTemplate;
-
-    public string? VariableGustWindVoiceTemplate
-    {
-        get => this._variableGustWindVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._variableGustWindVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VariableGustWindVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _variableDirectionWindTextTemplate;
-
-    public string? VariableDirectionWindTextTemplate
-    {
-        get => this._variableDirectionWindTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._variableDirectionWindTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VariableDirectionWindTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _variableDirectionWindVoiceTemplate;
-
-    public string? VariableDirectionWindVoiceTemplate
-    {
-        get => this._variableDirectionWindVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._variableDirectionWindVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VariableDirectionWindVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _calmWindTextTemplate;
-
-    public string? CalmWindTextTemplate
-    {
-        get => this._calmWindTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._calmWindTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.CalmWindTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _calmWindVoiceTemplate;
-
-    public string? CalmWindVoiceTemplate
-    {
-        get => this._calmWindVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._calmWindVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.CalmWindVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _calmWindSpeed;
-
-    public string? CalmWindSpeed
-    {
-        get => this._calmWindSpeed;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._calmWindSpeed, value);
-            if (!this._initializedProperties.Add(nameof(this.CalmWindSpeed)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityTextTemplate;
-
-    public string? VisibilityTextTemplate
-    {
-        get => this._visibilityTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityVoiceTemplate;
-
-    public string? VisibilityVoiceTemplate
-    {
-        get => this._visibilityVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _presentWeatherTextTemplate;
-
-    public string? PresentWeatherTextTemplate
-    {
-        get => this._presentWeatherTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._presentWeatherTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.PresentWeatherTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _presentWeatherVoiceTemplate;
-
-    public string? PresentWeatherVoiceTemplate
-    {
-        get => this._presentWeatherVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._presentWeatherVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.PresentWeatherVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _recentWeatherTextTemplate;
-
-    public string? RecentWeatherTextTemplate
-    {
-        get => this._recentWeatherTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._recentWeatherTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.RecentWeatherTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _recentWeatherVoiceTemplate;
-
-    public string? RecentWeatherVoiceTemplate
-    {
-        get => this._recentWeatherVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._recentWeatherVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.RecentWeatherVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _cloudsTextTemplate;
-
-    public string? CloudsTextTemplate
-    {
-        get => this._cloudsTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._cloudsTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.CloudsTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _cloudsVoiceTemplate;
-
-    public string? CloudsVoiceTemplate
-    {
-        get => this._cloudsVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._cloudsVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.CloudsVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _temperatureTextTemplate;
-
-    public string? TemperatureTextTemplate
-    {
-        get => this._temperatureTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._temperatureTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.TemperatureTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _temperatureVoiceTemplate;
-
-    public string? TemperatureVoiceTemplate
-    {
-        get => this._temperatureVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._temperatureVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.TemperatureVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _dewpointTextTemplate;
-
-    public string? DewpointTextTemplate
-    {
-        get => this._dewpointTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._dewpointTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.DewpointTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _dewpointVoiceTemplate;
-
-    public string? DewpointVoiceTemplate
-    {
-        get => this._dewpointVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._dewpointVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.DewpointVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _altimeterTextTemplate;
-
-    public string? AltimeterTextTemplate
-    {
-        get => this._altimeterTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._altimeterTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.AltimeterTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _altimeterVoiceTemplate;
-
-    public string? AltimeterVoiceTemplate
-    {
-        get => this._altimeterVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._altimeterVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.AltimeterVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _closingStatementTextTemplate;
-
-    public string? ClosingStatementTextTemplate
-    {
-        get => this._closingStatementTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._closingStatementTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.ClosingStatementTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _closingStatementVoiceTemplate;
-
-    public string? ClosingStatementVoiceTemplate
-    {
-        get => this._closingStatementVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._closingStatementVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.ClosingStatementVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _notamsTextTemplate;
-
-    public string? NotamsTextTemplate
-    {
-        get => this._notamsTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._notamsTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.NotamsTextTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _notamsVoiceTemplate;
-
-    public string? NotamsVoiceTemplate
-    {
-        get => this._notamsVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._notamsVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.NotamsVoiceTemplate)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityNorth;
-
-    public string? VisibilityNorth
-    {
-        get => this._visibilityNorth;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityNorth, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityNorth)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityNorthEast;
-
-    public string? VisibilityNorthEast
-    {
-        get => this._visibilityNorthEast;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityNorthEast, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityNorthEast)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityEast;
-
-    public string? VisibilityEast
-    {
-        get => this._visibilityEast;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityEast, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityEast)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilitySouthEast;
-
-    public string? VisibilitySouthEast
-    {
-        get => this._visibilitySouthEast;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilitySouthEast, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilitySouthEast)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilitySouth;
-
-    public string? VisibilitySouth
-    {
-        get => this._visibilitySouth;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilitySouth, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilitySouth)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilitySouthWest;
-
-    public string? VisibilitySouthWest
-    {
-        get => this._visibilitySouthWest;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilitySouthWest, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilitySouthWest)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityWest;
-
-    public string? VisibilityWest
-    {
-        get => this._visibilityWest;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityWest, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityWest)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityNorthWest;
-
-    public string? VisibilityNorthWest
-    {
-        get => this._visibilityNorthWest;
-        set
+        this.PresentWeatherTypes = [];
+        foreach (var kvp in station.AtisFormat.PresentWeather.PresentWeatherTypes)
         {
-            this.RaiseAndSetIfChanged(ref this._visibilityNorthWest, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityNorthWest)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityUnlimitedVisibilityVoice;
-
-    public string? VisibilityUnlimitedVisibilityVoice
-    {
-        get => this._visibilityUnlimitedVisibilityVoice;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityUnlimitedVisibilityVoice, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityUnlimitedVisibilityVoice)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _visibilityUnlimitedVisibilityText;
-
-    public string? VisibilityUnlimitedVisibilityText
-    {
-        get => this._visibilityUnlimitedVisibilityText;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._visibilityUnlimitedVisibilityText, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityUnlimitedVisibilityText)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            this.PresentWeatherTypes.Add(new PresentWeatherMeta(kvp.Key, kvp.Value.Text, kvp.Value.Spoken));
         }
-    }
 
-    private bool _visibilityIncludeVisibilitySuffix;
-
-    public bool VisibilityIncludeVisibilitySuffix
-    {
-        get => this._visibilityIncludeVisibilitySuffix;
-        set
+        this.CloudTypes = [];
+        foreach (var item in station.AtisFormat.Clouds.Types)
         {
-            this.RaiseAndSetIfChanged(ref this._visibilityIncludeVisibilitySuffix, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityIncludeVisibilitySuffix)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            this.CloudTypes.Add(new CloudTypeMeta(item.Key, item.Value.Voice, item.Value.Text));
         }
-    }
-
-    private int _visibilityMetersCutoff;
 
-    public int VisibilityMetersCutoff
-    {
-        get => this._visibilityMetersCutoff;
-        set
+        this.ConvectiveCloudTypes = [];
+        foreach (var item in station.AtisFormat.Clouds.ConvectiveTypes)
         {
-            this.RaiseAndSetIfChanged(ref this._visibilityMetersCutoff, value);
-            if (!this._initializedProperties.Add(nameof(this.VisibilityMetersCutoff)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            this.ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(item.Key, item.Value));
         }
-    }
 
-    private string? _presentWeatherLightIntensity;
+        this.TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
+        this.TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
 
-    public string? PresentWeatherLightIntensity
-    {
-        get => this._presentWeatherLightIntensity;
-        set
+        this.TransitionLevels = [];
+        foreach (var item in station.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low))
         {
-            this.RaiseAndSetIfChanged(ref this._presentWeatherLightIntensity, value);
-            if (!this._initializedProperties.Add(nameof(this.PresentWeatherLightIntensity)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            this.TransitionLevels.Add(item);
         }
-    }
-
-    private string? _presentWeatherModerateIntensity;
 
-    public string? PresentWeatherModerateIntensity
-    {
-        get => this._presentWeatherModerateIntensity;
-        set
+        this.ContractionCompletionData = [];
+        foreach (var contraction in station.Contractions)
         {
-            this.RaiseAndSetIfChanged(ref this._presentWeatherModerateIntensity, value);
-            if (!this._initializedProperties.Add(nameof(this.PresentWeatherModerateIntensity)))
+            if (!string.IsNullOrEmpty(contraction.VariableName) && !string.IsNullOrEmpty(contraction.Voice))
             {
-                this.HasUnsavedChanges = true;
+                this.ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
             }
         }
-    }
 
-    private string? _presentWeatherHeavyIntensity;
-
-    public string? PresentWeatherHeavyIntensity
-    {
-        get => this._presentWeatherHeavyIntensity;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._presentWeatherHeavyIntensity, value);
-            if (!this._initializedProperties.Add(nameof(this.PresentWeatherHeavyIntensity)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
+        this.HasUnsavedChanges = false;
     }
 
-    private string? _presentWeatherVicinity;
-
-    public string? PresentWeatherVicinity
+    private async Task HandleAddTransitionLevel()
     {
-        get => this._presentWeatherVicinity;
-        set
+        if (this.DialogOwner == null || this.SelectedStation == null)
         {
-            this.RaiseAndSetIfChanged(ref this._presentWeatherVicinity, value);
-            if (!this._initializedProperties.Add(nameof(this.PresentWeatherVicinity)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            return;
         }
-    }
 
-    private bool _cloudsIdentifyCeilingLayer;
-
-    public bool CloudsIdentifyCeilingLayer
-    {
-        get => this._cloudsIdentifyCeilingLayer;
-        set
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            this.RaiseAndSetIfChanged(ref this._cloudsIdentifyCeilingLayer, value);
-            if (!this._initializedProperties.Add(nameof(this.CloudsIdentifyCeilingLayer)))
+            if (lifetime.MainWindow == null)
             {
-                this.HasUnsavedChanges = true;
+                return;
             }
-        }
-    }
 
-    private bool _cloudsConvertToMetric;
+            string? previousQnhLow = null;
+            string? previousQnhHigh = null;
+            string? previousTransitionLevel = null;
 
-    public bool CloudsConvertToMetric
-    {
-        get => this._cloudsConvertToMetric;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._cloudsConvertToMetric, value);
-            if (!this._initializedProperties.Add(nameof(this.CloudsConvertToMetric)))
+            var dialog = this.windowFactory.CreateTransitionLevelDialog();
+            dialog.Topmost = lifetime.MainWindow.Topmost;
+            if (dialog.DataContext is TransitionLevelDialogViewModel context)
             {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _undeterminedLayerAltitudeText;
+                context.QnhLow = previousQnhLow;
+                context.QnhHigh = previousQnhHigh;
+                context.TransitionLevel = previousTransitionLevel;
 
-    public string? UndeterminedLayerAltitudeText
-    {
-        get => this._undeterminedLayerAltitudeText;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._undeterminedLayerAltitudeText, value);
-            if (!this._initializedProperties.Add(nameof(this.UndeterminedLayerAltitudeText)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
+                context.DialogResultChanged += (_, dialogResult) =>
+                {
+                    if (dialogResult == DialogResult.Ok)
+                    {
+                        context.ClearAllErrors();
 
-    private string? _undeterminedLayerAltitudeVoice;
+                        previousQnhLow = context.QnhLow;
+                        previousQnhHigh = context.QnhHigh;
+                        previousTransitionLevel = context.TransitionLevel;
 
-    public string? UndeterminedLayerAltitudeVoice
-    {
-        get => this._undeterminedLayerAltitudeVoice;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._undeterminedLayerAltitudeVoice, value);
-            if (!this._initializedProperties.Add(nameof(this.UndeterminedLayerAltitudeVoice)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
+                        if (string.IsNullOrEmpty(context.QnhLow))
+                        {
+                            context.RaiseError("QnhLow", "Value is required.");
+                        }
 
-    private bool _cloudHeightAltitudeInHundreds;
+                        if (string.IsNullOrEmpty(context.QnhHigh))
+                        {
+                            context.RaiseError("QnhHigh", "Value is required.");
+                        }
 
-    public bool CloudHeightAltitudeInHundreds
-    {
-        get => this._cloudHeightAltitudeInHundreds;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._cloudHeightAltitudeInHundreds, value);
-            if (!this._initializedProperties.Add(nameof(this.CloudHeightAltitudeInHundreds)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
+                        if (string.IsNullOrEmpty(context.TransitionLevel))
+                        {
+                            context.RaiseError("TransitionLevel", "Value is required.");
+                        }
 
-    private bool _temperatureUsePlusPrefix;
+                        int.TryParse(context.QnhLow, out var intLow);
+                        int.TryParse(context.QnhHigh, out var intHigh);
+                        int.TryParse(context.TransitionLevel, out var intLevel);
 
-    public bool TemperatureUsePlusPrefix
-    {
-        get => this._temperatureUsePlusPrefix;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._temperatureUsePlusPrefix, value);
-            if (!this._initializedProperties.Add(nameof(this.TemperatureUsePlusPrefix)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
+                        if (this.SelectedStation.AtisFormat.TransitionLevel.Values.Any(
+                                x =>
+                                    x.Low == intLow && x.High == intHigh))
+                        {
+                            context.RaiseError("QnhLow", "Duplicate transition level.");
+                        }
 
-    private bool _temperatureSpeakLeadingZero;
+                        if (context.HasErrors)
+                        {
+                            return;
+                        }
 
-    public bool TemperatureSpeakLeadingZero
-    {
-        get => this._temperatureSpeakLeadingZero;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._temperatureSpeakLeadingZero, value);
-            if (!this._initializedProperties.Add(nameof(this.TemperatureSpeakLeadingZero)))
-            {
-                this.HasUnsavedChanges = true;
-            }
-        }
-    }
+                        this.SelectedStation.AtisFormat.TransitionLevel.Values.Add(
+                            new TransitionLevelMeta(intLow, intHigh, intLevel));
 
-    private bool _dewpointUsePlusPrefix;
+                        this.TransitionLevels = [];
+                        var sorted = this.SelectedStation.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low);
+                        foreach (var item in sorted)
+                        {
+                            this.TransitionLevels.Add(item);
+                        }
 
-    public bool DewpointUsePlusPrefix
-    {
-        get => this._dewpointUsePlusPrefix;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._dewpointUsePlusPrefix, value);
-            if (!this._initializedProperties.Add(nameof(this.DewpointUsePlusPrefix)))
-            {
-                this.HasUnsavedChanges = true;
+                        if (this.sessionManager.CurrentProfile != null)
+                        {
+                            this.profileRepository.Save(this.sessionManager.CurrentProfile);
+                        }
+                    }
+                };
+                await dialog.ShowDialog((Window)this.DialogOwner);
             }
         }
     }
 
-    private bool _dewpointSpeakLeadingZero;
-
-    public bool DewpointSpeakLeadingZero
+    private async Task HandleDeleteTransitionLevel(TransitionLevelMeta? obj)
     {
-        get => this._dewpointSpeakLeadingZero;
-        set
+        if (obj == null || this.TransitionLevels == null || this.DialogOwner == null || this.SelectedStation == null)
         {
-            this.RaiseAndSetIfChanged(ref this._dewpointSpeakLeadingZero, value);
-            if (!this._initializedProperties.Add(nameof(this.DewpointSpeakLeadingZero)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            return;
         }
-    }
 
-    private bool _altimeterSpeakDecimal;
-
-    private bool AltimeterSpeakDecimal
-    {
-        get => this._altimeterSpeakDecimal;
-        set
+        if (await MessageBox.ShowDialog(
+                (Window)this.DialogOwner,
+                "Are you sure you want to delete the selected transition level?",
+                "Confirm",
+                MessageBoxButton.YesNo,
+                MessageBoxIcon.Information) == MessageBoxResult.Yes)
         {
-            this.RaiseAndSetIfChanged(ref this._altimeterSpeakDecimal, value);
-            if (!this._initializedProperties.Add(nameof(this.AltimeterSpeakDecimal)))
+            if (this.TransitionLevels.Remove(obj))
             {
-                this.HasUnsavedChanges = true;
+                this.SelectedStation.AtisFormat.TransitionLevel.Values.Remove(obj);
+                if (this.sessionManager.CurrentProfile != null)
+                {
+                    this.profileRepository.Save(this.sessionManager.CurrentProfile);
+                }
             }
         }
     }
 
-    private bool _closingStatementAutoIncludeClosingStatement;
-
-    public bool ClosingStatementAutoIncludeClosingStatement
+    private void HandleCellEditEnding(DataGridCellEditEndingEventArgs e)
     {
-        get => this._closingStatementAutoIncludeClosingStatement;
-        set
+        if (e.EditAction == DataGridEditAction.Commit)
         {
-            this.RaiseAndSetIfChanged(ref this._closingStatementAutoIncludeClosingStatement, value);
-            if (!this._initializedProperties.Add(nameof(this.ClosingStatementAutoIncludeClosingStatement)))
-            {
-                this.HasUnsavedChanges = true;
-            }
+            this.HasUnsavedChanges = true;
         }
     }
-
-    private ObservableCollection<TransitionLevelMeta>? _transitionLevelMetas;
 
-    public ObservableCollection<TransitionLevelMeta>? TransitionLevels
+    private void HandleTemplateVariableClicked(string? variable)
     {
-        get => this._transitionLevelMetas;
-        set
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            this.RaiseAndSetIfChanged(ref this._transitionLevelMetas, value);
-            if (!this._initializedProperties.Add(nameof(this.TransitionLevels)))
+            if (lifetime.MainWindow == null)
             {
-                this.HasUnsavedChanges = true;
+                return;
             }
-        }
-    }
 
-    private string? _transitionLevelTextTemplate;
+            var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
+            var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
 
-    public string? TransitionLevelTextTemplate
-    {
-        get => this._transitionLevelTextTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._transitionLevelTextTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.TransitionLevelTextTemplate)))
+            if (focusedElement is TemplateVariableTextBox focusedTextBox)
             {
-                this.HasUnsavedChanges = true;
+                focusedTextBox.Text += variable?.Replace("__", "_");
+                focusedTextBox.CaretIndex = focusedTextBox.Text.Length;
             }
-        }
-    }
 
-    private string? _transitionLevelVoiceTemplate;
-
-    public string? TransitionLevelVoiceTemplate
-    {
-        get => this._transitionLevelVoiceTemplate;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref this._transitionLevelVoiceTemplate, value);
-            if (!this._initializedProperties.Add(nameof(this.TransitionLevelVoiceTemplate)))
+            if (focusedElement is TextArea focusedTextEditor)
             {
-                this.HasUnsavedChanges = true;
+                focusedTextEditor.Document.Text += variable?.Replace("__", "_");
+                focusedTextEditor.Caret.Offset = focusedTextEditor.Document.Text.Length;
             }
         }
-    }
-
-    private ObservableCollection<PresentWeatherMeta>? _presentWeatherTypes;
-
-    public ObservableCollection<PresentWeatherMeta>? PresentWeatherTypes
-    {
-        get => this._presentWeatherTypes;
-        set => this.RaiseAndSetIfChanged(ref this._presentWeatherTypes, value);
-    }
-
-    private ObservableCollection<CloudTypeMeta>? _cloudTypes;
-
-    public ObservableCollection<CloudTypeMeta>? CloudTypes
-    {
-        get => this._cloudTypes;
-        set => this.RaiseAndSetIfChanged(ref this._cloudTypes, value);
-    }
-
-    private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
-
-    public ObservableCollection<ConvectiveCloudTypeMeta>? ConvectiveCloudTypes
-    {
-        get => this._convectiveCloudTypes;
-        set => this.RaiseAndSetIfChanged(ref this._convectiveCloudTypes, value);
-    }
-
-    private List<ICompletionData> _contractionCompletionData = [];
-
-    private List<ICompletionData> ContractionCompletionData
-    {
-        get => this._contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref this._contractionCompletionData, value);
     }
-
-    #endregion
 }
