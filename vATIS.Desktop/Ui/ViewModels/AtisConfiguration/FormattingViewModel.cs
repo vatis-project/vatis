@@ -1573,16 +1573,16 @@ public class FormattingViewModel : ReactiveViewModelBase
         if (SelectedStation.AtisFormat.ClosingStatement.AutoIncludeClosingStatement != ClosingStatementAutoIncludeClosingStatement)
             SelectedStation.AtisFormat.ClosingStatement.AutoIncludeClosingStatement = ClosingStatementAutoIncludeClosingStatement;
 
-        if(SelectedStation.AtisFormat.TransitionLevel.Template.Text != TransitionLevelTextTemplate)
+        if (SelectedStation.AtisFormat.TransitionLevel.Template.Text != TransitionLevelTextTemplate)
             SelectedStation.AtisFormat.TransitionLevel.Template.Text = TransitionLevelTextTemplate;
 
-        if(SelectedStation.AtisFormat.TransitionLevel.Template.Voice != TransitionLevelVoiceTemplate)
+        if (SelectedStation.AtisFormat.TransitionLevel.Template.Voice != TransitionLevelVoiceTemplate)
             SelectedStation.AtisFormat.TransitionLevel.Template.Voice = TransitionLevelVoiceTemplate;
 
-        if(SelectedStation.AtisFormat.Notams.Template.Text != NotamsTextTemplate)
+        if (SelectedStation.AtisFormat.Notams.Template.Text != NotamsTextTemplate)
             SelectedStation.AtisFormat.Notams.Template.Text = NotamsTextTemplate;
 
-        if(SelectedStation.AtisFormat.Notams.Template.Voice != NotamsVoiceTemplate)
+        if (SelectedStation.AtisFormat.Notams.Template.Voice != NotamsVoiceTemplate)
             SelectedStation.AtisFormat.Notams.Template.Voice = NotamsVoiceTemplate;
 
         if (HasErrors)
