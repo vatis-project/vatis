@@ -30,13 +30,13 @@ internal sealed class MacOsMachineInfoProvider : IMachineInfoProvider
 {
     public byte[]? GetMachineGuid()
     {
-        uint platformExpert =
-            IOServiceGetMatchingService(K_IO_MASTER_PORT_DEFAULT, IOServiceMatching("IOPlatformExpertDevice"));
+        var platformExpert =
+            IOServiceGetMatchingService(KIoMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
         if (platformExpert != 0)
         {
             try
             {
-                using var serialNumberKey = CFStringCreateWithCString(CfTypeRef.None, K_IO_PLATFORM_SERIAL_NUMBER_KEY,
+                using var serialNumberKey = CFStringCreateWithCString(CfTypeRef.None, KIoPlatformSerialNumberKey,
                     CfStringEncoding.CfStringEncodingAscii);
                 var serialNumberAsString =
                     IORegistryEntryCreateCFProperty(platformExpert, serialNumberKey, CfTypeRef.None, 0);

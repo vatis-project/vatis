@@ -13,11 +13,11 @@ namespace Vatsim.Vatis.Profiles;
 
 public class ProfileRepository : IProfileRepository
 {
-    private readonly IDownloader mDownloader;
+    private readonly IDownloader _downloader;
 
     public ProfileRepository(IDownloader downloader)
     {
-        mDownloader = downloader;
+        _downloader = downloader;
         EnsureProfilesFolderExists();
     }
 
@@ -39,7 +39,7 @@ public class ProfileRepository : IProfileRepository
             {
                 if (string.IsNullOrEmpty(localProfile.UpdateUrl)) continue;
 
-                var response = await mDownloader.GetAsync(localProfile.UpdateUrl);
+                var response = await _downloader.GetAsync(localProfile.UpdateUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var remoteProfileJson = await response.Content.ReadAsStringAsync();

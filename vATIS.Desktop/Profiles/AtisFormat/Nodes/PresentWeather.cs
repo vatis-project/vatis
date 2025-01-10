@@ -23,7 +23,7 @@ public class PresentWeather : BaseFormat
     public string Vicinity { get; set; } = "in vicinity";
     public Dictionary<string, WeatherDescriptorType> PresentWeatherTypes { get; set; } = new();
 
-    private static readonly Dictionary<string, string> DefaultWeatherDescriptors = new()
+    private static readonly Dictionary<string, string> s_defaultWeatherDescriptors = new()
     {
         // types
         { "DZ", "drizzle" },
@@ -64,7 +64,7 @@ public class PresentWeather : BaseFormat
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Dictionary<string, string>? LegacyWeatherTypes
     {
-        get => default;
+        get => null;
         set
         {
             if (value != null)
@@ -83,7 +83,7 @@ public class PresentWeather : BaseFormat
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Dictionary<string, string>? LegacyWeatherDescriptors
     {
-        get => default;
+        get => null;
         set
         {
             if (value != null)
@@ -98,7 +98,7 @@ public class PresentWeather : BaseFormat
 
     private void EnsureDefaultWeatherTypes()
     {
-        foreach (var kvp in DefaultWeatherDescriptors)
+        foreach (var kvp in s_defaultWeatherDescriptors)
         {
             if (!PresentWeatherTypes.ContainsKey(kvp.Key))
             {

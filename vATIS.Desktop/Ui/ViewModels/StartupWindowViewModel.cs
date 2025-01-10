@@ -6,11 +6,11 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class StartupWindowViewModel : ReactiveViewModelBase
 {
-    private string mStatus = "";
+    private string _status = "";
     public string Status
     {
-        get => mStatus;
-        set => this.RaiseAndSetIfChanged(ref mStatus, value);
+        get => _status;
+        set => this.RaiseAndSetIfChanged(ref _status, value);
     }
 
     public StartupWindowViewModel()

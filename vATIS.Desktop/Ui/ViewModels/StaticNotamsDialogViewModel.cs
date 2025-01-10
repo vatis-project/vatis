@@ -22,10 +22,9 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly IWindowFactory mWindowFactory;
-    
+    private readonly IWindowFactory _windowFactory;
+
     public Window? Owner { get; set; }
-    
     public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
     public ReactiveCommand<Unit, Unit> NewDefinitionCommand { get; }
     public ReactiveCommand<Unit, Unit> EditDefinitionCommand { get; }
@@ -33,51 +32,51 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<Unit, Unit> MoveDefinitionUpCommand { get; }
     public ReactiveCommand<Unit, Unit> MoveDefinitionDownCommand { get; }
 
-    private bool mShowOverlay;
+    private bool _showOverlay;
     public bool ShowOverlay
     {
-        get => mShowOverlay;
-        set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
+        get => _showOverlay;
+        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
     }
 
-    private bool mHasDefinitions;
+    private bool _hasDefinitions;
     public bool HasDefinitions
     {
-        get => mHasDefinitions;
-        set => this.RaiseAndSetIfChanged(ref mHasDefinitions, value);
+        get => _hasDefinitions;
+        set => this.RaiseAndSetIfChanged(ref _hasDefinitions, value);
     }
 
-    private bool mIncludeBeforeFreeText;
+    private bool _includeBeforeFreeText;
     public bool IncludeBeforeFreeText
     {
-        get => mIncludeBeforeFreeText;
-        set => this.RaiseAndSetIfChanged(ref mIncludeBeforeFreeText, value);
-    }
-    
-    private List<ICompletionData> mContractionCompletionData = [];
-    public List<ICompletionData> ContractionCompletionData
-    {
-        get => mContractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref mContractionCompletionData, value);
+        get => _includeBeforeFreeText;
+        set => this.RaiseAndSetIfChanged(ref _includeBeforeFreeText, value);
     }
 
-    private ObservableCollection<StaticDefinition> mDefinitions = [];
+    private List<ICompletionData> _contractionCompletionData = [];
+    public List<ICompletionData> ContractionCompletionData
+    {
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+    }
+
+    private ObservableCollection<StaticDefinition> _definitions = [];
     public ObservableCollection<StaticDefinition> Definitions
     {
-        get => mDefinitions;
+        get => _definitions;
         set
         {
-            this.RaiseAndSetIfChanged(ref mDefinitions, value);
-            Source.Items = mDefinitions.OrderBy(x => x.Ordinal);
-            HasDefinitions = mDefinitions.Count != 0;
+            this.RaiseAndSetIfChanged(ref _definitions, value);
+            Source.Items = _definitions.OrderBy(x => x.Ordinal);
+            HasDefinitions = _definitions.Count != 0;
         }
     }
-    
-    public FlatTreeDataGridSource<StaticDefinition> Source { get; private set; }
+
+    public FlatTreeDataGridSource<StaticDefinition> Source { get; }
 
     public StaticNotamsDialogViewModel(IWindowFactory windowFactory)
     {
-        mWindowFactory = windowFactory;
+        _windowFactory = windowFactory;
 
         var textColumnLength = new GridLength(1, GridUnitType.Star);
         var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) =>
@@ -89,7 +88,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
             {
                 TextWrapping = TextWrapping.Wrap
             });
-        
+
         Source = new FlatTreeDataGridSource<StaticDefinition>(Definitions)
         {
             Columns =
@@ -179,10 +178,10 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         {
             if (lifetime.MainWindow == null)
                 return;
-            
+
             if (Source.RowSelection?.SelectedItem is { } definition)
             {
-                var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
+                var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
                 dlg.Topmost = lifetime.MainWindow.Topmost;
                 if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
                 {
@@ -194,13 +193,13 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                         if (result == DialogResult.Ok)
                         {
                             vm.ClearAllErrors();
-        
+
                             if (Definitions.Any(x => x != definition && string.Equals(x.Text,
                                     vm.TextDocument?.Text, StringComparison.InvariantCultureIgnoreCase)))
                             {
                                 vm.RaiseError("DataValidation", "NOTAM already exists.");
                             }
-        
+
                             if (string.IsNullOrWhiteSpace(vm.TextDocument?.Text))
                             {
                                 vm.RaiseError("DataValidation", "Text is required.");
@@ -210,7 +209,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                                 return;
 
                             var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault();
-                        
+
                             Definitions.Remove(definition);
                             Definitions.Insert(currentIndex ?? 0,
                                 new StaticDefinition(vm.TextDocument?.Text.ToUpperInvariant() ?? string.Empty, currentIndex ?? 0,
@@ -233,8 +232,8 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         {
             if (lifetime.MainWindow == null)
                 return;
-            
-            var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
+
+            var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
             dlg.Topmost = lifetime.MainWindow.Topmost;
             if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
             {
@@ -259,7 +258,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 
                         if (vm.HasErrors)
                             return;
-                    
+
                         Definitions.Add(new StaticDefinition(vm.DefinitionText?.Trim().ToUpperInvariant() ?? string.Empty,
                             Definitions.Count + 1));
                         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
@@ -289,7 +288,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        
+
         CloseWindowCommand.Dispose();
         NewDefinitionCommand.Dispose();
         DeleteDefinitionCommand.Dispose();
