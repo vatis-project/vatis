@@ -13,8 +13,8 @@ namespace Vatsim.Vatis.Ui.Windows;
 
 public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationWindowViewModel>, ICloseable, IDialogOwner
 {
-    private int mCurrentStationIndex;
-    private bool mSuppressSelectionChanged;
+    private int _currentStationIndex;
+    private bool _suppressSelectionChanged;
 
     public AtisConfigurationWindow(AtisConfigurationWindowViewModel viewModel)
     {
@@ -46,14 +46,14 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         {
             if (Stations.SelectedIndex < 0)
                 return;
-            
-            if (mSuppressSelectionChanged) 
+
+            if (_suppressSelectionChanged)
                 return;
-            
-            if (ViewModel is not { } model) 
+
+            if (ViewModel is not { } model)
                 return;
-            
-            if (model.HasUnsavedChanges && Stations.SelectedIndex != mCurrentStationIndex)
+
+            if (model.HasUnsavedChanges && Stations.SelectedIndex != _currentStationIndex)
             {
                 var result = await MessageBox.ShowDialog(this,
                     "You have unsaved changes. Are you sure you want to discard them?",
@@ -63,9 +63,9 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
 
                 if (result == MessageBoxResult.No)
                 {
-                    mSuppressSelectionChanged = true;
-                    Stations.SelectedIndex = mCurrentStationIndex;
-                    mSuppressSelectionChanged = false;
+                    _suppressSelectionChanged = true;
+                    Stations.SelectedIndex = _currentStationIndex;
+                    _suppressSelectionChanged = false;
 
                     e.Handled = true;
                     return;
@@ -75,7 +75,7 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
             if (e.AddedItems.Count > 0 && e.AddedItems[0] is AtisStation station)
             {
                 await model.SelectedAtisStationChanged.Execute(station);
-                mCurrentStationIndex = Stations.SelectedIndex;
+                _currentStationIndex = Stations.SelectedIndex;
             }
         }
         catch (Exception ex)

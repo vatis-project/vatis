@@ -21,11 +21,11 @@ public sealed class ReportStatusChunkDecoder : MetarChunkDecoder
         var result = new Dictionary<string, object?>();
         if (found.Count > 1)
         {
-            string status = found[1].Value;
+            var status = found[1].Value;
             if (status.Length != 3 && status != "AUTO")
             {
                 throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                    MetarChunkDecoderException.Messages.INVALID_REPORT_STATUS);
+                    MetarChunkDecoderException.Messages.InvalidReportStatus);
             }
             // retrieve found params
             result.Add(StatusParameterName, status);
@@ -38,7 +38,7 @@ public sealed class ReportStatusChunkDecoder : MetarChunkDecoder
         if (result.Count > 0 && result[StatusParameterName] as string == "NIL" && newRemainingMetar.Trim().Length > 0)
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.NO_INFORMATION_EXPECTED_AFTER_NIL_STATUS);
+                MetarChunkDecoderException.Messages.NoInformationExpectedAfterNilStatus);
         }
 
         return GetResults(newRemainingMetar, result);

@@ -1,7 +1,6 @@
-﻿namespace Vatsim.Network
+﻿namespace Vatsim.Network;
+
+public class NetworkEventArgs(object? userData) : EventArgs
 {
-    public class NetworkEventArgs(object? userData) : EventArgs
-    {
-        public object? UserData { get; } = userData;
-    }
+    public object? UserData { get; } = userData;
 }

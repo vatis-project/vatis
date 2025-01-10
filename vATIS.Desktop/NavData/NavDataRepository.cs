@@ -13,15 +13,15 @@ using Vatsim.Vatis.Io;
 namespace Vatsim.Vatis.NavData;
 public class NavDataRepository : INavDataRepository
 {
-    private List<Airport> mAirports = [];
-    private List<Navaid> mNavaids = [];
-    private readonly IDownloader mDownloader;
-    private readonly IAppConfigurationProvider mAppConfigurationProvider;
+    private List<Airport> _airports = [];
+    private List<Navaid> _navaids = [];
+    private readonly IDownloader _downloader;
+    private readonly IAppConfigurationProvider _appConfigurationProvider;
 
     public NavDataRepository(IDownloader downloader, IAppConfigurationProvider appConfigurationProvider)
     {
-        mDownloader = downloader;
-        mAppConfigurationProvider = appConfigurationProvider;
+        _downloader = downloader;
+        _appConfigurationProvider = appConfigurationProvider;
     }
 
     public async Task CheckForUpdates()
@@ -29,9 +29,9 @@ public class NavDataRepository : INavDataRepository
         try
         {
             MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new navigation data..."));
-            var localNavDataSerial = await GetLocalNavDataSeial();
+            var localNavDataSerial = await GetLocalNavDataSerial();
             Log.Information($"Local NavData serial number {localNavDataSerial}");
-            var response = await mDownloader.DownloadStringAsync(mAppConfigurationProvider.NavDataUrl);
+            var response = await _downloader.DownloadStringAsync(_appConfigurationProvider.NavDataUrl);
             {
                 var availableNavData =
                     JsonSerializer.Deserialize(response, SourceGenerationContext.NewDefault.AvailableNavData);
@@ -61,7 +61,7 @@ public class NavDataRepository : INavDataRepository
         if (!string.IsNullOrEmpty(availableNavData.AirportDataUrl))
         {
             Log.Information($"Downloading airport navdata from {availableNavData.AirportDataUrl}");
-            await mDownloader.DownloadFileAsync(availableNavData.AirportDataUrl, PathProvider.AirportsFilePath, new Progress<int>((int percent) =>
+            await _downloader.DownloadFileAsync(availableNavData.AirportDataUrl, PathProvider.AirportsFilePath, new Progress<int>(percent =>
             {
                 MessageBus.Current.SendMessage(new StartupStatusChanged($"Downloading airport navdata: {percent}%"));
             }));
@@ -70,7 +70,7 @@ public class NavDataRepository : INavDataRepository
         if (!string.IsNullOrEmpty(availableNavData.NavaidDataUrl))
         {
             Log.Information($"Downloading navaid navdata from {availableNavData.NavaidDataUrl}");
-            await mDownloader.DownloadFileAsync(availableNavData.NavaidDataUrl, PathProvider.NavaidsFilePath, new Progress<int>((int percent) =>
+            await _downloader.DownloadFileAsync(availableNavData.NavaidDataUrl, PathProvider.NavaidsFilePath, new Progress<int>(percent =>
             {
                 MessageBus.Current.SendMessage(new StartupStatusChanged($"Downloading navaid navdata: {percent}%"));
             }));
@@ -79,7 +79,7 @@ public class NavDataRepository : INavDataRepository
         await File.WriteAllTextAsync(PathProvider.NavDataSerialFilePath, JsonSerializer.Serialize(availableNavData.NavDataSerial, SourceGenerationContext.NewDefault.String));
     }
 
-    private static async Task<string> GetLocalNavDataSeial()
+    private static async Task<string> GetLocalNavDataSerial()
     {
         if (!File.Exists(PathProvider.NavDataSerialFilePath))
         {
@@ -96,7 +96,7 @@ public class NavDataRepository : INavDataRepository
 
     private async Task LoadAirportDatabase()
     {
-        mAirports = await Task.Run(() =>
+        _airports = await Task.Run(() =>
         {
             var content = File.ReadAllText(PathProvider.AirportsFilePath);
             return JsonSerializer.Deserialize(content, SourceGenerationContext.NewDefault.ListAirport);
@@ -105,7 +105,7 @@ public class NavDataRepository : INavDataRepository
 
     private async Task LoadNavaidDatabase()
     {
-        mNavaids = await Task.Run(() =>
+        _navaids = await Task.Run(() =>
         {
             using var source = File.OpenRead(PathProvider.NavaidsFilePath);
             using StreamReader reader = new(source);
@@ -115,11 +115,11 @@ public class NavDataRepository : INavDataRepository
 
     public Airport? GetAirport(string id)
     {
-        return mAirports.FirstOrDefault(x => x.Id == id);
+        return _airports.FirstOrDefault(x => x.Id == id);
     }
 
     public Navaid? GetNavaid(string id)
     {
-        return mNavaids.FirstOrDefault(x => x.Id == id);
+        return _navaids.FirstOrDefault(x => x.Id == id);
     }
 }

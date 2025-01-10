@@ -24,15 +24,15 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 public class SandboxViewModel : ReactiveViewModelBase
 {
-    private readonly IProfileRepository mProfileRepository;
-    private readonly ISessionManager mSessionManager;
-    private readonly IWindowFactory mWindowFactory;
-    private readonly IAtisBuilder mAtisBuilder;
-    private readonly IMetarRepository mMetarRepository;
-    private CancellationTokenSource mCancellationToken;
-    private readonly Random mRandom = new();
-    private readonly MetarDecoder mMetarDecoder = new();
-    
+    private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
+    private readonly IWindowFactory _windowFactory;
+    private readonly IAtisBuilder _atisBuilder;
+    private readonly IMetarRepository _metarRepository;
+    private CancellationTokenSource _cancellationToken;
+    private readonly Random _random = new();
+    private readonly MetarDecoder _metarDecoder = new();
+
     public IDialogOwner? DialogOwner { get; set; }
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
     public ReactiveCommand<Unit, Unit> FetchSandboxMetarCommand { get; }
@@ -45,113 +45,100 @@ public class SandboxViewModel : ReactiveViewModelBase
     public ReactiveCommand<Unit, Unit> PlaySandboxAtisCommand { get; }
 
     #region Reactive Properties
-
-    private ObservableCollection<AtisPreset>? mPresets;
-
+    private ObservableCollection<AtisPreset>? _presets;
     public ObservableCollection<AtisPreset>? Presets
     {
-        get => mPresets;
-        set => this.RaiseAndSetIfChanged(ref mPresets, value);
+        get => _presets;
+        set => this.RaiseAndSetIfChanged(ref _presets, value);
     }
 
-    private AtisPreset? mSelectedPreset;
-
+    private AtisPreset? _selectedPreset;
     public AtisPreset? SelectedPreset
     {
-        get => mSelectedPreset;
-        set => this.RaiseAndSetIfChanged(ref mSelectedPreset, value);
+        get => _selectedPreset;
+        set => this.RaiseAndSetIfChanged(ref _selectedPreset, value);
     }
 
-    private AtisStation? mSelectedStation;
-
+    private AtisStation? _selectedStation;
     private AtisStation? SelectedStation
     {
-        get => mSelectedStation;
-        set => this.RaiseAndSetIfChanged(ref mSelectedStation, value);
+        get => _selectedStation;
+        set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
     }
 
-    private string? mSandboxMetar;
-
+    private string? _sandboxMetar;
     public string? SandboxMetar
     {
-        get => mSandboxMetar;
-        set => this.RaiseAndSetIfChanged(ref mSandboxMetar, value);
+        get => _sandboxMetar;
+        set => this.RaiseAndSetIfChanged(ref _sandboxMetar, value);
     }
 
-    private bool mHasUnsavedAirportConditions;
-
+    private bool _hasUnsavedAirportConditions;
     public bool HasUnsavedAirportConditions
     {
-        get => mHasUnsavedAirportConditions;
-        set => this.RaiseAndSetIfChanged(ref mHasUnsavedAirportConditions, value);
+        get => _hasUnsavedAirportConditions;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedAirportConditions, value);
     }
 
-    private bool mHasUnsavedNotams;
-
+    private bool _hasUnsavedNotams;
     public bool HasUnsavedNotams
     {
-        get => mHasUnsavedNotams;
-        set => this.RaiseAndSetIfChanged(ref mHasUnsavedNotams, value);
+        get => _hasUnsavedNotams;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
     }
 
     private string? AirportConditionsText
     {
-        get => mAirportConditionsTextDocument.Text ?? "";
+        get => _airportConditionsTextDocument.Text ?? "";
         set => AirportConditionsTextDocument = new TextDocument(value);
     }
 
-    private TextDocument mAirportConditionsTextDocument = new();
-
+    private TextDocument _airportConditionsTextDocument = new();
     public TextDocument AirportConditionsTextDocument
     {
-        get => mAirportConditionsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref mAirportConditionsTextDocument, value);
+        get => _airportConditionsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
     }
 
     private string? NotamText
     {
-        get => mNotamsTextDocument.Text ?? "";
+        get => _notamsTextDocument.Text ?? "";
         set => NotamsTextDocument = new TextDocument(value);
     }
 
-    private TextDocument mNotamsTextDocument = new();
-
+    private TextDocument _notamsTextDocument = new();
     public TextDocument NotamsTextDocument
     {
-        get => mNotamsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref mNotamsTextDocument, value);
+        get => _notamsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _notamsTextDocument, value);
     }
 
-    private List<ICompletionData> mContractionCompletionData = [];
-
+    private List<ICompletionData> _contractionCompletionData = [];
     public List<ICompletionData> ContractionCompletionData
     {
-        get => mContractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref mContractionCompletionData, value);
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
     }
 
-    private string? mSandboxTextAtis;
-
+    private string? _sandboxTextAtis;
     public string? SandboxTextAtis
     {
-        get => mSandboxTextAtis;
-        set => this.RaiseAndSetIfChanged(ref mSandboxTextAtis, value);
+        get => _sandboxTextAtis;
+        set => this.RaiseAndSetIfChanged(ref _sandboxTextAtis, value);
     }
 
-    private string? mSandboxSpokenTextAtis;
-
+    private string? _sandboxSpokenTextAtis;
     public string? SandboxSpokenTextAtis
     {
-        get => mSandboxSpokenTextAtis;
-        set => this.RaiseAndSetIfChanged(ref mSandboxSpokenTextAtis, value);
+        get => _sandboxSpokenTextAtis;
+        set => this.RaiseAndSetIfChanged(ref _sandboxSpokenTextAtis, value);
     }
 
-    private bool mIsSandboxPlaybackActive;
-
+    private bool _isSandboxPlaybackActive;
     public bool IsSandboxPlaybackActive
     {
-        get => mIsSandboxPlaybackActive;
-        set => this.RaiseAndSetIfChanged(ref mIsSandboxPlaybackActive, value);
+        get => _isSandboxPlaybackActive;
+        set => this.RaiseAndSetIfChanged(ref _isSandboxPlaybackActive, value);
     }
 
     private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceAtisResponse;
@@ -160,18 +147,17 @@ public class SandboxViewModel : ReactiveViewModelBase
         get => _atisBuilderVoiceAtisResponse;
         set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceAtisResponse, value);
     }
-
     #endregion
 
     public SandboxViewModel(IWindowFactory windowFactory, IAtisBuilder atisBuilder, IMetarRepository metarRepository,
         IProfileRepository profileRepository, ISessionManager sessionManager)
     {
-        mWindowFactory = windowFactory;
-        mAtisBuilder = atisBuilder;
-        mMetarRepository = metarRepository;
-        mProfileRepository = profileRepository;
-        mSessionManager = sessionManager;
-        mCancellationToken = new CancellationTokenSource();
+        _windowFactory = windowFactory;
+        _atisBuilder = atisBuilder;
+        _metarRepository = metarRepository;
+        _profileRepository = profileRepository;
+        _sessionManager = sessionManager;
+        _cancellationToken = new CancellationTokenSource();
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         FetchSandboxMetarCommand = ReactiveCommand.CreateFromTask(HandleFetchSandboxMetar);
@@ -238,9 +224,9 @@ public class SandboxViewModel : ReactiveViewModelBase
         if (SelectedStation == null || SelectedPreset == null || AtisBuilderVoiceAtisResponse == null)
             return;
 
-        await mCancellationToken.CancelAsync();
-        mCancellationToken.Dispose();
-        mCancellationToken = new CancellationTokenSource();
+        await _cancellationToken.CancelAsync();
+        _cancellationToken.Dispose();
+        _cancellationToken = new CancellationTokenSource();
 
         if (AtisBuilderVoiceAtisResponse.AudioBytes == null)
             return;
@@ -267,22 +253,22 @@ public class SandboxViewModel : ReactiveViewModelBase
             NativeAudio.StopBufferPlayback();
             AtisBuilderVoiceAtisResponse = null;
 
-            await mCancellationToken.CancelAsync();
-            mCancellationToken.Dispose();
-            mCancellationToken = new CancellationTokenSource();
+            await _cancellationToken.CancelAsync();
+            _cancellationToken.Dispose();
+            _cancellationToken = new CancellationTokenSource();
 
             SandboxTextAtis = "Loading...";
             SandboxSpokenTextAtis = "Loading...";
 
             var randomLetter =
-                (char)mRandom.Next(SelectedStation.CodeRange.Low + SelectedStation.CodeRange.High + 1);
+                (char)_random.Next(SelectedStation.CodeRange.Low + SelectedStation.CodeRange.High + 1);
 
             if (randomLetter is < 'A' or > 'Z')
                 randomLetter = 'A';
 
             SelectedPreset.AirportConditions = AirportConditionsText;
             SelectedPreset.Notams = NotamText;
-            
+
             if (SandboxMetar != null)
             {
                 var decodedMetar = mMetarDecoder.ParseNotStrict(SandboxMetar);
@@ -309,8 +295,8 @@ public class SandboxViewModel : ReactiveViewModelBase
 
         SelectedPreset.Notams = NotamText;
 
-        if (mSessionManager.CurrentProfile != null)
-            mProfileRepository.Save(mSessionManager.CurrentProfile);
+        if (_sessionManager.CurrentProfile != null)
+            _profileRepository.Save(_sessionManager.CurrentProfile);
 
         HasUnsavedNotams = false;
     }
@@ -329,7 +315,7 @@ public class SandboxViewModel : ReactiveViewModelBase
         if (SelectedStation == null)
             return;
 
-        var dlg = mWindowFactory.CreateStaticNotamsDialog();
+        var dlg = _windowFactory.CreateStaticNotamsDialog();
         dlg.Topmost = lifetime.MainWindow.Topmost;
         if (dlg.DataContext is StaticNotamsDialogViewModel viewModel)
         {
@@ -339,8 +325,8 @@ public class SandboxViewModel : ReactiveViewModelBase
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
                 SelectedStation.NotamsBeforeFreeText = val;
-                if (mSessionManager.CurrentProfile != null)
-                    mProfileRepository.Save(mSessionManager.CurrentProfile);
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(
@@ -348,8 +334,8 @@ public class SandboxViewModel : ReactiveViewModelBase
                 {
                     SelectedStation.NotamDefinitions.Clear();
                     SelectedStation.NotamDefinitions.AddRange(changes);
-                    if (mSessionManager.CurrentProfile != null)
-                        mProfileRepository.Save(mSessionManager.CurrentProfile);
+                    if (_sessionManager.CurrentProfile != null)
+                        _profileRepository.Save(_sessionManager.CurrentProfile);
                 });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
@@ -362,8 +348,8 @@ public class SandboxViewModel : ReactiveViewModelBase
                     SelectedStation.NotamDefinitions.Add(item);
                 }
 
-                if (mSessionManager.CurrentProfile != null)
-                    mProfileRepository.Save(mSessionManager.CurrentProfile);
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             };
         }
 
@@ -376,8 +362,8 @@ public class SandboxViewModel : ReactiveViewModelBase
             return;
 
         SelectedPreset.AirportConditions = AirportConditionsText;
-        if (mSessionManager.CurrentProfile != null)
-            mProfileRepository.Save(mSessionManager.CurrentProfile);
+        if (_sessionManager.CurrentProfile != null)
+            _profileRepository.Save(_sessionManager.CurrentProfile);
 
         HasUnsavedAirportConditions = false;
     }
@@ -396,7 +382,7 @@ public class SandboxViewModel : ReactiveViewModelBase
         if (SelectedStation == null)
             return;
 
-        var dlg = mWindowFactory.CreateStaticAirportConditionsDialog();
+        var dlg = _windowFactory.CreateStaticAirportConditionsDialog();
         dlg.Topmost = lifetime.MainWindow.Topmost;
         if (dlg.DataContext is StaticAirportConditionsDialogViewModel viewModel)
         {
@@ -407,8 +393,8 @@ public class SandboxViewModel : ReactiveViewModelBase
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
                 SelectedStation.AirportConditionsBeforeFreeText = val;
-                if (mSessionManager.CurrentProfile != null)
-                    mProfileRepository.Save(mSessionManager.CurrentProfile);
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(
@@ -416,8 +402,8 @@ public class SandboxViewModel : ReactiveViewModelBase
                 {
                     SelectedStation.AirportConditionDefinitions.Clear();
                     SelectedStation.AirportConditionDefinitions.AddRange(changes);
-                    if (mSessionManager.CurrentProfile != null)
-                        mProfileRepository.Save(mSessionManager.CurrentProfile);
+                    if (_sessionManager.CurrentProfile != null)
+                        _profileRepository.Save(_sessionManager.CurrentProfile);
                 });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
@@ -430,8 +416,8 @@ public class SandboxViewModel : ReactiveViewModelBase
                     SelectedStation.AirportConditionDefinitions.Add(item);
                 }
 
-                if (mSessionManager.CurrentProfile != null)
-                    mProfileRepository.Save(mSessionManager.CurrentProfile);
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             };
         }
 
@@ -453,7 +439,7 @@ public class SandboxViewModel : ReactiveViewModelBase
         if (SelectedStation == null || string.IsNullOrEmpty(SelectedStation.Identifier))
             return;
 
-        var metar = await mMetarRepository.GetMetar(SelectedStation.Identifier, monitor: false,
+        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, monitor: false,
             triggerMessageBus: false);
         SandboxMetar = metar?.RawMetar;
     }

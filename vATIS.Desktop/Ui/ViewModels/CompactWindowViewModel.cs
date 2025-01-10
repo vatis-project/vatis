@@ -11,27 +11,27 @@ using Vatsim.Vatis.Ui.Services;
 namespace Vatsim.Vatis.Ui.ViewModels;
 public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly IWindowLocationService mWindowLocationService;
+    private readonly IWindowLocationService _windowLocationService;
 
-    public ReactiveCommand<ICloseable, Unit> InvokeMainWindowCommand { get; private set; }
+    public ReactiveCommand<ICloseable, Unit> InvokeMainWindowCommand { get; }
 
-    private string mCurrentTime = DateTime.UtcNow.ToString("HH:mm/ss");
+    private string _currentTime = DateTime.UtcNow.ToString("HH:mm/ss");
     public string CurrentTime
     {
-        get => mCurrentTime;
-        set => this.RaiseAndSetIfChanged(ref mCurrentTime, value);
+        get => _currentTime;
+        set => this.RaiseAndSetIfChanged(ref _currentTime, value);
     }
 
-    private ReadOnlyObservableCollection<AtisStationViewModel> mStations = new([]);
+    private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
     public ReadOnlyObservableCollection<AtisStationViewModel> Stations
     {
-        get => mStations;
-        set => this.RaiseAndSetIfChanged(ref mStations, value);
+        get => _stations;
+        set => this.RaiseAndSetIfChanged(ref _stations, value);
     }
 
     public CompactWindowViewModel(IWindowLocationService windowLocationService)
     {
-        mWindowLocationService = windowLocationService;
+        _windowLocationService = windowLocationService;
 
         DispatcherTimer timer = new()
         {
@@ -58,7 +58,7 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
         if (window == null)
             return;
 
-        mWindowLocationService.Update(window);
+        _windowLocationService.Update(window);
     }
 
     public void RestorePosition(Window? window)
@@ -66,7 +66,7 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
         if (window == null)
             return;
 
-        mWindowLocationService.Restore(window);
+        _windowLocationService.Restore(window);
     }
 
     public void Dispose()
