@@ -1,5 +1,5 @@
-﻿using ReactiveUI;
-using System;
+﻿using System;
+using ReactiveUI;
 using Vatsim.Vatis.Events;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -7,17 +7,15 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 public class StartupWindowViewModel : ReactiveViewModelBase
 {
     private string _status = "";
-    public string Status
-    {
-        get => _status;
-        set => this.RaiseAndSetIfChanged(ref _status, value);
-    }
 
     public StartupWindowViewModel()
     {
-        MessageBus.Current.Listen<StartupStatusChanged>().Subscribe(evt =>
-        {
-            Status = evt.Status;
-        });
+        MessageBus.Current.Listen<StartupStatusChanged>().Subscribe(evt => { this.Status = evt.Status; });
+    }
+
+    public string Status
+    {
+        get => this._status;
+        set => this.RaiseAndSetIfChanged(ref this._status, value);
     }
 }

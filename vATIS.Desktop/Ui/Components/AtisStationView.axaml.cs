@@ -21,46 +21,50 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
     public AtisStationView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
 
-        TypeAtisLetter.KeyDown += TypeAtisLetterOnKeyDown;
-        AtisLetter.DoubleTapped += AtisLetterOnDoubleTapped;
-        AtisLetter.Tapped += AtisLetterOnTapped;
-        AtisLetter.PointerPressed += AtisLetterOnPointerPressed;
+        this.TypeAtisLetter.KeyDown += this.TypeAtisLetterOnKeyDown;
+        this.AtisLetter.DoubleTapped += this.AtisLetterOnDoubleTapped;
+        this.AtisLetter.Tapped += this.AtisLetterOnTapped;
+        this.AtisLetter.PointerPressed += this.AtisLetterOnPointerPressed;
 
-        Loaded += OnLoaded;
+        this.Loaded += this.OnLoaded;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        if (ViewModel == null)
-            return;
-
-        NotamFreeText.Options.AllowScrollBelowDocument = false;
-        NotamFreeText.TextArea.Caret.PositionChanged += (_, _) =>
+        if (this.ViewModel == null)
         {
-            foreach (var segment in ViewModel.ReadOnlyNotams)
+            return;
+        }
+
+        this.NotamFreeText.Options.AllowScrollBelowDocument = false;
+        this.NotamFreeText.TextArea.Caret.PositionChanged += (_, _) =>
+        {
+            foreach (var segment in this.ViewModel.ReadOnlyNotams)
             {
                 // If caret is within or at the start of a read-only segment
-                if (NotamFreeText.CaretOffset >= segment.StartOffset && NotamFreeText.CaretOffset <= segment.EndOffset)
+                if (this.NotamFreeText.CaretOffset >= segment.StartOffset &&
+                    this.NotamFreeText.CaretOffset <= segment.EndOffset)
                 {
                     // Move caret to the end of the read-only segment
-                    NotamFreeText.CaretOffset = segment.EndOffset;
+                    this.NotamFreeText.CaretOffset = segment.EndOffset;
                     break;
                 }
             }
         };
-        
-        AirportConditions.Options.AllowScrollBelowDocument = false;
-        AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
+
+        this.AirportConditions.Options.AllowScrollBelowDocument = false;
+        this.AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
         {
-            foreach (var segment in ViewModel.ReadOnlyAirportConditions)
+            foreach (var segment in this.ViewModel.ReadOnlyAirportConditions)
             {
                 // If caret is within or at the start of a read-only segment
-                if (AirportConditions.CaretOffset >= segment.StartOffset && AirportConditions.CaretOffset <= segment.EndOffset)
+                if (this.AirportConditions.CaretOffset >= segment.StartOffset &&
+                    this.AirportConditions.CaretOffset <= segment.EndOffset)
                 {
                     // Move caret to the end of the read-only segment
-                    AirportConditions.CaretOffset = segment.EndOffset;
+                    this.AirportConditions.CaretOffset = segment.EndOffset;
                     break;
                 }
             }
@@ -71,22 +75,27 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         try
         {
-            if (ViewModel == null)
+            if (this.ViewModel == null)
+            {
                 return;
+            }
 
-            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            if (this.ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            {
                 return;
+            }
 
             if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
             {
-                ViewModel.IsAtisLetterInputMode = true;
+                this.ViewModel.IsAtisLetterInputMode = true;
             }
+
             // If the shift key wasn't held down during a double tap it is likely
             // the user is just tapping/clicking really fast to advance the letter
             // so treat it like a single tap and increment.
             else
             {
-                await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+                await this.ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
             }
         }
         catch (Exception ex)
@@ -99,11 +108,15 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         try
         {
-            if (ViewModel == null)
+            if (this.ViewModel == null)
+            {
                 return;
+            }
 
-            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            if (this.ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            {
                 return;
+            }
 
             // If the shift key is held down it likely means the user is trying to
             // shift + double click to get into edit mode, so don't advance
@@ -113,7 +126,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
                 return;
             }
 
-            await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+            await this.ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
         }
         catch (Exception ex)
         {
@@ -125,16 +138,20 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         try
         {
-            if (ViewModel == null)
+            if (this.ViewModel == null)
+            {
                 return;
+            }
 
-            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            if (this.ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            {
                 return;
+            }
 
             var point = e.GetCurrentPoint(this);
             if (point.Properties.IsRightButtonPressed)
             {
-                await ViewModel.DecrementAtisLetterCommand.Execute();
+                await this.ViewModel.DecrementAtisLetterCommand.Execute();
             }
         }
         catch (Exception ex)
@@ -145,31 +162,37 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
     private void TypeAtisLetterOnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (ViewModel == null)
+        if (this.ViewModel == null)
+        {
             return;
+        }
 
-        if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+        if (this.ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+        {
             return;
+        }
 
         if (e.Key == Key.Escape)
         {
-            ViewModel.IsAtisLetterInputMode = false;
-            TypeAtisLetter.Text = $"{ViewModel.AtisLetter}";
+            this.ViewModel.IsAtisLetterInputMode = false;
+            this.TypeAtisLetter.Text = $"{this.ViewModel.AtisLetter}";
         }
         else if (e.Key == Key.Enter || e.Key == Key.Return)
         {
-            ViewModel.IsAtisLetterInputMode = false;
-            if (char.TryParse(TypeAtisLetter.Text?.ToUpperInvariant(), out var letter))
+            this.ViewModel.IsAtisLetterInputMode = false;
+            if (char.TryParse(this.TypeAtisLetter.Text?.ToUpperInvariant(), out var letter))
             {
-                if (letter > ViewModel.CodeRange.High)
+                if (letter > this.ViewModel.CodeRange.High)
                 {
                     return;
                 }
-                if (letter < ViewModel.CodeRange.Low)
+
+                if (letter < this.ViewModel.CodeRange.Low)
                 {
                     return;
                 }
-                ViewModel.AtisLetter = letter;
+
+                this.ViewModel.AtisLetter = letter;
             }
         }
     }
@@ -178,82 +201,87 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         base.OnDataContextChanged(e);
 
-        ViewModel.WhenAnyValue(x => x.IsAtisLetterInputMode).Subscribe(mode =>
-        {
-            if (mode)
+        this.ViewModel.WhenAnyValue(x => x.IsAtisLetterInputMode).Subscribe(
+            mode =>
             {
-                TypeAtisLetter.Text = "";
-                TypeAtisLetter.Focus();
-                TypeAtisLetter.SelectAll();
-            }
-        });
+                if (mode)
+                {
+                    this.TypeAtisLetter.Text = "";
+                    this.TypeAtisLetter.Focus();
+                    this.TypeAtisLetter.SelectAll();
+                }
+            });
 
-        if (ViewModel != null)
+        if (this.ViewModel != null)
         {
-            AirportConditions.TextArea.ReadOnlySectionProvider =
-                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyAirportConditions);
-            NotamFreeText.TextArea.ReadOnlySectionProvider =
-                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyNotams);
-            AirportConditions.TextArea.TextView.LineTransformers.Add(
-                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyAirportConditions));
-            NotamFreeText.TextArea.TextView.LineTransformers.Add(
-                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
+            this.AirportConditions.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(this.ViewModel.ReadOnlyAirportConditions);
+            this.NotamFreeText.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(this.ViewModel.ReadOnlyNotams);
+            this.AirportConditions.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(this.ViewModel.ReadOnlyAirportConditions));
+            this.NotamFreeText.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(this.ViewModel.ReadOnlyNotams));
         }
     }
-    
+
     private void AirportConditions_OnTextChanged(object? sender, EventArgs e)
     {
-        if (ViewModel?.SelectedAtisPreset == null)
-            return;
-
-        if (!AirportConditions.TextArea.IsFocused)
-            return;
-
-        if (_airportConditionsInitialized)
+        if (this.ViewModel?.SelectedAtisPreset == null)
         {
-            ViewModel.HasUnsavedAirportConditions = true;
+            return;
         }
 
-        _airportConditionsInitialized = true;
+        if (!this.AirportConditions.TextArea.IsFocused)
+        {
+            return;
+        }
+
+        if (this._airportConditionsInitialized)
+        {
+            this.ViewModel.HasUnsavedAirportConditions = true;
+        }
+
+        this._airportConditionsInitialized = true;
     }
 
     private void NotamFreeText_OnTextChanged(object? sender, EventArgs e)
     {
-        if (ViewModel?.SelectedAtisPreset == null)
-            return;
-
-        if (!NotamFreeText.TextArea.IsFocused)
-            return;
-
-        if (_notamsInitialized)
+        if (this.ViewModel?.SelectedAtisPreset == null)
         {
-            ViewModel.HasUnsavedNotams = true;
+            return;
         }
 
-        _notamsInitialized = true;
+        if (!this.NotamFreeText.TextArea.IsFocused)
+        {
+            return;
+        }
+
+        if (this._notamsInitialized)
+        {
+            this.ViewModel.HasUnsavedNotams = true;
+        }
+
+        this._notamsInitialized = true;
     }
-    
-    class ReadOnlySegmentTransformer : DocumentColorizingTransformer
+
+    private class ReadOnlySegmentTransformer : DocumentColorizingTransformer
     {
         private readonly TextSegmentCollection<TextSegment> _readOnlySegments;
 
         public ReadOnlySegmentTransformer(TextSegmentCollection<TextSegment> readOnlySegments)
         {
-            _readOnlySegments = readOnlySegments;
+            this._readOnlySegments = readOnlySegments;
         }
 
         protected override void ColorizeLine(DocumentLine line)
         {
-            foreach (var segment in _readOnlySegments.FindOverlappingSegments(line.Offset, line.Length))
+            foreach (var segment in this._readOnlySegments.FindOverlappingSegments(line.Offset, line.Length))
             {
-                ChangeLinePart(
+                this.ChangeLinePart(
                     Math.Max(segment.StartOffset, line.Offset),
                     Math.Min(segment.EndOffset, line.Offset + line.Length),
-                    element =>
-                    {
-                        element.TextRunProperties.SetForegroundBrush(Brushes.Aqua);
-                    }
-                );
+                    element => { element.TextRunProperties.SetForegroundBrush(Brushes.Aqua); });
             }
         }
     }

@@ -6,167 +6,208 @@
         xmlns:views="using:Vatsim.Vatis.Ui.AtisConfiguration"
         mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="600"
         x:Class="Vatsim.Vatis.Ui.Windows.AtisConfigurationWindow"
-		x:Name="Window" 
+        x:Name="Window"
         x:DataType="vm:AtisConfigurationWindowViewModel"
-        Height="640" 
-        Width="950" 
-        SystemDecorations="None" 
+        Height="640"
+        Width="950"
+        SystemDecorations="None"
         Background="Transparent"
-		WindowStartupLocation="CenterOwner" 
+        WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         TransparencyLevelHint="Transparent"
-		CanResize="False" 
-        Title="Profile Configuration" 
+        CanResize="False"
+        Title="Profile Configuration"
         Foreground="#eee"
-		Icon="/Assets/MainIcon.ico">
-	<Window.Styles>
-		<Style Selector="DataValidationErrors">
-			<Setter Property="Template">
-				<ControlTemplate>
-					<DockPanel LastChildFill="True">
-						<ContentControl DockPanel.Dock="Bottom"
-										ContentTemplate="{TemplateBinding ErrorTemplate}"
-										DataContext="{TemplateBinding Owner}"
-										Content="{Binding (DataValidationErrors.Errors)}"
-										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
-						<ContentPresenter Name="PART_ContentPresenter"
-										  Background="{TemplateBinding Background}"
-										  BorderBrush="{TemplateBinding BorderBrush}"
-										  BorderThickness="{TemplateBinding BorderThickness}"
-										  CornerRadius="{TemplateBinding CornerRadius}"
-										  ContentTemplate="{TemplateBinding ContentTemplate}"
-										  Content="{TemplateBinding Content}"
-										  Padding="{TemplateBinding Padding}"/>
-					</DockPanel>
-				</ControlTemplate>
-			</Setter>
-			<Setter Property="ErrorTemplate">
-				<DataTemplate x:DataType="{x:Type x:Object}">
-					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
-						<ItemsControl.Styles>
-							<Style Selector="TextBlock">
-								<Setter Property="TextWrapping" Value="Wrap" />
-							</Style>
-						</ItemsControl.Styles>
-					</ItemsControl>
-				</DataTemplate>
-			</Setter>
-		</Style>
-	</Window.Styles>
-	<Border x:Name="TitleBar" CornerRadius="5" BorderBrush="Black" BorderThickness="1" Background="#1E1E1E" ClipToBounds="True" PointerPressed="OnPointerPressed">
-		<Grid RowDefinitions="40,*" ColumnDefinitions="1*,1*" ClipToBounds="True">
-			<Grid x:Name="Overlay" Grid.RowSpan="2" Grid.ColumnSpan="2" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:AtisConfigurationWindowViewModel, FallbackValue=False}">
-				<Border Background="#000000" Opacity="0.80"/>
-			</Grid>
-			<Grid Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" ColumnDefinitions="1*,1*">
-				<TextBlock Grid.Column="0" Padding="8,0" Text="ATIS Configuration" VerticalAlignment="Center" FontSize="14"/>
-				<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,8,0" Command="{Binding CloseWindowCommand, DataType=vm:AtisConfigurationWindowViewModel}" CommandParameter="{Binding ElementName=Window}"/>
-			</Grid>
-			<Border Background="#323232" ClipToBounds="True" CornerRadius="0,0,5,5" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-				<Grid ColumnDefinitions="225,*" RowDefinitions="*,50" Margin="10,10,10,0">
-					<ListBox x:Name="Stations" Background="#1E1E1E" CornerRadius="4" BorderBrush="#646464" BorderThickness="1" ItemsSource="{Binding AtisStations, DataType=vm:AtisConfigurationWindowViewModel}" SelectionChanged="Stations_OnSelectionChanged" SelectionMode="Single">
-						<ListBox.Styles>
-							<Style Selector="ListBoxItem">
-								<Setter Property="HorizontalContentAlignment" Value="Stretch" />
-								<Setter Property="Margin" Value="2" />
-								<Setter Property="Padding" Value="6 3" />
-							</Style>
-						</ListBox.Styles>
-						<ListBox.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding}" />
-							</DataTemplate>
-						</ListBox.ItemTemplate>
-						<ListBox.ContextMenu>
-							<ContextMenu MinWidth="125" IsVisible="{Binding SelectedAtisStation, DataType=vm:AtisConfigurationWindowViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
-								<MenuItem Header="Copy" Command="{Binding CopyAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}"/>
-								<MenuItem Header="Rename" Command="{Binding	RenameAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}"/>
-								<MenuItem Header="Export" Command="{Binding ExportAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}"/>
-								<Separator/>
-								<MenuItem Header="Delete" Command="{Binding DeleteAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}"/>
-							</ContextMenu>
-						</ListBox.ContextMenu>
-					</ListBox>
-					<TabControl Grid.Row="0" Grid.Column="1" SelectedIndex="{Binding SelectedTabControlTabIndex, DataType=vm:AtisConfigurationWindowViewModel}" IsEnabled="{Binding SelectedAtisStation, DataType=vm:AtisConfigurationWindowViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
-						<TabItem Header="General">
-							<views:GeneralConfigView DataContext="{Binding GeneralConfigViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
-						</TabItem>
-						<TabItem Header="Presets">
-							<views:PresetsView DataContext="{Binding PresetsViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
-						</TabItem>
-						<TabItem Header="Formatting">
-							<views:FormattingView DataContext="{Binding FormattingViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
-						</TabItem>
-						<TabItem Header="Contractions">
-							<views:ContractionsView DataContext="{Binding ContractionsViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
-						</TabItem>
-						<TabItem Header="Sandbox">
-							<views:SandboxView DataContext="{Binding SandboxViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
-						</TabItem>
-					</TabControl>
-					<Grid ColumnDefinitions="30*,70*" Grid.Column="0" Grid.Row="1">
-						<Button Command="{Binding NewAtisStationDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}" Grid.Column="0" Margin="0,0,5,0" Theme="{StaticResource Dark}" Height="28">New</Button>
-						<Button Grid.Column="1" Theme="{StaticResource Dark}" Height="28" Command="{Binding ImportAtisStationCommand, DataType=vm:AtisConfigurationWindowViewModel}">Import Existing</Button>
-					</Grid>
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Spacing="5">
-						<Button Theme="{StaticResource Dark}" Height="28" Command="{Binding SaveAndCloseCommand, DataType=vm:AtisConfigurationWindowViewModel}" CommandParameter="{Binding ElementName=Window}">Save &amp; Close</Button>
-						<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding ApplyChangesCommand, DataType=vm:AtisConfigurationWindowViewModel}">Apply</Button>
-						<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding CancelChangesCommand, DataType=vm:AtisConfigurationWindowViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>
-					</StackPanel>
-				</Grid>
-			</Border>
-		</Grid>
-	</Border>
-	<Window.Styles>
-		<Style Selector="TabControl">
-			<Setter Property="Margin" Value="10,0,-10,0"/>
-		</Style>
-		<Style Selector="TabControl /template/ ContentPresenter#PART_SelectedContentHost">
-			<Setter Property="Padding" Value="-9,8,0,0"/>
-		</Style>
-		<Style Selector="TabItem">
-			<Setter Property="FontSize" Value="15"/>
-			<Setter Property="Padding" Value="8,4"/>
-			<Setter Property="Margin" Value="3,0" />
-			<Setter Property="MinHeight" Value="0"/>
-			<Setter Property="CornerRadius" Value="4"/>
-			<Setter Property="BorderBrush" Value="#646464"/>
-			<Setter Property="BorderThickness" Value="1"/>
-			<Style Selector="^:selected">
-				<Setter Property="Background" Value="#0C548D" />
-				<Setter Property="BorderThickness" Value="1"/>
-				<Setter Property="BorderBrush" Value="#0666B2"/>
-			</Style>
-			<Style Selector="^:selected:disabled">
-				<Setter Property="BorderThickness" Value="1"/>
-				<Setter Property="BorderBrush" Value="#646464"/>
-			</Style>
-			<Style Selector="^:pointerover /template/ Border#PART_LayoutRoot">
-				<Setter Property="Background" Value="#1E1E1E" />
-				<Setter Property="TextElement.Foreground" Value="White"/>
-			</Style>
-			<Style Selector="^:selected:pointerover /template/ Border#PART_LayoutRoot">
-				<Setter Property="Background" Value="#0C548D" />
-				<Setter Property="TextElement.Foreground" Value="White" />
-			</Style>
-			<Style Selector="^:selected:pressed /template/ Border#PART_LayoutRoot">
-				<Setter Property="Background" Value="#036EC4" />
-				<Setter Property="TextElement.Foreground" Value="White" />
-			</Style>
-			<Style Selector="^:selected /template/ Border#PART_SelectedPipe">
-				<Setter Property="IsVisible" Value="false"/>
-			</Style>
-		</Style>
-		<Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-			<Setter Property="Background" Value="#0666B2"/>
-		</Style>
-		<Style Selector="ListBoxItem:selected /template/ ContentPresenter:pointerover">
-			<Setter Property="Background" Value="#0C548D"/>
-			<Setter Property="TextElement.Foreground" Value="White" />
-		</Style>
-		<Style Selector="ListBoxItem:selected:pressed /template/ ContentPresenter">
-			<Setter Property="Background" Value="#036EC4"/>
-			<Setter Property="TextElement.Foreground" Value="White" />
-		</Style>
-	</Window.Styles>
+        Icon="/Assets/MainIcon.ico">
+    <Window.Styles>
+        <Style Selector="DataValidationErrors">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <DockPanel LastChildFill="True">
+                        <ContentControl DockPanel.Dock="Bottom"
+                                        ContentTemplate="{TemplateBinding ErrorTemplate}"
+                                        DataContext="{TemplateBinding Owner}"
+                                        Content="{Binding (DataValidationErrors.Errors)}"
+                                        IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          CornerRadius="{TemplateBinding CornerRadius}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Content="{TemplateBinding Content}"
+                                          Padding="{TemplateBinding Padding}" />
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="ErrorTemplate">
+                <DataTemplate x:DataType="{x:Type x:Object}">
+                    <ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+                        <ItemsControl.Styles>
+                            <Style Selector="TextBlock">
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                            </Style>
+                        </ItemsControl.Styles>
+                    </ItemsControl>
+                </DataTemplate>
+            </Setter>
+        </Style>
+    </Window.Styles>
+    <Border x:Name="TitleBar" CornerRadius="5" BorderBrush="Black" BorderThickness="1" Background="#1E1E1E"
+            ClipToBounds="True" PointerPressed="OnPointerPressed">
+        <Grid RowDefinitions="40,*" ColumnDefinitions="1*,1*" ClipToBounds="True">
+            <Grid x:Name="Overlay" Grid.RowSpan="2" Grid.ColumnSpan="2" ZIndex="100"
+                  IsVisible="{Binding ShowOverlay, DataType=vm:AtisConfigurationWindowViewModel, FallbackValue=False}">
+                <Border Background="#000000" Opacity="0.80" />
+            </Grid>
+            <Grid Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" ColumnDefinitions="1*,1*">
+                <TextBlock Grid.Column="0" Padding="8,0" Text="ATIS Configuration" VerticalAlignment="Center"
+                           FontSize="14" />
+                <Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right"
+                        Margin="0,0,8,0"
+                        Command="{Binding CloseWindowCommand, DataType=vm:AtisConfigurationWindowViewModel}"
+                        CommandParameter="{Binding ElementName=Window}" />
+            </Grid>
+            <Border Background="#323232" ClipToBounds="True" CornerRadius="0,0,5,5" Grid.Row="1" Grid.Column="0"
+                    Grid.ColumnSpan="2">
+                <Grid ColumnDefinitions="225,*" RowDefinitions="*,50" Margin="10,10,10,0">
+                    <ListBox x:Name="Stations" Background="#1E1E1E" CornerRadius="4" BorderBrush="#646464"
+                             BorderThickness="1"
+                             ItemsSource="{Binding AtisStations, DataType=vm:AtisConfigurationWindowViewModel}"
+                             SelectionChanged="Stations_OnSelectionChanged" SelectionMode="Single">
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Margin" Value="2" />
+                                <Setter Property="Padding" Value="6 3" />
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ContextMenu>
+                            <ContextMenu MinWidth="125"
+                                         IsVisible="{Binding SelectedAtisStation, DataType=vm:AtisConfigurationWindowViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <MenuItem Header="Copy"
+                                          Command="{Binding CopyAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}" />
+                                <MenuItem Header="Rename"
+                                          Command="{Binding	RenameAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}" />
+                                <MenuItem Header="Export"
+                                          Command="{Binding ExportAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}" />
+                                <Separator />
+                                <MenuItem Header="Delete"
+                                          Command="{Binding DeleteAtisCommand, DataType=vm:AtisConfigurationWindowViewModel}" />
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
+                    <TabControl Grid.Row="0" Grid.Column="1"
+                                SelectedIndex="{Binding SelectedTabControlTabIndex, DataType=vm:AtisConfigurationWindowViewModel}"
+                                IsEnabled="{Binding SelectedAtisStation, DataType=vm:AtisConfigurationWindowViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <TabItem Header="General">
+                            <views:GeneralConfigView
+                                DataContext="{Binding GeneralConfigViewModel, DataType=vm:AtisConfigurationWindowViewModel}" />
+                        </TabItem>
+                        <TabItem Header="Presets">
+                            <views:PresetsView
+                                DataContext="{Binding PresetsViewModel, DataType=vm:AtisConfigurationWindowViewModel}" />
+                        </TabItem>
+                        <TabItem Header="Formatting">
+                            <views:FormattingView
+                                DataContext="{Binding FormattingViewModel, DataType=vm:AtisConfigurationWindowViewModel}" />
+                        </TabItem>
+                        <TabItem Header="Contractions">
+                            <views:ContractionsView
+                                DataContext="{Binding ContractionsViewModel, DataType=vm:AtisConfigurationWindowViewModel}" />
+                        </TabItem>
+                        <TabItem Header="Sandbox">
+                            <views:SandboxView
+                                DataContext="{Binding SandboxViewModel, DataType=vm:AtisConfigurationWindowViewModel}" />
+                        </TabItem>
+                    </TabControl>
+                    <Grid ColumnDefinitions="30*,70*" Grid.Column="0" Grid.Row="1">
+                        <Button
+                            Command="{Binding NewAtisStationDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}"
+                            Grid.Column="0" Margin="0,0,5,0" Theme="{StaticResource Dark}" Height="28">
+                            New
+                        </Button>
+                        <Button Grid.Column="1" Theme="{StaticResource Dark}" Height="28"
+                                Command="{Binding ImportAtisStationCommand, DataType=vm:AtisConfigurationWindowViewModel}">
+                            Import Existing
+                        </Button>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1"
+                                Spacing="5">
+                        <Button Theme="{StaticResource Dark}" Height="28"
+                                Command="{Binding SaveAndCloseCommand, DataType=vm:AtisConfigurationWindowViewModel}"
+                                CommandParameter="{Binding ElementName=Window}">
+                            Save &amp; Close
+                        </Button>
+                        <Button Theme="{StaticResource Dark}" Height="28" MinWidth="80"
+                                Command="{Binding ApplyChangesCommand, DataType=vm:AtisConfigurationWindowViewModel}">
+                            Apply
+                        </Button>
+                        <Button Theme="{StaticResource Dark}" Height="28" MinWidth="80"
+                                Command="{Binding CancelChangesCommand, DataType=vm:AtisConfigurationWindowViewModel}"
+                                CommandParameter="{Binding ElementName=Window}">
+                            Cancel
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+    <Window.Styles>
+        <Style Selector="TabControl">
+            <Setter Property="Margin" Value="10,0,-10,0" />
+        </Style>
+        <Style Selector="TabControl /template/ ContentPresenter#PART_SelectedContentHost">
+            <Setter Property="Padding" Value="-9,8,0,0" />
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="3,0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderBrush" Value="#646464" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Style Selector="^:selected">
+                <Setter Property="Background" Value="#0C548D" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderBrush" Value="#0666B2" />
+            </Style>
+            <Style Selector="^:selected:disabled">
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderBrush" Value="#646464" />
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="#1E1E1E" />
+                <Setter Property="TextElement.Foreground" Value="White" />
+            </Style>
+            <Style Selector="^:selected:pointerover /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="#0C548D" />
+                <Setter Property="TextElement.Foreground" Value="White" />
+            </Style>
+            <Style Selector="^:selected:pressed /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="#036EC4" />
+                <Setter Property="TextElement.Foreground" Value="White" />
+            </Style>
+            <Style Selector="^:selected /template/ Border#PART_SelectedPipe">
+                <Setter Property="IsVisible" Value="false" />
+            </Style>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#0666B2" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter:pointerover">
+            <Setter Property="Background" Value="#0C548D" />
+            <Setter Property="TextElement.Foreground" Value="White" />
+        </Style>
+        <Style Selector="ListBoxItem:selected:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#036EC4" />
+            <Setter Property="TextElement.Foreground" Value="White" />
+        </Style>
+    </Window.Styles>
 </Window>

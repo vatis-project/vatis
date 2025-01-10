@@ -11,61 +11,65 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 
 public class TextEditorCompletionBehavior : Behavior<TextEditor>
 {
-    private TextEditor _textEditor = null!;
-    private CompletionWindow? _completionWindow;
-
     public static readonly StyledProperty<List<ICompletionData>> CompletionDataProperty =
         AvaloniaProperty.Register<TextEditorCompletionBehavior, List<ICompletionData>>(nameof(CompletionData));
 
+    private CompletionWindow? _completionWindow;
+    private TextEditor _textEditor = null!;
+
     public List<ICompletionData> CompletionData
     {
-        get => GetValue(CompletionDataProperty);
-        set => SetValue(CompletionDataProperty, value);
+        get => this.GetValue(CompletionDataProperty);
+        set => this.SetValue(CompletionDataProperty, value);
     }
 
     protected override void OnAttached()
     {
         base.OnAttached();
 
-        if (AssociatedObject is not { } editor)
+        if (this.AssociatedObject is not { } editor)
         {
             throw new NullReferenceException("AssociatedObject is null");
         }
 
-        _textEditor = editor;
-        _textEditor.TextArea.TextEntered += TextAreaOnTextEntered;
-        _textEditor.Options.CompletionAcceptAction = CompletionAcceptAction.DoubleTapped;
+        this._textEditor = editor;
+        this._textEditor.TextArea.TextEntered += this.TextAreaOnTextEntered;
+        this._textEditor.Options.CompletionAcceptAction = CompletionAcceptAction.DoubleTapped;
     }
 
     private void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)
     {
         if (string.IsNullOrEmpty(e.Text))
+        {
             return;
+        }
 
-        if (_completionWindow == null && !string.IsNullOrWhiteSpace(e.Text) && !char.IsNumber(e.Text[0]))
+        if (this._completionWindow == null && !string.IsNullOrWhiteSpace(e.Text) && !char.IsNumber(e.Text[0]))
         {
             if (e.Text == "@")
             {
-                if (CompletionData.Count > 0)
+                if (this.CompletionData.Count > 0)
                 {
-                    ShowCompletion();
+                    this.ShowCompletion();
                 }
             }
         }
-        else if (_completionWindow != null && !char.IsLetterOrDigit(e.Text[0]))
+        else if (this._completionWindow != null && !char.IsLetterOrDigit(e.Text[0]))
         {
-            _completionWindow.CompletionList.RequestInsertion(e);
+            this._completionWindow.CompletionList.RequestInsertion(e);
         }
     }
 
     private void ShowCompletion()
     {
-        if (_completionWindow != null)
+        if (this._completionWindow != null)
+        {
             return;
+        }
 
-        _completionWindow = new CompletionWindow(_textEditor.TextArea);
-        _completionWindow.CompletionList.CompletionData.AddRange(CompletionData);
-        _completionWindow.Show();
-        _completionWindow.Closed += (_, _) => _completionWindow = null;
+        this._completionWindow = new CompletionWindow(this._textEditor.TextArea);
+        this._completionWindow.CompletionList.CompletionData.AddRange(this.CompletionData);
+        this._completionWindow.Show();
+        this._completionWindow.Closed += (_, _) => this._completionWindow = null;
     }
 }

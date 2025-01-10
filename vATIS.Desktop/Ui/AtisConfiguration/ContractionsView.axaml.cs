@@ -13,12 +13,12 @@ public partial class ContractionsView : UserControl
 
     public ContractionsView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 
     private void Contractions_OnLoadingRow(object? sender, DataGridRowEventArgs e)
     {
-        if (DataContext is ContractionsViewModel vm)
+        if (this.DataContext is ContractionsViewModel vm)
         {
             if (e.Row.DataContext is ContractionMeta row)
             {
@@ -30,9 +30,11 @@ public partial class ContractionsView : UserControl
     private void Contractions_Validate(object? sender, DataGridCellEditEndingEventArgs e)
     {
         if (sender is not DataGrid dataGrid || e.EditAction != DataGridEditAction.Commit)
+        {
             return;
+        }
 
-        if (DataContext is ContractionsViewModel vm)
+        if (this.DataContext is ContractionsViewModel vm)
         {
             if (e.EditingElement is TextBox textBox)
             {
@@ -40,8 +42,11 @@ public partial class ContractionsView : UserControl
                 {
                     var slug = s_slug.GenerateSlug(textBox.Text).Replace("-", "_").ToUpperInvariant();
 
-                    if (vm.CurrentContractions.Any(x => x.Item1 != e.Row.Index && string.Equals(x.Item2.VariableName,
-                            slug, StringComparison.InvariantCultureIgnoreCase)))
+                    if (vm.CurrentContractions.Any(
+                            x => x.Item1 != e.Row.Index && string.Equals(
+                                x.Item2.VariableName,
+                                slug,
+                                StringComparison.InvariantCultureIgnoreCase)))
                     {
                         e.Cancel = true;
                         dataGrid.CancelEdit();

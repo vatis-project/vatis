@@ -8,23 +8,18 @@ public class CustomTabItem : TabItem
     private static readonly StyledProperty<string> s_atisLetterProperty =
         AvaloniaProperty.Register<CustomTabItem, string>(nameof(AtisLetter));
 
-    public string AtisLetter
-    {
-        get => GetValue(s_atisLetterProperty);
-        set => SetValue(s_atisLetterProperty, value);
-    }
-
     private static readonly StyledProperty<bool> s_isConnectedProperty =
         AvaloniaProperty.Register<CustomTabItem, bool>(nameof(IsConnected));
 
-    public bool IsConnected
+    public string AtisLetter
     {
-        get => GetValue(s_isConnectedProperty);
-        set => SetValue(s_isConnectedProperty, value);
+        get => this.GetValue(s_atisLetterProperty);
+        set => this.SetValue(s_atisLetterProperty, value);
     }
 
-    public CustomTabItem()
+    public bool IsConnected
     {
-
+        get => this.GetValue(s_isConnectedProperty);
+        set => this.SetValue(s_isConnectedProperty, value);
     }
 }

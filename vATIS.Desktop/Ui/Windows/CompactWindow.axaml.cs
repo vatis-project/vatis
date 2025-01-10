@@ -11,26 +11,26 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
 {
     public CompactWindow(CompactWindowViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        Closed += OnClosed;
-    }
-
-    private void OnClosed(object? sender, EventArgs e)
-    {
-        ViewModel?.Dispose();
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.Closed += this.OnClosed;
     }
 
     public CompactWindow()
     {
-        InitializeComponent();
+        this.InitializeComponent();
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        this.ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 
@@ -38,8 +38,8 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
     {
         base.OnLoaded(e);
 
-        PositionChanged += OnPositionChanged;
-        if (DataContext is CompactWindowViewModel model)
+        this.PositionChanged += this.OnPositionChanged;
+        if (this.DataContext is CompactWindowViewModel model)
         {
             model.RestorePosition(this);
         }
@@ -47,7 +47,7 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is CompactWindowViewModel model)
+        if (this.DataContext is CompactWindowViewModel model)
         {
             model.UpdatePosition(this);
         }

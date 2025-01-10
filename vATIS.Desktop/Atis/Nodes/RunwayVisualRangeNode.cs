@@ -5,11 +5,12 @@ using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
 public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 {
     public override void Parse(DecodedMetar metar)
     {
-        Parse(metar.RunwaysVisualRange);
+        this.Parse(metar.RunwaysVisualRange);
     }
 
     private void Parse(List<RunwayVisualRange> runwayVisualRanges)
@@ -23,7 +24,9 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 
             if (rvr.RawValue != null)
             {
-                var match = Regex.Match(rvr.RawValue, @"^R([0-3]{1}\d{1})(L|C|R)?\/(M|P)?(\d{4})(V|VP)?(\d{4})?(FT)?(?:\/?(U|D|N))?$");
+                var match = Regex.Match(
+                    rvr.RawValue,
+                    @"^R([0-3]{1}\d{1})(L|C|R)?\/(M|P)?(\d{4})(V|VP)?(\d{4})?(FT)?(?:\/?(U|D|N))?$");
 
                 if (match.Success)
                 {
@@ -50,18 +53,20 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                         var minVis = int.Parse(match.Groups[4].Value);
                         var maxVis = int.Parse(match.Groups[6].Value);
 
-                        result.Add(match.Groups[3].Value == "M"
-                            ? $"variable from less than {minVis.ToGroupForm()} to {maxVis.ToGroupForm()}"
-                            : $"variable between {minVis.ToGroupForm()} and {maxVis.ToGroupForm()}");
+                        result.Add(
+                            match.Groups[3].Value == "M"
+                                ? $"variable from less than {minVis.ToGroupForm()} to {maxVis.ToGroupForm()}"
+                                : $"variable between {minVis.ToGroupForm()} and {maxVis.ToGroupForm()}");
                     }
                     else if (match.Groups[5].Value == "VP")
                     {
                         var minVis = int.Parse(match.Groups[4].Value);
                         var maxVis = int.Parse(match.Groups[6].Value);
 
-                        result.Add(match.Groups[3].Value == "M"
-                            ? $"variable from less than {minVis.ToGroupForm()} to greater than{maxVis.ToGroupForm()}"
-                            : $"{minVis.ToGroupForm()} variable to greater than {maxVis.ToGroupForm()}");
+                        result.Add(
+                            match.Groups[3].Value == "M"
+                                ? $"variable from less than {minVis.ToGroupForm()} to greater than{maxVis.ToGroupForm()}"
+                                : $"{minVis.ToGroupForm()} variable to greater than {maxVis.ToGroupForm()}");
                     }
                     else
                     {
@@ -94,6 +99,7 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                             tendency = "going down";
                             break;
                     }
+
                     result.Add(tendency);
 
                     tts.Add($"Runway {rwyNumber.ToSerialFormat()} {rwyDesignator} R-V-R {string.Join(" ", result)}.");
@@ -101,8 +107,8 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
             }
         }
 
-        TextAtis = string.Join(" ", acars);
-        VoiceAtis = string.Join(" ", tts).TrimEnd('.');
+        this.TextAtis = string.Join(" ", acars);
+        this.VoiceAtis = string.Join(" ", tts).TrimEnd('.');
     }
 
     public override string ParseTextVariables(RunwayVisualRange value, string? format)

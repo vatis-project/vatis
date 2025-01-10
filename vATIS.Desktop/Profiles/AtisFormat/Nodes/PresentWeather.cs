@@ -6,23 +6,6 @@ namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 
 public class PresentWeather : BaseFormat
 {
-    public PresentWeather()
-    {
-        EnsureDefaultWeatherTypes();
-
-        Template = new Template
-        {
-            Text = "{weather}",
-            Voice = "{weather}"
-        };
-    }
-
-    public string LightIntensity { get; set; } = "light";
-    public string ModerateIntensity { get; set; } = "";
-    public string HeavyIntensity { get; set; } = "heavy";
-    public string Vicinity { get; set; } = "in vicinity";
-    public Dictionary<string, WeatherDescriptorType> PresentWeatherTypes { get; set; } = new();
-
     private static readonly Dictionary<string, string> s_defaultWeatherDescriptors = new()
     {
         // types
@@ -48,6 +31,7 @@ public class PresentWeather : BaseFormat
         { "FC", "funnel cloud tornado waterspout" },
         { "SS", "sandstorm" },
         { "DS", "dust storm" },
+
         // descriptors
         { "PR", "partial" },
         { "BC", "patches" },
@@ -58,6 +42,27 @@ public class PresentWeather : BaseFormat
         { "TS", "thunderstorm" },
         { "FZ", "freezing" }
     };
+
+    public PresentWeather()
+    {
+        this.EnsureDefaultWeatherTypes();
+
+        this.Template = new Template
+        {
+            Text = "{weather}",
+            Voice = "{weather}"
+        };
+    }
+
+    public string LightIntensity { get; set; } = "light";
+
+    public string ModerateIntensity { get; set; } = "";
+
+    public string HeavyIntensity { get; set; } = "heavy";
+
+    public string Vicinity { get; set; } = "in vicinity";
+
+    public Dictionary<string, WeatherDescriptorType> PresentWeatherTypes { get; set; } = new();
 
     [Obsolete("Use 'PresentWeatherTypes' instead")]
     [JsonPropertyName("WeatherTypes")]
@@ -71,7 +76,7 @@ public class PresentWeather : BaseFormat
             {
                 foreach (var kvp in value)
                 {
-                    PresentWeatherTypes[kvp.Key] = new WeatherDescriptorType(kvp.Key, kvp.Value);
+                    this.PresentWeatherTypes[kvp.Key] = new WeatherDescriptorType(kvp.Key, kvp.Value);
                 }
             }
         }
@@ -90,7 +95,7 @@ public class PresentWeather : BaseFormat
             {
                 foreach (var kvp in value)
                 {
-                    PresentWeatherTypes[kvp.Key] = new WeatherDescriptorType(kvp.Key, kvp.Value);
+                    this.PresentWeatherTypes[kvp.Key] = new WeatherDescriptorType(kvp.Key, kvp.Value);
                 }
             }
         }
@@ -100,24 +105,28 @@ public class PresentWeather : BaseFormat
     {
         foreach (var kvp in s_defaultWeatherDescriptors)
         {
-            if (!PresentWeatherTypes.ContainsKey(kvp.Key))
+            if (!this.PresentWeatherTypes.ContainsKey(kvp.Key))
             {
-                PresentWeatherTypes[kvp.Key] = new WeatherDescriptorType(kvp.Key, kvp.Value);
+                this.PresentWeatherTypes[kvp.Key] = new WeatherDescriptorType(kvp.Key, kvp.Value);
             }
         }
     }
 
-    public PresentWeather Clone() => (PresentWeather)MemberwiseClone();
+    public PresentWeather Clone()
+    {
+        return (PresentWeather)this.MemberwiseClone();
+    }
 
     public record WeatherDescriptorType
     {
         public WeatherDescriptorType(string text, string spoken)
         {
-            Text = text;
-            Spoken = spoken;
+            this.Text = text;
+            this.Spoken = spoken;
         }
 
         public string Text { get; set; }
+
         public string Spoken { get; set; }
     }
 }

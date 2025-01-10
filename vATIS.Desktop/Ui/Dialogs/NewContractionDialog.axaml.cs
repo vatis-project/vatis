@@ -14,19 +14,19 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
 
     public NewContractionDialog(NewContractionDialogViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        Closed += OnClosed;
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.Closed += this.OnClosed;
     }
 
     public NewContractionDialog()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.Dispose();
+        this.ViewModel?.Dispose();
     }
 
     private void Variable_OnLostFocus(object? sender, RoutedEventArgs e)
@@ -41,7 +41,7 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 }

@@ -10,31 +10,31 @@ public partial class SettingsDialog : ReactiveWindow<SettingsDialogViewModel>, I
 {
     public SettingsDialog(SettingsDialogViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        Closed += OnClosed;
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.Closed += this.OnClosed;
     }
 
     public SettingsDialog()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.Dispose();
+        this.ViewModel?.Dispose();
     }
 
     private void CancelButtonClicked(object sender, RoutedEventArgs e)
     {
-        Close();
+        this.Close();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 }

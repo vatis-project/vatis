@@ -11,32 +11,32 @@ public partial class VoiceRecordAtisDialog : ReactiveWindow<VoiceRecordAtisDialo
 {
     public VoiceRecordAtisDialog(VoiceRecordAtisDialogViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        Closed += OnClosed;
-    }
-
-    private void OnClosed(object? sender, EventArgs e)
-    {
-        ViewModel?.Dispose();
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.Closed += this.OnClosed;
     }
 
     public VoiceRecordAtisDialog()
     {
-        InitializeComponent();
+        this.InitializeComponent();
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        this.ViewModel?.Dispose();
     }
 
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
-        ViewModel!.DialogOwner = this;
+        this.ViewModel!.DialogOwner = this;
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 
@@ -44,8 +44,8 @@ public partial class VoiceRecordAtisDialog : ReactiveWindow<VoiceRecordAtisDialo
     {
         base.OnLoaded(e);
 
-        PositionChanged += OnPositionChanged;
-        if (DataContext is VoiceRecordAtisDialogViewModel model)
+        this.PositionChanged += this.OnPositionChanged;
+        if (this.DataContext is VoiceRecordAtisDialogViewModel model)
         {
             model.RestorePosition(this);
         }
@@ -53,7 +53,7 @@ public partial class VoiceRecordAtisDialog : ReactiveWindow<VoiceRecordAtisDialo
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is VoiceRecordAtisDialogViewModel model)
+        if (this.DataContext is VoiceRecordAtisDialogViewModel model)
         {
             model.UpdatePosition(this);
         }

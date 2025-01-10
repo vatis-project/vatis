@@ -13,62 +13,65 @@ namespace Vatsim.Vatis.Sessions;
 
 public class SessionManager : ISessionManager
 {
+    private readonly IProfileRepository _profileRepository;
+    private readonly IWindowFactory _windowFactory;
     private MainWindow? _mainWindow;
     private ProfileListDialog? _profileListDialog;
-    private readonly IWindowFactory _windowFactory;
-    private readonly IProfileRepository _profileRepository;
 
     public SessionManager(IWindowFactory windowFactory, IProfileRepository profileRepository)
     {
-        _windowFactory = windowFactory;
-        _profileRepository = profileRepository;
+        this._windowFactory = windowFactory;
+        this._profileRepository = profileRepository;
     }
 
     public int MaxConnectionCount => 4;
+
     public int CurrentConnectionCount { get; set; }
 
     public void Run()
     {
-        ShowProfileListDialog();
+        this.ShowProfileListDialog();
     }
 
     public Profile? CurrentProfile { get; private set; }
 
-    private void ShowProfileListDialog()
-    {
-        _profileListDialog = _windowFactory.CreateProfileListDialog();
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            desktop.MainWindow = _profileListDialog;
-        }
-
-        _profileListDialog.Show();
-    }
-
     public async Task StartSession(string profileId)
     {
-        var profile = (await _profileRepository.LoadAll()).Find(p => p.Id == profileId);
+        var profile = (await this._profileRepository.LoadAll()).Find(p => p.Id == profileId);
         if (profile == null)
-            return;
-
-        _profileListDialog?.Close();
-        CurrentProfile = profile;
-        CurrentConnectionCount = 0;
-        _mainWindow = _windowFactory.CreateMainWindow();
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = _mainWindow;
+            return;
         }
 
-        _mainWindow.Show();
+        this._profileListDialog?.Close();
+        this.CurrentProfile = profile;
+        this.CurrentConnectionCount = 0;
+        this._mainWindow = this._windowFactory.CreateMainWindow();
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow = this._mainWindow;
+        }
+
+        this._mainWindow.Show();
     }
 
     public void EndSession()
     {
         MessageBus.Current.SendMessage(new SessionEnded());
-        CurrentProfile = null;
-        CurrentConnectionCount = 0;
-        _mainWindow?.Close();
-        ShowProfileListDialog();
+        this.CurrentProfile = null;
+        this.CurrentConnectionCount = 0;
+        this._mainWindow?.Close();
+        this.ShowProfileListDialog();
+    }
+
+    private void ShowProfileListDialog()
+    {
+        this._profileListDialog = this._windowFactory.CreateProfileListDialog();
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow = this._profileListDialog;
+        }
+
+        this._profileListDialog.Show();
     }
 }

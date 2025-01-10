@@ -1,64 +1,78 @@
-﻿using ReactiveUI;
-using System;
+﻿using System;
 using System.Reactive;
+using ReactiveUI;
 using Vatsim.Vatis.Ui.Dialogs;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class UserInputDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    public event EventHandler<DialogResult>? DialogResultChanged;
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
-
-    private string _title = "";
-    public string Title
-    {
-        get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
-    }
+    private bool _forceUppercase;
 
     private string _prompt = "";
-    public string Prompt
-    {
-        get => _prompt;
-        set => this.RaiseAndSetIfChanged(ref _prompt, value);
-    }
+
+    private string _title = "";
 
     private string? _userValue;
-    public string? UserValue
-    {
-        get => _userValue;
-        set => this.RaiseAndSetIfChanged(ref _userValue, value);
-    }
-
-    private bool _forceUppercase;
-    public bool ForceUppercase
-    {
-        get => _forceUppercase;
-        set => this.RaiseAndSetIfChanged(ref _forceUppercase, value);
-    }
 
     public UserInputDialogViewModel()
     {
-        CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCloseButton);
-        OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButton);
+        this.CancelButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleCloseButton);
+        this.OkButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleOkButton);
     }
+
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
+
+    public string Title
+    {
+        get => this._title;
+        set => this.RaiseAndSetIfChanged(ref this._title, value);
+    }
+
+    public string Prompt
+    {
+        get => this._prompt;
+        set => this.RaiseAndSetIfChanged(ref this._prompt, value);
+    }
+
+    public string? UserValue
+    {
+        get => this._userValue;
+        set => this.RaiseAndSetIfChanged(ref this._userValue, value);
+    }
+
+    public bool ForceUppercase
+    {
+        get => this._forceUppercase;
+        set => this.RaiseAndSetIfChanged(ref this._forceUppercase, value);
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.DialogResultChanged = null;
+        this.CancelButtonCommand.Dispose();
+        this.OkButtonCommand.Dispose();
+    }
+
+    public event EventHandler<DialogResult>? DialogResultChanged;
 
     public void SetError(string error)
     {
-        RaiseError(nameof(UserValue), error);
+        this.RaiseError(nameof(this.UserValue), error);
     }
 
     public void ClearError()
     {
-        ClearErrors(nameof(UserValue));
+        this.ClearErrors(nameof(this.UserValue));
     }
 
     private void HandleOkButton(ICloseable window)
     {
-        DialogResultChanged?.Invoke(this, DialogResult.Ok);
-        if (!HasErrors)
+        this.DialogResultChanged?.Invoke(this, DialogResult.Ok);
+        if (!this.HasErrors)
         {
             window.Close();
         }
@@ -66,15 +80,7 @@ public class UserInputDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleCloseButton(ICloseable window)
     {
-        DialogResultChanged?.Invoke(this, DialogResult.Cancel);
+        this.DialogResultChanged?.Invoke(this, DialogResult.Cancel);
         window.Close();
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        DialogResultChanged = null;
-        CancelButtonCommand.Dispose();
-        OkButtonCommand.Dispose();
     }
 }

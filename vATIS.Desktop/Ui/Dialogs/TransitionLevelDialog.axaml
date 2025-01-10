@@ -16,78 +16,91 @@
         SizeToContent="Height"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
-<Window.Styles>
-		<Style Selector="DataValidationErrors">
-			<Setter Property="Template">
-				<ControlTemplate>
-					<DockPanel LastChildFill="True">
-						<ContentControl DockPanel.Dock="Bottom"
-										ContentTemplate="{TemplateBinding ErrorTemplate}"
-										DataContext="{TemplateBinding Owner}"
-										Content="{Binding (DataValidationErrors.Errors)}"
-										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
-						<ContentPresenter Name="PART_ContentPresenter"
-										  Background="{TemplateBinding Background}"
-										  BorderBrush="{TemplateBinding BorderBrush}"
-										  BorderThickness="{TemplateBinding BorderThickness}"
-										  CornerRadius="{TemplateBinding CornerRadius}"
-										  ContentTemplate="{TemplateBinding ContentTemplate}"
-										  Content="{TemplateBinding Content}"
-										  Padding="{TemplateBinding Padding}"/>
-					</DockPanel>
-				</ControlTemplate>
-			</Setter>
-			<Setter Property="ErrorTemplate">
-				<DataTemplate x:DataType="{x:Type x:Object}">
-					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
-						<ItemsControl.Styles>
-							<Style Selector="TextBlock">
-								<Setter Property="TextWrapping" Value="Wrap" />
-							</Style>
-						</ItemsControl.Styles>
-					</ItemsControl>
-				</DataTemplate>
-			</Setter>
-		</Style>
-	</Window.Styles>
-	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
-		<StackPanel>
-			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent" PointerPressed="OnPointerPressed">
-				<TextBlock Text="Transition Level" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
-			</Border>
-			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
-				<StackPanel Spacing="5">
-					<TextBlock Text="QNH Low:"/>
-					<TextBox MaxLength="4" Theme="{StaticResource DarkTextBox}" Name="QnhLow" Text="{Binding QnhLow, DataType=vm:TransitionLevelDialogViewModel}">
-						<Interaction.Behaviors>
-							<behaviors:TextBoxNumericOnlyBehavior/>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>
-					</TextBox>
-				</StackPanel>
-				<StackPanel Spacing="5">
-					<TextBlock Text="QNH High:"/>
-					<TextBox MaxLength="4" Theme="{StaticResource DarkTextBox}" Name="QnhHigh" Text="{Binding QnhHigh, DataType=vm:TransitionLevelDialogViewModel}">
-						<Interaction.Behaviors>
-							<behaviors:TextBoxNumericOnlyBehavior/>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>
-					</TextBox>
-				</StackPanel>
-				<StackPanel Spacing="5">
-					<TextBlock Text="Transition Level:"/>
-					<TextBox MaxLength="6" Theme="{StaticResource DarkTextBox}" Name="TransitionLevel" Text="{Binding TransitionLevel, DataType=vm:TransitionLevelDialogViewModel}">
-						<Interaction.Behaviors>
-							<behaviors:TextBoxNumericOnlyBehavior/>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>
-					</TextBox>
-				</StackPanel>
-				<StackPanel Orientation="Horizontal" Spacing="10">
-					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding OkButtonCommand, DataType=vm:TransitionLevelDialogViewModel}" CommandParameter="{Binding ElementName=Window}" IsDefault="True">OK</Button>
-					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding CancelButtonCommand, DataType=vm:TransitionLevelDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>
-				</StackPanel>
-			</StackPanel>
-		</StackPanel>
-	</Border>
+    <Window.Styles>
+        <Style Selector="DataValidationErrors">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <DockPanel LastChildFill="True">
+                        <ContentControl DockPanel.Dock="Bottom"
+                                        ContentTemplate="{TemplateBinding ErrorTemplate}"
+                                        DataContext="{TemplateBinding Owner}"
+                                        Content="{Binding (DataValidationErrors.Errors)}"
+                                        IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          CornerRadius="{TemplateBinding CornerRadius}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Content="{TemplateBinding Content}"
+                                          Padding="{TemplateBinding Padding}" />
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="ErrorTemplate">
+                <DataTemplate x:DataType="{x:Type x:Object}">
+                    <ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+                        <ItemsControl.Styles>
+                            <Style Selector="TextBlock">
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                            </Style>
+                        </ItemsControl.Styles>
+                    </ItemsControl>
+                </DataTemplate>
+            </Setter>
+        </Style>
+    </Window.Styles>
+    <Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+        <StackPanel>
+            <Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent"
+                    PointerPressed="OnPointerPressed">
+                <TextBlock Text="Transition Level" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0"
+                           FontWeight="Medium" />
+            </Border>
+            <StackPanel Orientation="Vertical" Margin="20" Spacing="15">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="QNH Low:" />
+                    <TextBox MaxLength="4" Theme="{StaticResource DarkTextBox}" Name="QnhLow"
+                             Text="{Binding QnhLow, DataType=vm:TransitionLevelDialogViewModel}">
+                        <Interaction.Behaviors>
+                            <behaviors:TextBoxNumericOnlyBehavior />
+                            <behaviors:SelectAllTextOnFocusBehavior />
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Spacing="5">
+                    <TextBlock Text="QNH High:" />
+                    <TextBox MaxLength="4" Theme="{StaticResource DarkTextBox}" Name="QnhHigh"
+                             Text="{Binding QnhHigh, DataType=vm:TransitionLevelDialogViewModel}">
+                        <Interaction.Behaviors>
+                            <behaviors:TextBoxNumericOnlyBehavior />
+                            <behaviors:SelectAllTextOnFocusBehavior />
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Transition Level:" />
+                    <TextBox MaxLength="6" Theme="{StaticResource DarkTextBox}" Name="TransitionLevel"
+                             Text="{Binding TransitionLevel, DataType=vm:TransitionLevelDialogViewModel}">
+                        <Interaction.Behaviors>
+                            <behaviors:TextBoxNumericOnlyBehavior />
+                            <behaviors:SelectAllTextOnFocusBehavior />
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Theme="{StaticResource Dark}" Height="30" MinWidth="70"
+                            Command="{Binding OkButtonCommand, DataType=vm:TransitionLevelDialogViewModel}"
+                            CommandParameter="{Binding ElementName=Window}" IsDefault="True">
+                        OK
+                    </Button>
+                    <Button Theme="{StaticResource Dark}" Height="30" MinWidth="70"
+                            Command="{Binding CancelButtonCommand, DataType=vm:TransitionLevelDialogViewModel}"
+                            CommandParameter="{Binding ElementName=Window}">
+                        Cancel
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
 </Window>

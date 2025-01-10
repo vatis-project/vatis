@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -9,13 +10,13 @@ public partial class MessageBoxView : Window, ICloseable
 {
     public MessageBoxView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
-        if (DataContext is MessageBoxViewModel vm)
+        if (this.DataContext is MessageBoxViewModel vm)
         {
             vm.Dispose();
         }
@@ -24,20 +25,20 @@ public partial class MessageBoxView : Window, ICloseable
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
-        
-        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(CenterWindow);
+
+        Dispatcher.UIThread.InvokeAsync(this.CenterWindow);
     }
 
     private void CenterWindow()
     {
-        if (DataContext is MessageBoxViewModel { Owner: not null } viewModel)
+        if (this.DataContext is MessageBoxViewModel { Owner: not null } viewModel)
         {
             var owner = viewModel.Owner;
             var ownerPosition = owner.Position;
 
-            Position = new PixelPoint(
-                (int)(ownerPosition.X + (owner.Width - Width) / 2),
-                (int)(ownerPosition.Y + (owner.Height - Height) / 2));
+            this.Position = new PixelPoint(
+                (int)(ownerPosition.X + ((owner.Width - this.Width) / 2)),
+                (int)(ownerPosition.Y + ((owner.Height - this.Height) / 2)));
         }
     }
 }

@@ -4,9 +4,10 @@ namespace Vatsim.Vatis.Events;
 
 public class KillRequestReceived : EventArgs
 {
-    public string Reason { get; set; }
     public KillRequestReceived(string reason)
     {
-        Reason = reason;
+        this.Reason = reason;
     }
+
+    public string Reason { get; set; }
 }

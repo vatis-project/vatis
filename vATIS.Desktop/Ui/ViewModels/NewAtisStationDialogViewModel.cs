@@ -1,6 +1,6 @@
-﻿using ReactiveUI;
-using System;
+﻿using System;
 using System.Reactive;
+using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs;
 
@@ -8,49 +8,62 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class NewAtisStationDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    public event EventHandler<DialogResult>? DialogResultChanged;
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
-
-    private DialogResult _dialogResult;
-    public DialogResult DialogResult
-    {
-        get => _dialogResult;
-        set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
-    }
-
     private string? _airportIdentifier;
-    public string? AirportIdentifier
-    {
-        get => _airportIdentifier;
-        set => this.RaiseAndSetIfChanged(ref _airportIdentifier, value);
-    }
-
-    private string? _stationName;
-    public string? StationName
-    {
-        get => _stationName;
-        set => this.RaiseAndSetIfChanged(ref _stationName, value);
-    }
 
     private AtisType _atisType = AtisType.Combined;
-    public AtisType AtisType
-    {
-        get => _atisType;
-        set => this.RaiseAndSetIfChanged(ref _atisType, value);
-    }
+
+    private DialogResult _dialogResult;
+
+    private string? _stationName;
 
     public NewAtisStationDialogViewModel()
     {
-        CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCancelButtonCommand);
-        OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButtonCommand);
+        this.CancelButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleCancelButtonCommand);
+        this.OkButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleOkButtonCommand);
     }
+
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
+
+    public DialogResult DialogResult
+    {
+        get => this._dialogResult;
+        set => this.RaiseAndSetIfChanged(ref this._dialogResult, value);
+    }
+
+    public string? AirportIdentifier
+    {
+        get => this._airportIdentifier;
+        set => this.RaiseAndSetIfChanged(ref this._airportIdentifier, value);
+    }
+
+    public string? StationName
+    {
+        get => this._stationName;
+        set => this.RaiseAndSetIfChanged(ref this._stationName, value);
+    }
+
+    public AtisType AtisType
+    {
+        get => this._atisType;
+        set => this.RaiseAndSetIfChanged(ref this._atisType, value);
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.CancelButtonCommand.Dispose();
+        this.OkButtonCommand.Dispose();
+    }
+
+    public event EventHandler<DialogResult>? DialogResultChanged;
 
     private void HandleOkButtonCommand(ICloseable window)
     {
-        DialogResultChanged?.Invoke(this, DialogResult.Ok);
-        DialogResult = DialogResult.Ok;
-        if (!HasErrors)
+        this.DialogResultChanged?.Invoke(this, DialogResult.Ok);
+        this.DialogResult = DialogResult.Ok;
+        if (!this.HasErrors)
         {
             window.Close();
         }
@@ -58,15 +71,8 @@ public class NewAtisStationDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleCancelButtonCommand(ICloseable window)
     {
-        DialogResultChanged?.Invoke(this, DialogResult.Cancel);
-        DialogResult = DialogResult.Cancel;
+        this.DialogResultChanged?.Invoke(this, DialogResult.Cancel);
+        this.DialogResult = DialogResult.Cancel;
         window.Close();
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        CancelButtonCommand.Dispose();
-        OkButtonCommand.Dispose();
     }
 }

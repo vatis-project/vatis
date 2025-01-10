@@ -10,50 +10,52 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 
 public class BlinkingTextBehavior : Behavior<Control>
 {
-    private IBrush? _originalBrush;
     private static bool s_isBlinking;
     private static readonly List<BlinkingTextBehavior> s_instances = [];
 
     public static readonly StyledProperty<bool> IsBlinkingProperty =
         AvaloniaProperty.Register<BlinkingTextBehavior, bool>(nameof(IsBlinking));
 
-    public bool IsBlinking
-    {
-        get => GetValue(IsBlinkingProperty);
-        set => SetValue(IsBlinkingProperty, value);
-    }
-
     public static readonly StyledProperty<IBrush> Color1Property =
         AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(Color1), Brushes.Aqua);
 
-    public IBrush Color1
-    {
-        get => GetValue(Color1Property);
-        set => SetValue(Color1Property, value);
-    }
-
     public static readonly StyledProperty<IBrush> Color2Property =
-        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(Color2),
+        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(
+            nameof(Color2),
             new SolidColorBrush(Color.FromRgb(255, 204, 1)));
 
-    public IBrush Color2
-    {
-        get => GetValue(Color2Property);
-        set => SetValue(Color2Property, value);
-    }
+    private IBrush? _originalBrush;
 
     static BlinkingTextBehavior()
     {
         DispatcherTimer.Run(OnTimerTick, TimeSpan.FromMilliseconds(500));
     }
 
+    public bool IsBlinking
+    {
+        get => this.GetValue(IsBlinkingProperty);
+        set => this.SetValue(IsBlinkingProperty, value);
+    }
+
+    public IBrush Color1
+    {
+        get => this.GetValue(Color1Property);
+        set => this.SetValue(Color1Property, value);
+    }
+
+    public IBrush Color2
+    {
+        get => this.GetValue(Color2Property);
+        set => this.SetValue(Color2Property, value);
+    }
+
     protected override void OnAttached()
     {
         base.OnAttached();
 
-        if (AssociatedObject is not null)
+        if (this.AssociatedObject is not null)
         {
-            _originalBrush = GetForeground(AssociatedObject);
+            this._originalBrush = GetForeground(this.AssociatedObject);
             s_instances.Add(this);
         }
     }
@@ -62,9 +64,9 @@ public class BlinkingTextBehavior : Behavior<Control>
     {
         base.OnDetaching();
 
-        if (AssociatedObject is not null)
+        if (this.AssociatedObject is not null)
         {
-            SetForeground(AssociatedObject, _originalBrush);
+            SetForeground(this.AssociatedObject, this._originalBrush);
             s_instances.Remove(this);
         }
     }
@@ -91,13 +93,15 @@ public class BlinkingTextBehavior : Behavior<Control>
         return true;
     }
 
-    private static IBrush? GetForeground(Control control) =>
-        control switch
+    private static IBrush? GetForeground(Control control)
+    {
+        return control switch
         {
             Button button => button.Foreground,
             TextBlock textBlock => textBlock.Foreground,
             _ => throw new ArgumentException("Control must be a TextBlock or Button.")
         };
+    }
 
     private static void SetForeground(Control control, IBrush? brush)
     {

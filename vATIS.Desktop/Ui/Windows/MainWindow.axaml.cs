@@ -12,14 +12,19 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     public MainWindow(MainWindowViewModel viewModel)
     {
-        InitializeComponent();
+        this.InitializeComponent();
 
-        ViewModel = viewModel;
-        ViewModel.Owner = this;
-        
-        Opened += OnOpened;
-        Closed += OnClosed;
-        Closing += OnClosing;
+        this.ViewModel = viewModel;
+        this.ViewModel.Owner = this;
+
+        this.Opened += this.OnOpened;
+        this.Closed += this.OnClosed;
+        this.Closing += this.OnClosing;
+    }
+
+    public MainWindow()
+    {
+        this.InitializeComponent();
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -28,48 +33,43 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (!e.IsProgrammatic)
         {
             // Terminate the client session and navigate back to the profile dialog
-            Dispatcher.UIThread.Invoke(() => ViewModel?.EndClientSessionCommand.Execute().Subscribe());
+            Dispatcher.UIThread.Invoke(() => this.ViewModel?.EndClientSessionCommand.Execute().Subscribe());
         }
     }
 
     private void OnOpened(object? sender, EventArgs e)
     {
-        ViewModel?.PopulateAtisStations();
-        ViewModel?.ConnectToHub();
-        ViewModel?.StartWebsocket();
+        this.ViewModel?.PopulateAtisStations();
+        this.ViewModel?.ConnectToHub();
+        this.ViewModel?.StartWebsocket();
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.DisconnectFromHub();
-        ViewModel?.StopWebsocket();
-        ViewModel?.Dispose();
-    }
-
-    public MainWindow()
-    {
-        InitializeComponent();
+        this.ViewModel?.DisconnectFromHub();
+        this.ViewModel?.StopWebsocket();
+        this.ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 
     private void OnMinimizeWindow(object sender, RoutedEventArgs e)
     {
-        WindowState = WindowState.Minimized;
+        this.WindowState = WindowState.Minimized;
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
 
-        PositionChanged += OnPositionChanged;
-        if (DataContext is MainWindowViewModel model)
+        this.PositionChanged += this.OnPositionChanged;
+        if (this.DataContext is MainWindowViewModel model)
         {
             model.RestorePosition(this);
         }
@@ -77,7 +77,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is MainWindowViewModel model)
+        if (this.DataContext is MainWindowViewModel model)
         {
             model.UpdatePosition(this);
         }

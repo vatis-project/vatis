@@ -33,10 +33,12 @@ public class ClientUpdater : IClientUpdater
             throw new PlatformNotSupportedException();
         }
 
-        _updateManager = new UpdateManager(versionUrl, new UpdateOptions
-        {
-            AllowVersionDowngrade = true
-        });
+        this._updateManager = new UpdateManager(
+            versionUrl,
+            new UpdateOptions
+            {
+                AllowVersionDowngrade = true
+            });
     }
 
     public async Task<bool> Run()
@@ -44,14 +46,24 @@ public class ClientUpdater : IClientUpdater
         MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new client version..."));
 
         if (Debugger.IsAttached)
+        {
             return false;
+        }
 
-        if (!_updateManager.IsInstalled) return false;
-        _updateInfo = await _updateManager.CheckForUpdatesAsync();
+        if (!this._updateManager.IsInstalled)
+        {
+            return false;
+        }
 
-        if (_updateInfo == null) return false;
-        await _updateManager.DownloadUpdatesAsync(_updateInfo, ReportProgress);
-        await _updateManager.WaitExitThenApplyUpdatesAsync(_updateInfo, silent: true);
+        this._updateInfo = await this._updateManager.CheckForUpdatesAsync();
+
+        if (this._updateInfo == null)
+        {
+            return false;
+        }
+
+        await this._updateManager.DownloadUpdatesAsync(this._updateInfo, ReportProgress);
+        await this._updateManager.WaitExitThenApplyUpdatesAsync(this._updateInfo, true);
 
         return true;
     }

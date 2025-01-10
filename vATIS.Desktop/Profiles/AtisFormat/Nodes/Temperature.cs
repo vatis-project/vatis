@@ -2,11 +2,12 @@
 using System.Text.Json.Serialization;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
+
 public class Temperature : BaseFormat
 {
     public Temperature()
     {
-        Template = new()
+        this.Template = new Template
         {
             Text = "{temp}",
             Voice = "TEMPERATURE {temp}"
@@ -14,6 +15,7 @@ public class Temperature : BaseFormat
     }
 
     public bool UsePlusPrefix { get; set; }
+
     public bool SpeakLeadingZero { get; set; }
 
     [Obsolete("Use 'SpeakLeadingZero' instead")]
@@ -21,8 +23,11 @@ public class Temperature : BaseFormat
     public bool PronounceLeadingZero
     {
         get => false;
-        set => SpeakLeadingZero = value;
+        set => this.SpeakLeadingZero = value;
     }
 
-    public Temperature Clone() => (Temperature)MemberwiseClone();
+    public Temperature Clone()
+    {
+        return (Temperature)this.MemberwiseClone();
+    }
 }

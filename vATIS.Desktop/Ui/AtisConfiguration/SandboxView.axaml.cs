@@ -11,44 +11,52 @@ public partial class SandboxView : UserControl
 
     public SandboxView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 
     private void AirportConditions_OnTextChanged(object? sender, EventArgs e)
     {
-        if (DataContext is SandboxViewModel vm)
+        if (this.DataContext is SandboxViewModel vm)
         {
             if (vm.SelectedPreset == null)
-                return;
-
-            if (_airportConditionsInitialized)
             {
-                if (!AirportConditions.TextArea.IsFocused)
+                return;
+            }
+
+            if (this._airportConditionsInitialized)
+            {
+                if (!this.AirportConditions.TextArea.IsFocused)
+                {
                     return;
+                }
 
                 vm.HasUnsavedAirportConditions = true;
             }
 
-            _airportConditionsInitialized = true;
+            this._airportConditionsInitialized = true;
         }
     }
 
     private void NotamFreeText_OnTextChanged(object? sender, EventArgs e)
     {
-        if (DataContext is SandboxViewModel vm)
+        if (this.DataContext is SandboxViewModel vm)
         {
             if (vm.SelectedPreset == null)
-                return;
-
-            if (_notamsInitialized)
             {
-                if (!NotamFreeText.TextArea.IsFocused)
+                return;
+            }
+
+            if (this._notamsInitialized)
+            {
+                if (!this.NotamFreeText.TextArea.IsFocused)
+                {
                     return;
+                }
 
                 vm.HasUnsavedNotams = true;
             }
 
-            _notamsInitialized = true;
+            this._notamsInitialized = true;
         }
     }
 }

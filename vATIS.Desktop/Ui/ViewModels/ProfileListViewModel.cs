@@ -27,102 +27,107 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly IWindowLocationService _windowLocationService;
-    private readonly IProfileRepository _profileRepository;
     private IDialogOwner? _dialogOwner;
     private string _previousUserValue = "";
 
-    public ReactiveCommand<Unit, Unit> InitializeCommand { get; }
-    public ReactiveCommand<Unit, Unit> ShowNewProfileDialogCommand { get; }
-    public ReactiveCommand<ProfileViewModel, Unit> RenameProfileCommand { get; }
-    public ReactiveCommand<Unit, Unit> ImportProfileCommand { get; }
-    public ReactiveCommand<ProfileViewModel, Unit> DeleteProfileCommand { get; }
-    public ReactiveCommand<Unit, Unit> ExportProfileCommand { get; }
-    public ReactiveCommand<ProfileViewModel, Unit> StartClientSessionCommand { get; }
-    public ReactiveCommand<Unit, Unit> ExitCommand { get; }
-
-    #region Reactive Properties
-    private readonly SourceList<ProfileViewModel> _profileList = new();
-    public ReadOnlyObservableCollection<ProfileViewModel> Profiles { get; set; }
-
-    private ProfileViewModel? _selectedProfile;
-    public ProfileViewModel? SelectedProfile
-    {
-        get => _selectedProfile;
-        set => this.RaiseAndSetIfChanged(ref _selectedProfile, value);
-    }
-
-    private bool _showOverlay;
-    public bool ShowOverlay
-    {
-        get => _showOverlay;
-        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
-    }
-    public string ClientVersion { get; }
-    #endregion
-
-    public ProfileListViewModel(ISessionManager sessionManager,
+    public ProfileListViewModel(
+        ISessionManager sessionManager,
         IWindowFactory windowFactory,
         IWindowLocationService windowLocationService,
         IProfileRepository profileRepository)
     {
-        _sessionManager = sessionManager;
-        _windowFactory = windowFactory;
-        _windowLocationService = windowLocationService;
-        _profileRepository = profileRepository;
+        this._sessionManager = sessionManager;
+        this._windowFactory = windowFactory;
+        this._windowLocationService = windowLocationService;
+        this._profileRepository = profileRepository;
 
         var version = Assembly.GetEntryAssembly()
             ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
-        ClientVersion = $"Version {version}";
+        this.ClientVersion = $"Version {version}";
 
         var canExecute = this.WhenAnyValue(x => x.SelectedProfile).Select(x => x != null);
 
-        InitializeCommand = ReactiveCommand.CreateFromTask(Initialize);
-        ShowNewProfileDialogCommand = ReactiveCommand.CreateFromTask(HandleNewProfile);
-        RenameProfileCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleRenameProfile, canExecute);
-        ImportProfileCommand = ReactiveCommand.CreateFromTask(HandleImportProfile);
-        ExportProfileCommand = ReactiveCommand.CreateFromTask(HandleExportProfile, canExecute);
-        DeleteProfileCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleDeleteProfile, canExecute);
-        StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession, canExecute);
-        ExitCommand = ReactiveCommand.Create(HandleExit);
+        this.InitializeCommand = ReactiveCommand.CreateFromTask(this.Initialize);
+        this.ShowNewProfileDialogCommand = ReactiveCommand.CreateFromTask(this.HandleNewProfile);
+        this.RenameProfileCommand =
+            ReactiveCommand.CreateFromTask<ProfileViewModel>(this.HandleRenameProfile, canExecute);
+        this.ImportProfileCommand = ReactiveCommand.CreateFromTask(this.HandleImportProfile);
+        this.ExportProfileCommand = ReactiveCommand.CreateFromTask(this.HandleExportProfile, canExecute);
+        this.DeleteProfileCommand =
+            ReactiveCommand.CreateFromTask<ProfileViewModel>(this.HandleDeleteProfile, canExecute);
+        this.StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(this.HandleStartSession, canExecute);
+        this.ExitCommand = ReactiveCommand.Create(this.HandleExit);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
             {
-                ShowOverlay = lifetime.Windows.Count > 1;
+                this.ShowOverlay = lifetime.Windows.Count > 1;
             };
         }
 
-        _profileList.Connect()
+        this._profileList.Connect()
             .Sort(SortExpressionComparer<ProfileViewModel>.Ascending(i => i.Name))
             .Bind(out var sortedProfiles)
-            .Subscribe(_ => Profiles = sortedProfiles);
-        Profiles = sortedProfiles;
+            .Subscribe(_ => this.Profiles = sortedProfiles);
+        this.Profiles = sortedProfiles;
+    }
+
+    public ReactiveCommand<Unit, Unit> InitializeCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ShowNewProfileDialogCommand { get; }
+
+    public ReactiveCommand<ProfileViewModel, Unit> RenameProfileCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ImportProfileCommand { get; }
+
+    public ReactiveCommand<ProfileViewModel, Unit> DeleteProfileCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ExportProfileCommand { get; }
+
+    public ReactiveCommand<ProfileViewModel, Unit> StartClientSessionCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ExitCommand { get; }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.InitializeCommand.Dispose();
+        this.ShowNewProfileDialogCommand.Dispose();
+        this.RenameProfileCommand.Dispose();
+        this.ImportProfileCommand.Dispose();
+        this.DeleteProfileCommand.Dispose();
+        this.ExportProfileCommand.Dispose();
+        this.StartClientSessionCommand.Dispose();
+        this.ExitCommand.Dispose();
     }
 
     private async Task Initialize()
     {
-        foreach (var profile in await _profileRepository.LoadAll())
+        foreach (var profile in await this._profileRepository.LoadAll())
         {
-            _profileList.Add(new ProfileViewModel(profile));
+            this._profileList.Add(new ProfileViewModel(profile));
         }
     }
 
     private void HandleStartSession(ProfileViewModel model)
     {
-        _sessionManager.StartSession(model.Profile.Id);
+        this._sessionManager.StartSession(model.Profile.Id);
     }
 
     private async Task HandleRenameProfile(ProfileViewModel profile)
     {
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
-        var dialog = _windowFactory.CreateUserInputDialog();
+        var dialog = this._windowFactory.CreateUserInputDialog();
         if (dialog.DataContext is UserInputDialogViewModel context)
         {
             context.Title = "Rename Profile";
@@ -141,45 +146,52 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
                     }
 
                     profile.Name = context.UserValue;
-                    await _profileRepository.Rename(profile.Profile.Id, profile.Name);
+                    await this._profileRepository.Rename(profile.Profile.Id, profile.Name);
                 }
             };
-            await dialog.ShowDialog((Window)_dialogOwner);
+            await dialog.ShowDialog((Window)this._dialogOwner);
         }
     }
 
     private async Task HandleDeleteProfile(ProfileViewModel profile)
     {
-        if (_dialogOwner == null)
-            return;
-
-        if (await MessageBox.ShowDialog((Window)_dialogOwner,
-                $"Are you sure you want to delete profile \"{profile.Name}\"?", "Delete Profile",
-                MessageBoxButton.YesNo, MessageBoxIcon.Question) == MessageBoxResult.Yes)
+        if (this._dialogOwner == null)
         {
-            if (profile == SelectedProfile)
+            return;
+        }
+
+        if (await MessageBox.ShowDialog(
+                (Window)this._dialogOwner,
+                $"Are you sure you want to delete profile \"{profile.Name}\"?",
+                "Delete Profile",
+                MessageBoxButton.YesNo,
+                MessageBoxIcon.Question) == MessageBoxResult.Yes)
+        {
+            if (profile == this.SelectedProfile)
             {
-                SelectedProfile = null;
+                this.SelectedProfile = null;
             }
 
-            _profileRepository.Delete(profile.Profile);
-            _profileList.Remove(profile);
+            this._profileRepository.Delete(profile.Profile);
+            this._profileList.Remove(profile);
         }
     }
 
     private async Task HandleNewProfile()
     {
-        _previousUserValue = "";
+        this._previousUserValue = "";
 
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
-        var dialog = _windowFactory.CreateUserInputDialog();
+        var dialog = this._windowFactory.CreateUserInputDialog();
         if (dialog.DataContext is UserInputDialogViewModel context)
         {
             context.Title = "New Profile";
             context.Prompt = "Profile Name:";
-            context.UserValue = _previousUserValue;
+            context.UserValue = this._previousUserValue;
             context.DialogResultChanged += (_, dialogResult) =>
             {
                 if (dialogResult == DialogResult.Ok)
@@ -193,18 +205,20 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
                     }
 
                     var profile = new Profile { Name = context.UserValue.Trim() };
-                    _profileList.Add(new ProfileViewModel(profile));
-                    _profileRepository.Save(profile);
+                    this._profileList.Add(new ProfileViewModel(profile));
+                    this._profileRepository.Save(profile);
                 }
             };
-            await dialog.ShowDialog((Window)_dialogOwner);
+            await dialog.ShowDialog((Window)this._dialogOwner);
         }
     }
 
     private async Task HandleImportProfile()
     {
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
         try
         {
@@ -212,23 +226,26 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
             var files = await FilePickerExtensions.OpenFilePickerAsync(filters, "Import vATIS Profile");
 
             if (files == null)
+            {
                 return;
+            }
 
             foreach (var file in files)
             {
-                var newProfile = await _profileRepository.Import(file);
-                _profileList.Add(new ProfileViewModel(newProfile));
+                var newProfile = await this._profileRepository.Import(file);
+                this._profileList.Add(new ProfileViewModel(newProfile));
             }
+
             try
             {
                 Log.Information("Checking for profile updates...");
-                await _profileRepository.CheckForProfileUpdates();
+                await this._profileRepository.CheckForProfileUpdates();
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error checking for profile updates");
                 await MessageBox.ShowDialog(
-                    (Window)_dialogOwner,
+                    (Window)this._dialogOwner,
                     ex.Message,
                     "Import Error: Checking for profile updates",
                     MessageBoxButton.Ok,
@@ -238,29 +255,45 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to import profile");
-            await MessageBox.ShowDialog((Window)_dialogOwner, ex.Message, "Import Error", MessageBoxButton.Ok,
+            await MessageBox.ShowDialog(
+                (Window)this._dialogOwner,
+                ex.Message,
+                "Import Error",
+                MessageBoxButton.Ok,
                 MessageBoxIcon.Error);
         }
     }
 
     private async Task HandleExportProfile()
     {
-        if (SelectedProfile?.Profile == null)
+        if (this.SelectedProfile?.Profile == null)
+        {
             return;
+        }
 
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
         var filters = new List<FilePickerFileType> { new("vATIS Profile (*.json)") { Patterns = ["*.json"] } };
-        var file = await FilePickerExtensions.SaveFileAsync("Export Profile", filters,
-            $"vATIS Profile - {SelectedProfile.Name}.json");
+        var file = await FilePickerExtensions.SaveFileAsync(
+            "Export Profile",
+            filters,
+            $"vATIS Profile - {this.SelectedProfile.Name}.json");
 
         if (file == null)
+        {
             return;
+        }
 
-        _profileRepository.Export(SelectedProfile.Profile, file.Path.LocalPath);
-        await MessageBox.ShowDialog((Window)_dialogOwner, "Profile successfully exported.", "Success",
-            MessageBoxButton.Ok, MessageBoxIcon.Information);
+        this._profileRepository.Export(this.SelectedProfile.Profile, file.Path.LocalPath);
+        await MessageBox.ShowDialog(
+            (Window)this._dialogOwner,
+            "Profile successfully exported.",
+            "Success",
+            MessageBoxButton.Ok,
+            MessageBoxIcon.Information);
     }
 
     private void HandleExit()
@@ -274,34 +307,51 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     public void UpdatePosition(Window? window)
     {
         if (window == null)
+        {
             return;
+        }
 
-        _windowLocationService.Update(window);
+        this._windowLocationService.Update(window);
     }
 
     public void RestorePosition(Window? window)
     {
         if (window == null)
+        {
             return;
+        }
 
-        _windowLocationService.Restore(window);
+        this._windowLocationService.Restore(window);
     }
 
     public void SetDialogOwner(IDialogOwner owner)
     {
-        _dialogOwner = owner;
+        this._dialogOwner = owner;
     }
 
-    public void Dispose()
+    #region Reactive Properties
+
+    private readonly SourceList<ProfileViewModel> _profileList = new();
+
+    public ReadOnlyObservableCollection<ProfileViewModel> Profiles { get; set; }
+
+    private ProfileViewModel? _selectedProfile;
+
+    public ProfileViewModel? SelectedProfile
     {
-        GC.SuppressFinalize(this);
-        InitializeCommand.Dispose();
-        ShowNewProfileDialogCommand.Dispose();
-        RenameProfileCommand.Dispose();
-        ImportProfileCommand.Dispose();
-        DeleteProfileCommand.Dispose();
-        ExportProfileCommand.Dispose();
-        StartClientSessionCommand.Dispose();
-        ExitCommand.Dispose();
+        get => this._selectedProfile;
+        set => this.RaiseAndSetIfChanged(ref this._selectedProfile, value);
     }
+
+    private bool _showOverlay;
+
+    public bool ShowOverlay
+    {
+        get => this._showOverlay;
+        set => this.RaiseAndSetIfChanged(ref this._showOverlay, value);
+    }
+
+    public string ClientVersion { get; }
+
+    #endregion
 }

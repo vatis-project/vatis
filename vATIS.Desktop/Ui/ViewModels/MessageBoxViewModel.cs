@@ -9,181 +9,193 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
 {
-    public Window? Owner { get; init; }
-
-    public ReactiveCommand<ICloseable, Unit> YesButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> NoButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
-
-
-    private string _caption = "vATIS";
-    public string Caption
-    {
-        get => _caption;
-        set => this.RaiseAndSetIfChanged(ref _caption, value);
-    }
-
-    private string? _message;
-    public string? Message
-    {
-        get => _message;
-        set => this.RaiseAndSetIfChanged(ref _message, value);
-    }
-
     private readonly MessageBoxButton _button;
-    public MessageBoxButton Button
-    {
-        get => _button;
-        init
-        {
-            _button = value;
-            SetButtons();
-            this.RaiseAndSetIfChanged(ref _button, value);
-        }
-    }
 
     private readonly MessageBoxIcon _icon;
-    public MessageBoxIcon Icon
-    {
-        get => _icon;
-        init
-        {
-            _icon = value;
-            SetIcon();
-            this.RaiseAndSetIfChanged(ref _icon, value);
-        }
-    }
 
-    private MessageBoxResult _result;
-    public MessageBoxResult Result
-    {
-        get => _result;
-        private set => this.RaiseAndSetIfChanged(ref _result, value);
-    }
-
-    private bool _isOkVisible;
-    public bool IsOkVisible
-    {
-        get => _isOkVisible;
-        set => this.RaiseAndSetIfChanged(ref _isOkVisible, value);
-    }
-
-    private bool _isYesVisible;
-    public bool IsYesVisible
-    {
-        get => _isYesVisible;
-        set => this.RaiseAndSetIfChanged(ref _isYesVisible, value);
-    }
-
-    private bool _isNoVisible;
-    public bool IsNoVisible
-    {
-        get => _isNoVisible;
-        set => this.RaiseAndSetIfChanged(ref _isNoVisible, value);
-    }
-
-    private bool _isCancelVisible;
-    public bool IsCancelVisible
-    {
-        get => _isCancelVisible;
-        set => this.RaiseAndSetIfChanged(ref _isCancelVisible, value);
-    }
+    private string _caption = "vATIS";
 
     private string? _iconPath;
-    public string? IconPath
-    {
-        get => _iconPath;
-        set => this.RaiseAndSetIfChanged(ref _iconPath, value);
-    }
+
+    private bool _isCancelVisible;
+
+    private bool _isNoVisible;
+
+    private bool _isOkVisible;
+
+    private bool _isYesVisible;
+
+    private string? _message;
+
+    private MessageBoxResult _result;
 
     public MessageBoxViewModel()
     {
-        YesButtonCommand = ReactiveCommand.Create<ICloseable>(HandleYesButtonCommand);
-        NoButtonCommand = ReactiveCommand.Create<ICloseable>(HandleNoButtonCommand);
-        OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButtonCommand);
-        CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCancelButtonCommand);
+        this.YesButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleYesButtonCommand);
+        this.NoButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleNoButtonCommand);
+        this.OkButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleOkButtonCommand);
+        this.CancelButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleCancelButtonCommand);
     }
 
-    private void HandleYesButtonCommand(ICloseable window)
+    public Window? Owner { get; init; }
+
+    public ReactiveCommand<ICloseable, Unit> YesButtonCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> NoButtonCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
+
+    public string Caption
     {
-        Result = MessageBoxResult.Yes;
-        window.Close(Result);
+        get => this._caption;
+        set => this.RaiseAndSetIfChanged(ref this._caption, value);
     }
 
-    private void HandleNoButtonCommand(ICloseable window)
+    public string? Message
     {
-        Result = MessageBoxResult.No;
-        window.Close(Result);
+        get => this._message;
+        set => this.RaiseAndSetIfChanged(ref this._message, value);
     }
 
-    private void HandleOkButtonCommand(ICloseable window)
+    public MessageBoxButton Button
     {
-        Result = MessageBoxResult.Ok;
-        window.Close(Result);
-    }
-
-    private void HandleCancelButtonCommand(ICloseable window)
-    {
-        Result = MessageBoxResult.Cancel;
-        window.Close(Result);
-    }
-
-    private void SetIcon()
-    {
-        switch (Icon)
+        get => this._button;
+        init
         {
-            case MessageBoxIcon.Error:
-            case MessageBoxIcon.Information:
-            case MessageBoxIcon.Question:
-            case MessageBoxIcon.Warning:
-                IconPath = $"avares://vATIS/Assets/DialogIcons/{Icon}.ico";
-                break;
-            case MessageBoxIcon.None:
-                IconPath = "";
-                break;
-            default:
-                throw new InvalidEnumArgumentException(nameof(Icon));
+            this._button = value;
+            this.SetButtons();
+            this.RaiseAndSetIfChanged(ref this._button, value);
         }
     }
 
-    private void SetButtons()
+    public MessageBoxIcon Icon
     {
-        switch (Button)
+        get => this._icon;
+        init
         {
-            case MessageBoxButton.Ok:
-                IsOkVisible = true;
-                break;
-            case MessageBoxButton.OkCancel:
-                IsOkVisible = true;
-                IsCancelVisible = true;
-                break;
-            case MessageBoxButton.YesNoCancel:
-                IsYesVisible = true;
-                IsNoVisible = true;
-                IsCancelVisible = true;
-                break;
-            case MessageBoxButton.YesNo:
-                IsYesVisible = true;
-                IsNoVisible = true;
-                break;
-            case MessageBoxButton.None:
-                IsOkVisible = false;
-                IsYesVisible = false;
-                IsNoVisible = false;
-                IsCancelVisible = false;
-                break;
-            default:
-                throw new InvalidEnumArgumentException(nameof(Button));
+            this._icon = value;
+            this.SetIcon();
+            this.RaiseAndSetIfChanged(ref this._icon, value);
         }
+    }
+
+    public MessageBoxResult Result
+    {
+        get => this._result;
+        private set => this.RaiseAndSetIfChanged(ref this._result, value);
+    }
+
+    public bool IsOkVisible
+    {
+        get => this._isOkVisible;
+        set => this.RaiseAndSetIfChanged(ref this._isOkVisible, value);
+    }
+
+    public bool IsYesVisible
+    {
+        get => this._isYesVisible;
+        set => this.RaiseAndSetIfChanged(ref this._isYesVisible, value);
+    }
+
+    public bool IsNoVisible
+    {
+        get => this._isNoVisible;
+        set => this.RaiseAndSetIfChanged(ref this._isNoVisible, value);
+    }
+
+    public bool IsCancelVisible
+    {
+        get => this._isCancelVisible;
+        set => this.RaiseAndSetIfChanged(ref this._isCancelVisible, value);
+    }
+
+    public string? IconPath
+    {
+        get => this._iconPath;
+        set => this.RaiseAndSetIfChanged(ref this._iconPath, value);
     }
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        YesButtonCommand.Dispose();
-        NoButtonCommand.Dispose();
-        OkButtonCommand.Dispose();
-        CancelButtonCommand.Dispose();
+        this.YesButtonCommand.Dispose();
+        this.NoButtonCommand.Dispose();
+        this.OkButtonCommand.Dispose();
+        this.CancelButtonCommand.Dispose();
+    }
+
+    private void HandleYesButtonCommand(ICloseable window)
+    {
+        this.Result = MessageBoxResult.Yes;
+        window.Close(this.Result);
+    }
+
+    private void HandleNoButtonCommand(ICloseable window)
+    {
+        this.Result = MessageBoxResult.No;
+        window.Close(this.Result);
+    }
+
+    private void HandleOkButtonCommand(ICloseable window)
+    {
+        this.Result = MessageBoxResult.Ok;
+        window.Close(this.Result);
+    }
+
+    private void HandleCancelButtonCommand(ICloseable window)
+    {
+        this.Result = MessageBoxResult.Cancel;
+        window.Close(this.Result);
+    }
+
+    private void SetIcon()
+    {
+        switch (this.Icon)
+        {
+            case MessageBoxIcon.Error:
+            case MessageBoxIcon.Information:
+            case MessageBoxIcon.Question:
+            case MessageBoxIcon.Warning:
+                this.IconPath = $"avares://vATIS/Assets/DialogIcons/{this.Icon}.ico";
+                break;
+            case MessageBoxIcon.None:
+                this.IconPath = "";
+                break;
+            default:
+                throw new InvalidEnumArgumentException(nameof(this.Icon));
+        }
+    }
+
+    private void SetButtons()
+    {
+        switch (this.Button)
+        {
+            case MessageBoxButton.Ok:
+                this.IsOkVisible = true;
+                break;
+            case MessageBoxButton.OkCancel:
+                this.IsOkVisible = true;
+                this.IsCancelVisible = true;
+                break;
+            case MessageBoxButton.YesNoCancel:
+                this.IsYesVisible = true;
+                this.IsNoVisible = true;
+                this.IsCancelVisible = true;
+                break;
+            case MessageBoxButton.YesNo:
+                this.IsYesVisible = true;
+                this.IsNoVisible = true;
+                break;
+            case MessageBoxButton.None:
+                this.IsOkVisible = false;
+                this.IsYesVisible = false;
+                this.IsNoVisible = false;
+                this.IsCancelVisible = false;
+                break;
+            default:
+                throw new InvalidEnumArgumentException(nameof(this.Button));
+        }
     }
 }

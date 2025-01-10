@@ -12,7 +12,7 @@ using WatsonWebsocket;
 namespace Vatsim.Vatis.Ui.Services;
 
 /// <summary>
-/// Provides a websocket interface to vATIS.
+///     Provides a websocket interface to vATIS.
 /// </summary>
 public class WebsocketService : IWebsocketService
 {
@@ -23,83 +23,40 @@ public class WebsocketService : IWebsocketService
     private readonly ConcurrentDictionary<Guid, ClientMetadata> _sessions = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WebsocketService"/> class.
+    ///     Initializes a new instance of the <see cref="WebsocketService" /> class.
     /// </summary>
     public WebsocketService()
     {
         // The loopback address is used to avoid Windows prompting for firewall permissions
         // when vATIS runs.
-        _server = new WatsonWsServer(hostname: IPAddress.Loopback.ToString(), port: 49082);
-        _server.Logger = Log.Information;
-        _server.ClientConnected += OnClientConnected;
-        _server.ClientDisconnected += OnClientDisconnected;
-        _server.MessageReceived += OnMessageReceived;
+        this._server = new WatsonWsServer(IPAddress.Loopback.ToString(), 49082);
+        this._server.Logger = Log.Information;
+        this._server.ClientConnected += this.OnClientConnected;
+        this._server.ClientDisconnected += this.OnClientDisconnected;
+        this._server.MessageReceived += this.OnMessageReceived;
     }
 
     /// <summary>
-    /// Handles messages received via the websocket and fires the appropriate event handler.
+    ///     Event that is raised when a client requests ATIS information. The requesting session and the station requested, if
+    ///     specified, are passed as parameters.
     /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The message data.</param>
-    private async void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
-    {
-        try
-        {
-            HandleRequest(e.Client, e.Data);
-        }
-        catch (Exception ex)
-        {
-            var error = new ErrorMessage
-            {
-                Value = new ErrorMessage.ErrorValue
-                {
-                    Message = ex.Message,
-                },
-            };
-            await _server.SendAsync(e.Client.Guid, JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
-        }
-    }
-
-    /// <summary>
-    /// Handles clients disconnecting from the service.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The data about the client that disconnected.</param>
-    private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
-    {
-        _sessions.TryRemove(e.Client.Guid, out _);
-    }
-
-    /// <summary>
-    /// Handles clients connecting to the service.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The data about the client that connected.</param>
-    private void OnClientConnected(object? sender, ConnectionEventArgs e)
-    {
-        _sessions.TryAdd(e.Client.Guid, e.Client);
-    }
-
-    /// <summary>
-    /// Event that is raised when a client requests ATIS information. The requesting session and the station requested, if specified, are passed as parameters.
-    /// </summary>
-    ///
     public event EventHandler<GetAtisReceived> GetAtisReceived = (_, _) => { };
 
     /// <summary>
-    /// Event that is raised when a client acknowledges an ATIS update. The requesting session and the station acknowledged, if specified, is passed as a parameter.
+    ///     Event that is raised when a client acknowledges an ATIS update. The requesting session and the station
+    ///     acknowledged, if specified, is passed as a parameter.
     /// </summary>
     public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = (_, _) => { };
 
     /// <summary>
-    /// Starts the WebSocket server.
+    ///     Starts the WebSocket server.
     /// </summary>
     /// <returns>A task.</returns>
     public async Task StartAsync()
     {
         try
         {
-            await _server.StartAsync();
+            await this._server.StartAsync();
         }
         catch (Exception e)
         {
@@ -108,15 +65,15 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <summary>
-    /// Stops the WebSocket server.
+    ///     Stops the WebSocket server.
     /// </summary>
     /// <returns>A task.</returns>
     public async Task StopAsync()
     {
         try
         {
-            await CloseAllClientsAsync();
-            _server.Stop();
+            await this.CloseAllClientsAsync();
+            this._server.Stop();
         }
         catch (Exception e)
         {
@@ -125,7 +82,7 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <summary>
-    /// Sends an ATIS message to a specific session, or to all connected clients if session is null.
+    ///     Sends an ATIS message to a specific session, or to all connected clients if session is null.
     /// </summary>
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
@@ -134,22 +91,70 @@ public class WebsocketService : IWebsocketService
     {
         var message = new AtisMessage
         {
-            Value = value,
+            Value = value
         };
 
         if (session is not null)
         {
-            await _server.SendAsync(session.Guid, JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
+            await this._server.SendAsync(
+                session.Guid,
+                JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
         else
         {
-            await SendAsync(JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
+            await this.SendAsync(JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
     }
 
     /// <summary>
-    /// Handles a request from a client. Looks at the type property to determine the message type
-    /// then fires the appropriate event with the session and station as parameters.
+    ///     Handles messages received via the websocket and fires the appropriate event handler.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The message data.</param>
+    private async void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
+    {
+        try
+        {
+            this.HandleRequest(e.Client, e.Data);
+        }
+        catch (Exception ex)
+        {
+            var error = new ErrorMessage
+            {
+                Value = new ErrorMessage.ErrorValue
+                {
+                    Message = ex.Message
+                }
+            };
+            await this._server.SendAsync(
+                e.Client.Guid,
+                JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
+        }
+    }
+
+    /// <summary>
+    ///     Handles clients disconnecting from the service.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The data about the client that disconnected.</param>
+    private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
+    {
+        this._sessions.TryRemove(e.Client.Guid, out _);
+    }
+
+    /// <summary>
+    ///     Handles clients connecting to the service.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The data about the client that connected.</param>
+    private void OnClientConnected(object? sender, ConnectionEventArgs e)
+    {
+        this._sessions.TryAdd(e.Client.Guid, e.Client);
+    }
+
+    /// <summary>
+    ///     Handles a request from a client. Looks at the type property to determine the message type
+    ///     then fires the appropriate event with the session and station as parameters.
     /// </summary>
     /// <param name="session">The client that sent the message.</param>
     /// <param name="message">The message.</param>
@@ -166,10 +171,14 @@ public class WebsocketService : IWebsocketService
         switch (request.MessageType)
         {
             case "getAtis":
-                GetAtisReceived(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
+                this.GetAtisReceived(
+                    this,
+                    new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
                 break;
             case "acknowledgeAtisUpdate":
-                AcknowledgeAtisUpdateReceived(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
+                this.AcknowledgeAtisUpdateReceived(
+                    this,
+                    new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
                 break;
             default:
                 throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");
@@ -177,35 +186,37 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <summary>
-    /// Closes all connected sessions.
+    ///     Closes all connected sessions.
     /// </summary>
     /// <returns>A task.</returns>
     private async Task CloseAllClientsAsync()
     {
         var tasks = new List<Task>();
 
-        foreach (var session in _sessions.Values)
+        foreach (var session in this._sessions.Values)
         {
-            tasks.Add(Task.Run(() =>
-            {
-                try
-                {
-                    _server.DisconnectClient(session.Guid);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"Error closing session {session.Guid}");
-                }
+            tasks.Add(
+                Task.Run(
+                    () =>
+                    {
+                        try
+                        {
+                            this._server.DisconnectClient(session.Guid);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, $"Error closing session {session.Guid}");
+                        }
 
-                return Task.CompletedTask;
-            }));
+                        return Task.CompletedTask;
+                    }));
         }
 
         await Task.WhenAll(tasks);
     }
 
     /// <summary>
-    /// Sends a message to all connected clients.
+    ///     Sends a message to all connected clients.
     /// </summary>
     /// <param name="message">The message to send.</param>
     /// <returns>A task.</returns>
@@ -213,19 +224,21 @@ public class WebsocketService : IWebsocketService
     {
         var tasks = new List<Task>();
 
-        foreach (var session in _sessions.Values)
+        foreach (var session in this._sessions.Values)
         {
-            tasks.Add(Task.Run(async () =>
-            {
-                try
-                {
-                    await _server.SendAsync(session.Guid, message);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"Error sending message to session {session.Guid}");
-                }
-            }));
+            tasks.Add(
+                Task.Run(
+                    async () =>
+                    {
+                        try
+                        {
+                            await this._server.SendAsync(session.Guid, message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, $"Error sending message to session {session.Guid}");
+                        }
+                    }));
         }
 
         await Task.WhenAll(tasks);

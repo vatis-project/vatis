@@ -7,49 +7,62 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    public event EventHandler<DialogResult>? DialogResultChanged;
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
-
     private DialogResult _dialogResult;
-    public DialogResult DialogResult
-    {
-        get => _dialogResult;
-        set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
-    }
-
-    private string? _variable;
-    public string? Variable
-    {
-        get => _variable;
-        set => this.RaiseAndSetIfChanged(ref _variable, value);
-    }
-
-    private string? _text;
-    public string? Text
-    {
-        get => _text;
-        set => this.RaiseAndSetIfChanged(ref _text, value);
-    }
 
     private string? _spoken;
-    public string? Spoken
-    {
-        get => _spoken;
-        set => this.RaiseAndSetIfChanged(ref _spoken, value);
-    }
+
+    private string? _text;
+
+    private string? _variable;
 
     public NewContractionDialogViewModel()
     {
-        CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCancelButtonCommand);
-        OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButtonCommand);
+        this.CancelButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleCancelButtonCommand);
+        this.OkButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleOkButtonCommand);
     }
+
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
+
+    public DialogResult DialogResult
+    {
+        get => this._dialogResult;
+        set => this.RaiseAndSetIfChanged(ref this._dialogResult, value);
+    }
+
+    public string? Variable
+    {
+        get => this._variable;
+        set => this.RaiseAndSetIfChanged(ref this._variable, value);
+    }
+
+    public string? Text
+    {
+        get => this._text;
+        set => this.RaiseAndSetIfChanged(ref this._text, value);
+    }
+
+    public string? Spoken
+    {
+        get => this._spoken;
+        set => this.RaiseAndSetIfChanged(ref this._spoken, value);
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.CancelButtonCommand.Dispose();
+        this.OkButtonCommand.Dispose();
+    }
+
+    public event EventHandler<DialogResult>? DialogResultChanged;
 
     private void HandleOkButtonCommand(ICloseable window)
     {
-        DialogResultChanged?.Invoke(this, DialogResult.Ok);
-        DialogResult = DialogResult.Ok;
-        if (!HasErrors)
+        this.DialogResultChanged?.Invoke(this, DialogResult.Ok);
+        this.DialogResult = DialogResult.Ok;
+        if (!this.HasErrors)
         {
             window.Close();
         }
@@ -57,15 +70,8 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleCancelButtonCommand(ICloseable window)
     {
-        DialogResultChanged?.Invoke(this, DialogResult.Cancel);
-        DialogResult = DialogResult.Cancel;
+        this.DialogResultChanged?.Invoke(this, DialogResult.Cancel);
+        this.DialogResult = DialogResult.Cancel;
         window.Close();
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        CancelButtonCommand.Dispose();
-        OkButtonCommand.Dispose();
     }
 }

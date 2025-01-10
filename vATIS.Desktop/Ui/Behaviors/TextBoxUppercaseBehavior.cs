@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Xaml.Interactivity;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
@@ -11,16 +11,20 @@ public class TextBoxUppercaseBehavior : Behavior<TextBox>
     {
         base.OnAttached();
 
-        if (IsEnabled)
-            AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
+        if (this.IsEnabled)
+        {
+            this.AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
+        }
     }
 
     protected override void OnDetaching()
     {
         base.OnDetaching();
 
-        if (IsEnabled)
-            AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        if (this.IsEnabled)
+        {
+            this.AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        }
     }
 
     private static void TextInputHandler(object? sender, TextInputEventArgs e)

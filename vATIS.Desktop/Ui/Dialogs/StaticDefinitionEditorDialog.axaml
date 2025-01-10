@@ -17,64 +17,82 @@
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
-	<Window.Styles>
-		<Style Selector="DataValidationErrors">
-			<Setter Property="Template">
-				<ControlTemplate>
-					<DockPanel LastChildFill="True">
-						<ContentControl DockPanel.Dock="Bottom"
-										ContentTemplate="{TemplateBinding ErrorTemplate}"
-										DataContext="{TemplateBinding Owner}"
-										Content="{Binding (DataValidationErrors.Errors)}"
-										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
-						<ContentPresenter Name="PART_ContentPresenter"
-										  Background="{TemplateBinding Background}"
-										  BorderBrush="{TemplateBinding BorderBrush}"
-										  BorderThickness="{TemplateBinding BorderThickness}"
-										  CornerRadius="{TemplateBinding CornerRadius}"
-										  ContentTemplate="{TemplateBinding ContentTemplate}"
-										  Content="{TemplateBinding Content}"
-										  Padding="{TemplateBinding Padding}"/>
-					</DockPanel>
-				</ControlTemplate>
-			</Setter>
-			<Setter Property="ErrorTemplate">
-				<DataTemplate x:DataType="{x:Type x:Object}">
-					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
-						<ItemsControl.Styles>
-							<Style Selector="TextBlock">
-								<Setter Property="TextWrapping" Value="Wrap" />
-								<Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-							</Style>
-						</ItemsControl.Styles>
-					</ItemsControl>
-				</DataTemplate>
-			</Setter>
-		</Style>
-	</Window.Styles>
-	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
-		<StackPanel>
-			<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
-				<Grid ColumnDefinitions="1*,1*">
-					<TextBlock Text="{Binding Title, DataType=vm:StaticDefinitionEditorDialogViewModel, FallbackValue='Definition Editor'}" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
-					<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CancelButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
-				</Grid>
-			</Border>
-			<Grid RowDefinitions="*,10,*" Margin="20">
-				<StackPanel Grid.Row="0" Orientation="Vertical" Spacing="5">
-					<editor:TextEditor Document="{Binding TextDocument, DataType=vm:StaticDefinitionEditorDialogViewModel}" WordWrap="True" Height="180" FontFamily="{StaticResource Monospace}" Padding="6,4">
-						<Interaction.Behaviors>
-							<behaviors:TextEditorUpperCaseBehavior/>
-							<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
-						</Interaction.Behaviors>
-					</editor:TextEditor>
-					<TextBox Name="DataValidation" Theme="{StaticResource Hidden}" Text="{Binding DataValidation, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
-				</StackPanel>
-				<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5">
-					<Button Width="80" Theme="{StaticResource Dark}" Command="{Binding SaveButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Save</Button>
-					<Button Width="80" Theme="{StaticResource Dark}" Command="{Binding CancelButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>
-				</StackPanel>
-			</Grid>
-		</StackPanel>
-	</Border>
+    <Window.Styles>
+        <Style Selector="DataValidationErrors">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <DockPanel LastChildFill="True">
+                        <ContentControl DockPanel.Dock="Bottom"
+                                        ContentTemplate="{TemplateBinding ErrorTemplate}"
+                                        DataContext="{TemplateBinding Owner}"
+                                        Content="{Binding (DataValidationErrors.Errors)}"
+                                        IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          CornerRadius="{TemplateBinding CornerRadius}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Content="{TemplateBinding Content}"
+                                          Padding="{TemplateBinding Padding}" />
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="ErrorTemplate">
+                <DataTemplate x:DataType="{x:Type x:Object}">
+                    <ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+                        <ItemsControl.Styles>
+                            <Style Selector="TextBlock">
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                                <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+                            </Style>
+                        </ItemsControl.Styles>
+                    </ItemsControl>
+                </DataTemplate>
+            </Setter>
+        </Style>
+    </Window.Styles>
+    <Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+        <StackPanel>
+            <Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
+                <Grid ColumnDefinitions="1*,1*">
+                    <TextBlock
+                        Text="{Binding Title, DataType=vm:StaticDefinitionEditorDialogViewModel, FallbackValue='Definition Editor'}"
+                        Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0"
+                        FontWeight="Medium" FontSize="14" Grid.Column="0" />
+                    <Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right"
+                            Margin="0,0,10,0"
+                            Command="{Binding CancelButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}"
+                            CommandParameter="{Binding ElementName=Window}" />
+                </Grid>
+            </Border>
+            <Grid RowDefinitions="*,10,*" Margin="20">
+                <StackPanel Grid.Row="0" Orientation="Vertical" Spacing="5">
+                    <editor:TextEditor
+                        Document="{Binding TextDocument, DataType=vm:StaticDefinitionEditorDialogViewModel}"
+                        WordWrap="True" Height="180" FontFamily="{StaticResource Monospace}" Padding="6,4">
+                        <Interaction.Behaviors>
+                            <behaviors:TextEditorUpperCaseBehavior />
+                            <behaviors:TextEditorCompletionBehavior
+                                CompletionData="{Binding ContractionCompletionData, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
+                        </Interaction.Behaviors>
+                    </editor:TextEditor>
+                    <TextBox Name="DataValidation" Theme="{StaticResource Hidden}"
+                             Text="{Binding DataValidation, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
+                </StackPanel>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5">
+                    <Button Width="80" Theme="{StaticResource Dark}"
+                            Command="{Binding SaveButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}"
+                            CommandParameter="{Binding ElementName=Window}">
+                        Save
+                    </Button>
+                    <Button Width="80" Theme="{StaticResource Dark}"
+                            Command="{Binding CancelButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}"
+                            CommandParameter="{Binding ElementName=Window}">
+                        Cancel
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </Border>
 </Window>

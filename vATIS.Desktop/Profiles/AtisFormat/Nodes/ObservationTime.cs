@@ -3,11 +3,12 @@ using System.Text.Json.Serialization;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes.Converter;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
+
 public class ObservationTime : BaseFormat
 {
     public ObservationTime()
     {
-        Template = new()
+        this.Template = new Template
         {
             Text = "{time}Z",
             Voice = "{time} ZULU {special}"
@@ -17,5 +18,8 @@ public class ObservationTime : BaseFormat
     [JsonConverter(typeof(ObservationTimeConverter))]
     public List<int>? StandardUpdateTime { get; set; }
 
-    public ObservationTime Clone() => (ObservationTime)MemberwiseClone();
+    public ObservationTime Clone()
+    {
+        return (ObservationTime)this.MemberwiseClone();
+    }
 }

@@ -6,5 +6,6 @@ namespace Vatsim.Vatis.Profiles.Models;
 public class MagneticVariationMeta
 {
     public bool Enabled { get; set; }
+
     public int MagneticDegrees { get; set; }
 }

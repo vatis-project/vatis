@@ -9,80 +9,90 @@ using Vatsim.Vatis.Weather.Decoder.Exception;
 namespace Vatsim.Vatis.Weather.Decoder;
 
 /// <summary>
-/// Metar Decoder
+/// Initializes a new instance of the <see cref="MetarDecoder"/> class.
 /// </summary>
 public class MetarDecoder
 {
+    /// <summary>
+    /// The key used to access the primary decoding result in a <see cref="Dictionary{TKey, TValue}"/>
+    /// returned by the decoding process within the <see cref="MetarDecoder"/> class.
+    /// </summary>
     public const string ResultKey = "Result";
-    public const string RemainingMetarKey = "RemainingMetar";
-    private const string ExceptionKey = "Exception";
 
     /// <summary>
-    /// Metar Decoder
+    /// Represents the key used to access the remaining, unprocessed portion of the METAR data
+    /// during the decoding process in the <see cref="MetarDecoder"/> class.
+    /// </summary>
+    public const string RemainingMetarKey = "RemainingMetar";
+
+    private const string ExceptionKey = "Exception";
+
+    private static readonly ReadOnlyCollection<MetarChunkDecoder> DecoderChain =
+        new(
+            new List<MetarChunkDecoder>
+            {
+                new ReportTypeChunkDecoder(),
+                new IcaoChunkDecoder(),
+                new DatetimeChunkDecoder(),
+                new ReportStatusChunkDecoder(),
+                new SurfaceWindChunkDecoder(),
+                new VisibilityChunkDecoder(),
+                new RunwayVisualRangeChunkDecoder(),
+                new PresentWeatherChunkDecoder(),
+                new CloudChunkDecoder(),
+                new TemperatureChunkDecoder(),
+                new PressureChunkDecoder(),
+                new RecentWeatherChunkDecoder(),
+                new WindShearChunkDecoder(),
+                new TrendChunkDecoder(),
+            });
+
+    private bool globalStrictParsing;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MetarDecoder"/> class.
     /// </summary>
     public MetarDecoder()
     {
-
     }
 
-    private static readonly ReadOnlyCollection<MetarChunkDecoder> s_decoderChain = new((List<MetarChunkDecoder>)
-    [
-        new ReportTypeChunkDecoder(),
-        new IcaoChunkDecoder(),
-        new DatetimeChunkDecoder(),
-        new ReportStatusChunkDecoder(),
-        new SurfaceWindChunkDecoder(),
-        new VisibilityChunkDecoder(),
-        new RunwayVisualRangeChunkDecoder(),
-        new PresentWeatherChunkDecoder(),
-        new CloudChunkDecoder(),
-        new TemperatureChunkDecoder(),
-        new PressureChunkDecoder(),
-        new RecentWeatherChunkDecoder(),
-        new WindShearChunkDecoder(),
-        new TrendChunkDecoder()
-    ]);
-
-    private bool _globalStrictParsing;
-
     /// <summary>
-    /// Set global parsing mode (strict/not strict) for the whole object.
+    /// Sets the strict parsing mode for the <see cref="MetarDecoder"/> class.
     /// </summary>
-    /// <param name="isStrict"></param>
+    /// <param name="isStrict">Determines whether strict parsing should be enabled or disabled.</param>
     public void SetStrictParsing(bool isStrict)
     {
-        _globalStrictParsing = isStrict;
+        this.globalStrictParsing = isStrict;
     }
 
     /// <summary>
-    /// Decode a full metar string into a complete metar object
-    /// while using global strict option.
+    /// Parses a METAR string using global strict option and returns a <see cref="DecodedMetar"/> object.
     /// </summary>
-    /// <param name="rawMetar">Metar String</param>
+    /// <param name="rawMetar">The raw METAR string to be decoded.</param>
+    /// <returns>A <see cref="DecodedMetar"/> object containing the decoded METAR information.</returns>
     public DecodedMetar Parse(string rawMetar)
     {
-        return ParseWithMode(rawMetar, _globalStrictParsing);
+        return ParseWithMode(rawMetar, this.globalStrictParsing);
     }
 
     /// <summary>
-    /// Decode a full metar string into a complete metar object
-    /// with strict option, meaning decoding will stop as soon as
-    /// a non-compliance is detected.
+    /// Decode a full metar string into a complete metar object with strict option,
+    /// meaning decoding will stop as soon as a non-compliance is detected.
     /// </summary>
-    /// <param name="rawMetar"></param>
-    /// <returns></returns>
+    /// <param name="rawMetar">The raw METAR string to be decoded.</param>
+    /// <returns>A <see cref="DecodedMetar"/> object containing the decoded METAR information.</returns>
     public DecodedMetar ParseStrict(string rawMetar)
     {
         return ParseWithMode(rawMetar, true);
     }
 
     /// <summary>
-    /// Decode a full metar string into a complete metar object
-    /// ith strict option disabled, meaning that decoding will
-    /// continue even if metar is not compliant.
+    ///     Decode a full metar string into a complete metar object
+    ///     ith strict option disabled, meaning that decoding will
+    ///     continue even if metar is not compliant.
     /// </summary>
-    /// <param name="rawMetar"></param>
-    /// <returns></returns>
+    /// <param name="rawMetar">The raw METAR string to be decoded.</param>
+    /// <returns>A <see cref="DecodedMetar"/> object containing the decoded METAR information.</returns>
     public DecodedMetar ParseNotStrict(string rawMetar)
     {
         return ParseWithMode(rawMetar);
@@ -91,9 +101,9 @@ public class MetarDecoder
     /// <summary>
     /// Decode a full metar string into a complete metar object.
     /// </summary>
-    /// <param name="rawMetar">Metar String</param>
-    /// <param name="isStrict">false</param>
-    /// <returns></returns>
+    /// <param name="rawMetar">The raw METAR string to be decoded.</param>
+    /// <param name="isStrict">Strict mode.</param>
+    /// <returns>A <see cref="DecodedMetar"/> object containing the decoded METAR information.</returns>
     private static DecodedMetar ParseWithMode(string rawMetar, bool isStrict = false)
     {
         // prepare decoding inputs/outputs: (upper case, trim,
@@ -106,12 +116,12 @@ public class MetarDecoder
         var withCavok = false;
 
         // call each decoder in the chain and use results to populate decoded metar
-        foreach (var chunkDecoder in s_decoderChain)
+        foreach (var chunkDecoder in DecoderChain)
         {
             try
             {
                 // try to parse a chunk with current chunk decoder
-                var decodedData = TryParsing(chunkDecoder, isStrict, remainingMetar ?? "", withCavok);
+                var decodedData = TryParsing(chunkDecoder, isStrict, remainingMetar ?? string.Empty, withCavok);
 
                 // log any exception that would have occurred at primary decoding
                 if (decodedData.TryGetValue(ExceptionKey, out var data))
@@ -138,6 +148,7 @@ public class MetarDecoder
             {
                 // log error in decoded metar
                 decodedMetar.AddDecodingException(metarChunkDecoderException);
+
                 // abort decoding if strict mode is activated, continue otherwise
                 if (isStrict)
                 {
@@ -149,7 +160,7 @@ public class MetarDecoder
             }
 
             // hook for report status decoder, abort if nil, but decoded metar is valid though
-            if (chunkDecoder is ReportStatusChunkDecoder && (decodedMetar.Status == "NIL"))
+            if (chunkDecoder is ReportStatusChunkDecoder && decodedMetar.Status == "NIL")
             {
                 break;
             }
@@ -164,8 +175,11 @@ public class MetarDecoder
         return decodedMetar;
     }
 
-    private static Dictionary<string, object> TryParsing(IMetarChunkDecoder chunkDecoder, bool strict,
-        string remainingMetar, bool withCavok)
+    private static Dictionary<string, object> TryParsing(
+        IMetarChunkDecoder chunkDecoder,
+        bool strict,
+        string remainingMetar,
+        bool withCavok)
     {
         Dictionary<string, object> decoded;
         try

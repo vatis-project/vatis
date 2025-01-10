@@ -1,12 +1,13 @@
-﻿using System.Text.Json.Serialization;
-using System;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
+
 public class Dewpoint : BaseFormat
 {
     public Dewpoint()
     {
-        Template = new()
+        this.Template = new Template
         {
             Text = "{dewpoint}",
             Voice = "DEWPOINT {dewpoint}"
@@ -14,6 +15,7 @@ public class Dewpoint : BaseFormat
     }
 
     public bool UsePlusPrefix { get; set; }
+
     public bool SpeakLeadingZero { get; set; }
 
     [Obsolete("Use 'SpeakLeadingZero' instead")]
@@ -21,8 +23,11 @@ public class Dewpoint : BaseFormat
     public bool PronounceLeadingZero
     {
         get => false;
-        set => SpeakLeadingZero = value;
+        set => this.SpeakLeadingZero = value;
     }
 
-    public Dewpoint Clone() => (Dewpoint)MemberwiseClone();
+    public Dewpoint Clone()
+    {
+        return (Dewpoint)this.MemberwiseClone();
+    }
 }

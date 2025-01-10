@@ -9,19 +9,30 @@ using static Vatsim.Vatis.Weather.Decoder.Entity.RunwayVisualRange;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Provides functionality to decode METAR runway visual range (RVR) information
+/// into structured data. This class is responsible for identifying and parsing
+/// RVR-related chunks of a METAR report.
+/// </summary>
+/// <remarks>
+/// This class extends the <see cref="MetarChunkDecoder"/> abstract class and
+/// overrides relevant methods to implement decoding for RVR-specific METAR segments.
+/// </remarks>
 public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
 {
     private const string RunwaysVisualRangeParameterName = "RunwaysVisualRange";
     private const string RunwayRegexPattern = "R([0-9]{2}[LCR]?)/([PM]?([0-9]{4})V)?[PM]?([0-9]{4})(FT)?/?([UDN]?)";
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
         return $"^(({RunwayRegexPattern}) )+";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
-        var consumed = Consume(remainingMetar);
+        var consumed = this.Consume(remainingMetar);
         var found = consumed.Value;
         var newRemainingMetar = consumed.Key;
         var result = new Dictionary<string, object?>();
@@ -29,8 +40,12 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
         if (found.Count > 1)
         {
             var rvrMetarPart = found[0].Value;
-            var chunkRegex = new Regex($"^(({RunwayRegexPattern}) )", RegexOptions.None, TimeSpan.FromMilliseconds(500));
+            var chunkRegex = new Regex(
+                $"^(({RunwayRegexPattern}) )",
+                RegexOptions.None,
+                TimeSpan.FromMilliseconds(500));
             var runways = new List<RunwayVisualRange>();
+
             // iterate on the results to get all runways visual range found
             List<Group> rvrRunwayGroups;
             while ((rvrRunwayGroups = chunkRegex.Match(rvrMetarPart).Groups.Cast<Group>().ToList()).Count > 1)
@@ -44,12 +59,14 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
                     var maxVisualRangeIntervalValue = rvrRunwayGroups[6].Value;
                     var rangeUnitValue = rvrRunwayGroups[7].Value;
                     var tendencyValue = rvrRunwayGroups[8].Value;
-                    
+
                     // check runway qfu validity
                     var qfuAsInt = Value.ToInt(rwyValue);
                     if (qfuAsInt > 36 || qfuAsInt < 1)
                     {
-                        throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+                        throw new MetarChunkDecoderException(
+                            remainingMetar,
+                            newRemainingMetar,
                             MetarChunkDecoderException.Messages.InvalidRunwayQfuRunwayVisualRangeInformation);
                     }
 
@@ -59,7 +76,8 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
                     {
                         rangeUnit = Value.Unit.Feet;
                     }
-                    Tendency tendency = Tendency.None;
+
+                    var tendency = Tendency.None;
                     switch (tendencyValue)
                     {
                         case "U":
@@ -74,33 +92,47 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
                             tendency = Tendency.N;
                             break;
                     }
-                    var observation = new RunwayVisualRange()
+
+                    var observation = new RunwayVisualRange
                     {
                         Runway = rwyValue,
                         PastTendency = tendency,
-                        RawValue = rvrRawValue
+                        RawValue = rvrRawValue,
                     };
 
                     if (!string.IsNullOrEmpty(minVisualRangeIntervalValue))
                     {
                         observation.Variable = true;
-                        var min = string.IsNullOrEmpty(minVisualRangeIntervalValue) ? null : new Value(Value.ToInt(minVisualRangeIntervalValue)!.Value, rangeUnit);
-                        var max = string.IsNullOrEmpty(maxVisualRangeIntervalValue) ? null : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
-                        if (max != null && min != null) 
+                        var min = string.IsNullOrEmpty(minVisualRangeIntervalValue)
+                            ? null
+                            : new Value(Value.ToInt(minVisualRangeIntervalValue)!.Value, rangeUnit);
+                        var max = string.IsNullOrEmpty(maxVisualRangeIntervalValue)
+                            ? null
+                            : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
+                        if (max != null && min != null)
+                        {
                             observation.VisualRangeInterval = [min, max];
+                        }
                     }
                     else
                     {
                         observation.Variable = false;
-                        var v = string.IsNullOrEmpty(maxVisualRangeIntervalValue) ? null : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
-                        if (v != null) observation.VisualRange = v;
+                        var v = string.IsNullOrEmpty(maxVisualRangeIntervalValue)
+                            ? null
+                            : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
+                        if (v != null)
+                        {
+                            observation.VisualRange = v;
+                        }
                     }
+
                     runways.Add(observation);
                 }
             }
+
             result.Add(RunwaysVisualRangeParameterName, runways);
         }
 
-        return GetResults(newRemainingMetar, result);
+        return this.GetResults(newRemainingMetar, result);
     }
 }

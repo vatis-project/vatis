@@ -10,73 +10,79 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    public event EventHandler<DialogResult>? DialogResultChanged;
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> SaveButtonCommand { get; }
+    private List<ICompletionData> _contractionCompletionData = [];
+
+    private string? _dataValidation;
 
     private DialogResult _dialogResult;
 
-    public DialogResult DialogResult
-    {
-        get => _dialogResult;
-        set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
-    }
+    private TextDocument? _textDocument = new();
 
     private string? _title = "Definition Editor";
+
+    public StaticDefinitionEditorDialogViewModel()
+    {
+        this.CancelButtonCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
+        this.SaveButtonCommand = ReactiveCommand.Create<ICloseable>(this.HandleSaveButton);
+    }
+
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> SaveButtonCommand { get; }
+
+    public DialogResult DialogResult
+    {
+        get => this._dialogResult;
+        set => this.RaiseAndSetIfChanged(ref this._dialogResult, value);
+    }
+
     public string? Title
     {
-        get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
+        get => this._title;
+        set => this.RaiseAndSetIfChanged(ref this._title, value);
     }
 
     public string? DefinitionText
     {
-        get => _textDocument?.Text;
-        set => TextDocument = new TextDocument(value);
+        get => this._textDocument?.Text;
+        set => this.TextDocument = new TextDocument(value);
     }
 
-    private TextDocument? _textDocument = new();
     public TextDocument? TextDocument
     {
-        get => _textDocument;
-        set => this.RaiseAndSetIfChanged(ref _textDocument, value);
+        get => this._textDocument;
+        set => this.RaiseAndSetIfChanged(ref this._textDocument, value);
     }
 
-    private List<ICompletionData> _contractionCompletionData = [];
     public List<ICompletionData> ContractionCompletionData
     {
-        get => _contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+        get => this._contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref this._contractionCompletionData, value);
     }
 
-    private string? _dataValidation;
     public string? DataValidation
     {
-        get => _dataValidation;
-        set => this.RaiseAndSetIfChanged(ref _dataValidation, value);
-    }
-
-    public StaticDefinitionEditorDialogViewModel()
-    {
-        CancelButtonCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
-        SaveButtonCommand = ReactiveCommand.Create<ICloseable>(HandleSaveButton);
-    }
-
-    private void HandleSaveButton(ICloseable window)
-    {
-        DialogResultChanged?.Invoke(this, DialogResult.Ok);
-        DialogResult = DialogResult.Ok;
-        if (!HasErrors)
-        {
-            window.Close();
-        }
+        get => this._dataValidation;
+        set => this.RaiseAndSetIfChanged(ref this._dataValidation, value);
     }
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        DialogResultChanged = null;
-        CancelButtonCommand.Dispose();
-        SaveButtonCommand.Dispose();
+        this.DialogResultChanged = null;
+        this.CancelButtonCommand.Dispose();
+        this.SaveButtonCommand.Dispose();
+    }
+
+    public event EventHandler<DialogResult>? DialogResultChanged;
+
+    private void HandleSaveButton(ICloseable window)
+    {
+        this.DialogResultChanged?.Invoke(this, DialogResult.Ok);
+        this.DialogResult = DialogResult.Ok;
+        if (!this.HasErrors)
+        {
+            window.Close();
+        }
     }
 }

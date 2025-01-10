@@ -8,7 +8,7 @@ namespace Vatsim.Vatis.Atis.Extensions;
 public static class NumberFormatExtensions
 {
     /// <summary>
-    /// Converts the number to group form for added clarity
+    ///     Converts the number to group form for added clarity
     /// </summary>
     /// <param name="value">The value to convert</param>
     /// <returns>Returns the number in group word form. For example: 10,500 would yield "ten thousand five hundred"</returns>
@@ -47,7 +47,9 @@ public static class NumberFormatExtensions
         if (number > 0)
         {
             if (words != "")
+            {
                 words += "and ";
+            }
 
             var unitsMap = new[]
             {
@@ -58,12 +60,16 @@ public static class NumberFormatExtensions
                 { "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
 
             if (number < 20)
+            {
                 words += unitsMap[number];
+            }
             else
             {
                 words += tensMap[number / 10];
                 if (number % 10 > 0)
+                {
                     words += "-" + unitsMap[number % 10];
+                }
             }
         }
 
@@ -71,7 +77,7 @@ public static class NumberFormatExtensions
     }
 
     /// <summary>
-    /// Converts the value into a word string.
+    ///     Converts the value into a word string.
     /// </summary>
     /// <param name="value">The number to convert</param>
     /// <returns>Returns the value in word string format. For example, 10,500 would yield "one zero thousand five hundred"</returns>
@@ -84,10 +90,14 @@ public static class NumberFormatExtensions
         number = Math.Abs(number);
 
         if (number == 0)
+        {
             return "zero";
+        }
 
         if (isNegative)
+        {
             return "minus " + number.ToWordString();
+        }
 
         var words = "";
 
@@ -119,12 +129,16 @@ public static class NumberFormatExtensions
             var tensMap = new[] { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "niner" };
 
             if (number < 20)
+            {
                 words += unitsMap[number];
+            }
             else
             {
                 words += tensMap[number / 10];
                 if (number % 10 >= 0)
+                {
                     words += " " + unitsMap[number % 10];
+                }
             }
         }
 
@@ -132,7 +146,7 @@ public static class NumberFormatExtensions
     }
 
     /// <summary>
-    /// Formats a number into serial format
+    ///     Formats a number into serial format
     /// </summary>
     /// <param name="number">The number to format.</param>
     /// <param name="useDecimalTerminology">Whether to use "decimal" vs "point" terminology.</param>
@@ -140,7 +154,9 @@ public static class NumberFormatExtensions
     public static string? ToSerialFormat(this string? number, bool useDecimalTerminology = false)
     {
         if (string.IsNullOrEmpty(number) || !Regex.IsMatch(number, @"^-?[0-9]+(\.[0-9]+)?$"))
+        {
             return number;
+        }
 
         var group = new List<string>();
         var isNegative = number.StartsWith('-');
@@ -162,7 +178,7 @@ public static class NumberFormatExtensions
     }
 
     /// <summary>
-    /// Converts a number into serial format
+    ///     Converts a number into serial format
     /// </summary>
     /// <param name="value">The number to format</param>
     /// <param name="leadingZero">Whether to prefix number with leading zero if less than 10.</param>
@@ -174,7 +190,9 @@ public static class NumberFormatExtensions
         List<string> temp = [];
 
         if (number < 10 && leadingZero)
+        {
             temp.Add("zero");
+        }
 
         foreach (var x in Math.Abs(number).ToString().Select(q => new string(q, 1)).ToArray())
         {
@@ -205,14 +223,20 @@ public static class NumberFormatExtensions
     {
         var degrees = Convert.ToInt32(value);
 
-        if(!enabled)
+        if (!enabled)
+        {
             return degrees;
+        }
 
         if (magVar == null)
+        {
             return degrees;
+        }
 
         if (degrees == 0)
+        {
             return degrees;
+        }
 
         if (magVar > 0)
         {

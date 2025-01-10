@@ -9,26 +9,26 @@ public partial class SortPresetsDialog : ReactiveWindow<SortPresetsDialogViewMod
 {
     public SortPresetsDialog(SortPresetsDialogViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        Closed += OnClosed;
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.Closed += this.OnClosed;
     }
 
     public SortPresetsDialog()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.Dispose();
+        this.ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 }

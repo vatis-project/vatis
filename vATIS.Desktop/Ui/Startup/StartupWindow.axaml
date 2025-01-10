@@ -1,24 +1,26 @@
 <Window
-	xmlns="https://github.com/avaloniaui"
-	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
-	mc:Ignorable="d"
-	x:Class="Vatsim.Vatis.Ui.Startup.StartupWindow"
-	Title="vATIS" 
-	Height="150" 
-	Width="400" 
-	CanResize="False" 
-	SystemDecorations="None"
-	TransparencyLevelHint="Transparent"
-	Icon="/Assets/MainIcon.ico" 
-	Background="Transparent" 
-	WindowStartupLocation="CenterScreen">
-	<Border Background="#323232" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
-		<StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Spacing="10">
-			<TextBlock FontSize="32" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" Text="vATIS" />
-			<TextBlock FontSize="18" Foreground="Silver" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" Text="{Binding Status, DataType=vm:StartupWindowViewModel}" />
-		</StackPanel>
-	</Border>
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+    mc:Ignorable="d"
+    x:Class="Vatsim.Vatis.Ui.Startup.StartupWindow"
+    Title="vATIS"
+    Height="150"
+    Width="400"
+    CanResize="False"
+    SystemDecorations="None"
+    TransparencyLevelHint="Transparent"
+    Icon="/Assets/MainIcon.ico"
+    Background="Transparent"
+    WindowStartupLocation="CenterScreen">
+    <Border Background="#323232" BorderBrush="Black" BorderThickness="1" CornerRadius="5">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Spacing="10">
+            <TextBlock FontSize="32" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                       TextAlignment="Center" Text="vATIS" />
+            <TextBlock FontSize="18" Foreground="Silver" VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                       TextAlignment="Center" Text="{Binding Status, DataType=vm:StartupWindowViewModel}" />
+        </StackPanel>
+    </Border>
 </Window>

@@ -9,38 +9,47 @@ using ReactiveUI;
 using Vatsim.Vatis.Ui.Services;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
+
 public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IWindowLocationService _windowLocationService;
 
-    public ReactiveCommand<ICloseable, Unit> InvokeMainWindowCommand { get; }
-
     private string _currentTime = DateTime.UtcNow.ToString("HH:mm/ss");
-    public string CurrentTime
-    {
-        get => _currentTime;
-        set => this.RaiseAndSetIfChanged(ref _currentTime, value);
-    }
 
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
-    public ReadOnlyObservableCollection<AtisStationViewModel> Stations
-    {
-        get => _stations;
-        set => this.RaiseAndSetIfChanged(ref _stations, value);
-    }
 
     public CompactWindowViewModel(IWindowLocationService windowLocationService)
     {
-        _windowLocationService = windowLocationService;
+        this._windowLocationService = windowLocationService;
 
         DispatcherTimer timer = new()
         {
             Interval = TimeSpan.FromMilliseconds(500)
         };
-        timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss");
+        timer.Tick += (_, _) => this.CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss");
         timer.Start();
 
-        InvokeMainWindowCommand = ReactiveCommand.Create<ICloseable>(InvokeMainWindow);
+        this.InvokeMainWindowCommand = ReactiveCommand.Create<ICloseable>(this.InvokeMainWindow);
+    }
+
+    public ReactiveCommand<ICloseable, Unit> InvokeMainWindowCommand { get; }
+
+    public string CurrentTime
+    {
+        get => this._currentTime;
+        set => this.RaiseAndSetIfChanged(ref this._currentTime, value);
+    }
+
+    public ReadOnlyObservableCollection<AtisStationViewModel> Stations
+    {
+        get => this._stations;
+        set => this.RaiseAndSetIfChanged(ref this._stations, value);
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.InvokeMainWindowCommand.Dispose();
     }
 
     private void InvokeMainWindow(ICloseable window)
@@ -56,22 +65,20 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     public void UpdatePosition(Window? window)
     {
         if (window == null)
+        {
             return;
+        }
 
-        _windowLocationService.Update(window);
+        this._windowLocationService.Update(window);
     }
 
     public void RestorePosition(Window? window)
     {
         if (window == null)
+        {
             return;
+        }
 
-        _windowLocationService.Restore(window);
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        InvokeMainWindowCommand.Dispose();
+        this._windowLocationService.Restore(window);
     }
 }

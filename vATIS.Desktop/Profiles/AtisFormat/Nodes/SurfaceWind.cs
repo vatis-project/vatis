@@ -1,6 +1,7 @@
 ﻿using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
+
 public class SurfaceWind
 {
     public bool SpeakLeadingZero { get; set; }
@@ -54,21 +55,27 @@ public class SurfaceWind
 
     public CalmWind Calm { get; set; } = new();
 
-    public SurfaceWind Clone() => (SurfaceWind)MemberwiseClone();
+    public SurfaceWind Clone()
+    {
+        return (SurfaceWind)this.MemberwiseClone();
+    }
 }
 
 public class CalmWind : BaseFormat
 {
-    public int CalmWindSpeed { get; set; } = 2;
-
     public CalmWind()
     {
-        Template = new Template
+        this.Template = new Template
         {
             Text = "{wind}",
             Voice = "WIND CALM"
         };
     }
 
-    public CalmWind Clone() => (CalmWind)MemberwiseClone();
+    public int CalmWindSpeed { get; set; } = 2;
+
+    public CalmWind Clone()
+    {
+        return (CalmWind)this.MemberwiseClone();
+    }
 }

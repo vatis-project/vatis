@@ -10,805 +10,1070 @@
              xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.FormattingView">
-	<UserControl.Resources>
-		<converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
-	</UserControl.Resources>
-	<Border Name="PartFormattingBorder" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-		<StackPanel Margin="5">
-			<TextBlock Text="Select Component:"/>
-			<ComboBox Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10" MaxDropDownHeight="500" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
-				<ComboBox.ItemTemplate>
-					<DataTemplate>
-						<TextBlock Text="{Binding}" />
-					</DataTemplate>
-				</ComboBox.ItemTemplate>
-			</ComboBox>
-			<!--Observation Time-->
-			<StackPanel Orientation="Vertical" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Observation Time'}">
-				<StackPanel Orientation="Vertical" Margin="0,0,0,10" Spacing="5">
-					<TextBlock Text="Routine Observation Time:" VerticalAlignment="Center" ToolTip.Tip="The routine observation time (minutes) of this METAR station. For example, if the METAR is normally updated at 53 minutes past the hour, enter 53. If the METAR has multiple routine observation times, enter the intervals separated by a comma (e.g. 15, 45)"/>
-					<TextBox Text="{Binding RoutineObservationTime, DataType=vm:FormattingViewModel}" MinWidth="150" Theme="{StaticResource DarkTextBox}">
-						<Interaction.Behaviors>
-							<behaviors:RoutineObservationTimeFormatBehavior/>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>
-					</TextBox>
-				</StackPanel>
-				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-					<StackPanel Orientation="Vertical" Spacing="10">
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Text:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding ObservationTimeTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding ObservationTimeVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="The METAR observation time (e.g. 0153)."
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{time}
-							</Button>
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="The hour portion of the METAR observation time."
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{hour}
-							</Button>
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="The minute portion of the METAR observation time."
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{minute}
-							</Button>
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="Inserts the word &quot;SPECIAL&quot; if the METAR observation time is different than the Routine Observation Time."
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{special}
-							</Button>
-						</StackPanel>
-					</StackPanel>
-				</groupBox:GroupBoxControl>
-			</StackPanel>
-			<!--Wind-->
-			<StackPanel Spacing="10" Margin="10,0,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind'}">
-				<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-					<CheckBox IsChecked="{Binding SpeakWindSpeedLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Speak wind speed leading zero</CheckBox>
-					<StackPanel Orientation="Horizontal" Spacing="10">
-						<CheckBox IsChecked="{Binding MagneticVariationEnabled, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" Name="MagneticVariation">Magnetic Variation</CheckBox>
-						<TextBox Text="{Binding MagneticVariationValue, DataType=vm:FormattingViewModel}" MaxLength="3" MinWidth="60" IsEnabled="{Binding #MagneticVariation.IsChecked}" Theme="{StaticResource DarkTextBox}">
-							<Interaction.Behaviors>
-								<behaviors:TextBoxNumericNegativeBehavior/>
-							</Interaction.Behaviors>
-						</TextBox>
-					</StackPanel>
-				</StackPanel>
-				<TabControl Margin="-3">
-					<TabItem Header="Standard">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding StandardWindTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding StandardWindVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The complete wind string (e.g. 25010KT). Only available as a text variable."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The direction of the wind (e.g. 25010KT would yield 250). Magnetic variation is applied."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__dir}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__spd}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__unit}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Standard Gust">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding StandardGustWindTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding StandardGustWindVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The complete wind string (e.g. 25010KT). Only available as a text variable."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The direction of the wind (e.g. 25010KT would yield 250). Magnetic variation is applied."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__dir}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__spd}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The gust speed of the wind (e.g. 25010G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__gust}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__unit}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Variable">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VariableWindTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VariableWindVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The complete wind string (e.g. VRB03KT). Only available as a text variable."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB03KT would yield 03). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__unit}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Variable Gust">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VariableGustWindTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VariableGustWindVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The complete wind string (e.g. VRB08G15KT). Only available as a text variable."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 08). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__spd}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__gust}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The wind speed unit of measurement (e.g. VRB08G15KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__unit}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Variable Direction">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VariableDirectionWindTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VariableDirectionWindVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The complete wind string (e.g. 250V280). Only available as a text variable."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The first extreme wind direction (e.g. &quot;25015G25KT 250V280&quot; would yield &quot;250&quot;). Magnetic variation is applied."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__vmin}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The last extreme wind direction (e.g. &quot;25015G25KT 250V280&quot; would yield &quot;280&quot;). Magnetic variation is applied."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{wind__vmax}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Calm">
-						<StackPanel Orientation="Vertical">
-							<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-								<TextBlock VerticalAlignment="Center" ToolTip.Tip="The minimum wind speed before it is considered &quot;calm&quot;">Calm Wind Speed:</TextBlock>
-								<TextBox Text="{Binding CalmWindSpeed, DataType=vm:FormattingViewModel}" MaxLength="3" MinWidth="60" Name="CalmWindSpeed" Theme="{StaticResource DarkTextBox}">
-									<Interaction.Behaviors>
-										<behaviors:TextBoxNumericOnlyBehavior/>
-									</Interaction.Behaviors>
-								</TextBox>
-							</StackPanel>
-							<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-								<StackPanel Orientation="Vertical" Spacing="10">
-									<StackPanel Orientation="Vertical">
-										<TextBlock Text="Text:" VerticalAlignment="Center"/>
-										<controls:TemplateVariableTextBox Text="{Binding CalmWindTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-									</StackPanel>
-									<StackPanel Orientation="Vertical">
-										<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-										<controls:TemplateVariableTextBox Text="{Binding CalmWindVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-									</StackPanel>
-									<StackPanel Orientation="Horizontal" Spacing="10">
-										<Button
-											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The complete wind string (e.g. 25010KT). Only available as a text variable."
-											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-											CommandParameter="{Binding $self.Content}">
-											{wind}
-										</Button>
-										<Button
-											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The direction of the wind (e.g. 25010KT would yield 250). Magnetic variation is applied."
-											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-											CommandParameter="{Binding $self.Content}">
-											{wind__dir}
-										</Button>
-										<Button
-											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
-											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-											CommandParameter="{Binding $self.Content}">
-											{wind__spd}
-										</Button>
-										<Button
-											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
-											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-											CommandParameter="{Binding $self.Content}">
-											{wind__unit}
-										</Button>
-									</StackPanel>
-								</StackPanel>
-							</groupBox:GroupBoxControl>
-						</StackPanel>
-					</TabItem>
-				</TabControl>
-			</StackPanel>
-			<!--Visibility-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Visibility'}">
-				<TabControl Margin="-3">
-					<TabItem Header="Template">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VisibilityTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding VisibilityVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The prevailing visibility (e.g. &quot;5SM&quot; or &quot;5000&quot;)"
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{visibility}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="ICAO Formatting" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
-						<StackPanel Orientation="Vertical">
-							<StackPanel Orientation="Horizontal" Margin="0,0,0,15" Spacing="10">
-								<CheckBox IsChecked="{Binding VisibilityIncludeVisibilitySuffix, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the visibility unit type will be appended to the visibility value (e.g. &quot;5000 meters&quot; or &quot;8 kilometers&quot;)">Include visibility unit suffix</CheckBox>
-								<StackPanel Orientation="Horizontal" Spacing="10" Margin="20,0,0,0">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The cutoff value for when to transition to &quot;kilometers&quot; suffix instead of &quot;meters&quot;">Meters Cutoff:</TextBlock>
-									<TextBox Text="{Binding VisibilityMetersCutoff, DataType=vm:FormattingViewModel}" MinWidth="60" Theme="{StaticResource DarkTextBox}">
-										<Interaction.Behaviors>
-											<behaviors:TextBoxNumericOnlyBehavior/>
-										</Interaction.Behaviors>
-									</TextBox>
-								</StackPanel>
-							</StackPanel>
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								</StackPanel>
-							</StackPanel>
-							<groupBox:GroupBoxControl Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
-								<Grid ColumnDefinitions="80,*,15,80,*" RowDefinitions="*,5,*,5,*,5,*">
-									<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">North:</TextBlock>
-									<TextBox Text="{Binding VisibilityNorth, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">North East:</TextBlock>
-									<TextBox Text="{Binding VisibilityNorthEast, DataType=vm:FormattingViewModel}"  Grid.Column="1" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center">East:</TextBlock>
-									<TextBox Text="{Binding VisibilityEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center">South East:</TextBlock>
-									<TextBox Text="{Binding VisibilitySouthEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="0" VerticalAlignment="Center">South:</TextBlock>
-									<TextBox Text="{Binding VisibilitySouth, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="2" VerticalAlignment="Center">South West:</TextBlock>
-									<TextBox Text="{Binding VisibilitySouthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="4" VerticalAlignment="Center">West:</TextBlock>
-									<TextBox Text="{Binding VisibilityWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="6" VerticalAlignment="Center">North West:</TextBlock>
-									<TextBox Text="{Binding VisibilityNorthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
-								</Grid>
-							</groupBox:GroupBoxControl>
-						</StackPanel>
-					</TabItem>
-				</TabControl>
-			</StackPanel>
-			<!--Weather-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
-				<TabControl Margin="-3">
-					<TabItem Header="Template">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding PresentWeatherTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding PresentWeatherVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The present weather groups from the METAR (e.g. &quot;SHRA BR&quot;)"
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{weather}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Recent Weather">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding RecentWeatherTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding RecentWeatherVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The recent weather groups from the METAR (e.g. &quot;SHRA BR&quot;)"
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{weather}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Intensity/Proximity Descriptors">
-						<Grid ColumnDefinitions="125,10,*" RowDefinitions="*,5,*,5,*,5,*">
-							<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" ToolTip.Tip="Spoken text for light intensity (-)">Light Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherLightIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="0" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" ToolTip.Tip="Spoken text for moderate intensity">Moderate Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherModerateIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="2" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" ToolTip.Tip="Spoken text for heavy intensity (+)">Heavy Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherHeavyIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="4" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" ToolTip.Tip="Spoken text for vicinity proximity designator (VC)">Vicinity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherVicinity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="6" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-						</Grid>
-					</TabItem>
-					<TabItem Header="Weather Descriptors">
-						<StackPanel Orientation="Vertical" Spacing="10">
-							<DataGrid Name="WeatherDescriptors" MaxHeight="290" SelectionMode="Extended" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding PresentWeatherTypes, DataType=vm:FormattingViewModel}">
-								<Interaction.Behaviors>
-									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
-								</Interaction.Behaviors>
-								<DataGrid.Styles>
-									<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
-										<Setter Property="IsVisible" Value="False" />
-									</Style>
-								</DataGrid.Styles>
-								<DataGrid.Columns>
-									<DataGridTextColumn Header="Acronym" Width="150" Binding="{Binding Key, DataType=models:PresentWeatherMeta}" IsReadOnly="True"/>
-									<DataGridTextColumn Header="Text" Width="1*" Binding="{Binding Text, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
-									<DataGridTextColumn Header="Spoken" Width="1*" Binding="{Binding Spoken, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
-								</DataGrid.Columns>
-							</DataGrid>
-						</StackPanel>
-					</TabItem>
-				</TabControl>
-			</StackPanel>
-			<!--Clouds-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Clouds'}">
-				<TabControl Margin="-3">
-					<TabItem Header="Template">
-						<StackPanel Orientation="Vertical">
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<CheckBox IsChecked="{Binding CloudsIdentifyCeilingLayer, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="Prefix the lowest BKN or OVC layer with &quot;ceiling&quot; in the voice ATIS.">Identify ceiling layers in voice ATIS</CheckBox>
-								<CheckBox Name="CloudToMetric" IsChecked="{Binding CloudsConvertToMetric, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Convert cloud layer altitude to metric</CheckBox>
-							</StackPanel>
-							<CheckBox IsChecked="{Binding CloudHeightAltitudeInHundreds, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" IsEnabled="{Binding !#CloudToMetric.IsChecked}" ToolTip.Tip="Cloud height will displayed in hundreds of feet, for example FEW010 will be shown as FEW1000">Display cloud height in hundreds of feet</CheckBox>
-							<Grid ColumnDefinitions="140,5,*,20,140,5,*" Margin="0,10,0,5">
-								<TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the cloud layer height is ///">Undetermined (Voice):</TextBlock>
-								<TextBox Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Grid.Column="2" Theme="{StaticResource DarkTextBox}"></TextBox>
-								<TextBlock Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the cloud layer height is ///">Undetermined (Text):</TextBlock>
-								<TextBox Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Grid.Column="6" Theme="{StaticResource DarkTextBox}"></TextBox>
-							</Grid>
-							<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,5,0,0">
-								<StackPanel Orientation="Vertical" Spacing="10">
-									<StackPanel Orientation="Vertical">
-										<TextBlock Text="Text:" VerticalAlignment="Center"/>
-										<controls:TemplateVariableTextBox Text="{Binding CloudsTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-									</StackPanel>
-									<StackPanel Orientation="Vertical">
-										<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-										<controls:TemplateVariableTextBox Text="{Binding CloudsVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-									</StackPanel>
-									<StackPanel Orientation="Horizontal" Spacing="10">
-										<Button
-											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The cloud layer groups from the METAR (e.g. &quot;SCT150 FEW200&quot;)"
-											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-											CommandParameter="{Binding $self.Content}">
-											{clouds}
-										</Button>
-									</StackPanel>
-								</StackPanel>
-							</groupBox:GroupBoxControl>
-						</StackPanel>
-					</TabItem>
-					<TabItem Header="Cloud Types">
-						<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding CloudTypes, DataType=vm:FormattingViewModel}">
-							<Interaction.Behaviors>
-								<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
-							</Interaction.Behaviors>
-							<DataGrid.Styles>
-								<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
-									<Setter Property="IsVisible" Value="False" />
-								</Style>
-							</DataGrid.Styles>
-							<DataGrid.Columns>
-								<DataGridTextColumn Header="Acronym" Width="150" IsReadOnly="True" Binding="{Binding Acronym, DataType=models:CloudTypeMeta}"/>
-								<DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Spoken, DataType=models:CloudTypeMeta}"/>
-								<DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:CloudTypeMeta}"/>
-							</DataGrid.Columns>
-						</DataGrid>
-					</TabItem>
-					<TabItem Header="Convective Cloud Types">
-						<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding ConvectiveCloudTypes, DataType=vm:FormattingViewModel}">
-							<Interaction.Behaviors>
-								<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
-							</Interaction.Behaviors>
-							<DataGrid.Styles>
-								<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
-									<Setter Property="IsVisible" Value="False" />
-								</Style>
-							</DataGrid.Styles>
-							<DataGrid.Columns>
-								<DataGridTextColumn Header="Acronym" Width="1*" IsReadOnly="True" Binding="{Binding Key, DataType=models:ConvectiveCloudTypeMeta}"/>
-								<DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Value, DataType=models:ConvectiveCloudTypeMeta}"/>
-							</DataGrid.Columns>
-						</DataGrid>
-					</TabItem>
-				</TabControl>
-			</StackPanel>
-			<!--Temperature-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Temperature'}">
-				<StackPanel Orientation="Vertical">
-					<StackPanel Orientation="Vertical" Spacing="5">
-						<CheckBox IsChecked="{Binding TemperatureUsePlusPrefix, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, positive temperature values will be prefixed with the world &quot;plus&quot; in the voice ATIS (e.g. temperature PLUS two five)">Prefix positive temperature with &quot;plus&quot; in voice ATIS.</CheckBox>
-						<CheckBox IsChecked="{Binding TemperatureSpeakLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the leading zero will be spoken (e.g. temperature zero six).">Speak leading zero in voice ATIS</CheckBox>
-					</StackPanel>
-					<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
-						<StackPanel Orientation="Vertical" Spacing="10">
-							<StackPanel Orientation="Vertical">
-								<TextBlock Text="Text:" VerticalAlignment="Center"/>
-								<controls:TemplateVariableTextBox Text="{Binding TemperatureTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-							</StackPanel>
-							<StackPanel Orientation="Vertical">
-								<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-								<controls:TemplateVariableTextBox Text="{Binding TemperatureVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-							</StackPanel>
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<Button
-									Theme="{StaticResource DarkVariable}"
-									ToolTip.Tip="The temperature value from the METAR"
-									Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-									CommandParameter="{Binding $self.Content}">
-									{temp}
-								</Button>
-							</StackPanel>
-						</StackPanel>
-					</groupBox:GroupBoxControl>
-				</StackPanel>
-			</StackPanel>
-			<!--Dewpoint-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Dewpoint'}">
-				<StackPanel Orientation="Vertical">
-					<StackPanel Orientation="Vertical" Spacing="5">
-						<CheckBox IsChecked="{Binding DewpointUsePlusPrefix, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, positive dewpoint will be prefixed with the world &quot;plus&quot; in the voice ATIS (e.g. temperature PLUS two five)">Prefix positive dewpoint with &quot;plus&quot; in voice ATIS.</CheckBox>
-						<CheckBox IsChecked="{Binding DewpointSpeakLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the leading zero will be spoken (e.g. dewpoint zero six).">Speak leading zero in voice ATIS</CheckBox>
-					</StackPanel>
-					<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
-						<StackPanel Orientation="Vertical" Spacing="10">
-							<StackPanel Orientation="Vertical">
-								<TextBlock Text="Text:" VerticalAlignment="Center"/>
-								<controls:TemplateVariableTextBox Text="{Binding DewpointTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-							</StackPanel>
-							<StackPanel Orientation="Vertical">
-								<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-								<controls:TemplateVariableTextBox Text="{Binding DewpointVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-							</StackPanel>
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<Button
-									Theme="{StaticResource DarkVariable}"
-									ToolTip.Tip="The dewpoint value from the METAR"
-									Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-									CommandParameter="{Binding $self.Content}">
-									{dewpoint}
-								</Button>
-							</StackPanel>
-						</StackPanel>
-					</groupBox:GroupBoxControl>
-				</StackPanel>
-			</StackPanel>
-			<!--Altimeter-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Altimeter'}">
-				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
-					<StackPanel Orientation="Vertical" Spacing="10">
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Text:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding AltimeterTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding AltimeterVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="The altimeter value from the METAR (e.g. 2992 or 1013)"
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{altimeter}
-							</Button>
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="Encodes the altimeter into numeric word form (e.g. TWO NINER NINER TWO)"
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{altimeter|text}
-							</Button>
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="Converts the altimeter value to inHg (inches mercury) and includes the decimal point (e.g. text: 29.92, voice: TWO NINER POINT NINER TWO)"
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{altimeter|inhg}
-							</Button>
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="Converts the altimeter value to hPa (hectopascal)"
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{altimeter|hpa}
-							</Button>
-							<Button
-								IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}"
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="Aerodrome atmospheric pressure: replace ELEVATION_FT with the field elevation in feet."
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{qfe|ELEVATION_FT}
-							</Button>
-						</StackPanel>
-					</StackPanel>
-				</groupBox:GroupBoxControl>
-			</StackPanel>
-			<!--Transition Level-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Transition Level'}">
-				<TabControl Margin="-3">
-					<TabItem Header="Template">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Text:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding TransitionLevelTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-									<controls:TemplateVariableTextBox Text="{Binding TransitionLevelVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The transition level altitude value (e.g. &quot;65&quot;)."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{trl}
-									</Button>
-									<Button
-										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The transition level altitude in numeric word form (e.g. &quot;SIX FIVE&quot;)."
-										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-										CommandParameter="{Binding $self.Content}">
-										{trl|text}
-									</Button>
-								</StackPanel>
-							</StackPanel>
-						</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Transition Levels">
-						<StackPanel Orientation="Vertical" Spacing="10">
-							<DataGrid Name="TransitionLevels" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding TransitionLevels, DataType=vm:FormattingViewModel}">
-								<Interaction.Behaviors>
-									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
-								</Interaction.Behaviors>
-								<DataGrid.Styles>
-									<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
-										<Setter Property="IsVisible" Value="False" />
-									</Style>
-								</DataGrid.Styles>
-								<DataGrid.Columns>
-									<DataGridTextColumn Header="QNH Low" Width="1*" Binding="{Binding Low, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
-									<DataGridTextColumn Header="QNH High" Width="1*" Binding="{Binding High, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
-									<DataGridTextColumn Header="Transition Level" Width="1*" Binding="{Binding Altitude, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
-								</DataGrid.Columns>
-							</DataGrid>
-							<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
-								<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding DeleteTransitionLevelCommand, DataType=vm:FormattingViewModel}" CommandParameter="{Binding #TransitionLevels.SelectedItem}" IsEnabled="{Binding #TransitionLevels.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">Delete</Button>
-								<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding AddTransitionLevelCommand, DataType=vm:FormattingViewModel}">Add New</Button>
-							</StackPanel>
-						</StackPanel>
-					</TabItem>
-				</TabControl>
-			</StackPanel>
-			<!--NOTAMs-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='NOTAMs'}">
-				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
-					<StackPanel Orientation="Vertical" Spacing="10">
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Text:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding NotamsTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding NotamsVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="The printed NOTAM text"
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{notams}
-							</Button>
-						</StackPanel>
-					</StackPanel>
-				</groupBox:GroupBoxControl>
-			</StackPanel>
-			<!--Closing Statement-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Closing Statement'}">
-				<CheckBox IsChecked="{Binding ClosingStatementAutoIncludeClosingStatement, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the closing statement will be automatically appended to the end of the ATIS without requiring the [CLOSING] variable in the ATIS preset template. This is useful if you want to customize the position of the closing statement in the ATIS.">Automatically include closing statement at the end of the ATIS</CheckBox>
-				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
-					<StackPanel Orientation="Vertical" Spacing="10">
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Text:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding ClosingStatementTextTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-							<controls:TemplateVariableTextBox Text="{Binding ClosingStatementVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
-						</StackPanel>
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="The current ATIS letter (e.g. A)"
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{letter}
-							</Button>
-							<Button
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="The current ATIS letter in word form (e.g. ALPHA)"
-								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
-								CommandParameter="{Binding $self.Content}">
-								{letter|word}
-							</Button>
-						</StackPanel>
-					</StackPanel>
-				</groupBox:GroupBoxControl>
-			</StackPanel>
-		</StackPanel>
-	</Border>
+    <UserControl.Resources>
+        <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+    </UserControl.Resources>
+    <Border Name="PartFormattingBorder" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4"
+            Padding="10">
+        <StackPanel Margin="5">
+            <TextBlock Text="Select Component:" />
+            <ComboBox Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10"
+                      MaxDropDownHeight="500"
+                      ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}"
+                      SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <!--Observation Time-->
+            <StackPanel Orientation="Vertical" Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Observation Time'}">
+                <StackPanel Orientation="Vertical" Margin="0,0,0,10" Spacing="5">
+                    <TextBlock Text="Routine Observation Time:" VerticalAlignment="Center"
+                               ToolTip.Tip="The routine observation time (minutes) of this METAR station. For example, if the METAR is normally updated at 53 minutes past the hour, enter 53. If the METAR has multiple routine observation times, enter the intervals separated by a comma (e.g. 15, 45)" />
+                    <TextBox Text="{Binding RoutineObservationTime, DataType=vm:FormattingViewModel}" MinWidth="150"
+                             Theme="{StaticResource DarkTextBox}">
+                        <Interaction.Behaviors>
+                            <behaviors:RoutineObservationTimeFormatBehavior />
+                            <behaviors:SelectAllTextOnFocusBehavior />
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </StackPanel>
+                <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Text:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding ObservationTimeTextTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding ObservationTimeVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The METAR observation time (e.g. 0153)."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {time}
+                            </Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The hour portion of the METAR observation time."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {hour}
+                            </Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The minute portion of the METAR observation time."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {minute}
+                            </Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="Inserts the word &quot;SPECIAL&quot; if the METAR observation time is different than the Routine Observation Time."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {special}
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </groupBox:GroupBoxControl>
+            </StackPanel>
+            <!--Wind-->
+            <StackPanel Spacing="10" Margin="10,0,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind'}">
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+                    <CheckBox IsChecked="{Binding SpeakWindSpeedLeadingZero, DataType=vm:FormattingViewModel}"
+                              Theme="{StaticResource CheckBox}">
+                        Speak wind speed leading zero
+                    </CheckBox>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <CheckBox IsChecked="{Binding MagneticVariationEnabled, DataType=vm:FormattingViewModel}"
+                                  Theme="{StaticResource CheckBox}" Name="MagneticVariation">
+                            Magnetic Variation
+                        </CheckBox>
+                        <TextBox Text="{Binding MagneticVariationValue, DataType=vm:FormattingViewModel}" MaxLength="3"
+                                 MinWidth="60" IsEnabled="{Binding #MagneticVariation.IsChecked}"
+                                 Theme="{StaticResource DarkTextBox}">
+                            <Interaction.Behaviors>
+                                <behaviors:TextBoxNumericNegativeBehavior />
+                            </Interaction.Behaviors>
+                        </TextBox>
+                    </StackPanel>
+                </StackPanel>
+                <TabControl Margin="-3">
+                    <TabItem Header="Standard">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding StandardWindTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding StandardWindVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The complete wind string (e.g. 25010KT). Only available as a text variable."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The direction of the wind (e.g. 25010KT would yield 250). Magnetic variation is applied."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__dir}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__spd}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__unit}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Standard Gust">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding StandardGustWindTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding StandardGustWindVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The complete wind string (e.g. 25010KT). Only available as a text variable."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The direction of the wind (e.g. 25010KT would yield 250). Magnetic variation is applied."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__dir}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__spd}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The gust speed of the wind (e.g. 25010G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__gust}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__unit}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Variable">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VariableWindTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VariableWindVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The complete wind string (e.g. VRB03KT). Only available as a text variable."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The speed of the wind (e.g. VRB03KT would yield 03). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__unit}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Variable Gust">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VariableGustWindTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VariableGustWindVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The complete wind string (e.g. VRB08G15KT). Only available as a text variable."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 08). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__spd}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__gust}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The wind speed unit of measurement (e.g. VRB08G15KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__unit}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Variable Direction">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VariableDirectionWindTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VariableDirectionWindVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The complete wind string (e.g. 250V280). Only available as a text variable."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The first extreme wind direction (e.g. &quot;25015G25KT 250V280&quot; would yield &quot;250&quot;). Magnetic variation is applied."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__vmin}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The last extreme wind direction (e.g. &quot;25015G25KT 250V280&quot; would yield &quot;280&quot;). Magnetic variation is applied."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {wind__vmax}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Calm">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+                                <TextBlock VerticalAlignment="Center"
+                                           ToolTip.Tip="The minimum wind speed before it is considered &quot;calm&quot;">
+                                    Calm Wind Speed:
+                                </TextBlock>
+                                <TextBox Text="{Binding CalmWindSpeed, DataType=vm:FormattingViewModel}" MaxLength="3"
+                                         MinWidth="60" Name="CalmWindSpeed" Theme="{StaticResource DarkTextBox}">
+                                    <Interaction.Behaviors>
+                                        <behaviors:TextBoxNumericOnlyBehavior />
+                                    </Interaction.Behaviors>
+                                </TextBox>
+                            </StackPanel>
+                            <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                                <StackPanel Orientation="Vertical" Spacing="10">
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                        <controls:TemplateVariableTextBox
+                                            Text="{Binding CalmWindTextTemplate, DataType=vm:FormattingViewModel}"
+                                            TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                            Theme="{StaticResource DarkTextBox}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                        <controls:TemplateVariableTextBox
+                                            Text="{Binding CalmWindVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                            TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                            Theme="{StaticResource DarkTextBox}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Button
+                                            Theme="{StaticResource DarkVariable}"
+                                            ToolTip.Tip="The complete wind string (e.g. 25010KT). Only available as a text variable."
+                                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                            CommandParameter="{Binding $self.Content}">
+                                            {wind}
+                                        </Button>
+                                        <Button
+                                            Theme="{StaticResource DarkVariable}"
+                                            ToolTip.Tip="The direction of the wind (e.g. 25010KT would yield 250). Magnetic variation is applied."
+                                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                            CommandParameter="{Binding $self.Content}">
+                                            {wind__dir}
+                                        </Button>
+                                        <Button
+                                            Theme="{StaticResource DarkVariable}"
+                                            ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+                                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                            CommandParameter="{Binding $self.Content}">
+                                            {wind__spd}
+                                        </Button>
+                                        <Button
+                                            Theme="{StaticResource DarkVariable}"
+                                            ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+                                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                            CommandParameter="{Binding $self.Content}">
+                                            {wind__unit}
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </groupBox:GroupBoxControl>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </StackPanel>
+            <!--Visibility-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Visibility'}">
+                <TabControl Margin="-3">
+                    <TabItem Header="Template">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VisibilityTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding VisibilityVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The prevailing visibility (e.g. &quot;5SM&quot; or &quot;5000&quot;)"
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {visibility}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="ICAO Formatting"
+                             IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,15" Spacing="10">
+                                <CheckBox
+                                    IsChecked="{Binding VisibilityIncludeVisibilitySuffix, DataType=vm:FormattingViewModel}"
+                                    Theme="{StaticResource CheckBox}"
+                                    ToolTip.Tip="If enabled, the visibility unit type will be appended to the visibility value (e.g. &quot;5000 meters&quot; or &quot;8 kilometers&quot;)">
+                                    Include visibility unit suffix
+                                </CheckBox>
+                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="20,0,0,0">
+                                    <TextBlock VerticalAlignment="Center"
+                                               ToolTip.Tip="The cutoff value for when to transition to &quot;kilometers&quot; suffix instead of &quot;meters&quot;">
+                                        Meters Cutoff:
+                                    </TextBlock>
+                                    <TextBox Text="{Binding VisibilityMetersCutoff, DataType=vm:FormattingViewModel}"
+                                             MinWidth="60" Theme="{StaticResource DarkTextBox}">
+                                        <Interaction.Behaviors>
+                                            <behaviors:TextBoxNumericOnlyBehavior />
+                                        </Interaction.Behaviors>
+                                    </TextBox>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock VerticalAlignment="Center"
+                                               ToolTip.Tip="The spoken text if the visibility is 9999">
+                                        9999 (Voice):
+                                    </TextBlock>
+                                    <TextBox
+                                        Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}"
+                                        MinWidth="200" Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock VerticalAlignment="Center"
+                                               ToolTip.Tip="The text ATIS string if the visibility is 9999">
+                                        9999 (Text):
+                                    </TextBlock>
+                                    <TextBox
+                                        Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}"
+                                        MinWidth="200" Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <groupBox:GroupBoxControl Header="Visibility Direction"
+                                                      Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
+                                <Grid ColumnDefinitions="80,*,15,80,*" RowDefinitions="*,5,*,5,*,5,*">
+                                    <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">North:</TextBlock>
+                                    <TextBox Text="{Binding VisibilityNorth, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="1" Grid.Row="0" Theme="{StaticResource DarkTextBox}" />
+                                    <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">North East:</TextBlock>
+                                    <TextBox Text="{Binding VisibilityNorthEast, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="1" Grid.Row="2" Theme="{StaticResource DarkTextBox}" />
+                                    <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center">East:</TextBlock>
+                                    <TextBox Text="{Binding VisibilityEast, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="1" Grid.Row="4" Theme="{StaticResource DarkTextBox}" />
+                                    <TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center">South East:</TextBlock>
+                                    <TextBox Text="{Binding VisibilitySouthEast, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="1" Grid.Row="6" Theme="{StaticResource DarkTextBox}" />
+                                    <TextBlock Grid.Column="3" Grid.Row="0" VerticalAlignment="Center">South:</TextBlock>
+                                    <TextBox Text="{Binding VisibilitySouth, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="4" Grid.Row="0" Theme="{StaticResource DarkTextBox}" />
+                                    <TextBlock Grid.Column="3" Grid.Row="2" VerticalAlignment="Center">South West:</TextBlock>
+                                    <TextBox Text="{Binding VisibilitySouthWest, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="4" Grid.Row="2" Theme="{StaticResource DarkTextBox}" />
+                                    <TextBlock Grid.Column="3" Grid.Row="4" VerticalAlignment="Center">West:</TextBlock>
+                                    <TextBox Text="{Binding VisibilityWest, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="4" Grid.Row="4" Theme="{StaticResource DarkTextBox}" />
+                                    <TextBlock Grid.Column="3" Grid.Row="6" VerticalAlignment="Center">North West:</TextBlock>
+                                    <TextBox Text="{Binding VisibilityNorthWest, DataType=vm:FormattingViewModel}"
+                                             Grid.Column="4" Grid.Row="6" Theme="{StaticResource DarkTextBox}" />
+                                </Grid>
+                            </groupBox:GroupBoxControl>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </StackPanel>
+            <!--Weather-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
+                <TabControl Margin="-3">
+                    <TabItem Header="Template">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding PresentWeatherTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding PresentWeatherVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The present weather groups from the METAR (e.g. &quot;SHRA BR&quot;)"
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {weather}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Recent Weather">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding RecentWeatherTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding RecentWeatherVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The recent weather groups from the METAR (e.g. &quot;SHRA BR&quot;)"
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {weather}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Intensity/Proximity Descriptors">
+                        <Grid ColumnDefinitions="125,10,*" RowDefinitions="*,5,*,5,*,5,*">
+                            <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
+                                       ToolTip.Tip="Spoken text for light intensity (-)">
+                                Light Intensity:
+                            </TextBlock>
+                            <TextBox Text="{Binding PresentWeatherLightIntensity, DataType=vm:FormattingViewModel}"
+                                     Grid.Column="2" Grid.Row="0" MinWidth="150" Theme="{StaticResource DarkTextBox}" />
+                            <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center"
+                                       ToolTip.Tip="Spoken text for moderate intensity">
+                                Moderate Intensity:
+                            </TextBlock>
+                            <TextBox Text="{Binding PresentWeatherModerateIntensity, DataType=vm:FormattingViewModel}"
+                                     Grid.Column="2" Grid.Row="2" MinWidth="150" Theme="{StaticResource DarkTextBox}" />
+                            <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center"
+                                       ToolTip.Tip="Spoken text for heavy intensity (+)">
+                                Heavy Intensity:
+                            </TextBlock>
+                            <TextBox Text="{Binding PresentWeatherHeavyIntensity, DataType=vm:FormattingViewModel}"
+                                     Grid.Column="2" Grid.Row="4" MinWidth="150" Theme="{StaticResource DarkTextBox}" />
+                            <TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center"
+                                       ToolTip.Tip="Spoken text for vicinity proximity designator (VC)">
+                                Vicinity:
+                            </TextBlock>
+                            <TextBox Text="{Binding PresentWeatherVicinity, DataType=vm:FormattingViewModel}"
+                                     Grid.Column="2" Grid.Row="6" MinWidth="150" Theme="{StaticResource DarkTextBox}" />
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Weather Descriptors">
+                        <StackPanel Orientation="Vertical" Spacing="10">
+                            <DataGrid Name="WeatherDescriptors" MaxHeight="290" SelectionMode="Extended"
+                                      GridLinesVisibility="All" CanUserReorderColumns="False"
+                                      CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1"
+                                      BorderBrush="#646464"
+                                      ItemsSource="{Binding PresentWeatherTypes, DataType=vm:FormattingViewModel}">
+                                <Interaction.Behaviors>
+                                    <behaviors:DataGridCellEndEditBehavior
+                                        Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" />
+                                </Interaction.Behaviors>
+                                <DataGrid.Styles>
+                                    <Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </Style>
+                                </DataGrid.Styles>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Acronym" Width="150"
+                                                        Binding="{Binding Key, DataType=models:PresentWeatherMeta}"
+                                                        IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Text" Width="1*"
+                                                        Binding="{Binding Text, DataType=models:PresentWeatherMeta}"
+                                                        IsReadOnly="False" />
+                                    <DataGridTextColumn Header="Spoken" Width="1*"
+                                                        Binding="{Binding Spoken, DataType=models:PresentWeatherMeta}"
+                                                        IsReadOnly="False" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </StackPanel>
+            <!--Clouds-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Clouds'}">
+                <TabControl Margin="-3">
+                    <TabItem Header="Template">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <CheckBox
+                                    IsChecked="{Binding CloudsIdentifyCeilingLayer, DataType=vm:FormattingViewModel}"
+                                    Theme="{StaticResource CheckBox}"
+                                    ToolTip.Tip="Prefix the lowest BKN or OVC layer with &quot;ceiling&quot; in the voice ATIS.">
+                                    Identify ceiling layers in voice ATIS
+                                </CheckBox>
+                                <CheckBox Name="CloudToMetric"
+                                          IsChecked="{Binding CloudsConvertToMetric, DataType=vm:FormattingViewModel}"
+                                          Theme="{StaticResource CheckBox}">
+                                    Convert cloud layer altitude to metric
+                                </CheckBox>
+                            </StackPanel>
+                            <CheckBox
+                                IsChecked="{Binding CloudHeightAltitudeInHundreds, DataType=vm:FormattingViewModel}"
+                                Theme="{StaticResource CheckBox}" IsEnabled="{Binding !#CloudToMetric.IsChecked}"
+                                ToolTip.Tip="Cloud height will displayed in hundreds of feet, for example FEW010 will be shown as FEW1000">
+                                Display cloud height in hundreds of feet
+                            </CheckBox>
+                            <Grid ColumnDefinitions="140,5,*,20,140,5,*" Margin="0,10,0,5">
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                           ToolTip.Tip="The spoken text if the cloud layer height is ///">
+                                    Undetermined (Voice):
+                                </TextBlock>
+                                <TextBox
+                                    Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}"
+                                    Grid.Column="2" Theme="{StaticResource DarkTextBox}" />
+                                <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                                           ToolTip.Tip="The text ATIS string if the cloud layer height is ///">
+                                    Undetermined (Text):
+                                </TextBlock>
+                                <TextBox
+                                    Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}"
+                                    Grid.Column="6" Theme="{StaticResource DarkTextBox}" />
+                            </Grid>
+                            <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}"
+                                                      Margin="0,5,0,0">
+                                <StackPanel Orientation="Vertical" Spacing="10">
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                        <controls:TemplateVariableTextBox
+                                            Text="{Binding CloudsTextTemplate, DataType=vm:FormattingViewModel}"
+                                            TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                            Theme="{StaticResource DarkTextBox}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                        <controls:TemplateVariableTextBox
+                                            Text="{Binding CloudsVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                            TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                            Theme="{StaticResource DarkTextBox}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Button
+                                            Theme="{StaticResource DarkVariable}"
+                                            ToolTip.Tip="The cloud layer groups from the METAR (e.g. &quot;SCT150 FEW200&quot;)"
+                                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                            CommandParameter="{Binding $self.Content}">
+                                            {clouds}
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </groupBox:GroupBoxControl>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Cloud Types">
+                        <DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False"
+                                  CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464"
+                                  ItemsSource="{Binding CloudTypes, DataType=vm:FormattingViewModel}">
+                            <Interaction.Behaviors>
+                                <behaviors:DataGridCellEndEditBehavior
+                                    Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" />
+                            </Interaction.Behaviors>
+                            <DataGrid.Styles>
+                                <Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </Style>
+                            </DataGrid.Styles>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Acronym" Width="150" IsReadOnly="True"
+                                                    Binding="{Binding Acronym, DataType=models:CloudTypeMeta}" />
+                                <DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False"
+                                                    Binding="{Binding Spoken, DataType=models:CloudTypeMeta}" />
+                                <DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False"
+                                                    Binding="{Binding Text, DataType=models:CloudTypeMeta}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+                    <TabItem Header="Convective Cloud Types">
+                        <DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False"
+                                  CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464"
+                                  ItemsSource="{Binding ConvectiveCloudTypes, DataType=vm:FormattingViewModel}">
+                            <Interaction.Behaviors>
+                                <behaviors:DataGridCellEndEditBehavior
+                                    Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" />
+                            </Interaction.Behaviors>
+                            <DataGrid.Styles>
+                                <Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </Style>
+                            </DataGrid.Styles>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Acronym" Width="1*" IsReadOnly="True"
+                                                    Binding="{Binding Key, DataType=models:ConvectiveCloudTypeMeta}" />
+                                <DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False"
+                                                    Binding="{Binding Value, DataType=models:ConvectiveCloudTypeMeta}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+                </TabControl>
+            </StackPanel>
+            <!--Temperature-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Temperature'}">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Vertical" Spacing="5">
+                        <CheckBox IsChecked="{Binding TemperatureUsePlusPrefix, DataType=vm:FormattingViewModel}"
+                                  Theme="{StaticResource CheckBox}"
+                                  ToolTip.Tip="If enabled, positive temperature values will be prefixed with the world &quot;plus&quot; in the voice ATIS (e.g. temperature PLUS two five)">
+                            Prefix positive temperature with &quot;plus&quot; in voice ATIS.
+                        </CheckBox>
+                        <CheckBox IsChecked="{Binding TemperatureSpeakLeadingZero, DataType=vm:FormattingViewModel}"
+                                  Theme="{StaticResource CheckBox}"
+                                  ToolTip.Tip="If enabled, the leading zero will be spoken (e.g. temperature zero six).">
+                            Speak leading zero in voice ATIS
+                        </CheckBox>
+                    </StackPanel>
+                    <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}"
+                                              Margin="0,10,0,0">
+                        <StackPanel Orientation="Vertical" Spacing="10">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                <controls:TemplateVariableTextBox
+                                    Text="{Binding TemperatureTextTemplate, DataType=vm:FormattingViewModel}"
+                                    TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                    Theme="{StaticResource DarkTextBox}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                <controls:TemplateVariableTextBox
+                                    Text="{Binding TemperatureVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                    TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                    Theme="{StaticResource DarkTextBox}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button
+                                    Theme="{StaticResource DarkVariable}"
+                                    ToolTip.Tip="The temperature value from the METAR"
+                                    Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                    CommandParameter="{Binding $self.Content}">
+                                    {temp}
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </groupBox:GroupBoxControl>
+                </StackPanel>
+            </StackPanel>
+            <!--Dewpoint-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Dewpoint'}">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Vertical" Spacing="5">
+                        <CheckBox IsChecked="{Binding DewpointUsePlusPrefix, DataType=vm:FormattingViewModel}"
+                                  Theme="{StaticResource CheckBox}"
+                                  ToolTip.Tip="If enabled, positive dewpoint will be prefixed with the world &quot;plus&quot; in the voice ATIS (e.g. temperature PLUS two five)">
+                            Prefix positive dewpoint with &quot;plus&quot; in voice ATIS.
+                        </CheckBox>
+                        <CheckBox IsChecked="{Binding DewpointSpeakLeadingZero, DataType=vm:FormattingViewModel}"
+                                  Theme="{StaticResource CheckBox}"
+                                  ToolTip.Tip="If enabled, the leading zero will be spoken (e.g. dewpoint zero six).">
+                            Speak leading zero in voice ATIS
+                        </CheckBox>
+                    </StackPanel>
+                    <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}"
+                                              Margin="0,10,0,0">
+                        <StackPanel Orientation="Vertical" Spacing="10">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                <controls:TemplateVariableTextBox
+                                    Text="{Binding DewpointTextTemplate, DataType=vm:FormattingViewModel}"
+                                    TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                    Theme="{StaticResource DarkTextBox}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                <controls:TemplateVariableTextBox
+                                    Text="{Binding DewpointVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                    TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                    Theme="{StaticResource DarkTextBox}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button
+                                    Theme="{StaticResource DarkVariable}"
+                                    ToolTip.Tip="The dewpoint value from the METAR"
+                                    Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                    CommandParameter="{Binding $self.Content}">
+                                    {dewpoint}
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </groupBox:GroupBoxControl>
+                </StackPanel>
+            </StackPanel>
+            <!--Altimeter-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Altimeter'}">
+                <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Text:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding AltimeterTextTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding AltimeterVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The altimeter value from the METAR (e.g. 2992 or 1013)"
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {altimeter}
+                            </Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="Encodes the altimeter into numeric word form (e.g. TWO NINER NINER TWO)"
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {altimeter|text}
+                            </Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="Converts the altimeter value to inHg (inches mercury) and includes the decimal point (e.g. text: 29.92, voice: TWO NINER POINT NINER TWO)"
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {altimeter|inhg}
+                            </Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="Converts the altimeter value to hPa (hectopascal)"
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {altimeter|hpa}
+                            </Button>
+                            <Button
+                                IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}"
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="Aerodrome atmospheric pressure: replace ELEVATION_FT with the field elevation in feet."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {qfe|ELEVATION_FT}
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </groupBox:GroupBoxControl>
+            </StackPanel>
+            <!--Transition Level-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Transition Level'}">
+                <TabControl Margin="-3">
+                    <TabItem Header="Template">
+                        <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}"
+                                                  Margin="0,10,0,0">
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Text:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding TransitionLevelTextTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                                    <controls:TemplateVariableTextBox
+                                        Text="{Binding TransitionLevelVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                        Theme="{StaticResource DarkTextBox}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The transition level altitude value (e.g. &quot;65&quot;)."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {trl}
+                                    </Button>
+                                    <Button
+                                        Theme="{StaticResource DarkVariable}"
+                                        ToolTip.Tip="The transition level altitude in numeric word form (e.g. &quot;SIX FIVE&quot;)."
+                                        Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding $self.Content}">
+                                        {trl|text}
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </groupBox:GroupBoxControl>
+                    </TabItem>
+                    <TabItem Header="Transition Levels">
+                        <StackPanel Orientation="Vertical" Spacing="10">
+                            <DataGrid Name="TransitionLevels" GridLinesVisibility="All" CanUserReorderColumns="False"
+                                      CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1"
+                                      BorderBrush="#646464"
+                                      ItemsSource="{Binding TransitionLevels, DataType=vm:FormattingViewModel}">
+                                <Interaction.Behaviors>
+                                    <behaviors:DataGridCellEndEditBehavior
+                                        Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" />
+                                </Interaction.Behaviors>
+                                <DataGrid.Styles>
+                                    <Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </Style>
+                                </DataGrid.Styles>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="QNH Low" Width="1*"
+                                                        Binding="{Binding Low, DataType=models:TransitionLevelMeta}"
+                                                        IsReadOnly="False" />
+                                    <DataGridTextColumn Header="QNH High" Width="1*"
+                                                        Binding="{Binding High, DataType=models:TransitionLevelMeta}"
+                                                        IsReadOnly="False" />
+                                    <DataGridTextColumn Header="Transition Level" Width="1*"
+                                                        Binding="{Binding Altitude, DataType=models:TransitionLevelMeta}"
+                                                        IsReadOnly="False" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+                                <Button Theme="{StaticResource Dark}" Height="28" MinWidth="80"
+                                        Command="{Binding DeleteTransitionLevelCommand, DataType=vm:FormattingViewModel}"
+                                        CommandParameter="{Binding #TransitionLevels.SelectedItem}"
+                                        IsEnabled="{Binding #TransitionLevels.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    Delete
+                                </Button>
+                                <Button Theme="{StaticResource Dark}" Height="28" MinWidth="80"
+                                        Command="{Binding AddTransitionLevelCommand, DataType=vm:FormattingViewModel}">
+                                    Add New
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </StackPanel>
+            <!--NOTAMs-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='NOTAMs'}">
+                <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Text:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding NotamsTextTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding NotamsVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The printed NOTAM text"
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {notams}
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </groupBox:GroupBoxControl>
+            </StackPanel>
+            <!--Closing Statement-->
+            <StackPanel Spacing="10" Margin="10,10,10,0"
+                        IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Closing Statement'}">
+                <CheckBox
+                    IsChecked="{Binding ClosingStatementAutoIncludeClosingStatement, DataType=vm:FormattingViewModel}"
+                    Theme="{StaticResource CheckBox}"
+                    ToolTip.Tip="If enabled, the closing statement will be automatically appended to the end of the ATIS without requiring the [CLOSING] variable in the ATIS preset template. This is useful if you want to customize the position of the closing statement in the ATIS.">
+                    Automatically include closing statement at the end of the ATIS
+                </CheckBox>
+                <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Text:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding ClosingStatementTextTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Voice:" VerticalAlignment="Center" />
+                            <controls:TemplateVariableTextBox
+                                Text="{Binding ClosingStatementVoiceTemplate, DataType=vm:FormattingViewModel}"
+                                TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                                Theme="{StaticResource DarkTextBox}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The current ATIS letter (e.g. A)"
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {letter}
+                            </Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The current ATIS letter in word form (e.g. ALPHA)"
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {letter|word}
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </groupBox:GroupBoxControl>
+            </StackPanel>
+        </StackPanel>
+    </Border>
 </UserControl>

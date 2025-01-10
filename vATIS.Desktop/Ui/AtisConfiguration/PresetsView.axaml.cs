@@ -15,15 +15,17 @@ public partial class PresetsView : UserControl
 
     public PresetsView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 
     private void AtisTemplate_OnTextChanged(object? sender, EventArgs e)
     {
-        if (DataContext is PresetsViewModel model)
+        if (this.DataContext is PresetsViewModel model)
         {
-            if (!AtisTemplate.TextArea.IsFocused)
+            if (!this.AtisTemplate.TextArea.IsFocused)
+            {
                 return;
+            }
 
             model.HasUnsavedChanges = true;
         }
@@ -33,17 +35,22 @@ public partial class PresetsView : UserControl
     {
         try
         {
-            if (_suppressSelectionChanged)
+            if (this._suppressSelectionChanged)
+            {
                 return;
+            }
 
-            if (DataContext is PresetsViewModel model)
+            if (this.DataContext is PresetsViewModel model)
             {
                 if (model.DialogOwner == null)
-                    return;
-
-                if (model.HasUnsavedChanges && SelectedPreset.SelectedIndex != _previousSelectedPresetIndex)
                 {
-                    var result = await MessageBox.ShowDialog((Window)model.DialogOwner,
+                    return;
+                }
+
+                if (model.HasUnsavedChanges && this.SelectedPreset.SelectedIndex != this._previousSelectedPresetIndex)
+                {
+                    var result = await MessageBox.ShowDialog(
+                        (Window)model.DialogOwner,
                         "You have unsaved changes. Are you sure you want to discard them?",
                         "Confirm",
                         MessageBoxButton.YesNo,
@@ -51,9 +58,9 @@ public partial class PresetsView : UserControl
 
                     if (result == MessageBoxResult.No)
                     {
-                        _suppressSelectionChanged = true;
-                        SelectedPreset.SelectedIndex = _previousSelectedPresetIndex;
-                        _suppressSelectionChanged = false;
+                        this._suppressSelectionChanged = true;
+                        this.SelectedPreset.SelectedIndex = this._previousSelectedPresetIndex;
+                        this._suppressSelectionChanged = false;
 
                         e.Handled = true;
                         return;
@@ -63,7 +70,7 @@ public partial class PresetsView : UserControl
                 if (e.AddedItems.Count > 0 && e.AddedItems[0] is AtisPreset preset)
                 {
                     await model.SelectedPresetChanged.Execute(preset);
-                    _previousSelectedPresetIndex = SelectedPreset.SelectedIndex;
+                    this._previousSelectedPresetIndex = this.SelectedPreset.SelectedIndex;
                 }
             }
         }

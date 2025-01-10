@@ -10,28 +10,28 @@ public partial class StaticAirportConditionsDialog : ReactiveWindow<StaticAirpor
 {
     public StaticAirportConditionsDialog(StaticAirportConditionsDialogViewModel viewModel)
     {
-        InitializeComponent();
-        
-        ViewModel = viewModel;
-        ViewModel.Owner = this;
-        Closed += OnClosed;
+        this.InitializeComponent();
+
+        this.ViewModel = viewModel;
+        this.ViewModel.Owner = this;
+        this.Closed += this.OnClosed;
     }
 
     public StaticAirportConditionsDialog()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.Dispose();
+        this.ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 }

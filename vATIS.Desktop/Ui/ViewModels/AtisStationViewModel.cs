@@ -1,5 +1,4 @@
-﻿using ReactiveUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -14,6 +13,7 @@ using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using DynamicData;
 using DynamicData.Binding;
+using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
@@ -26,264 +26,111 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
+using Vatsim.Vatis.Ui.Services;
+using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
-using Vatsim.Vatis.Ui.Services;
-using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
+
 public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IAppConfig _appConfig;
-    private readonly IProfileRepository _profileRepository;
     private readonly IAtisBuilder _atisBuilder;
-    private readonly AtisStation _atisStation;
-    private readonly IWindowFactory _windowFactory;
-    private readonly INetworkConnection? _networkConnection;
-    private readonly IVoiceServerConnection? _voiceServerConnection;
     private readonly IAtisHubConnection _atisHubConnection;
-    private readonly IWebsocketService _websocketService;
-    private readonly ISessionManager _sessionManager;
-    private CancellationTokenSource _cancellationToken;
+    private readonly AtisStation _atisStation;
     private readonly Airport _atisStationAirport;
+    private readonly INetworkConnection? _networkConnection;
+    private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
+    private readonly IVoiceServerConnection? _voiceServerConnection;
+    private readonly IWebsocketService _websocketService;
+    private readonly IWindowFactory _windowFactory;
+    private int _airportConditionsFreeTextOffset;
+    private CancellationTokenSource _cancellationToken;
+    private DecodedMetar? _decodedMetar;
+    private bool _isPublishAtisTriggeredInitially;
+    private int _notamFreeTextOffset;
     private AtisPreset? _previousAtisPreset;
     private IDisposable? _publishAtisTimer;
-    private bool _isPublishAtisTriggeredInitially;
-    private DecodedMetar? _decodedMetar;
-    private int _notamFreeTextOffset;
-    private int _airportConditionsFreeTextOffset;
 
-    public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
-    public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
-
-    #region Reactive Properties
-    private string? _id;
-    public string? Id
+    public AtisStationViewModel(
+        AtisStation station,
+        INetworkConnectionFactory connectionFactory,
+        IAppConfig appConfig,
+        IVoiceServerConnection voiceServerConnection,
+        IAtisBuilder atisBuilder,
+        IWindowFactory windowFactory,
+        INavDataRepository navDataRepository,
+        IAtisHubConnection hubConnection,
+        ISessionManager sessionManager,
+        IProfileRepository profileRepository,
+        IWebsocketService websocketService)
     {
-        get => _id;
-        private set => this.RaiseAndSetIfChanged(ref _id, value);
-    }
+        this.Id = station.Id;
+        this.Identifier = station.Identifier;
+        this._atisStation = station;
+        this._appConfig = appConfig;
+        this._atisBuilder = atisBuilder;
+        this._windowFactory = windowFactory;
+        this._websocketService = websocketService;
+        this._atisHubConnection = hubConnection;
+        this._sessionManager = sessionManager;
+        this._profileRepository = profileRepository;
+        this._cancellationToken = new CancellationTokenSource();
+        this._atisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
+                                   throw new ApplicationException(
+                                       $"{station.Identifier} not found in airport navdata.");
 
-    private string? _identifier;
-    public string? Identifier
-    {
-        get => _identifier;
-        set => this.RaiseAndSetIfChanged(ref _identifier, value);
-    }
+        this._atisLetter = this._atisStation.CodeRange.Low;
 
-    private string? _tabText;
-    public string? TabText
-    {
-        get => _tabText;
-        set => this.RaiseAndSetIfChanged(ref _tabText, value);
-    }
-
-    private char _atisLetter;
-    public char AtisLetter
-    {
-        get => _atisLetter;
-        set => this.RaiseAndSetIfChanged(ref _atisLetter, value);
-    }
-
-    public CodeRangeMeta CodeRange => _atisStation.CodeRange;
-
-    private bool _isAtisLetterInputMode;
-    public bool IsAtisLetterInputMode
-    {
-        get => _isAtisLetterInputMode;
-        set => this.RaiseAndSetIfChanged(ref _isAtisLetterInputMode, value);
-    }
-
-    private string? _metar;
-    public string? Metar
-    {
-        get => _metar;
-        set => this.RaiseAndSetIfChanged(ref _metar, value);
-    }
-
-    private string? _wind;
-    public string? Wind
-    {
-        get => _wind;
-        set => this.RaiseAndSetIfChanged(ref _wind, value);
-    }
-
-    private string? _altimeter;
-    public string? Altimeter
-    {
-        get => _altimeter;
-        set => this.RaiseAndSetIfChanged(ref _altimeter, value);
-    }
-
-    private bool _isNewAtis;
-    public bool IsNewAtis
-    {
-        get => _isNewAtis;
-        set => this.RaiseAndSetIfChanged(ref _isNewAtis, value);
-    }
-
-    private string _atisTypeLabel = "";
-    public string AtisTypeLabel
-    {
-        get => _atisTypeLabel;
-        set => this.RaiseAndSetIfChanged(ref _atisTypeLabel, value);
-    }
-
-    private bool _isCombinedAtis;
-    public bool IsCombinedAtis
-    {
-        get => _isCombinedAtis;
-        private set => this.RaiseAndSetIfChanged(ref _isCombinedAtis, value);
-    }
-
-    private ObservableCollection<AtisPreset> _atisPresetList = [];
-    public ObservableCollection<AtisPreset> AtisPresetList
-    {
-        get => _atisPresetList;
-        set => this.RaiseAndSetIfChanged(ref _atisPresetList, value);
-    }
-
-    private AtisPreset? _selectedAtisPreset;
-    public AtisPreset? SelectedAtisPreset
-    {
-        get => _selectedAtisPreset;
-        private set => this.RaiseAndSetIfChanged(ref _selectedAtisPreset, value);
-    }
-
-    private string? _errorMessage;
-    public string? ErrorMessage
-    {
-        get => _errorMessage;
-        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
-    }
-
-    private string? AirportConditionsFreeText => AirportConditionsTextDocument?.Text;
-
-    private TextDocument? _airportConditionsTextDocument = new();
-    public TextDocument? AirportConditionsTextDocument
-    {
-        get => _airportConditionsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
-    }
-
-    private string? NotamsFreeText => _notamsTextDocument?.Text;
-
-    private TextDocument? _notamsTextDocument = new();
-    public TextDocument? NotamsTextDocument
-    {
-        get => _notamsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _notamsTextDocument, value);
-    }
-
-    private bool _useTexToSpeech;
-    private bool UseTexToSpeech
-    {
-        get => _useTexToSpeech;
-        set => this.RaiseAndSetIfChanged(ref _useTexToSpeech, value);
-    }
-
-    private NetworkConnectionStatus _networkConnectionStatus = NetworkConnectionStatus.Disconnected;
-    public NetworkConnectionStatus NetworkConnectionStatus
-    {
-        get => _networkConnectionStatus;
-        set => this.RaiseAndSetIfChanged(ref _networkConnectionStatus, value);
-    }
-
-    private List<ICompletionData> _contractionCompletionData = [];
-    public List<ICompletionData> ContractionCompletionData
-    {
-        get => _contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
-    }
-
-    private bool _hasUnsavedAirportConditions;
-    public bool HasUnsavedAirportConditions
-    {
-        get => _hasUnsavedAirportConditions;
-        set => this.RaiseAndSetIfChanged(ref _hasUnsavedAirportConditions, value);
-    }
-
-    private bool _hasUnsavedNotams;
-    public bool HasUnsavedNotams
-    {
-        get => _hasUnsavedNotams;
-        set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
-    }
-    #endregion
-
-    public ReactiveCommand<Unit, Unit> DecrementAtisLetterCommand { get; }
-    public ReactiveCommand<Unit, Unit> AcknowledgeOrIncrementAtisLetterCommand { get; }
-    public ReactiveCommand<Unit, Unit> AcknowledgeAtisUpdateCommand { get; }
-    public ReactiveCommand<Unit, Unit> NetworkConnectCommand { get; }
-    public ReactiveCommand<Unit, Unit> VoiceRecordAtisCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenStaticAirportConditionsDialogCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
-    public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveAirportConditionsText { get; }
-    public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
-
-    public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
-        IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
-        INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
-        IProfileRepository profileRepository, IWebsocketService websocketService)
-    {
-        Id = station.Id;
-        Identifier = station.Identifier;
-        _atisStation = station;
-        _appConfig = appConfig;
-        _atisBuilder = atisBuilder;
-        _windowFactory = windowFactory;
-        _websocketService = websocketService;
-        _atisHubConnection = hubConnection;
-        _sessionManager = sessionManager;
-        _profileRepository = profileRepository;
-        _cancellationToken = new CancellationTokenSource();
-        _atisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
-                              throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
-
-        _atisLetter = _atisStation.CodeRange.Low;
-
-        ReadOnlyAirportConditions = new TextSegmentCollection<TextSegment>(AirportConditionsTextDocument);
-        ReadOnlyNotams = new TextSegmentCollection<TextSegment>(NotamsTextDocument);
+        this.ReadOnlyAirportConditions = new TextSegmentCollection<TextSegment>(this.AirportConditionsTextDocument);
+        this.ReadOnlyNotams = new TextSegmentCollection<TextSegment>(this.NotamsTextDocument);
 
         switch (station.AtisType)
         {
             case AtisType.Arrival:
-                TabText = $"{Identifier}/A";
-                AtisTypeLabel = "ARR";
+                this.TabText = $"{this.Identifier}/A";
+                this.AtisTypeLabel = "ARR";
                 break;
             case AtisType.Departure:
-                TabText = $"{Identifier}/D";
-                AtisTypeLabel = "DEP";
+                this.TabText = $"{this.Identifier}/D";
+                this.AtisTypeLabel = "DEP";
                 break;
             case AtisType.Combined:
-                TabText = Identifier;
-                AtisTypeLabel = "";
+                this.TabText = this.Identifier;
+                this.AtisTypeLabel = "";
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
-        IsCombinedAtis = station.AtisType == AtisType.Combined;
-        AtisPresetList = new ObservableCollection<AtisPreset>(station.Presets.OrderBy(x => x.Ordinal));
+        this.IsCombinedAtis = station.AtisType == AtisType.Combined;
+        this.AtisPresetList = new ObservableCollection<AtisPreset>(station.Presets.OrderBy(x => x.Ordinal));
 
-        OpenStaticAirportConditionsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenAirportConditionsDialog);
-        OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
+        this.OpenStaticAirportConditionsDialogCommand =
+            ReactiveCommand.CreateFromTask(this.HandleOpenAirportConditionsDialog);
+        this.OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(this.HandleOpenStaticNotamsDialog);
 
-        SaveAirportConditionsText = ReactiveCommand.Create(HandleSaveAirportConditionsText);
-        SaveNotamsText = ReactiveCommand.Create(HandleSaveNotamsText);
-        SelectedPresetChangedCommand = ReactiveCommand.CreateFromTask<AtisPreset>(HandleSelectedAtisPresetChanged);
-        AcknowledgeAtisUpdateCommand = ReactiveCommand.Create(HandleAcknowledgeAtisUpdate);
-        DecrementAtisLetterCommand = ReactiveCommand.Create(DecrementAtisLetter);
-        AcknowledgeOrIncrementAtisLetterCommand = ReactiveCommand.Create(AcknowledgeOrIncrementAtisLetter);
-        NetworkConnectCommand = ReactiveCommand.Create(HandleNetworkConnect, this.WhenAnyValue(
-            x => x.SelectedAtisPreset,
-            x => x.NetworkConnectionStatus,
-            (atisPreset, networkStatus) => atisPreset != null && networkStatus != NetworkConnectionStatus.Connecting));
-        VoiceRecordAtisCommand = ReactiveCommand.Create(HandleVoiceRecordAtisCommand,
+        this.SaveAirportConditionsText = ReactiveCommand.Create(this.HandleSaveAirportConditionsText);
+        this.SaveNotamsText = ReactiveCommand.Create(this.HandleSaveNotamsText);
+        this.SelectedPresetChangedCommand =
+            ReactiveCommand.CreateFromTask<AtisPreset>(this.HandleSelectedAtisPresetChanged);
+        this.AcknowledgeAtisUpdateCommand = ReactiveCommand.Create(this.HandleAcknowledgeAtisUpdate);
+        this.DecrementAtisLetterCommand = ReactiveCommand.Create(this.DecrementAtisLetter);
+        this.AcknowledgeOrIncrementAtisLetterCommand = ReactiveCommand.Create(this.AcknowledgeOrIncrementAtisLetter);
+        this.NetworkConnectCommand = ReactiveCommand.Create(
+            this.HandleNetworkConnect,
+            this.WhenAnyValue(
+                x => x.SelectedAtisPreset,
+                x => x.NetworkConnectionStatus,
+                (atisPreset, networkStatus) =>
+                    atisPreset != null && networkStatus != NetworkConnectionStatus.Connecting));
+        this.VoiceRecordAtisCommand = ReactiveCommand.Create(
+            this.HandleVoiceRecordAtisCommand,
             this.WhenAnyValue(
                 x => x.Metar,
                 x => x.UseTexToSpeech,
@@ -291,300 +138,429 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 (metar, voiceRecord, networkStatus) => !string.IsNullOrEmpty(metar) && voiceRecord &&
                                                        networkStatus == NetworkConnectionStatus.Connected));
 
-        _websocketService.GetAtisReceived += OnGetAtisReceived;
-        _websocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
+        this._websocketService.GetAtisReceived += this.OnGetAtisReceived;
+        this._websocketService.AcknowledgeAtisUpdateReceived += this.OnAcknowledgeAtisUpdateReceived;
 
-        LoadContractionData();
+        this.LoadContractionData();
 
-        _networkConnection = connectionFactory.CreateConnection(_atisStation);
-        _networkConnection.NetworkConnectionFailed += OnNetworkConnectionFailed;
-        _networkConnection.NetworkErrorReceived += OnNetworkErrorReceived;
-        _networkConnection.NetworkConnected += OnNetworkConnected;
-        _networkConnection.NetworkDisconnected += OnNetworkDisconnected;
-        _networkConnection.ChangeServerReceived += OnChangeServerReceived;
-        _networkConnection.MetarResponseReceived += OnMetarResponseReceived;
-        _networkConnection.KillRequestReceived += OnKillRequestedReceived;
-        _voiceServerConnection = voiceServerConnection;
+        this._networkConnection = connectionFactory.CreateConnection(this._atisStation);
+        this._networkConnection.NetworkConnectionFailed += this.OnNetworkConnectionFailed;
+        this._networkConnection.NetworkErrorReceived += this.OnNetworkErrorReceived;
+        this._networkConnection.NetworkConnected += this.OnNetworkConnected;
+        this._networkConnection.NetworkDisconnected += this.OnNetworkDisconnected;
+        this._networkConnection.ChangeServerReceived += this.OnChangeServerReceived;
+        this._networkConnection.MetarResponseReceived += this.OnMetarResponseReceived;
+        this._networkConnection.KillRequestReceived += this.OnKillRequestedReceived;
+        this._voiceServerConnection = voiceServerConnection;
 
-        UseTexToSpeech = !_atisStation.AtisVoice.UseTextToSpeech;
-        MessageBus.Current.Listen<AtisVoiceTypeChanged>().Subscribe(evt =>
-        {
-            if (evt.Id == _atisStation.Id)
+        this.UseTexToSpeech = !this._atisStation.AtisVoice.UseTextToSpeech;
+        MessageBus.Current.Listen<AtisVoiceTypeChanged>().Subscribe(
+            evt =>
             {
-                UseTexToSpeech = !evt.UseTextToSpeech;
-            }
-        });
-        MessageBus.Current.Listen<StationPresetsChanged>().Subscribe(evt =>
-        {
-            if (evt.Id == _atisStation.Id)
-            {
-                AtisPresetList = new ObservableCollection<AtisPreset>(_atisStation.Presets.OrderBy(x => x.Ordinal));
-            }
-        });
-        MessageBus.Current.Listen<ContractionsUpdated>().Subscribe(evt =>
-        {
-            if (evt.StationId == _atisStation.Id)
-            {
-                LoadContractionData();
-            }
-        });
-        MessageBus.Current.Listen<AtisHubAtisReceived>().Subscribe(sync =>
-        {
-            if (sync.Dto.StationId == station.Identifier &&
-                sync.Dto.AtisType == station.AtisType &&
-                NetworkConnectionStatus != NetworkConnectionStatus.Connected)
-            {
-                Dispatcher.UIThread.Post(() =>
+                if (evt.Id == this._atisStation.Id)
                 {
-                    AtisLetter = sync.Dto.AtisLetter;
-                    Wind = sync.Dto.Wind;
-                    Altimeter = sync.Dto.Altimeter;
-                    Metar = sync.Dto.Metar;
-                    NetworkConnectionStatus = NetworkConnectionStatus.Observer;
-                });
-            }
-        });
-        MessageBus.Current.Listen<AtisHubExpiredAtisReceived>().Subscribe(sync =>
-        {
-            if (sync.Dto.StationId == _atisStation.Identifier &&
-                sync.Dto.AtisType == _atisStation.AtisType &&
-                NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+                    this.UseTexToSpeech = !evt.UseTextToSpeech;
+                }
+            });
+        MessageBus.Current.Listen<StationPresetsChanged>().Subscribe(
+            evt =>
             {
-                Dispatcher.UIThread.Post(() =>
+                if (evt.Id == this._atisStation.Id)
                 {
-                    AtisLetter = _atisStation.CodeRange.Low;
-                    Wind = null;
-                    Altimeter = null;
-                    Metar = null;
-                    NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
-                });
-            }
-        });
-        MessageBus.Current.Listen<HubConnected>().Subscribe(_ =>
-        {
-            _atisHubConnection.SubscribeToAtis(new SubscribeDto(_atisStation.Identifier, _atisStation.AtisType));
-        });
+                    this.AtisPresetList =
+                        new ObservableCollection<AtisPreset>(this._atisStation.Presets.OrderBy(x => x.Ordinal));
+                }
+            });
+        MessageBus.Current.Listen<ContractionsUpdated>().Subscribe(
+            evt =>
+            {
+                if (evt.StationId == this._atisStation.Id)
+                {
+                    this.LoadContractionData();
+                }
+            });
+        MessageBus.Current.Listen<AtisHubAtisReceived>().Subscribe(
+            sync =>
+            {
+                if (sync.Dto.StationId == station.Identifier &&
+                    sync.Dto.AtisType == station.AtisType &&
+                    this.NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+                {
+                    Dispatcher.UIThread.Post(
+                        () =>
+                        {
+                            this.AtisLetter = sync.Dto.AtisLetter;
+                            this.Wind = sync.Dto.Wind;
+                            this.Altimeter = sync.Dto.Altimeter;
+                            this.Metar = sync.Dto.Metar;
+                            this.NetworkConnectionStatus = NetworkConnectionStatus.Observer;
+                        });
+                }
+            });
+        MessageBus.Current.Listen<AtisHubExpiredAtisReceived>().Subscribe(
+            sync =>
+            {
+                if (sync.Dto.StationId == this._atisStation.Identifier &&
+                    sync.Dto.AtisType == this._atisStation.AtisType &&
+                    this.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+                {
+                    Dispatcher.UIThread.Post(
+                        () =>
+                        {
+                            this.AtisLetter = this._atisStation.CodeRange.Low;
+                            this.Wind = null;
+                            this.Altimeter = null;
+                            this.Metar = null;
+                            this.NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                        });
+                }
+            });
+        MessageBus.Current.Listen<HubConnected>().Subscribe(
+            _ =>
+            {
+                this._atisHubConnection.SubscribeToAtis(
+                    new SubscribeDto(this._atisStation.Identifier, this._atisStation.AtisType));
+            });
 
-        this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
-        this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
-        this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(HandleNetworkStatusChanged);
+        this.WhenAnyValue(x => x.IsNewAtis).Subscribe(this.HandleIsNewAtisChanged);
+        this.WhenAnyValue(x => x.AtisLetter).Subscribe(this.HandleAtisLetterChanged);
+        this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(this.HandleNetworkStatusChanged);
+    }
+
+    public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
+
+    public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
+
+    public ReactiveCommand<Unit, Unit> DecrementAtisLetterCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> AcknowledgeOrIncrementAtisLetterCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> AcknowledgeAtisUpdateCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> NetworkConnectCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> VoiceRecordAtisCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> OpenStaticAirportConditionsDialogCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
+
+    public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> SaveAirportConditionsText { get; }
+
+    public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+
+        this._websocketService.GetAtisReceived -= this.OnGetAtisReceived;
+        this._websocketService.AcknowledgeAtisUpdateReceived -= this.OnAcknowledgeAtisUpdateReceived;
+
+        if (this._networkConnection != null)
+        {
+            this._networkConnection.NetworkConnectionFailed -= this.OnNetworkConnectionFailed;
+            this._networkConnection.NetworkErrorReceived -= this.OnNetworkErrorReceived;
+            this._networkConnection.NetworkConnected -= this.OnNetworkConnected;
+            this._networkConnection.NetworkDisconnected -= this.OnNetworkDisconnected;
+            this._networkConnection.ChangeServerReceived -= this.OnChangeServerReceived;
+            this._networkConnection.MetarResponseReceived -= this.OnMetarResponseReceived;
+            this._networkConnection.KillRequestReceived -= this.OnKillRequestedReceived;
+        }
+
+        this.DecrementAtisLetterCommand.Dispose();
+        this.AcknowledgeOrIncrementAtisLetterCommand.Dispose();
+        this.AcknowledgeAtisUpdateCommand.Dispose();
+        this.NetworkConnectCommand.Dispose();
+        this.VoiceRecordAtisCommand.Dispose();
+        this.OpenStaticAirportConditionsDialogCommand.Dispose();
+        this.OpenStaticNotamsDialogCommand.Dispose();
+        this.SelectedPresetChangedCommand.Dispose();
+        this.SaveAirportConditionsText.Dispose();
+        this.SaveNotamsText.Dispose();
     }
 
     private void HandleSaveNotamsText()
     {
-        if (SelectedAtisPreset == null)
+        if (this.SelectedAtisPreset == null)
+        {
             return;
+        }
 
-        SelectedAtisPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
-        if (_sessionManager.CurrentProfile != null)
-            _profileRepository.Save(_sessionManager.CurrentProfile);
+        this.SelectedAtisPreset.Notams = this.NotamsFreeText?[this._notamFreeTextOffset..];
+        if (this._sessionManager.CurrentProfile != null)
+        {
+            this._profileRepository.Save(this._sessionManager.CurrentProfile);
+        }
 
-        HasUnsavedNotams = false;
+        this.HasUnsavedNotams = false;
     }
 
     private void HandleSaveAirportConditionsText()
     {
-        if (SelectedAtisPreset == null)
+        if (this.SelectedAtisPreset == null)
+        {
             return;
+        }
 
-        SelectedAtisPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
-        if (_sessionManager.CurrentProfile != null)
-            _profileRepository.Save(_sessionManager.CurrentProfile);
+        this.SelectedAtisPreset.AirportConditions =
+            this.AirportConditionsFreeText?[this._airportConditionsFreeTextOffset..];
+        if (this._sessionManager.CurrentProfile != null)
+        {
+            this._profileRepository.Save(this._sessionManager.CurrentProfile);
+        }
 
-        HasUnsavedAirportConditions = false;
+        this.HasUnsavedAirportConditions = false;
     }
 
     private void LoadContractionData()
     {
-        ContractionCompletionData.Clear();
+        this.ContractionCompletionData.Clear();
 
-        foreach (var contraction in _atisStation.Contractions.ToList())
+        foreach (var contraction in this._atisStation.Contractions.ToList())
         {
             if (contraction is { VariableName: not null, Voice: not null })
-                ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
+            {
+                this.ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
+            }
         }
     }
 
     private async Task HandleOpenStaticNotamsDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
+        {
             return;
+        }
 
         if (lifetime.MainWindow == null)
+        {
             return;
+        }
 
-        var dlg = _windowFactory.CreateStaticNotamsDialog();
+        var dlg = this._windowFactory.CreateStaticNotamsDialog();
         dlg.Topmost = lifetime.MainWindow.Topmost;
         if (dlg.DataContext is StaticNotamsDialogViewModel viewModel)
         {
-            viewModel.Definitions = new ObservableCollection<StaticDefinition>(_atisStation.NotamDefinitions);
-            viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.Definitions = new ObservableCollection<StaticDefinition>(this._atisStation.NotamDefinitions);
+            viewModel.ContractionCompletionData = this.ContractionCompletionData;
 
-            viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
-            {
-                _atisStation.NotamsBeforeFreeText = val;
-                if (_sessionManager.CurrentProfile != null)
-                    _profileRepository.Save(_sessionManager.CurrentProfile);
-            });
+            viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(
+                val =>
+                {
+                    this._atisStation.NotamsBeforeFreeText = val;
+                    if (this._sessionManager.CurrentProfile != null)
+                    {
+                        this._profileRepository.Save(this._sessionManager.CurrentProfile);
+                    }
+                });
 
-            viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
-            {
-                _atisStation.NotamDefinitions.Clear();
-                _atisStation.NotamDefinitions.AddRange(changes);
-                if (_sessionManager.CurrentProfile != null)
-                    _profileRepository.Save(_sessionManager.CurrentProfile);
-            });
+            viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(
+                _ =>
+                {
+                    this._atisStation.NotamDefinitions.Clear();
+                    this._atisStation.NotamDefinitions.AddRange(changes);
+                    if (this._sessionManager.CurrentProfile != null)
+                    {
+                        this._profileRepository.Save(this._sessionManager.CurrentProfile);
+                    }
+                });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
             {
                 var idx = 0;
-                _atisStation.NotamDefinitions.Clear();
+                this._atisStation.NotamDefinitions.Clear();
                 foreach (var item in viewModel.Definitions)
                 {
                     item.Ordinal = ++idx;
-                    _atisStation.NotamDefinitions.Add(item);
+                    this._atisStation.NotamDefinitions.Add(item);
                 }
-                if (_sessionManager.CurrentProfile != null)
-                    _profileRepository.Save(_sessionManager.CurrentProfile);
+
+                if (this._sessionManager.CurrentProfile != null)
+                {
+                    this._profileRepository.Save(this._sessionManager.CurrentProfile);
+                }
             };
         }
 
         await dlg.ShowDialog(lifetime.MainWindow);
 
         // Update the free-form text area after the dialog is closed
-        PopulateNotams();
+        this.PopulateNotams();
     }
 
     private async Task HandleOpenAirportConditionsDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
+        {
             return;
+        }
 
         if (lifetime.MainWindow == null)
+        {
             return;
+        }
 
-        var dlg = _windowFactory.CreateStaticAirportConditionsDialog();
+        var dlg = this._windowFactory.CreateStaticAirportConditionsDialog();
         dlg.Topmost = lifetime.MainWindow.Topmost;
         if (dlg.DataContext is StaticAirportConditionsDialogViewModel viewModel)
         {
-            viewModel.Definitions = new ObservableCollection<StaticDefinition>(_atisStation.AirportConditionDefinitions);
-            viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.Definitions =
+                new ObservableCollection<StaticDefinition>(this._atisStation.AirportConditionDefinitions);
+            viewModel.ContractionCompletionData = this.ContractionCompletionData;
 
-            viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
-            {
-                _atisStation.AirportConditionsBeforeFreeText = val;
-                if (_sessionManager.CurrentProfile != null)
-                    _profileRepository.Save(_sessionManager.CurrentProfile);
-            });
+            viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(
+                val =>
+                {
+                    this._atisStation.AirportConditionsBeforeFreeText = val;
+                    if (this._sessionManager.CurrentProfile != null)
+                    {
+                        this._profileRepository.Save(this._sessionManager.CurrentProfile);
+                    }
+                });
 
-            viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
-            {
-                _atisStation.AirportConditionDefinitions.Clear();
-                _atisStation.AirportConditionDefinitions.AddRange(changes);
-                if (_sessionManager.CurrentProfile != null)
-                    _profileRepository.Save(_sessionManager.CurrentProfile);
-            });
+            viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(
+                _ =>
+                {
+                    this._atisStation.AirportConditionDefinitions.Clear();
+                    this._atisStation.AirportConditionDefinitions.AddRange(changes);
+                    if (this._sessionManager.CurrentProfile != null)
+                    {
+                        this._profileRepository.Save(this._sessionManager.CurrentProfile);
+                    }
+                });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
             {
                 var idx = 0;
-                _atisStation.AirportConditionDefinitions.Clear();
+                this._atisStation.AirportConditionDefinitions.Clear();
                 foreach (var item in viewModel.Definitions)
                 {
                     item.Ordinal = ++idx;
-                    _atisStation.AirportConditionDefinitions.Add(item);
+                    this._atisStation.AirportConditionDefinitions.Add(item);
                 }
-                if (_sessionManager.CurrentProfile != null)
-                    _profileRepository.Save(_sessionManager.CurrentProfile);
+
+                if (this._sessionManager.CurrentProfile != null)
+                {
+                    this._profileRepository.Save(this._sessionManager.CurrentProfile);
+                }
             };
         }
 
         await dlg.ShowDialog(lifetime.MainWindow);
 
         // Update the free-form text area after the dialog is closed
-        PopulateAirportConditions();
+        this.PopulateAirportConditions();
     }
 
     private void OnKillRequestedReceived(object? sender, KillRequestReceived e)
     {
         NativeAudio.EmitSound(SoundType.Error);
 
-        Dispatcher.UIThread.Post(() =>
-        {
-            Wind = null;
-            Altimeter = null;
-            Metar = null;
-            ErrorMessage = string.IsNullOrEmpty(e.Reason)
-                ? $"Forcefully disconnected from network."
-                : $"Forcefully disconnected from network: {e.Reason}";
-        });
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                this.Wind = null;
+                this.Altimeter = null;
+                this.Metar = null;
+                this.ErrorMessage = string.IsNullOrEmpty(e.Reason)
+                    ? "Forcefully disconnected from network."
+                    : $"Forcefully disconnected from network: {e.Reason}";
+            });
     }
 
     private async void HandleVoiceRecordAtisCommand()
     {
         try
         {
-            if (SelectedAtisPreset == null)
+            if (this.SelectedAtisPreset == null)
+            {
                 return;
+            }
 
-            if (_networkConnection == null || _voiceServerConnection == null)
+            if (this._networkConnection == null || this._voiceServerConnection == null)
+            {
                 return;
+            }
 
-            if (_decodedMetar == null)
+            if (this._decodedMetar == null)
+            {
                 return;
+            }
 
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
             {
                 if (lifetime.MainWindow == null)
+                {
                     return;
+                }
 
-                var window = _windowFactory.CreateVoiceRecordAtisDialog();
+                var window = this._windowFactory.CreateVoiceRecordAtisDialog();
                 if (window.DataContext is VoiceRecordAtisDialogViewModel vm)
                 {
-                    var atisBuilder = await _atisBuilder.BuildAtis(_atisStation, SelectedAtisPreset, AtisLetter, _decodedMetar,
-                        _cancellationToken.Token);
+                    var atisBuilder = await this._atisBuilder.BuildAtis(
+                        this._atisStation,
+                        this.SelectedAtisPreset,
+                        this.AtisLetter,
+                        this._decodedMetar,
+                        this._cancellationToken.Token);
 
                     vm.AtisScript = atisBuilder.TextAtis;
                     window.Topmost = lifetime.MainWindow.Topmost;
 
                     if (await window.ShowDialog<bool>(lifetime.MainWindow))
                     {
-                        await Task.Run(async () =>
-                        {
-                            _atisStation.TextAtis = atisBuilder.TextAtis;
-
-                            await PublishAtisToHub();
-                            _networkConnection.SendSubscriberNotification(AtisLetter);
-                            await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter,
-                                _cancellationToken.Token);
-
-                            var dto = AtisBotUtils.AddBotRequest(vm.AudioBuffer, _atisStation.Frequency,
-                                _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                                _cancellationToken.Token)!;
-                        }).ContinueWith(t =>
-                        {
-                            if (t.IsFaulted)
+                        await Task.Run(
+                            async () =>
                             {
-                                ErrorMessage = string.Join(",",
-                                    t.Exception.InnerExceptions.Select(exception => exception.Message));
-                                _networkConnection?.Disconnect();
-                                NativeAudio.EmitSound(SoundType.Error);
-                            }
-                        }, _cancellationToken.Token);
+                                this._atisStation.TextAtis = atisBuilder.TextAtis;
+
+                                await this.PublishAtisToHub();
+                                this._networkConnection.SendSubscriberNotification(this.AtisLetter);
+                                await this._atisBuilder.UpdateIds(
+                                    this._atisStation,
+                                    this.SelectedAtisPreset,
+                                    this.AtisLetter,
+                                    this._cancellationToken.Token);
+
+                                var dto = AtisBotUtils.AddBotRequest(
+                                    vm.AudioBuffer,
+                                    this._atisStation.Frequency,
+                                    this._atisStationAirport.Latitude,
+                                    this._atisStationAirport.Longitude,
+                                    100);
+                                await this._voiceServerConnection?.AddOrUpdateBot(
+                                    this._networkConnection.Callsign,
+                                    dto,
+                                    this._cancellationToken.Token)!;
+                            }).ContinueWith(
+                            t =>
+                            {
+                                if (t.IsFaulted)
+                                {
+                                    this.ErrorMessage = string.Join(
+                                        ",",
+                                        t.Exception.InnerExceptions.Select(exception => exception.Message));
+                                    this._networkConnection?.Disconnect();
+                                    NativeAudio.EmitSound(SoundType.Error);
+                                }
+                            },
+                            this._cancellationToken.Token);
                     }
                 }
             }
         }
         catch (Exception e)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                Wind = null;
-                Altimeter = null;
-                Metar = null;
-                ErrorMessage = e.Message;
-            });
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    this.Wind = null;
+                    this.Altimeter = null;
+                    this.Metar = null;
+                    this.ErrorMessage = e.Message;
+                });
         }
     }
 
@@ -592,46 +568,50 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         try
         {
-            if (_voiceServerConnection == null || _networkConnection == null)
+            if (this._voiceServerConnection == null || this._networkConnection == null)
+            {
                 return;
+            }
 
-            await PublishAtisToWebsocket();
+            await this.PublishAtisToWebsocket();
 
             switch (status)
             {
                 case NetworkConnectionStatus.Connected:
+                {
+                    try
                     {
-                        try
-                        {
-                            await _voiceServerConnection.Connect(_appConfig.UserId, _appConfig.PasswordDecrypted);
-                            _sessionManager.CurrentConnectionCount++;
-                        }
-                        catch (Exception ex)
-                        {
-                            ErrorMessage = ex.Message;
-                        }
-
-                        break;
+                        await this._voiceServerConnection.Connect(
+                            this._appConfig.UserId,
+                            this._appConfig.PasswordDecrypted);
+                        this._sessionManager.CurrentConnectionCount++;
                     }
+                    catch (Exception ex)
+                    {
+                        this.ErrorMessage = ex.Message;
+                    }
+
+                    break;
+                }
                 case NetworkConnectionStatus.Disconnected:
+                {
+                    try
                     {
-                        try
-                        {
-                            _sessionManager.CurrentConnectionCount =
-                                Math.Max(_sessionManager.CurrentConnectionCount - 1, 0);
-                            await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
-                            _voiceServerConnection?.Disconnect();
-                            _publishAtisTimer?.Dispose();
-                            _publishAtisTimer = null;
-                            _isPublishAtisTriggeredInitially = false;
-                        }
-                        catch (Exception ex)
-                        {
-                            ErrorMessage = ex.Message;
-                        }
-
-                        break;
+                        this._sessionManager.CurrentConnectionCount =
+                            Math.Max(this._sessionManager.CurrentConnectionCount - 1, 0);
+                        await this._voiceServerConnection.RemoveBot(this._networkConnection.Callsign);
+                        this._voiceServerConnection?.Disconnect();
+                        this._publishAtisTimer?.Dispose();
+                        this._publishAtisTimer = null;
+                        this._isPublishAtisTriggeredInitially = false;
                     }
+                    catch (Exception ex)
+                    {
+                        this.ErrorMessage = ex.Message;
+                    }
+
+                    break;
+                }
                 case NetworkConnectionStatus.Connecting:
                 case NetworkConnectionStatus.Observer:
                     break;
@@ -641,13 +621,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                Wind = null;
-                Altimeter = null;
-                Metar = null;
-                ErrorMessage = e.Message;
-            });
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    this.Wind = null;
+                    this.Altimeter = null;
+                    this.Metar = null;
+                    this.ErrorMessage = e.Message;
+                });
         }
     }
 
@@ -655,18 +636,23 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         try
         {
-            ErrorMessage = null;
+            this.ErrorMessage = null;
 
-            if (_appConfig.ConfigRequired)
+            if (this._appConfig.ConfigRequired)
             {
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                 {
                     if (lifetime.MainWindow == null)
+                    {
                         return;
+                    }
 
-                    if (await MessageBox.ShowDialog(lifetime.MainWindow,
-                            $"It looks like you haven't set your VATSIM user ID, password, and real name yet. Would you like to set them now?",
-                            "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                    if (await MessageBox.ShowDialog(
+                            lifetime.MainWindow,
+                            "It looks like you haven't set your VATSIM user ID, password, and real name yet. Would you like to set them now?",
+                            "Confirm",
+                            MessageBoxButton.YesNo,
+                            MessageBoxIcon.Information) == MessageBoxResult.Yes)
                     {
                         MessageBus.Current.SendMessage(new OpenGenerateSettingsDialog());
                     }
@@ -675,175 +661,207 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 return;
             }
 
-            if (_networkConnection == null)
+            if (this._networkConnection == null)
+            {
                 return;
+            }
 
-            if (!_networkConnection.IsConnected)
+            if (!this._networkConnection.IsConnected)
             {
                 try
                 {
-                    if (_sessionManager.CurrentConnectionCount >= _sessionManager.MaxConnectionCount)
+                    if (this._sessionManager.CurrentConnectionCount >= this._sessionManager.MaxConnectionCount)
                     {
-                        ErrorMessage = "Maximum ATIS connections exceeded.";
+                        this.ErrorMessage = "Maximum ATIS connections exceeded.";
                         NativeAudio.EmitSound(SoundType.Error);
                         return;
                     }
 
-                    NetworkConnectionStatus = NetworkConnectionStatus.Connecting;
-                    await _networkConnection.Connect();
+                    this.NetworkConnectionStatus = NetworkConnectionStatus.Connecting;
+                    await this._networkConnection.Connect();
                 }
                 catch (Exception e)
                 {
                     NativeAudio.EmitSound(SoundType.Error);
-                    ErrorMessage = e.Message;
-                    _networkConnection?.Disconnect();
-                    NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                    this.ErrorMessage = e.Message;
+                    this._networkConnection?.Disconnect();
+                    this.NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
                 }
             }
             else
             {
-                _networkConnection?.Disconnect();
-                NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                this._networkConnection?.Disconnect();
+                this.NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
             }
         }
         catch (Exception e)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                Wind = null;
-                Altimeter = null;
-                Metar = null;
-                ErrorMessage = e.Message;
-            });
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    this.Wind = null;
+                    this.Altimeter = null;
+                    this.Metar = null;
+                    this.ErrorMessage = e.Message;
+                });
         }
     }
 
     private void OnNetworkConnectionFailed(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(() =>
-        {
-            NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
-            Metar = null;
-            Wind = null;
-            Altimeter = null;
-        });
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                this.NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                this.Metar = null;
+                this.Wind = null;
+                this.Altimeter = null;
+            });
         NativeAudio.EmitSound(SoundType.Error);
     }
 
     private void OnNetworkErrorReceived(object? sender, NetworkErrorReceived e)
     {
-        ErrorMessage = e.Error;
+        this.ErrorMessage = e.Error;
         NativeAudio.EmitSound(SoundType.Error);
     }
 
     private void OnNetworkConnected(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(() => NetworkConnectionStatus = NetworkConnectionStatus.Connected);
+        Dispatcher.UIThread.Post(() => this.NetworkConnectionStatus = NetworkConnectionStatus.Connected);
     }
 
     private void OnNetworkDisconnected(object? sender, EventArgs e)
     {
-        _cancellationToken.Cancel();
-        _cancellationToken.Dispose();
-        _cancellationToken = new CancellationTokenSource();
+        this._cancellationToken.Cancel();
+        this._cancellationToken.Dispose();
+        this._cancellationToken = new CancellationTokenSource();
 
-        _decodedMetar = null;
+        this._decodedMetar = null;
 
-        Dispatcher.UIThread.Post(() =>
-        {
-            NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
-            Metar = null;
-            Wind = null;
-            Altimeter = null;
-            IsNewAtis = false;
-        });
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                this.NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                this.Metar = null;
+                this.Wind = null;
+                this.Altimeter = null;
+                this.IsNewAtis = false;
+            });
     }
 
     private void OnChangeServerReceived(object? sender, ClientEventArgs<string> e)
     {
-        _networkConnection?.Disconnect();
-        _networkConnection?.Connect(e.Value);
+        this._networkConnection?.Disconnect();
+        this._networkConnection?.Connect(e.Value);
     }
 
     private async void OnMetarResponseReceived(object? sender, MetarResponseReceived e)
     {
         try
         {
-            if (_voiceServerConnection == null || _networkConnection == null)
+            if (this._voiceServerConnection == null || this._networkConnection == null)
+            {
                 return;
+            }
 
-            if (NetworkConnectionStatus == NetworkConnectionStatus.Disconnected ||
-                NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            if (this.NetworkConnectionStatus == NetworkConnectionStatus.Disconnected ||
+                this.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            {
                 return;
+            }
 
-            if (SelectedAtisPreset == null)
+            if (this.SelectedAtisPreset == null)
+            {
                 return;
+            }
 
             if (e.IsNewMetar)
             {
-                IsNewAtis = false;
-                if (!_appConfig.SuppressNotificationSound)
+                this.IsNewAtis = false;
+                if (!this._appConfig.SuppressNotificationSound)
                 {
                     NativeAudio.EmitSound(SoundType.Notification);
                 }
-                AcknowledgeOrIncrementAtisLetterCommand.Execute().Subscribe();
-                IsNewAtis = true;
+
+                this.AcknowledgeOrIncrementAtisLetterCommand.Execute().Subscribe();
+                this.IsNewAtis = true;
             }
 
             // Save the decoded metar so its individual properties can be sent to clients
             // connected via the websocket.
-            _decodedMetar = e.Metar;
+            this._decodedMetar = e.Metar;
 
             var propertyUpdates = new TaskCompletionSource();
-            Dispatcher.UIThread.Post(() =>
-            {
-                Metar = e.Metar.RawMetar?.ToUpperInvariant();
-                Altimeter = e.Metar.Pressure?.Value?.ActualUnit == Value.Unit.HectoPascal
-                    ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
-                    : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
-                Wind = e.Metar.SurfaceWind?.RawValue;
-                propertyUpdates.SetResult();
-            });
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    this.Metar = e.Metar.RawMetar?.ToUpperInvariant();
+                    this.Altimeter = e.Metar.Pressure?.Value?.ActualUnit == Value.Unit.HectoPascal
+                        ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
+                        : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
+                    this.Wind = e.Metar.SurfaceWind?.RawValue;
+                    propertyUpdates.SetResult();
+                });
 
             // Wait for the UI thread to finish updating the properties. Without this it's possible
             // to publish updated METAR information either via the hub or websocket with old data.
             await propertyUpdates.Task;
 
-            if (_atisStation.AtisVoice.UseTextToSpeech)
+            if (this._atisStation.AtisVoice.UseTextToSpeech)
             {
                 try
                 {
                     // Cancel previous request
-                    await _cancellationToken.CancelAsync();
-                    _cancellationToken.Dispose();
-                    _cancellationToken = new CancellationTokenSource();
+                    await this._cancellationToken.CancelAsync();
+                    this._cancellationToken.Dispose();
+                    this._cancellationToken = new CancellationTokenSource();
 
-                    var atisBuilder = await _atisBuilder.BuildAtis(_atisStation, SelectedAtisPreset, AtisLetter, e.Metar,
-                        _cancellationToken.Token);
+                    var atisBuilder = await this._atisBuilder.BuildAtis(
+                        this._atisStation,
+                        this.SelectedAtisPreset,
+                        this.AtisLetter,
+                        e.Metar,
+                        this._cancellationToken.Token);
 
-                    _atisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
+                    this._atisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
 
-                    await PublishAtisToHub();
-                    _networkConnection?.SendSubscriberNotification(AtisLetter);
-                    await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
+                    await this.PublishAtisToHub();
+                    this._networkConnection?.SendSubscriberNotification(this.AtisLetter);
+                    await this._atisBuilder.UpdateIds(
+                        this._atisStation,
+                        this.SelectedAtisPreset,
+                        this.AtisLetter,
+                        this._cancellationToken.Token);
 
-                    if (atisBuilder.AudioBytes != null && _networkConnection != null)
+                    if (atisBuilder.AudioBytes != null && this._networkConnection != null)
                     {
-                        await Task.Run(async () =>
-                        {
-                            var dto = AtisBotUtils.AddBotRequest(atisBuilder.AudioBytes, _atisStation.Frequency,
-                                _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto, _cancellationToken.Token)!;
-                        }).ContinueWith(t =>
-                        {
-                            if (t.IsFaulted)
+                        await Task.Run(
+                            async () =>
                             {
-                                ErrorMessage = string.Join(",",
-                                    t.Exception.InnerExceptions.Select(exception => exception.Message));
-                                _networkConnection?.Disconnect();
-                                NativeAudio.EmitSound(SoundType.Error);
-                            }
-                        }, _cancellationToken.Token);
+                                var dto = AtisBotUtils.AddBotRequest(
+                                    atisBuilder.AudioBytes,
+                                    this._atisStation.Frequency,
+                                    this._atisStationAirport.Latitude,
+                                    this._atisStationAirport.Longitude,
+                                    100);
+                                await this._voiceServerConnection?.AddOrUpdateBot(
+                                    this._networkConnection.Callsign,
+                                    dto,
+                                    this._cancellationToken.Token)!;
+                            }).ContinueWith(
+                            t =>
+                            {
+                                if (t.IsFaulted)
+                                {
+                                    this.ErrorMessage = string.Join(
+                                        ",",
+                                        t.Exception.InnerExceptions.Select(exception => exception.Message));
+                                    this._networkConnection?.Disconnect();
+                                    NativeAudio.EmitSound(SoundType.Error);
+                                }
+                            },
+                            this._cancellationToken.Token);
                     }
                 }
                 catch (TaskCanceledException)
@@ -852,66 +870,85 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    ErrorMessage = ex.Message;
-                    _networkConnection?.Disconnect();
+                    this.ErrorMessage = ex.Message;
+                    this._networkConnection?.Disconnect();
                     NativeAudio.EmitSound(SoundType.Error);
                 }
             }
 
             // This is done at the very end to ensure the TextAtis is updated before the websocket message is sent.
-            await PublishAtisToWebsocket();
+            await this.PublishAtisToWebsocket();
         }
         catch (Exception ex)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                Wind = null;
-                Altimeter = null;
-                Metar = null;
-                ErrorMessage = ex.Message;
-            });
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    this.Wind = null;
+                    this.Altimeter = null;
+                    this.Metar = null;
+                    this.ErrorMessage = ex.Message;
+                });
         }
     }
 
     /// <summary>
-    /// Publishes the current ATIS information to connected websocket clients.
+    ///     Publishes the current ATIS information to connected websocket clients.
     /// </summary>
-    /// <param name="session">The connected client to publish the data to. If omitted or null the data is broadcast to all connected clients.</param>
+    /// <param name="session">
+    ///     The connected client to publish the data to. If omitted or null the data is broadcast to all
+    ///     connected clients.
+    /// </param>
     /// <returns>A task.</returns>
     private async Task PublishAtisToWebsocket(ClientMetadata? session = null)
     {
-        await _websocketService.SendAtisMessage(session, new AtisMessage.AtisMessageValue
-        {
-            Station = _atisStation.Identifier,
-            AtisType = _atisStation.AtisType,
-            AtisLetter = AtisLetter,
-            Metar = Metar?.Trim(),
-            Wind = Wind?.Trim(),
-            Altimeter = Altimeter?.Trim(),
-            TextAtis = _atisStation.TextAtis,
-            IsNewAtis = IsNewAtis,
-            NetworkConnectionStatus = NetworkConnectionStatus,
-            PressureUnit = _decodedMetar?.Pressure?.Value?.ActualUnit,
-            PressureValue = _decodedMetar?.Pressure?.Value?.ActualValue,
-        });
+        await this._websocketService.SendAtisMessage(
+            session,
+            new AtisMessage.AtisMessageValue
+            {
+                Station = this._atisStation.Identifier,
+                AtisType = this._atisStation.AtisType,
+                AtisLetter = this.AtisLetter,
+                Metar = this.Metar?.Trim(),
+                Wind = this.Wind?.Trim(),
+                Altimeter = this.Altimeter?.Trim(),
+                TextAtis = this._atisStation.TextAtis,
+                IsNewAtis = this.IsNewAtis,
+                NetworkConnectionStatus = this.NetworkConnectionStatus,
+                PressureUnit = this._decodedMetar?.Pressure?.Value?.ActualUnit,
+                PressureValue = this._decodedMetar?.Pressure?.Value?.ActualValue
+            });
     }
 
     private async Task PublishAtisToHub()
     {
-        await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
-            AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
+        await this._atisHubConnection.PublishAtis(
+            new AtisHubDto(
+                this._atisStation.Identifier,
+                this._atisStation.AtisType,
+                this.AtisLetter,
+                this.Metar?.Trim(),
+                this.Wind?.Trim(),
+                this.Altimeter?.Trim()));
 
         // Setup timer to re-publish ATIS every 3 minutes to keep it active in the hub cache
-        if (!_isPublishAtisTriggeredInitially)
+        if (!this._isPublishAtisTriggeredInitially)
         {
-            _isPublishAtisTriggeredInitially = true;
+            this._isPublishAtisTriggeredInitially = true;
 
             // ReSharper disable once AsyncVoidLambda
-            _publishAtisTimer = Observable.Interval(TimeSpan.FromMinutes(3)).Subscribe(async _ =>
-            {
-                await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
-                    AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
-            });
+            this._publishAtisTimer = Observable.Interval(TimeSpan.FromMinutes(3)).Subscribe(
+                async _ =>
+                {
+                    await this._atisHubConnection.PublishAtis(
+                        new AtisHubDto(
+                            this._atisStation.Identifier,
+                            this._atisStation.AtisType,
+                            this.AtisLetter,
+                            this.Metar?.Trim(),
+                            this.Wind?.Trim(),
+                            this.Altimeter?.Trim()));
+                });
         }
     }
 
@@ -920,50 +957,73 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         try
         {
             if (preset == null)
-                return;
-
-            if (preset != _previousAtisPreset)
             {
-                SelectedAtisPreset = preset;
-                _previousAtisPreset = preset;
+                return;
+            }
 
-                PopulateAirportConditions();
-                PopulateNotams();
+            if (preset != this._previousAtisPreset)
+            {
+                this.SelectedAtisPreset = preset;
+                this._previousAtisPreset = preset;
 
-                HasUnsavedNotams = false;
-                HasUnsavedAirportConditions = false;
+                this.PopulateAirportConditions();
+                this.PopulateNotams();
 
-                if (NetworkConnectionStatus != NetworkConnectionStatus.Connected || _networkConnection == null)
+                this.HasUnsavedNotams = false;
+                this.HasUnsavedAirportConditions = false;
+
+                if (this.NetworkConnectionStatus != NetworkConnectionStatus.Connected ||
+                    this._networkConnection == null)
+                {
                     return;
+                }
 
-                if (_decodedMetar == null)
+                if (this._decodedMetar == null)
+                {
                     return;
+                }
 
-                var atisBuilder = await _atisBuilder.BuildAtis(_atisStation, SelectedAtisPreset, AtisLetter, _decodedMetar,
-                    _cancellationToken.Token);
+                var atisBuilder = await this._atisBuilder.BuildAtis(
+                    this._atisStation,
+                    this.SelectedAtisPreset,
+                    this.AtisLetter,
+                    this._decodedMetar,
+                    this._cancellationToken.Token);
 
-                _atisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
+                this._atisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
 
-                await PublishAtisToHub();
-                await PublishAtisToWebsocket();
-                await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
+                await this.PublishAtisToHub();
+                await this.PublishAtisToWebsocket();
+                await this._atisBuilder.UpdateIds(
+                    this._atisStation,
+                    this.SelectedAtisPreset,
+                    this.AtisLetter,
+                    this._cancellationToken.Token);
 
-                if (_atisStation.AtisVoice.UseTextToSpeech)
+                if (this._atisStation.AtisVoice.UseTextToSpeech)
                 {
                     // Cancel previous request
-                    await _cancellationToken.CancelAsync();
-                    _cancellationToken.Dispose();
-                    _cancellationToken = new CancellationTokenSource();
+                    await this._cancellationToken.CancelAsync();
+                    this._cancellationToken.Dispose();
+                    this._cancellationToken = new CancellationTokenSource();
 
                     if (atisBuilder.AudioBytes != null)
                     {
-                        await Task.Run(async () =>
-                        {
-                            var dto = AtisBotUtils.AddBotRequest(atisBuilder.AudioBytes, _atisStation.Frequency,
-                                _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                                _cancellationToken.Token)!;
-                        }, _cancellationToken.Token);
+                        await Task.Run(
+                            async () =>
+                            {
+                                var dto = AtisBotUtils.AddBotRequest(
+                                    atisBuilder.AudioBytes,
+                                    this._atisStation.Frequency,
+                                    this._atisStationAirport.Latitude,
+                                    this._atisStationAirport.Longitude,
+                                    100);
+                                await this._voiceServerConnection?.AddOrUpdateBot(
+                                    this._networkConnection.Callsign,
+                                    dto,
+                                    this._cancellationToken.Token)!;
+                            },
+                            this._cancellationToken.Token);
                     }
                 }
             }
@@ -973,35 +1033,38 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                Wind = null;
-                Altimeter = null;
-                Metar = null;
-                ErrorMessage = e.Message;
-            });
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    this.Wind = null;
+                    this.Altimeter = null;
+                    this.Metar = null;
+                    this.ErrorMessage = e.Message;
+                });
         }
     }
 
     private void PopulateNotams()
     {
-        if (NotamsTextDocument == null)
+        if (this.NotamsTextDocument == null)
+        {
             return;
+        }
 
         // Clear the list of read-only NOTAM text segments.
-        ReadOnlyNotams.Clear();
+        this.ReadOnlyNotams.Clear();
 
         // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
-        var staticDefinitions = _atisStation.NotamDefinitions
+        var staticDefinitions = this._atisStation.NotamDefinitions
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
 
         // Start with an empty document.
-        NotamsTextDocument.Text = "";
+        this.NotamsTextDocument.Text = "";
 
         // Reset offset
-        _notamFreeTextOffset = 0;
+        this._notamFreeTextOffset = 0;
 
         // If static NOTAM definitions exist, insert them into the document.
         if (staticDefinitions.Count > 0)
@@ -1010,45 +1073,48 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
 
             // Insert static NOTAM definitions at the beginning of the document.
-            NotamsTextDocument.Insert(0, staticDefinitionsString);
+            this.NotamsTextDocument.Insert(0, staticDefinitionsString);
 
             // Add the static NOTAM range to the read-only list to prevent modification.
-            ReadOnlyNotams.Add(new TextSegment
-            {
-                StartOffset = 0,
-                EndOffset = staticDefinitionsString.Length
-            });
+            this.ReadOnlyNotams.Add(
+                new TextSegment
+                {
+                    StartOffset = 0,
+                    EndOffset = staticDefinitionsString.Length
+                });
 
             // Update the starting index for the next insertion.
-            _notamFreeTextOffset = staticDefinitionsString.Length;
+            this._notamFreeTextOffset = staticDefinitionsString.Length;
         }
 
         // Always append the free-form NOTAM text after the static definitions (if any).
-        if (!string.IsNullOrEmpty(SelectedAtisPreset?.Notams))
+        if (!string.IsNullOrEmpty(this.SelectedAtisPreset?.Notams))
         {
-            NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset?.Notams);
+            this.NotamsTextDocument.Insert(this._notamFreeTextOffset, this.SelectedAtisPreset?.Notams);
         }
     }
 
     private void PopulateAirportConditions()
     {
-        if (AirportConditionsTextDocument == null)
+        if (this.AirportConditionsTextDocument == null)
+        {
             return;
+        }
 
         // Clear the list of read-only NOTAM text segments.
-        ReadOnlyAirportConditions.Clear();
+        this.ReadOnlyAirportConditions.Clear();
 
         // Retrieve and sort enabled static airport conditions by their ordinal value.
-        var staticDefinitions = _atisStation.AirportConditionDefinitions
+        var staticDefinitions = this._atisStation.AirportConditionDefinitions
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
 
         // Start with an empty document.
-        AirportConditionsTextDocument.Text = "";
+        this.AirportConditionsTextDocument.Text = "";
 
         // Reset offset
-        _airportConditionsFreeTextOffset = 0;
+        this._airportConditionsFreeTextOffset = 0;
 
         // If static airport conditions exist, insert them into the document.
         if (staticDefinitions.Count > 0)
@@ -1059,24 +1125,26 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
 
             // Insert static airport conditions at the beginning of the document.
-            AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
+            this.AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
 
             // Add the static airport conditions to the read-only list to prevent modification.
-            ReadOnlyAirportConditions.Add(new TextSegment
-            {
-                StartOffset = 0,
-                EndOffset = staticDefinitionsString.Length
-            });
+            this.ReadOnlyAirportConditions.Add(
+                new TextSegment
+                {
+                    StartOffset = 0,
+                    EndOffset = staticDefinitionsString.Length
+                });
 
             // Update the starting index for the next insertion.
-            _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
+            this._airportConditionsFreeTextOffset = staticDefinitionsString.Length;
         }
 
         // Always append the free-form airport conditions after the static definitions (if any).
-        if (!string.IsNullOrEmpty(SelectedAtisPreset?.AirportConditions))
+        if (!string.IsNullOrEmpty(this.SelectedAtisPreset?.AirportConditions))
         {
-            AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
-                SelectedAtisPreset?.AirportConditions);
+            this.AirportConditionsTextDocument.Insert(
+                this._airportConditionsFreeTextOffset,
+                this.SelectedAtisPreset?.AirportConditions);
         }
     }
 
@@ -1084,7 +1152,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         try
         {
-            await PublishAtisToWebsocket();
+            await this.PublishAtisToWebsocket();
         }
         catch (Exception e)
         {
@@ -1098,59 +1166,83 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             // Always publish the latest information to the websocket, even if the station isn't
             // connected or doesn't support text to speech.
-            await PublishAtisToWebsocket();
+            await this.PublishAtisToWebsocket();
 
-            if (!_atisStation.AtisVoice.UseTextToSpeech)
+            if (!this._atisStation.AtisVoice.UseTextToSpeech)
+            {
                 return;
+            }
 
-            if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+            if (this.NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+            {
                 return;
+            }
 
-            if (SelectedAtisPreset == null)
+            if (this.SelectedAtisPreset == null)
+            {
                 return;
+            }
 
-            if (_networkConnection == null || _voiceServerConnection == null)
+            if (this._networkConnection == null || this._voiceServerConnection == null)
+            {
                 return;
+            }
 
-            if (_decodedMetar == null)
+            if (this._decodedMetar == null)
+            {
                 return;
+            }
 
             // Cancel previous request
-            await _cancellationToken.CancelAsync();
-            _cancellationToken.Dispose();
-            _cancellationToken = new CancellationTokenSource();
+            await this._cancellationToken.CancelAsync();
+            this._cancellationToken.Dispose();
+            this._cancellationToken = new CancellationTokenSource();
 
-            await Task.Run(async () =>
-            {
-                try
+            await Task.Run(
+                async () =>
                 {
-                    var atisBuilder = await _atisBuilder.BuildAtis(_atisStation, SelectedAtisPreset, atisLetter,
-                        _decodedMetar, _cancellationToken.Token);
-
-                    _atisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
-
-                    await PublishAtisToHub();
-                    _networkConnection?.SendSubscriberNotification(AtisLetter);
-                    await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter,
-                        _cancellationToken.Token);
-
-                    if (atisBuilder.AudioBytes != null && _networkConnection != null)
+                    try
                     {
-                        var dto = AtisBotUtils.AddBotRequest(atisBuilder.AudioBytes, _atisStation.Frequency,
-                            _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                        _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                            _cancellationToken.Token);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex)
-                {
-                    Dispatcher.UIThread.Post(() => { ErrorMessage = ex.Message; });
-                }
+                        var atisBuilder = await this._atisBuilder.BuildAtis(
+                            this._atisStation,
+                            this.SelectedAtisPreset,
+                            atisLetter,
+                            this._decodedMetar,
+                            this._cancellationToken.Token);
 
-            }, _cancellationToken.Token);
+                        this._atisStation.TextAtis = atisBuilder.TextAtis?.ToUpperInvariant();
+
+                        await this.PublishAtisToHub();
+                        this._networkConnection?.SendSubscriberNotification(this.AtisLetter);
+                        await this._atisBuilder.UpdateIds(
+                            this._atisStation,
+                            this.SelectedAtisPreset,
+                            this.AtisLetter,
+                            this._cancellationToken.Token);
+
+                        if (atisBuilder.AudioBytes != null && this._networkConnection != null)
+                        {
+                            var dto = AtisBotUtils.AddBotRequest(
+                                atisBuilder.AudioBytes,
+                                this._atisStation.Frequency,
+                                this._atisStationAirport.Latitude,
+                                this._atisStationAirport.Longitude,
+                                100);
+                            this._voiceServerConnection?.AddOrUpdateBot(
+                                this._networkConnection.Callsign,
+                                dto,
+                                this._cancellationToken.Token);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    catch (Exception ex)
+                    {
+                        Dispatcher.UIThread.Post(() => { this.ErrorMessage = ex.Message; });
+                    }
+                },
+                this._cancellationToken.Token);
         }
         catch (OperationCanceledException)
         {
@@ -1158,13 +1250,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                Wind = null;
-                Altimeter = null;
-                Metar = null;
-                ErrorMessage = e.Message;
-            });
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    this.Wind = null;
+                    this.Altimeter = null;
+                    this.Metar = null;
+                    this.ErrorMessage = e.Message;
+                });
         }
     }
 
@@ -1176,12 +1269,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             // must match to acknowledge the update.
             // If a specific station isn't specified then the request is for all stations.
             if (!string.IsNullOrEmpty(e.Station) &&
-                (e.Station != _atisStation.Identifier || e.AtisType != _atisStation.AtisType))
+                (e.Station != this._atisStation.Identifier || e.AtisType != this._atisStation.AtisType))
             {
                 return;
             }
 
-            await PublishAtisToWebsocket(e.Session);
+            await this.PublishAtisToWebsocket(e.Session);
         }
         catch (Exception ex)
         {
@@ -1195,75 +1288,227 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         // must match to acknowledge the update.
         // If a specific station isn't specified then the request is for all stations.
         if (!string.IsNullOrEmpty(e.Station) &&
-            (e.Station != _atisStation.Identifier || e.AtisType != _atisStation.AtisType))
+            (e.Station != this._atisStation.Identifier || e.AtisType != this._atisStation.AtisType))
         {
             return;
         }
 
-        HandleAcknowledgeAtisUpdate();
+        this.HandleAcknowledgeAtisUpdate();
     }
 
     private void HandleAcknowledgeAtisUpdate()
     {
-        if (IsNewAtis)
+        if (this.IsNewAtis)
         {
-            IsNewAtis = false;
+            this.IsNewAtis = false;
         }
     }
 
     private void AcknowledgeOrIncrementAtisLetter()
     {
-        if (IsNewAtis)
+        if (this.IsNewAtis)
         {
-            IsNewAtis = false;
+            this.IsNewAtis = false;
             return;
         }
 
-        AtisLetter++;
-        if (AtisLetter > _atisStation.CodeRange.High)
-            AtisLetter = _atisStation.CodeRange.Low;
+        this.AtisLetter++;
+        if (this.AtisLetter > this._atisStation.CodeRange.High)
+        {
+            this.AtisLetter = this._atisStation.CodeRange.Low;
+        }
     }
 
     private void DecrementAtisLetter()
     {
-        AtisLetter--;
-        if (AtisLetter < _atisStation.CodeRange.Low)
-            AtisLetter = _atisStation.CodeRange.High;
+        this.AtisLetter--;
+        if (this.AtisLetter < this._atisStation.CodeRange.Low)
+        {
+            this.AtisLetter = this._atisStation.CodeRange.High;
+        }
     }
 
     public void Disconnect()
     {
-        _networkConnection?.Disconnect();
-        NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+        this._networkConnection?.Disconnect();
+        this.NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
     }
 
-    public void Dispose()
+    #region Reactive Properties
+
+    private string? _id;
+
+    public string? Id
     {
-        GC.SuppressFinalize(this);
-
-        _websocketService.GetAtisReceived -= OnGetAtisReceived;
-        _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
-
-        if (_networkConnection != null)
-        {
-            _networkConnection.NetworkConnectionFailed -= OnNetworkConnectionFailed;
-            _networkConnection.NetworkErrorReceived -= OnNetworkErrorReceived;
-            _networkConnection.NetworkConnected -= OnNetworkConnected;
-            _networkConnection.NetworkDisconnected -= OnNetworkDisconnected;
-            _networkConnection.ChangeServerReceived -= OnChangeServerReceived;
-            _networkConnection.MetarResponseReceived -= OnMetarResponseReceived;
-            _networkConnection.KillRequestReceived -= OnKillRequestedReceived;
-        }
-
-        DecrementAtisLetterCommand.Dispose();
-        AcknowledgeOrIncrementAtisLetterCommand.Dispose();
-        AcknowledgeAtisUpdateCommand.Dispose();
-        NetworkConnectCommand.Dispose();
-        VoiceRecordAtisCommand.Dispose();
-        OpenStaticAirportConditionsDialogCommand.Dispose();
-        OpenStaticNotamsDialogCommand.Dispose();
-        SelectedPresetChangedCommand.Dispose();
-        SaveAirportConditionsText.Dispose();
-        SaveNotamsText.Dispose();
+        get => this._id;
+        private set => this.RaiseAndSetIfChanged(ref this._id, value);
     }
+
+    private string? _identifier;
+
+    public string? Identifier
+    {
+        get => this._identifier;
+        set => this.RaiseAndSetIfChanged(ref this._identifier, value);
+    }
+
+    private string? _tabText;
+
+    public string? TabText
+    {
+        get => this._tabText;
+        set => this.RaiseAndSetIfChanged(ref this._tabText, value);
+    }
+
+    private char _atisLetter;
+
+    public char AtisLetter
+    {
+        get => this._atisLetter;
+        set => this.RaiseAndSetIfChanged(ref this._atisLetter, value);
+    }
+
+    public CodeRangeMeta CodeRange => this._atisStation.CodeRange;
+
+    private bool _isAtisLetterInputMode;
+
+    public bool IsAtisLetterInputMode
+    {
+        get => this._isAtisLetterInputMode;
+        set => this.RaiseAndSetIfChanged(ref this._isAtisLetterInputMode, value);
+    }
+
+    private string? _metar;
+
+    public string? Metar
+    {
+        get => this._metar;
+        set => this.RaiseAndSetIfChanged(ref this._metar, value);
+    }
+
+    private string? _wind;
+
+    public string? Wind
+    {
+        get => this._wind;
+        set => this.RaiseAndSetIfChanged(ref this._wind, value);
+    }
+
+    private string? _altimeter;
+
+    public string? Altimeter
+    {
+        get => this._altimeter;
+        set => this.RaiseAndSetIfChanged(ref this._altimeter, value);
+    }
+
+    private bool _isNewAtis;
+
+    public bool IsNewAtis
+    {
+        get => this._isNewAtis;
+        set => this.RaiseAndSetIfChanged(ref this._isNewAtis, value);
+    }
+
+    private string _atisTypeLabel = "";
+
+    public string AtisTypeLabel
+    {
+        get => this._atisTypeLabel;
+        set => this.RaiseAndSetIfChanged(ref this._atisTypeLabel, value);
+    }
+
+    private bool _isCombinedAtis;
+
+    public bool IsCombinedAtis
+    {
+        get => this._isCombinedAtis;
+        private set => this.RaiseAndSetIfChanged(ref this._isCombinedAtis, value);
+    }
+
+    private ObservableCollection<AtisPreset> _atisPresetList = [];
+
+    public ObservableCollection<AtisPreset> AtisPresetList
+    {
+        get => this._atisPresetList;
+        set => this.RaiseAndSetIfChanged(ref this._atisPresetList, value);
+    }
+
+    private AtisPreset? _selectedAtisPreset;
+
+    public AtisPreset? SelectedAtisPreset
+    {
+        get => this._selectedAtisPreset;
+        private set => this.RaiseAndSetIfChanged(ref this._selectedAtisPreset, value);
+    }
+
+    private string? _errorMessage;
+
+    public string? ErrorMessage
+    {
+        get => this._errorMessage;
+        set => this.RaiseAndSetIfChanged(ref this._errorMessage, value);
+    }
+
+    private string? AirportConditionsFreeText => this.AirportConditionsTextDocument?.Text;
+
+    private TextDocument? _airportConditionsTextDocument = new();
+
+    public TextDocument? AirportConditionsTextDocument
+    {
+        get => this._airportConditionsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref this._airportConditionsTextDocument, value);
+    }
+
+    private string? NotamsFreeText => this._notamsTextDocument?.Text;
+
+    private TextDocument? _notamsTextDocument = new();
+
+    public TextDocument? NotamsTextDocument
+    {
+        get => this._notamsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref this._notamsTextDocument, value);
+    }
+
+    private bool _useTexToSpeech;
+
+    private bool UseTexToSpeech
+    {
+        get => this._useTexToSpeech;
+        set => this.RaiseAndSetIfChanged(ref this._useTexToSpeech, value);
+    }
+
+    private NetworkConnectionStatus _networkConnectionStatus = NetworkConnectionStatus.Disconnected;
+
+    public NetworkConnectionStatus NetworkConnectionStatus
+    {
+        get => this._networkConnectionStatus;
+        set => this.RaiseAndSetIfChanged(ref this._networkConnectionStatus, value);
+    }
+
+    private List<ICompletionData> _contractionCompletionData = [];
+
+    public List<ICompletionData> ContractionCompletionData
+    {
+        get => this._contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref this._contractionCompletionData, value);
+    }
+
+    private bool _hasUnsavedAirportConditions;
+
+    public bool HasUnsavedAirportConditions
+    {
+        get => this._hasUnsavedAirportConditions;
+        set => this.RaiseAndSetIfChanged(ref this._hasUnsavedAirportConditions, value);
+    }
+
+    private bool _hasUnsavedNotams;
+
+    public bool HasUnsavedNotams
+    {
+        get => this._hasUnsavedNotams;
+        set => this.RaiseAndSetIfChanged(ref this._hasUnsavedNotams, value);
+    }
+
+    #endregion
 }

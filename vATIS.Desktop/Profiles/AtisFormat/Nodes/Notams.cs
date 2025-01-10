@@ -4,12 +4,15 @@ public class Notams : BaseFormat
 {
     public Notams()
     {
-        Template = new()
+        this.Template = new Template
         {
             Text = "NOTAMS... {notams}",
             Voice = "NOTICES TO AIR MISSIONS: {notams}"
         };
     }
 
-    public Notams Clone() => (Notams)MemberwiseClone();
+    public Notams Clone()
+    {
+        return (Notams)this.MemberwiseClone();
+    }
 }

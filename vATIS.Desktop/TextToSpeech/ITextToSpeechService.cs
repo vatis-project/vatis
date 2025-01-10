@@ -7,7 +7,9 @@ namespace Vatsim.Vatis.TextToSpeech;
 
 public interface ITextToSpeechService
 {
-    Task Initialize();
     List<VoiceMetaData> VoiceList { get; }
+
+    Task Initialize();
+
     Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken);
 }

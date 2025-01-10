@@ -10,12 +10,12 @@ public class DataGridTextUppercaseBehavior : Behavior<DataGrid>
     protected override void OnAttached()
     {
         base.OnAttached();
-        AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
+        this.AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDetaching()
     {
-        AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        this.AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
         base.OnDetaching();
     }
 

@@ -1,4 +1,10 @@
-﻿using System.Collections.Generic;
+﻿// <copyright file="SourceGenerationContext.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System.Collections.Generic;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -16,14 +22,14 @@ using Vatsim.Vatis.Voice.Dto;
 
 namespace Vatsim.Vatis;
 
+/// <inheritdoc cref="System.Text.Json.Serialization.JsonSerializerContext" />
 [JsonSourceGenerationOptions(
     WriteIndented = true,
     UseStringEnumConverter = true,
     PropertyNameCaseInsensitive = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
-    Converters = [typeof(JsonStringEnumConverter<NetworkRating>)]
-)]
+    Converters = [typeof(JsonStringEnumConverter<NetworkRating>)])]
 [JsonSerializable(typeof(NetworkRating))]
 [JsonSerializable(typeof(AppConfiguration))]
 [JsonSerializable(typeof(VatsimStatus))]
@@ -55,14 +61,18 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(JsonElement))]
 public partial class SourceGenerationContext : JsonSerializerContext
 {
-    public static SourceGenerationContext NewDefault { get; } = new(new JsonSerializerOptions
-    {
-        WriteIndented = true,
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        AllowTrailingCommas = true,
-        UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    });
+    /// <summary>
+    /// Gets the default JSON source generation context.
+    /// </summary>
+    public static SourceGenerationContext NewDefault { get; } = new(
+        new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            AllowTrailingCommas = true,
+            UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        });
 }

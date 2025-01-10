@@ -11,51 +11,60 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
 
-public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationWindowViewModel>, ICloseable, IDialogOwner
+public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationWindowViewModel>, ICloseable,
+    IDialogOwner
 {
     private int _currentStationIndex;
     private bool _suppressSelectionChanged;
 
     public AtisConfigurationWindow(AtisConfigurationWindowViewModel viewModel)
     {
-        InitializeComponent();
-        DataContext = viewModel;
-        ViewModel?.Initialize(this);
-        Closed += OnClosed;
+        this.InitializeComponent();
+        this.DataContext = viewModel;
+        this.ViewModel?.Initialize(this);
+        this.Closed += this.OnClosed;
 
-        this.WhenAnyValue(x => x.ViewModel!.SelectedAtisStation).Subscribe(station =>
-        {
-            var index = Stations.Items.IndexOf(station);
-            Stations.SelectedIndex = index;
-        });
-    }
-
-    private void OnClosed(object? sender, EventArgs e)
-    {
-        ViewModel?.Dispose();
+        this.WhenAnyValue(x => x.ViewModel!.SelectedAtisStation).Subscribe(
+            station =>
+            {
+                var index = this.Stations.Items.IndexOf(station);
+                this.Stations.SelectedIndex = index;
+            });
     }
 
     public AtisConfigurationWindow()
     {
-        InitializeComponent();
+        this.InitializeComponent();
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        this.ViewModel?.Dispose();
     }
 
     private async void Stations_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         try
         {
-            if (Stations.SelectedIndex < 0)
-                return;
-
-            if (_suppressSelectionChanged)
-                return;
-
-            if (ViewModel is not { } model)
-                return;
-
-            if (model.HasUnsavedChanges && Stations.SelectedIndex != _currentStationIndex)
+            if (this.Stations.SelectedIndex < 0)
             {
-                var result = await MessageBox.ShowDialog(this,
+                return;
+            }
+
+            if (this._suppressSelectionChanged)
+            {
+                return;
+            }
+
+            if (this.ViewModel is not { } model)
+            {
+                return;
+            }
+
+            if (model.HasUnsavedChanges && this.Stations.SelectedIndex != this._currentStationIndex)
+            {
+                var result = await MessageBox.ShowDialog(
+                    this,
                     "You have unsaved changes. Are you sure you want to discard them?",
                     "Confirm",
                     MessageBoxButton.YesNo,
@@ -63,9 +72,9 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
 
                 if (result == MessageBoxResult.No)
                 {
-                    _suppressSelectionChanged = true;
-                    Stations.SelectedIndex = _currentStationIndex;
-                    _suppressSelectionChanged = false;
+                    this._suppressSelectionChanged = true;
+                    this.Stations.SelectedIndex = this._currentStationIndex;
+                    this._suppressSelectionChanged = false;
 
                     e.Handled = true;
                     return;
@@ -75,7 +84,7 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
             if (e.AddedItems.Count > 0 && e.AddedItems[0] is AtisStation station)
             {
                 await model.SelectedAtisStationChanged.Execute(station);
-                _currentStationIndex = Stations.SelectedIndex;
+                this._currentStationIndex = this.Stations.SelectedIndex;
             }
         }
         catch (Exception ex)
@@ -88,7 +97,7 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
     {
         if (e.Source is Border { Name: "TitleBar" } && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 }

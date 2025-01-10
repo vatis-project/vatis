@@ -14,11 +14,16 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
 {
     public ProfileListDialog(ProfileListViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        Loaded += ProfileListDialog_Loaded;
-        Closed += OnClosed;
-        Closing += OnClosing;
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.Loaded += this.ProfileListDialog_Loaded;
+        this.Closed += this.OnClosed;
+        this.Closing += this.OnClosing;
+    }
+
+    public ProfileListDialog()
+    {
+        this.InitializeComponent();
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -27,20 +32,20 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         if (!e.IsProgrammatic)
         {
             // Execute the ExitCommand to perform a clean application shutdown
-            Dispatcher.UIThread.InvokeAsync(() => ViewModel?.ExitCommand.Execute().Subscribe());
+            Dispatcher.UIThread.InvokeAsync(() => this.ViewModel?.ExitCommand.Execute().Subscribe());
         }
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.Dispose();
+        this.ViewModel?.Dispose();
     }
 
     private async void ProfileListDialog_Loaded(object? sender, RoutedEventArgs e)
     {
         try
         {
-            await ViewModel?.InitializeCommand.Execute()!;
+            await this.ViewModel?.InitializeCommand.Execute()!;
         }
         catch (Exception ex)
         {
@@ -52,19 +57,14 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 
-    public ProfileListDialog()
-    {
-        InitializeComponent();
-    }
-    
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
-        if (DataContext is ProfileListViewModel model)
+        if (this.DataContext is ProfileListViewModel model)
         {
             model.SetDialogOwner(this);
         }
@@ -74,8 +74,8 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
     {
         base.OnLoaded(e);
 
-        PositionChanged += OnPositionChanged;
-        if (DataContext is ProfileListViewModel model)
+        this.PositionChanged += this.OnPositionChanged;
+        if (this.DataContext is ProfileListViewModel model)
         {
             model.RestorePosition(this);
         }
@@ -83,7 +83,7 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is ProfileListViewModel model)
+        if (this.DataContext is ProfileListViewModel model)
         {
             model.UpdatePosition(this);
         }

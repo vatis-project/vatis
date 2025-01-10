@@ -1,20 +1,22 @@
-﻿using Avalonia.Controls;
-using Avalonia.Xaml.Interactivity;
-using System.Linq;
+﻿using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
+
 public class RoutineObservationTimeFormatBehavior : Behavior<TextBox>
 {
     protected override void OnAttached()
     {
         base.OnAttached();
-        AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        this.AssociatedObject?.AddHandler(InputElement.TextInputEvent, this.TextInputHandler, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDetaching()
     {
-        AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        this.AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, this.TextInputHandler);
         base.OnDetaching();
     }
 

@@ -12,67 +12,78 @@ public class MockNetworkConnection : INetworkConnection
     private readonly IMetarRepository _metarRepository;
     private string? _previousMetar;
 
-    public event EventHandler? NetworkConnected = delegate { };
-    public event EventHandler? NetworkDisconnected = delegate { };
-    public event EventHandler? NetworkConnectionFailed = delegate { };
-    public event EventHandler<MetarResponseReceived>? MetarResponseReceived = delegate { };
-    public event EventHandler<NetworkErrorReceived>? NetworkErrorReceived = delegate { };
-    public event EventHandler<KillRequestReceived>? KillRequestReceived = delegate { };
-    public event EventHandler<ClientEventArgs<string>>? ChangeServerReceived = delegate { };
-
     public MockNetworkConnection(AtisStation station, IMetarRepository metarRepository)
     {
-        _metarRepository = metarRepository;
+        this._metarRepository = metarRepository;
 
-        Station = station;
-        Callsign = station.AtisType switch
+        this.Station = station;
+        this.Callsign = station.AtisType switch
         {
             AtisType.Combined => station.Identifier + "_ATIS",
             AtisType.Departure => station.Identifier + "_D_ATIS",
             AtisType.Arrival => station.Identifier + "_A_ATIS",
-            _ => throw new Exception("Unknown AtisType: " + station.AtisType),
+            _ => throw new Exception("Unknown AtisType: " + station.AtisType)
         };
 
-        MessageBus.Current.Listen<MetarReceived>().Subscribe(evt =>
-        {
-            if (evt.Metar.Icao == station.Identifier)
+        MessageBus.Current.Listen<MetarReceived>().Subscribe(
+            evt =>
             {
-                var isNewMetar = !string.IsNullOrEmpty(_previousMetar) &&
-                                 evt.Metar.RawMetar?.Trim() != _previousMetar?.Trim();
-                if (_previousMetar != evt.Metar.RawMetar)
+                if (evt.Metar.Icao == station.Identifier)
                 {
-                    MetarResponseReceived?.Invoke(this, new MetarResponseReceived(evt.Metar, isNewMetar));
-                    _previousMetar = evt.Metar.RawMetar;
+                    var isNewMetar = !string.IsNullOrEmpty(this._previousMetar) &&
+                                     evt.Metar.RawMetar?.Trim() != this._previousMetar?.Trim();
+                    if (this._previousMetar != evt.Metar.RawMetar)
+                    {
+                        this.MetarResponseReceived?.Invoke(this, new MetarResponseReceived(evt.Metar, isNewMetar));
+                        this._previousMetar = evt.Metar.RawMetar;
+                    }
                 }
-            }
-        });
+            });
 
-        MessageBus.Current.Listen<SessionEnded>().Subscribe(_ => { Disconnect(); });
+        MessageBus.Current.Listen<SessionEnded>().Subscribe(_ => { this.Disconnect(); });
     }
 
-    public string Callsign { get; }
-    public bool IsConnected { get; private set; }
     public AtisStation Station { get; }
+
+    public event EventHandler? NetworkConnected = delegate { };
+
+    public event EventHandler? NetworkDisconnected = delegate { };
+
+    public event EventHandler? NetworkConnectionFailed = delegate { };
+
+    public event EventHandler<MetarResponseReceived>? MetarResponseReceived = delegate { };
+
+    public event EventHandler<NetworkErrorReceived>? NetworkErrorReceived = delegate { };
+
+    public event EventHandler<KillRequestReceived>? KillRequestReceived = delegate { };
+
+    public event EventHandler<ClientEventArgs<string>>? ChangeServerReceived = delegate { };
+
+    public string Callsign { get; }
+
+    public bool IsConnected { get; private set; }
 
     public Task Connect(string? serverAddress)
     {
-        _metarRepository.GetMetar(Station.Identifier, monitor: true);
+        this._metarRepository.GetMetar(this.Station.Identifier, true);
 
-        NetworkConnected?.Invoke(this, EventArgs.Empty);
-        IsConnected = true;
+        this.NetworkConnected?.Invoke(this, EventArgs.Empty);
+        this.IsConnected = true;
 
         return Task.CompletedTask;
     }
 
     public void Disconnect()
     {
-        if (!string.IsNullOrEmpty(Station.Identifier))
-            _metarRepository.RemoveMetar(Station.Identifier);
+        if (!string.IsNullOrEmpty(this.Station.Identifier))
+        {
+            this._metarRepository.RemoveMetar(this.Station.Identifier);
+        }
 
-        NetworkDisconnected?.Invoke(this, EventArgs.Empty);
-        IsConnected = false;
+        this.NetworkDisconnected?.Invoke(this, EventArgs.Empty);
+        this.IsConnected = false;
 
-        _previousMetar = null;
+        this._previousMetar = null;
     }
 
     public void SendSubscriberNotification(char atisLetter)

@@ -24,71 +24,32 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 {
     private readonly IWindowFactory _windowFactory;
 
-    public Window? Owner { get; set; }
-    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
-    public ReactiveCommand<Unit, Unit> NewDefinitionCommand { get; }
-    public ReactiveCommand<Unit, Unit> EditDefinitionCommand { get; }
-    public ReactiveCommand<Unit, Unit> DeleteDefinitionCommand { get; }
-    public ReactiveCommand<Unit, Unit> MoveDefinitionUpCommand { get; }
-    public ReactiveCommand<Unit, Unit> MoveDefinitionDownCommand { get; }
-
-    private bool _showOverlay;
-    public bool ShowOverlay
-    {
-        get => _showOverlay;
-        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
-    }
-
-    private bool _hasDefinitions;
-    public bool HasDefinitions
-    {
-        get => _hasDefinitions;
-        set => this.RaiseAndSetIfChanged(ref _hasDefinitions, value);
-    }
-
-    private bool _includeBeforeFreeText;
-    public bool IncludeBeforeFreeText
-    {
-        get => _includeBeforeFreeText;
-        set => this.RaiseAndSetIfChanged(ref _includeBeforeFreeText, value);
-    }
-
     private List<ICompletionData> _contractionCompletionData = [];
-    public List<ICompletionData> ContractionCompletionData
-    {
-        get => _contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
-    }
 
     private ObservableCollection<StaticDefinition> _definitions = [];
-    public ObservableCollection<StaticDefinition> Definitions
-    {
-        get => _definitions;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _definitions, value);
-            Source.Items = _definitions.OrderBy(x => x.Ordinal);
-            HasDefinitions = _definitions.Count != 0;
-        }
-    }
 
-    public FlatTreeDataGridSource<StaticDefinition> Source { get; }
+    private bool _hasDefinitions;
+
+    private bool _includeBeforeFreeText;
+
+    private bool _showOverlay;
 
     public StaticAirportConditionsDialogViewModel(IWindowFactory windowFactory)
     {
-        _windowFactory = windowFactory;
+        this._windowFactory = windowFactory;
 
         var textColumnLength = new GridLength(1, GridUnitType.Star);
-        var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) =>
-        {
-            r.Enabled = v;
-        });
-        var descriptionColumn = new TextColumn<StaticDefinition, string>("", x => x.ToString()!.ToUpperInvariant(), width: textColumnLength, new TextColumnOptions<StaticDefinition>()
-        {
-            TextWrapping = TextWrapping.Wrap
-        });
+        var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) => { r.Enabled = v; });
+        var descriptionColumn = new TextColumn<StaticDefinition, string>(
+            "",
+            x => x.ToString()!.ToUpperInvariant(),
+            textColumnLength,
+            new TextColumnOptions<StaticDefinition>
+            {
+                TextWrapping = TextWrapping.Wrap
+            });
 
-        Source = new FlatTreeDataGridSource<StaticDefinition>(Definitions)
+        this.Source = new FlatTreeDataGridSource<StaticDefinition>(this.Definitions)
         {
             Columns =
             {
@@ -96,107 +57,177 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                 descriptionColumn
             }
         };
-        Source.RowSelection!.SingleSelect = false;
+        this.Source.RowSelection!.SingleSelect = false;
 
         var canExecute = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem).Select(x => x != null);
 
-        NewDefinitionCommand = ReactiveCommand.CreateFromTask(HandleNewDefinition);
-        DeleteDefinitionCommand = ReactiveCommand.CreateFromTask(HandleDeleteDefinition, canExecute);
-        EditDefinitionCommand = ReactiveCommand.CreateFromTask(HandleEditDefinition, canExecute);
-        CloseWindowCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
+        this.NewDefinitionCommand = ReactiveCommand.CreateFromTask(this.HandleNewDefinition);
+        this.DeleteDefinitionCommand = ReactiveCommand.CreateFromTask(this.HandleDeleteDefinition, canExecute);
+        this.EditDefinitionCommand = ReactiveCommand.CreateFromTask(this.HandleEditDefinition, canExecute);
+        this.CloseWindowCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
 
         var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
             .Select(x => x > 0);
         var canMoveDown = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
-            .Select(x => x < Definitions.Count - 1);
+            .Select(x => x < this.Definitions.Count - 1);
 
-        MoveDefinitionUpCommand = ReactiveCommand.Create(HandleMoveDefinitionUp, canMoveUp);
-        MoveDefinitionDownCommand = ReactiveCommand.Create(HandleMoveDefinitionDown, canMoveDown);
+        this.MoveDefinitionUpCommand = ReactiveCommand.Create(this.HandleMoveDefinitionUp, canMoveUp);
+        this.MoveDefinitionDownCommand = ReactiveCommand.Create(this.HandleMoveDefinitionDown, canMoveDown);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
             {
-                ShowOverlay = lifetime.Windows.Count(w =>
-                    w.GetType() != typeof(MainWindow) &&
-                    w.GetType() != typeof(AtisConfigurationWindow)) > 1;
+                this.ShowOverlay = lifetime.Windows.Count(
+                    w =>
+                        w.GetType() != typeof(MainWindow) &&
+                        w.GetType() != typeof(AtisConfigurationWindow)) > 1;
             };
         }
     }
 
+    public Window? Owner { get; set; }
+
+    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> NewDefinitionCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> EditDefinitionCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> DeleteDefinitionCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> MoveDefinitionUpCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> MoveDefinitionDownCommand { get; }
+
+    public bool ShowOverlay
+    {
+        get => this._showOverlay;
+        set => this.RaiseAndSetIfChanged(ref this._showOverlay, value);
+    }
+
+    public bool HasDefinitions
+    {
+        get => this._hasDefinitions;
+        set => this.RaiseAndSetIfChanged(ref this._hasDefinitions, value);
+    }
+
+    public bool IncludeBeforeFreeText
+    {
+        get => this._includeBeforeFreeText;
+        set => this.RaiseAndSetIfChanged(ref this._includeBeforeFreeText, value);
+    }
+
+    public List<ICompletionData> ContractionCompletionData
+    {
+        get => this._contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref this._contractionCompletionData, value);
+    }
+
+    public ObservableCollection<StaticDefinition> Definitions
+    {
+        get => this._definitions;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._definitions, value);
+            this.Source.Items = this._definitions.OrderBy(x => x.Ordinal);
+            this.HasDefinitions = this._definitions.Count != 0;
+        }
+    }
+
+    public FlatTreeDataGridSource<StaticDefinition> Source { get; }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.CloseWindowCommand.Dispose();
+        this.NewDefinitionCommand.Dispose();
+        this.EditDefinitionCommand.Dispose();
+        this.DeleteDefinitionCommand.Dispose();
+        this.MoveDefinitionUpCommand.Dispose();
+        this.MoveDefinitionDownCommand.Dispose();
+    }
+
     private void HandleMoveDefinitionUp()
     {
-        if (Source.RowSelection?.SelectedIndex >= 1)
+        if (this.Source.RowSelection?.SelectedIndex >= 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var definition = this.Source.RowSelection.SelectedItem;
+            var newIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
+            var oldIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault();
             if (definition != null)
             {
-                Definitions.Move(oldIndex, newIndex);
+                this.Definitions.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
-                Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                this.Source.Items = this.Definitions.OrderBy(x => x.Ordinal).ToList();
+                this.Source.RowSelection.SelectedIndex = newIndex;
             }
         }
     }
 
     private void HandleMoveDefinitionDown()
     {
-        if (Source.RowSelection?.SelectedIndex <= Source.Items.Count() - 1)
+        if (this.Source.RowSelection?.SelectedIndex <= this.Source.Items.Count() - 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
+            var definition = this.Source.RowSelection.SelectedItem;
+            var oldIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var newIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
             if (definition != null)
             {
-                Definitions.Move(oldIndex, newIndex);
+                this.Definitions.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
-                Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                this.Source.Items = this.Definitions.OrderBy(x => x.Ordinal).ToList();
+                this.Source.RowSelection.SelectedIndex = newIndex;
             }
         }
     }
 
     private void RemoveSelected()
     {
-        var selectedItem = Source.RowSelection?.SelectedItem;
+        var selectedItem = this.Source.RowSelection?.SelectedItem;
         if (selectedItem != null)
         {
-            Definitions.Remove(selectedItem);
+            this.Definitions.Remove(selectedItem);
         }
-        Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-        HasDefinitions = Definitions.Count != 0;
+
+        this.Source.Items = this.Definitions.OrderBy(x => x.Ordinal).ToList();
+        this.HasDefinitions = this.Definitions.Count != 0;
     }
 
     private async Task HandleEditDefinition()
     {
-        if (Owner == null)
+        if (this.Owner == null)
+        {
             return;
+        }
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             if (lifetime.MainWindow == null)
-                return;
-
-            if (Source.RowSelection?.SelectedItem is { } definition)
             {
+                return;
+            }
 
-                var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
+            if (this.Source.RowSelection?.SelectedItem is { } definition)
+            {
+                var dlg = this._windowFactory.CreateStaticDefinitionEditorDialog();
                 dlg.Topmost = lifetime.MainWindow.Topmost;
                 if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
                 {
                     vm.Title = "Edit Airport Condition";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
-                    vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.ContractionCompletionData = this.ContractionCompletionData;
                     vm.DialogResultChanged += (_, result) =>
                     {
                         if (result == DialogResult.Ok)
                         {
                             vm.ClearAllErrors();
 
-                            if (Definitions.Any(x => x != definition && string.Equals(x.Text,
-                                    vm.TextDocument?.Text, StringComparison.InvariantCultureIgnoreCase)))
+                            if (this.Definitions.Any(
+                                    x => x != definition && string.Equals(
+                                        x.Text,
+                                        vm.TextDocument?.Text,
+                                        StringComparison.InvariantCultureIgnoreCase)))
                             {
                                 vm.RaiseError("DataValidation", "NOTAM already exists.");
                             }
@@ -207,17 +238,21 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                             }
 
                             if (vm.HasErrors)
+                            {
                                 return;
+                            }
 
-                            var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault() ?? 0;
+                            var currentIndex = this.Source.RowSelection?.SelectedIndex.FirstOrDefault() ?? 0;
                             var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";
 
-                            Definitions.Remove(definition);
-                            Definitions.Insert(currentIndex, new StaticDefinition(text, currentIndex, definition.Enabled));
-                            Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
+                            this.Definitions.Remove(definition);
+                            this.Definitions.Insert(
+                                currentIndex,
+                                new StaticDefinition(text, currentIndex, definition.Enabled));
+                            this.Source.Items = this.Definitions.OrderBy(x => x.Ordinal).ToList();
                         }
                     };
-                    await dlg.ShowDialog(Owner);
+                    await dlg.ShowDialog(this.Owner);
                 }
             }
         }
@@ -225,28 +260,36 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
     private async Task HandleNewDefinition()
     {
-        if (Owner == null)
+        if (this.Owner == null)
+        {
             return;
+        }
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             if (lifetime.MainWindow == null)
+            {
                 return;
+            }
 
-            var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
+            var dlg = this._windowFactory.CreateStaticDefinitionEditorDialog();
             dlg.Topmost = lifetime.MainWindow.Topmost;
             if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
             {
                 vm.Title = "New Airport Condition";
-                vm.ContractionCompletionData = ContractionCompletionData;
+                vm.ContractionCompletionData = this.ContractionCompletionData;
                 vm.DialogResultChanged += (_, result) =>
                 {
                     if (result == DialogResult.Ok)
                     {
                         vm.ClearAllErrors();
 
-                        if (Definitions.Any(x =>
-                                string.Equals(x.Text, vm.DefinitionText, StringComparison.InvariantCultureIgnoreCase)))
+                        if (this.Definitions.Any(
+                                x =>
+                                    string.Equals(
+                                        x.Text,
+                                        vm.DefinitionText,
+                                        StringComparison.InvariantCultureIgnoreCase)))
                         {
                             vm.RaiseError("DataValidation", "This NOTAM already exists.");
                         }
@@ -257,42 +300,39 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                         }
 
                         if (vm.HasErrors)
+                        {
                             return;
+                        }
 
                         var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";
 
-                        Definitions.Add(new StaticDefinition(text, Definitions.Count + 1));
-                        Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                        HasDefinitions = Definitions.Count != 0;
+                        this.Definitions.Add(new StaticDefinition(text, this.Definitions.Count + 1));
+                        this.Source.Items = this.Definitions.OrderBy(x => x.Ordinal).ToList();
+                        this.HasDefinitions = this.Definitions.Count != 0;
                     }
                 };
-                await dlg.ShowDialog(Owner);
+                await dlg.ShowDialog(this.Owner);
             }
         }
     }
 
     private async Task HandleDeleteDefinition()
     {
-        if (Owner == null)
-            return;
-
-        if (await MessageBox.ShowDialog(Owner,
-                "Are you sure you want to delete the selected airport condition?", "Confirm",
-                MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+        if (this.Owner == null)
         {
-            RemoveSelected();
+            return;
         }
-        Source.RowSelection?.Clear();
-    }
 
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        CloseWindowCommand.Dispose();
-        NewDefinitionCommand.Dispose();
-        EditDefinitionCommand.Dispose();
-        DeleteDefinitionCommand.Dispose();
-        MoveDefinitionUpCommand.Dispose();
-        MoveDefinitionDownCommand.Dispose();
+        if (await MessageBox.ShowDialog(
+                this.Owner,
+                "Are you sure you want to delete the selected airport condition?",
+                "Confirm",
+                MessageBoxButton.YesNo,
+                MessageBoxIcon.Information) == MessageBoxResult.Yes)
+        {
+            this.RemoveSelected();
+        }
+
+        this.Source.RowSelection?.Clear();
     }
 }

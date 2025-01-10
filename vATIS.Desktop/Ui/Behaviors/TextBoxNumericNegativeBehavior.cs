@@ -1,20 +1,22 @@
-﻿using Avalonia.Controls;
-using Avalonia.Xaml.Interactivity;
-using System.Linq;
+﻿using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
+
 public class TextBoxNumericNegativeBehavior : Behavior<TextBox>
 {
     protected override void OnAttached()
     {
         base.OnAttached();
-        AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        this.AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDetaching()
     {
-        AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        this.AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
         base.OnDetaching();
     }
 

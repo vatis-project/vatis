@@ -8,46 +8,48 @@ using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.Networking;
+
 public class AuthTokenManager : IAuthTokenManager
 {
     private const string AuthTokenUrl = "https://auth.vatsim.net/api/fsd-jwt";
     private const double AuthTokenShelfLifeMinutes = 2.0;
+    private readonly IAppConfig _appConfig;
 
     private readonly IDownloader _downloader;
-    private readonly IAppConfig _appConfig;
     private DateTime _authTokenGeneratedAt;
 
     public AuthTokenManager(IDownloader downloader, IAppConfig appConfig)
     {
-        _downloader = downloader;
-        _appConfig = appConfig;
+        this._downloader = downloader;
+        this._appConfig = appConfig;
 
-        MessageBus.Current.Listen<GeneralSettingsUpdated>().Subscribe(_ => { AuthToken = null; });
+        MessageBus.Current.Listen<GeneralSettingsUpdated>().Subscribe(_ => { this.AuthToken = null; });
     }
 
     public string? AuthToken { get; private set; }
 
     public async Task<string?> GetAuthToken()
     {
-        if (AuthToken != null && (DateTime.UtcNow - _authTokenGeneratedAt).TotalMinutes < AuthTokenShelfLifeMinutes)
+        if (this.AuthToken != null &&
+            (DateTime.UtcNow - this._authTokenGeneratedAt).TotalMinutes < AuthTokenShelfLifeMinutes)
         {
-            return AuthToken;
+            return this.AuthToken;
         }
 
-        if (string.IsNullOrEmpty(_appConfig.UserId) || string.IsNullOrEmpty(_appConfig.Password))
+        if (string.IsNullOrEmpty(this._appConfig.UserId) || string.IsNullOrEmpty(this._appConfig.Password))
         {
             throw new AuthTokenException("VATSIM User ID and/or Password are not set.");
         }
 
         var request = new JsonObject
         {
-            ["cid"] = _appConfig.UserId,
-            ["password"] = _appConfig.PasswordDecrypted,
+            ["cid"] = this._appConfig.UserId,
+            ["password"] = this._appConfig.PasswordDecrypted
         };
 
         var jsonRequest = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.JsonObject);
 
-        var response = await _downloader.PostJsonResponse(AuthTokenUrl, jsonRequest);
+        var response = await this._downloader.PostJsonResponse(AuthTokenUrl, jsonRequest);
         {
             try
             {
@@ -58,9 +60,13 @@ public class AuthTokenManager : IAuthTokenManager
                 throw new ApplicationException("Authentication failed.", ex);
             }
 
-            var jsonResponse = JsonSerializer.Deserialize(await response.Content.ReadAsStringAsync(), SourceGenerationContext.NewDefault.JsonObject);
+            var jsonResponse = JsonSerializer.Deserialize(
+                await response.Content.ReadAsStringAsync(),
+                SourceGenerationContext.NewDefault.JsonObject);
             if (jsonResponse == null)
+            {
                 return null;
+            }
 
             if (!(bool)(jsonResponse["success"] ??
                         throw new AuthTokenException(
@@ -76,10 +82,10 @@ public class AuthTokenManager : IAuthTokenManager
                         throw new AuthTokenException(
                             "Authentication failed. No authentication token was provided in the response.");
 
-            AuthToken = token.ToString();
-            _authTokenGeneratedAt = DateTime.UtcNow;
+            this.AuthToken = token.ToString();
+            this._authTokenGeneratedAt = DateTime.UtcNow;
 
-            return AuthToken;
+            return this.AuthToken;
         }
     }
 }

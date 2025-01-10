@@ -3,6 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 
 namespace Vatsim.Vatis.Ui.Converters;
+
 public class CharToStringConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

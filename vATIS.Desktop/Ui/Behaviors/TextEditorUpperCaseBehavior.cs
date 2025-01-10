@@ -10,17 +10,24 @@ public class TextEditorUpperCaseBehavior : Behavior<TextEditor>
     protected override void OnAttached()
     {
         base.OnAttached();
-        
-        if (IsEnabled)
-            AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
+
+        if (this.IsEnabled)
+        {
+            this.AssociatedObject?.AddHandler(
+                InputElement.TextInputEvent,
+                this.TextInputHandler,
+                RoutingStrategies.Tunnel);
+        }
     }
-    
+
     protected override void OnDetaching()
     {
         base.OnDetaching();
 
-        if (IsEnabled)
-            AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        if (this.IsEnabled)
+        {
+            this.AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, this.TextInputHandler);
+        }
     }
 
     private void TextInputHandler(object? sender, TextInputEventArgs e)

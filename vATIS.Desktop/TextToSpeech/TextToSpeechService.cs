@@ -15,17 +15,19 @@ namespace Vatsim.Vatis.TextToSpeech;
 
 public class TextToSpeechService : ITextToSpeechService
 {
-    private readonly IDownloader _downloader;
-    private readonly IAuthTokenManager _authTokenManager;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
+    private readonly IAuthTokenManager _authTokenManager;
+    private readonly IDownloader _downloader;
 
-    public TextToSpeechService(IDownloader downloader, IAuthTokenManager authTokenManager,
+    public TextToSpeechService(
+        IDownloader downloader,
+        IAuthTokenManager authTokenManager,
         IAppConfigurationProvider appConfigurationProvider)
     {
-        _downloader = downloader;
-        _authTokenManager = authTokenManager;
-        _appConfigurationProvider = appConfigurationProvider;
-        VoiceList = [];
+        this._downloader = downloader;
+        this._authTokenManager = authTokenManager;
+        this._appConfigurationProvider = appConfigurationProvider;
+        this.VoiceList = [];
     }
 
     public List<VoiceMetaData> VoiceList { get; private set; }
@@ -34,12 +36,12 @@ public class TextToSpeechService : ITextToSpeechService
     {
         try
         {
-            var response = await _downloader.DownloadStringAsync(_appConfigurationProvider.VoiceListUrl);
+            var response = await this._downloader.DownloadStringAsync(this._appConfigurationProvider.VoiceListUrl);
             {
                 var voices = JsonSerializer.Deserialize(response, SourceGenerationContext.NewDefault.ListVoiceMetaData);
                 if (voices != null)
                 {
-                    VoiceList = voices;
+                    this.VoiceList = voices;
                 }
             }
         }
@@ -51,19 +53,21 @@ public class TextToSpeechService : ITextToSpeechService
 
     public async Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken)
     {
-        var authToken = await _authTokenManager.GetAuthToken();
+        var authToken = await this._authTokenManager.GetAuthToken();
 
         try
         {
             var dto = new TextToSpeechRequestDto
             {
                 Text = text,
-                Voice = VoiceList.FirstOrDefault(v => v.Name == station.AtisVoice.Voice)?.Id ?? "default",
+                Voice = this.VoiceList.FirstOrDefault(v => v.Name == station.AtisVoice.Voice)?.Id ?? "default",
                 Jwt = authToken
             };
 
             var jsonDto = JsonSerializer.Serialize(dto, SourceGenerationContext.NewDefault.TextToSpeechRequestDto);
-            var response = await _downloader.PostJsonDownloadAsync(_appConfigurationProvider.TextToSpeechUrl, jsonDto,
+            var response = await this._downloader.PostJsonDownloadAsync(
+                this._appConfigurationProvider.TextToSpeechUrl,
+                jsonDto,
                 cancellationToken);
             {
                 using var stream = new MemoryStream();

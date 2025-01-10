@@ -4,12 +4,15 @@ public class RecentWeather : BaseFormat
 {
     public RecentWeather()
     {
-        Template = new Template
+        this.Template = new Template
         {
             Text = "RECENT WEATHER {weather}",
             Voice = "RECENT WEATHER {weather}"
         };
     }
-    
-    public RecentWeather Clone() => (RecentWeather)MemberwiseClone();
+
+    public RecentWeather Clone()
+    {
+        return (RecentWeather)this.MemberwiseClone();
+    }
 }

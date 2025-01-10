@@ -9,31 +9,35 @@ public class DataGridCellEndEditBehavior : Behavior<DataGrid>
 {
     public static readonly StyledProperty<ICommand?> CommandProperty =
         AvaloniaProperty.Register<DataGridCellEndEditBehavior, ICommand?>(nameof(Command));
-    
+
     public ICommand? Command
     {
-        get => GetValue(CommandProperty);
-        set => SetValue(CommandProperty, value);
+        get => this.GetValue(CommandProperty);
+        set => this.SetValue(CommandProperty, value);
     }
-    
+
     protected override void OnAttached()
     {
         base.OnAttached();
 
-        if (AssociatedObject != null) 
-            AssociatedObject.CellEditEnding += AssociatedObjectOnCellEditEnding;
+        if (this.AssociatedObject != null)
+        {
+            this.AssociatedObject.CellEditEnding += this.AssociatedObjectOnCellEditEnding;
+        }
     }
 
     protected override void OnDetaching()
     {
         base.OnDetaching();
 
-        if (AssociatedObject != null) 
-            AssociatedObject.CellEditEnding -= AssociatedObjectOnCellEditEnding;
+        if (this.AssociatedObject != null)
+        {
+            this.AssociatedObject.CellEditEnding -= this.AssociatedObjectOnCellEditEnding;
+        }
     }
 
     private void AssociatedObjectOnCellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
     {
-        Command?.Execute(e);
+        this.Command?.Execute(e);
     }
 }

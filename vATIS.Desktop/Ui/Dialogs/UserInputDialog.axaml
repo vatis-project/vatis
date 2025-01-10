@@ -3,72 +3,82 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
-		xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
-		mc:Ignorable="d"
+        xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+        mc:Ignorable="d"
         x:Class="Vatsim.Vatis.Ui.Dialogs.UserInputDialog"
         Title="UserInputDialog"
-		Name="Window"
-		Width="360" Height="160" 
-		WindowStartupLocation="CenterOwner" 
-		CanResize="False"
-		ShowInTaskbar="False"
-		SystemDecorations="None"
-		SizeToContent="WidthAndHeight"
+        Name="Window"
+        Width="360" Height="160"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="None"
+        SizeToContent="WidthAndHeight"
         TransparencyLevelHint="Transparent"
-		Background="Transparent">
-	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
-		<StackPanel>
-			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent" PointerPressed="OnPointerPressed">
-				<TextBlock Text="{Binding Title, DataType=vm:UserInputDialogViewModel, FallbackValue=Title}" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
-			</Border>
-			<StackPanel Spacing="5" Margin="15" HorizontalAlignment="Center" VerticalAlignment="Center">
-				<TextBlock Foreground="#f0f0f0" Text="{Binding Prompt, DataType=vm:UserInputDialogViewModel, FallbackValue=Caption}" />
-				<TextBox Name="UserInput" Theme="{StaticResource DarkTextBox}" Text="{Binding UserValue, DataType=vm:UserInputDialogViewModel}" Width="280" MaxLength="300" Margin="0,0,0,10">
-					<Interaction.Behaviors>
-						<behaviors:TextBoxUppercaseBehavior IsEnabled="{Binding ForceUppercase, DataType=vm:UserInputDialogViewModel, FallbackValue=False, TargetNullValue=False}"/>
-						<behaviors:SelectAllTextOnFocusBehavior/>
-						<behaviors:FocusOnAttachedToVisualTree/>
-					</Interaction.Behaviors>
-				</TextBox>
-				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-					<Button Theme="{StaticResource Dark}" Content="OK" Width="88" Margin="0,0,10,0" IsDefault="True" Command="{Binding OkButtonCommand, DataType=vm:UserInputDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
-					<Button Theme="{StaticResource Dark}" Content="Cancel" Width="88" Command="{Binding CancelButtonCommand, DataType=vm:UserInputDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
-				</StackPanel>
-			</StackPanel>
-		</StackPanel>
-	</Border>
-	<Window.Styles>
-		<Style Selector="DataValidationErrors">
-			<Setter Property="Template">
-				<ControlTemplate>
-					<DockPanel LastChildFill="True">
-						<ContentControl DockPanel.Dock="Bottom"
-										ContentTemplate="{TemplateBinding ErrorTemplate}"
-										DataContext="{TemplateBinding Owner}"
-										Content="{Binding (DataValidationErrors.Errors)}"
-										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
-						<ContentPresenter Name="PART_ContentPresenter"
-										  Background="{TemplateBinding Background}"
-										  BorderBrush="{TemplateBinding BorderBrush}"
-										  BorderThickness="{TemplateBinding BorderThickness}"
-										  CornerRadius="{TemplateBinding CornerRadius}"
-										  ContentTemplate="{TemplateBinding ContentTemplate}"
-										  Content="{TemplateBinding Content}"
-										  Padding="{TemplateBinding Padding}"/>
-					</DockPanel>
-				</ControlTemplate>
-			</Setter>
-			<Setter Property="ErrorTemplate">
-				<DataTemplate x:DataType="{x:Type x:Object}">
-					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
-						<ItemsControl.Styles>
-							<Style Selector="TextBlock">
-								<Setter Property="TextWrapping" Value="Wrap" />
-							</Style>
-						</ItemsControl.Styles>
-					</ItemsControl>
-				</DataTemplate>
-			</Setter>
-		</Style>
-	</Window.Styles>
+        Background="Transparent">
+    <Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+        <StackPanel>
+            <Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent"
+                    PointerPressed="OnPointerPressed">
+                <TextBlock Text="{Binding Title, DataType=vm:UserInputDialogViewModel, FallbackValue=Title}"
+                           Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
+            </Border>
+            <StackPanel Spacing="5" Margin="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Foreground="#f0f0f0"
+                           Text="{Binding Prompt, DataType=vm:UserInputDialogViewModel, FallbackValue=Caption}" />
+                <TextBox Name="UserInput" Theme="{StaticResource DarkTextBox}"
+                         Text="{Binding UserValue, DataType=vm:UserInputDialogViewModel}" Width="280" MaxLength="300"
+                         Margin="0,0,0,10">
+                    <Interaction.Behaviors>
+                        <behaviors:TextBoxUppercaseBehavior
+                            IsEnabled="{Binding ForceUppercase, DataType=vm:UserInputDialogViewModel, FallbackValue=False, TargetNullValue=False}" />
+                        <behaviors:SelectAllTextOnFocusBehavior />
+                        <behaviors:FocusOnAttachedToVisualTree />
+                    </Interaction.Behaviors>
+                </TextBox>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Theme="{StaticResource Dark}" Content="OK" Width="88" Margin="0,0,10,0" IsDefault="True"
+                            Command="{Binding OkButtonCommand, DataType=vm:UserInputDialogViewModel}"
+                            CommandParameter="{Binding ElementName=Window}" />
+                    <Button Theme="{StaticResource Dark}" Content="Cancel" Width="88"
+                            Command="{Binding CancelButtonCommand, DataType=vm:UserInputDialogViewModel}"
+                            CommandParameter="{Binding ElementName=Window}" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+    <Window.Styles>
+        <Style Selector="DataValidationErrors">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <DockPanel LastChildFill="True">
+                        <ContentControl DockPanel.Dock="Bottom"
+                                        ContentTemplate="{TemplateBinding ErrorTemplate}"
+                                        DataContext="{TemplateBinding Owner}"
+                                        Content="{Binding (DataValidationErrors.Errors)}"
+                                        IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          CornerRadius="{TemplateBinding CornerRadius}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Content="{TemplateBinding Content}"
+                                          Padding="{TemplateBinding Padding}" />
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="ErrorTemplate">
+                <DataTemplate x:DataType="{x:Type x:Object}">
+                    <ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+                        <ItemsControl.Styles>
+                            <Style Selector="TextBlock">
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                            </Style>
+                        </ItemsControl.Styles>
+                    </ItemsControl>
+                </DataTemplate>
+            </Setter>
+        </Style>
+    </Window.Styles>
 </Window>

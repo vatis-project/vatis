@@ -6,6 +6,6 @@ public partial class FormattingView : UserControl
 {
     public FormattingView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 }

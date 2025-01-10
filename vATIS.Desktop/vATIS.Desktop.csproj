@@ -1,75 +1,87 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<OutputType>WinExe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-		<AssemblyName>vATIS</AssemblyName>
-		<RootNamespace>Vatsim.Vatis</RootNamespace>
-		<ApplicationIcon>Assets\MainIcon.ico</ApplicationIcon>
-		<Version>4.1.0-beta.1</Version>
-	</PropertyGroup>
-	
-	<PropertyGroup Condition="'$(Configuration)' != 'Debug'">
-		<PublishAot>true</PublishAot>
-	</PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+        <AssemblyName>vATIS</AssemblyName>
+        <RootNamespace>Vatsim.Vatis</RootNamespace>
+        <ApplicationIcon>Assets\MainIcon.ico</ApplicationIcon>
+        <Version>4.1.0-beta.1</Version>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<AvaloniaResource Include="Assets\**" />
-	</ItemGroup>
+    <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
 
-	<ItemGroup Condition="$([System.OperatingSystem]::IsWindows())">
-		<ContentWithTargetPath Include=".\Voice\Audio\Native\win\NativeAudio.dll">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>NativeAudio.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**"/>
+    </ItemGroup>
 
-	<ItemGroup Condition="$([System.OperatingSystem]::IsLinux())">
-		<ContentWithTargetPath Include=".\Voice\Audio\Native\lin\libNativeAudio.so">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>libNativeAudio.so</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>	
+    <ItemGroup Condition="$([System.OperatingSystem]::IsWindows())">
+        <ContentWithTargetPath Include=".\Voice\Audio\Native\win\NativeAudio.dll">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <TargetPath>NativeAudio.dll</TargetPath>
+        </ContentWithTargetPath>
+    </ItemGroup>
 
-	<ItemGroup Condition="$([System.OperatingSystem]::IsMacOS())">
-		<ContentWithTargetPath Include=".\Voice\Audio\Native\macos\libNativeAudio.dylib">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>libNativeAudio.dylib</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>	
+    <ItemGroup Condition="$([System.OperatingSystem]::IsLinux())">
+        <ContentWithTargetPath Include=".\Voice\Audio\Native\lin\libNativeAudio.so">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <TargetPath>libNativeAudio.so</TargetPath>
+        </ContentWithTargetPath>
+    </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.2.2" />
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.2" />
-		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.0" />
-		<PackageReference Include="Avalonia.Desktop" Version="11.2.2" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="11.2.2" />
-		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.2" />
-		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.1" />
-		<PackageReference Include="Concentus" Version="2.2.2" />
-		<PackageReference Include="MessagePack" Version="3.1.0" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.11" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-		<PackageReference Include="Sentry" Version="4.13.0" />
-		<PackageReference Include="Serilog" Version="4.2.0" />
-		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-		<PackageReference Include="Jab" Version="0.10.2" PrivateAssets="all" />
-		<PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0" />
-		<PackageReference Include="Slugify.Core" Version="4.0.1" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
-		<PackageReference Include="Velopack" Version="0.0.942" />
-		<PackageReference Include="WatsonWebsocket" Version="4.1.2" />
-	</ItemGroup>
+    <ItemGroup Condition="$([System.OperatingSystem]::IsMacOS())">
+        <ContentWithTargetPath Include=".\Voice\Audio\Native\macos\libNativeAudio.dylib">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <TargetPath>libNativeAudio.dylib</TargetPath>
+        </ContentWithTargetPath>
+    </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj" />
-	  <ProjectReference Include="..\Vatsim.Network\Vatsim.Network.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.2.2"/>
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.2"/>
+        <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.0"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.2"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2"/>
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.2"/>
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.2"/>
+        <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5"/>
+        <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.1"/>
+        <PackageReference Include="Concentus" Version="2.2.2"/>
+        <PackageReference Include="MessagePack" Version="3.1.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.11"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1"/>
+        <PackageReference Include="Sentry" Version="4.13.0"/>
+        <PackageReference Include="Serilog" Version="4.2.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+        <PackageReference Include="Jab" Version="0.10.2" PrivateAssets="all"/>
+        <PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0"/>
+        <PackageReference Include="Slugify.Core" Version="4.0.1"/>
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1"/>
+        <PackageReference Include="Velopack" Version="0.0.942"/>
+        <PackageReference Include="WatsonWebsocket" Version="4.1.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj"/>
+        <ProjectReference Include="..\Vatsim.Network\Vatsim.Network.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="stylecop.json"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="stylecop.json"/>
+    </ItemGroup>
 </Project>

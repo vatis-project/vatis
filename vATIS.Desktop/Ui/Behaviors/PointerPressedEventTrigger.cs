@@ -16,26 +16,26 @@ public class PointerPressedEventTrigger : Trigger<Interactive>
 
     public ICommand LeftClickCommand
     {
-        get => GetValue(LeftClickCommandProperty);
-        set => SetValue(LeftClickCommandProperty, value);
+        get => this.GetValue(LeftClickCommandProperty);
+        set => this.SetValue(LeftClickCommandProperty, value);
     }
 
     public ICommand RightClickCommand
     {
-        get => GetValue(RightClickCommandProperty);
-        set => SetValue(RightClickCommandProperty, value);
+        get => this.GetValue(RightClickCommandProperty);
+        set => this.SetValue(RightClickCommandProperty, value);
     }
 
     protected override void OnAttached()
     {
         base.OnAttached();
-        AssociatedObject?.AddHandler(InputElement.PointerPressedEvent, Handler, RoutingStrategies.Tunnel);
+        this.AssociatedObject?.AddHandler(InputElement.PointerPressedEvent, this.Handler, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDetaching()
     {
         base.OnDetaching();
-        AssociatedObject?.RemoveHandler(InputElement.PointerPressedEvent, Handler);
+        this.AssociatedObject?.RemoveHandler(InputElement.PointerPressedEvent, this.Handler);
     }
 
     private void Handler(object? sender, PointerPressedEventArgs e)
@@ -43,11 +43,11 @@ public class PointerPressedEventTrigger : Trigger<Interactive>
         var point = e.GetCurrentPoint(null);
         if (point.Properties.IsLeftButtonPressed)
         {
-            LeftClickCommand.Execute(null);
+            this.LeftClickCommand.Execute(null);
         }
         else if (point.Properties.IsRightButtonPressed)
         {
-            RightClickCommand.Execute(null);
+            this.RightClickCommand.Execute(null);
         }
     }
 }

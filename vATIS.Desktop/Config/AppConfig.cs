@@ -25,7 +25,7 @@ public class AppConfig : IAppConfig
     public bool SuppressNotificationSound { get; set; }
 
     public bool AlwaysOnTop { get; set; }
-    
+
     public bool CompactWindowAlwaysOnTop { get; set; }
 
     public WindowPosition? MainWindowPosition { get; set; }
@@ -43,50 +43,57 @@ public class AppConfig : IAppConfig
     [JsonIgnore]
     public string PasswordDecrypted
     {
-        get => Decrypt(Password);
-        set => Password = Encrypt(value);
+        get => Decrypt(this.Password);
+        set => this.Password = Encrypt(value);
     }
 
     [JsonIgnore]
-    public bool ConfigRequired => string.IsNullOrEmpty(UserId) ||
-                                  string.IsNullOrEmpty(PasswordDecrypted) ||
-                                  string.IsNullOrEmpty(Name);
+    public bool ConfigRequired => string.IsNullOrEmpty(this.UserId) ||
+                                  string.IsNullOrEmpty(this.PasswordDecrypted) ||
+                                  string.IsNullOrEmpty(this.Name);
 
     public void LoadConfig()
     {
-        using var fs = new FileStream(PathProvider.AppConfigFilePath, FileMode.Open, FileAccess.Read,
+        using var fs = new FileStream(
+            PathProvider.AppConfigFilePath,
+            FileMode.Open,
+            FileAccess.Read,
             FileShare.ReadWrite);
         using var sr = new StreamReader(fs);
         var config = JsonSerializer.Deserialize(sr.ReadToEnd(), SourceGenerationContext.NewDefault.AppConfig);
         if (config != null)
         {
-            Name = config.Name;
-            UserId = config.UserId;
-            Password = config.Password;
-            NetworkRating = config.NetworkRating;
-            SuppressNotificationSound = config.SuppressNotificationSound;
-            AlwaysOnTop = config.AlwaysOnTop;
-            CompactWindowAlwaysOnTop = config.CompactWindowAlwaysOnTop;
-            MainWindowPosition = config.MainWindowPosition;
-            CompactWindowPosition = config.CompactWindowPosition;
-            ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;
-            VoiceRecordAtisDialogWindowPosition = config.VoiceRecordAtisDialogWindowPosition;
-            MicrophoneDevice = config.MicrophoneDevice;
-            PlaybackDevice = config.PlaybackDevice;
+            this.Name = config.Name;
+            this.UserId = config.UserId;
+            this.Password = config.Password;
+            this.NetworkRating = config.NetworkRating;
+            this.SuppressNotificationSound = config.SuppressNotificationSound;
+            this.AlwaysOnTop = config.AlwaysOnTop;
+            this.CompactWindowAlwaysOnTop = config.CompactWindowAlwaysOnTop;
+            this.MainWindowPosition = config.MainWindowPosition;
+            this.CompactWindowPosition = config.CompactWindowPosition;
+            this.ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;
+            this.VoiceRecordAtisDialogWindowPosition = config.VoiceRecordAtisDialogWindowPosition;
+            this.MicrophoneDevice = config.MicrophoneDevice;
+            this.PlaybackDevice = config.PlaybackDevice;
         }
 
-        SaveConfig();
+        this.SaveConfig();
     }
 
     public void SaveConfig()
     {
-        File.WriteAllText(PathProvider.AppConfigFilePath,
+        File.WriteAllText(
+            PathProvider.AppConfigFilePath,
             JsonSerializer.Serialize(this, SourceGenerationContext.NewDefault.AppConfig));
     }
 
     private static string Encrypt(string value)
     {
-        if (string.IsNullOrEmpty(value)) return "";
+        if (string.IsNullOrEmpty(value))
+        {
+            return "";
+        }
 
         var cryptoProvider = TripleDES.Create();
 
@@ -103,7 +110,10 @@ public class AppConfig : IAppConfig
     {
         try
         {
-            if (string.IsNullOrEmpty(value)) return "";
+            if (string.IsNullOrEmpty(value))
+            {
+                return "";
+            }
 
             var cryptoProvider = TripleDES.Create();
 
@@ -112,8 +122,9 @@ public class AppConfig : IAppConfig
             cryptoProvider.Mode = CipherMode.ECB;
             var byteBuff = Convert.FromBase64String(value);
 
-            return Encoding.UTF8.GetString(cryptoProvider.CreateDecryptor()
-                .TransformFinalBlock(byteBuff, 0, byteBuff.Length));
+            return Encoding.UTF8.GetString(
+                cryptoProvider.CreateDecryptor()
+                    .TransformFinalBlock(byteBuff, 0, byteBuff.Length));
         }
         catch
         {

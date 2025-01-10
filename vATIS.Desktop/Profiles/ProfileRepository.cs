@@ -17,45 +17,42 @@ public class ProfileRepository : IProfileRepository
 
     public ProfileRepository(IDownloader downloader)
     {
-        _downloader = downloader;
-        EnsureProfilesFolderExists();
-    }
-
-    private void EnsureProfilesFolderExists()
-    {
-        if (!Directory.Exists(PathProvider.ProfilesFolderPath))
-        {
-            Log.Information($"Creating Profiles folder {PathProvider.ProfilesFolderPath}");
-            Directory.CreateDirectory(PathProvider.ProfilesFolderPath);
-        }
+        this._downloader = downloader;
+        this.EnsureProfilesFolderExists();
     }
 
     public async Task CheckForProfileUpdates()
     {
-        var profiles = await LoadAll();
+        var profiles = await this.LoadAll();
         foreach (var localProfile in profiles)
         {
             try
             {
-                if (string.IsNullOrEmpty(localProfile.UpdateUrl)) continue;
+                if (string.IsNullOrEmpty(localProfile.UpdateUrl))
+                {
+                    continue;
+                }
 
-                var response = await _downloader.GetAsync(localProfile.UpdateUrl);
+                var response = await this._downloader.GetAsync(localProfile.UpdateUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var remoteProfileJson = await response.Content.ReadAsStringAsync();
                     if (!string.IsNullOrEmpty(remoteProfileJson))
                     {
-                        var remoteProfile = JsonSerializer.Deserialize(remoteProfileJson, SourceGenerationContext.NewDefault.Profile);
+                        var remoteProfile = JsonSerializer.Deserialize(
+                            remoteProfileJson,
+                            SourceGenerationContext.NewDefault.Profile);
                         if (remoteProfile != null)
                         {
                             if (localProfile.UpdateSerial == null ||
                                 remoteProfile.UpdateSerial > localProfile.UpdateSerial)
                             {
                                 Log.Information($"Updating profile {localProfile.Name}: {localProfile.Id}");
-                                var updatedProfile = remoteProfile ?? throw new JsonException("Updated profile is null");
+                                var updatedProfile =
+                                    remoteProfile ?? throw new JsonException("Updated profile is null");
                                 updatedProfile.Id = localProfile.Id;
-                                Delete(localProfile);
-                                Save(updatedProfile);
+                                this.Delete(localProfile);
+                                this.Save(updatedProfile);
                             }
                         }
                     }
@@ -66,7 +63,8 @@ public class ProfileRepository : IProfileRepository
                 }
                 else
                 {
-                    Log.Warning($"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {localProfile.UpdateUrl}.");
+                    Log.Warning(
+                        $"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {localProfile.UpdateUrl}.");
                 }
             }
             catch (Exception ex)
@@ -87,7 +85,7 @@ public class ProfileRepository : IProfileRepository
     {
         var profile = await Load(PathProvider.GetProfilePath(profileId));
         profile.Name = newName;
-        Save(profile);
+        this.Save(profile);
     }
 
     public async Task<List<Profile>> LoadAll()
@@ -110,15 +108,9 @@ public class ProfileRepository : IProfileRepository
         return profiles;
     }
 
-    private static async Task<Profile> Load(string path)
-    {
-        return JsonSerializer.Deserialize(await File.ReadAllTextAsync(path),
-            SourceGenerationContext.NewDefault.Profile) ?? throw new JsonException("Result is null");
-    }
-
     public async Task<Profile> Copy(Profile profile)
     {
-        var profiles = await LoadAll();
+        var profiles = await this.LoadAll();
         var newName = CreateCopyName(profile.Name, profiles.Select(p => p.Name).ToArray());
         var newProfile = JsonSerializer.Deserialize(
             JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile),
@@ -126,21 +118,8 @@ public class ProfileRepository : IProfileRepository
         newProfile.Id = Guid.NewGuid().ToString();
         newProfile.Name = newName;
         Log.Information($"Copying profile {profile.Name} to {newProfile.Name}");
-        Save(newProfile);
+        this.Save(newProfile);
         return newProfile;
-    }
-
-    private static string CreateCopyName(string name, string[] existingNames)
-    {
-        var newName = $"{name} - Copy";
-        var copyNumber = 2;
-        while (Array.Exists(existingNames, x => x == newName))
-        {
-            newName = $"{name} - Copy ({copyNumber})";
-            copyNumber++;
-        }
-
-        return newName;
     }
 
     public void Delete(Profile profile)
@@ -155,7 +134,7 @@ public class ProfileRepository : IProfileRepository
         var profile = await Load(path);
         Log.Information($"Importing profile {profile.Name}");
         profile.Id = Guid.NewGuid().ToString();
-        Save(profile);
+        this.Save(profile);
         return profile;
     }
 
@@ -165,5 +144,34 @@ public class ProfileRepository : IProfileRepository
             JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile),
             SourceGenerationContext.NewDefault.Profile) ?? throw new JsonException("Result is null");
         File.WriteAllText(path, JsonSerializer.Serialize(scrubbed, SourceGenerationContext.NewDefault.Profile));
+    }
+
+    private void EnsureProfilesFolderExists()
+    {
+        if (!Directory.Exists(PathProvider.ProfilesFolderPath))
+        {
+            Log.Information($"Creating Profiles folder {PathProvider.ProfilesFolderPath}");
+            Directory.CreateDirectory(PathProvider.ProfilesFolderPath);
+        }
+    }
+
+    private static async Task<Profile> Load(string path)
+    {
+        return JsonSerializer.Deserialize(
+            await File.ReadAllTextAsync(path),
+            SourceGenerationContext.NewDefault.Profile) ?? throw new JsonException("Result is null");
+    }
+
+    private static string CreateCopyName(string name, string[] existingNames)
+    {
+        var newName = $"{name} - Copy";
+        var copyNumber = 2;
+        while (Array.Exists(existingNames, x => x == newName))
+        {
+            newName = $"{name} - Copy ({copyNumber})";
+            copyNumber++;
+        }
+
+        return newName;
     }
 }

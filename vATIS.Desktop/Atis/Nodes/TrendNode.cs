@@ -3,16 +3,19 @@ using System.Collections.Generic;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
 public class TrendNode : BaseNode<TrendForecast>
 {
     public override void Parse(DecodedMetar metar)
     {
         if (metar.TrendForecast == null)
+        {
             return;
-        
+        }
+
         var tts = new List<string>();
         var acars = new List<string>();
-        
+
         tts.Add("TREND");
         switch (metar.TrendForecast.ChangeIndicator)
         {
@@ -32,11 +35,10 @@ public class TrendNode : BaseNode<TrendForecast>
 
         if (metar.TrendForecast.Forecast != null)
         {
-
         }
 
-        VoiceAtis = string.Join(". ", tts);
-        TextAtis = string.Join(" ", acars);
+        this.VoiceAtis = string.Join(". ", tts);
+        this.TextAtis = string.Join(" ", acars);
     }
 
     public override string ParseTextVariables(TrendForecast value, string? format)

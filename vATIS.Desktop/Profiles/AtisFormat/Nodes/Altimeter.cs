@@ -1,9 +1,10 @@
 ﻿namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
+
 public class Altimeter : BaseFormat
 {
     public Altimeter()
     {
-        Template = new()
+        this.Template = new Template
         {
             Text = "A{altimeter} ({altimeter|text})",
             Voice = "ALTIMETER {altimeter}"
@@ -12,5 +13,8 @@ public class Altimeter : BaseFormat
 
     public bool PronounceDecimal { get; set; }
 
-    public Altimeter Clone() => (Altimeter)MemberwiseClone();
+    public Altimeter Clone()
+    {
+        return (Altimeter)this.MemberwiseClone();
+    }
 }

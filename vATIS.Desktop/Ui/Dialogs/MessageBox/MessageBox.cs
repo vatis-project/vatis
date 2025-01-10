@@ -16,7 +16,10 @@ public static class MessageBox
         return await ShowCore(messageBoxText, caption, button, MessageBoxIcon.None);
     }
 
-    public static async Task<MessageBoxResult> Show(string messageBoxText, string caption, MessageBoxButton button,
+    public static async Task<MessageBoxResult> Show(
+        string messageBoxText,
+        string caption,
+        MessageBoxButton button,
         MessageBoxIcon icon)
     {
         return await ShowCore(messageBoxText, caption, button, icon);
@@ -27,22 +30,32 @@ public static class MessageBox
         return await ShowDialogCore(owner, messageBoxText, caption, MessageBoxButton.Ok, MessageBoxIcon.None);
     }
 
-    public static async Task<MessageBoxResult> ShowDialog(Window owner, string messageBoxText, string caption,
+    public static async Task<MessageBoxResult> ShowDialog(
+        Window owner,
+        string messageBoxText,
+        string caption,
         MessageBoxButton button)
     {
         return await ShowDialogCore(owner, messageBoxText, caption, button, MessageBoxIcon.None);
     }
 
-    public static async Task<MessageBoxResult> ShowDialog(Window owner, string messageBoxText, string caption,
-        MessageBoxButton button, MessageBoxIcon icon)
+    public static async Task<MessageBoxResult> ShowDialog(
+        Window owner,
+        string messageBoxText,
+        string caption,
+        MessageBoxButton button,
+        MessageBoxIcon icon)
     {
         return await ShowDialogCore(owner, messageBoxText, caption, button, icon);
     }
 
-    private static Task<MessageBoxResult> ShowCore(string messageBoxText, string caption, MessageBoxButton button,
+    private static Task<MessageBoxResult> ShowCore(
+        string messageBoxText,
+        string caption,
+        MessageBoxButton button,
         MessageBoxIcon icon)
     {
-        var viewModel = new MessageBoxViewModel()
+        var viewModel = new MessageBoxViewModel
         {
             Caption = caption,
             Message = messageBoxText,
@@ -65,8 +78,12 @@ public static class MessageBox
         return tcs.Task;
     }
 
-    private static Task<MessageBoxResult> ShowDialogCore(Window owner, string messageBoxText, string caption,
-        MessageBoxButton button, MessageBoxIcon icon)
+    private static Task<MessageBoxResult> ShowDialogCore(
+        Window owner,
+        string messageBoxText,
+        string caption,
+        MessageBoxButton button,
+        MessageBoxIcon icon)
     {
         var viewModel = new MessageBoxViewModel
         {

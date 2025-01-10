@@ -6,6 +6,6 @@ public partial class GeneralConfigView : UserControl
 {
     public GeneralConfigView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 }

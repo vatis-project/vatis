@@ -7,7 +7,13 @@ namespace Vatsim.Vatis.Atis;
 
 public interface IAtisBuilder
 {
-    Task<AtisBuilderResponse> BuildAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
-        DecodedMetar decodedMetar, CancellationToken cancellationToken, bool sandboxRequest = false);
+    Task<AtisBuilderResponse> BuildAtis(
+        AtisStation station,
+        AtisPreset preset,
+        char currentAtisLetter,
+        DecodedMetar decodedMetar,
+        CancellationToken cancellationToken,
+        bool sandboxRequest = false);
+
     Task UpdateIds(AtisStation station, AtisPreset preset, char currentAtisLetter, CancellationToken cancellationToken);
 }

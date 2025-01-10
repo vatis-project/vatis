@@ -4,133 +4,165 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
-             xmlns:profiles="using:Vatsim.Vatis.Profiles"
              xmlns:tts="using:Vatsim.Vatis.TextToSpeech"
              xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.GeneralConfigView">
-	<UserControl.Resources>
-		<converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
-		<converters:CharToStringConverter x:Key="CharToStringConverter"/>
-	</UserControl.Resources>
-	<StackPanel Spacing="8">
-		<StackPanel>
-			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-				<StackPanel Spacing="5">
-					<TextBlock Text="Frequency:"/>
-					<TextBox Name="Frequency" Text="{Binding Frequency, DataType=vm:GeneralConfigViewModel}" Theme="{StaticResource DarkTextBox}">
-						<Interaction.Behaviors>
-							<behaviors:VhfFrequencyFormatBehavior/>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>										
-					</TextBox>
-				</StackPanel>
-			</Border>
-		</StackPanel>
-		<StackPanel>
-			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-				<StackPanel Spacing="5">
-					<Grid ColumnDefinitions="*,*">
-						<StackPanel Grid.Column="0" Spacing="5">
-							<TextBlock Text="ATIS Type:"/>
-							<StackPanel Orientation="Horizontal" Spacing="20">
-								<RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType" Content="Combined" IsChecked="{Binding AtisType, DataType=vm:GeneralConfigViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Combined}}"/>
-								<RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType" Content="Departure" IsChecked="{Binding AtisType, DataType=vm:GeneralConfigViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Departure}}"/>
-								<RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType" Content="Arrival" IsChecked="{Binding AtisType, DataType=vm:GeneralConfigViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Arrival}}"/>
-							</StackPanel>
-							<TextBlock Foreground="#FCBA03" Text="Another ATIS station already exists with this ATIS Type." IsVisible="{Binding ShowDuplicateAtisTypeError, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
-						</StackPanel>
-						<StackPanel Grid.Column="1" Spacing="5">
-							<TextBlock Text="Code Range:"/>
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<TextBox Text="{Binding CodeRangeLow, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}" MaxLength="1" MinWidth="60" Name="CodeRangeLow" Theme="{StaticResource DarkTextBox}">
-									<Interaction.Behaviors>
-										<behaviors:SelectAllTextOnFocusBehavior/>
-										<behaviors:TextBoxUppercaseBehavior/>
-										<behaviors:TextBoxAlphaOnlyBehavior/>
-									</Interaction.Behaviors>
-								</TextBox>
-								<TextBlock Text="to" VerticalAlignment="Center"/>
-								<TextBox Text="{Binding CodeRangeHigh, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}" MaxLength="1" MinWidth="60" Name="CodeRangeHigh" Theme="{StaticResource DarkTextBox}">
-									<Interaction.Behaviors>
-										<behaviors:SelectAllTextOnFocusBehavior/>
-										<behaviors:TextBoxUppercaseBehavior/>
-										<behaviors:TextBoxAlphaOnlyBehavior/>
-									</Interaction.Behaviors>
-									<TextBox.Styles>
-										<Style Selector="DataValidationErrors">
-											<Setter Property="Template">
-												<ControlTemplate>
-													<DockPanel LastChildFill="True">
-														<ContentControl DockPanel.Dock="Right"
-																		ContentTemplate="{TemplateBinding ErrorTemplate}"
-																		DataContext="{TemplateBinding Owner}"
-																		Content="{Binding (DataValidationErrors.Errors)}"
-																		IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
-														<ContentPresenter Name="PART_ContentPresenter"
-																		  Background="{TemplateBinding Background}"
-																		  BorderBrush="{TemplateBinding BorderBrush}"
-																		  BorderThickness="{TemplateBinding BorderThickness}"
-																		  CornerRadius="{TemplateBinding CornerRadius}"
-																		  ContentTemplate="{TemplateBinding ContentTemplate}"
-																		  Content="{TemplateBinding Content}"
-																		  Padding="{TemplateBinding Padding}"/>
-													</DockPanel>
-												</ControlTemplate>
-											</Setter>
-											<Setter Property="ErrorTemplate">
-												<DataTemplate x:DataType="{x:Type x:Object}">
-													<Canvas Width="16" Height="14" Background="Transparent" Margin="10 0 0 0">
-														<Canvas.Styles>
-															<Style Selector="ToolTip">
-																<Setter Property="Background" Value="#FFA500"/>
-																<Setter Property="BorderBrush" Value="#FFA500"/>
-															</Style>
-														</Canvas.Styles>
-														<ToolTip.Tip>
-															<ItemsControl ItemsSource="{Binding}"/>
-														</ToolTip.Tip>
-														<Path Data="M14,7 A7,7 0 0,0 0,7 M0,7 A7,7 0 1,0 14,7 M7,3l0,5 M7,9l0,2"
-															  Stroke="#FFA500"
-															  StrokeThickness="2"/>
-													</Canvas>
-												</DataTemplate>
-											</Setter>
-										</Style>
-									</TextBox.Styles>
-								</TextBox>
-							</StackPanel>
-						</StackPanel>
-					</Grid>
-				</StackPanel>
-			</Border>
-		</StackPanel>
-		<StackPanel>
-			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-				<StackPanel Orientation="Vertical" Spacing="10">
-					<StackPanel Spacing="20" Orientation="Horizontal">
-						<RadioButton Theme="{StaticResource RadioButton}" Content="Text to Speech" Name="UseTextToSpeech" IsChecked="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
-						<ComboBox Width="280" Classes="Dark" HorizontalAlignment="Stretch" ItemsSource="{Binding AvailableVoices, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding TextToSpeechVoice, DataType=vm:GeneralConfigViewModel}" DisplayMemberBinding="{Binding Name, DataType=tts:VoiceMetaData}" SelectedValueBinding="{Binding Name, DataType=tts:VoiceMetaData}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
-						<RadioButton Theme="{StaticResource RadioButton}" Content="Voice Recorded" IsChecked="{Binding !UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
-					</StackPanel>
-					<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
-				</StackPanel>
-			</Border>
-		</StackPanel>
-		<StackPanel>
-			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-				<StackPanel Spacing="5">
-					<TextBlock Text="IDS Endpoint:"/>
-					<TextBox Name="IdsEndpoint" Text="{Binding IdsEndpoint, DataType=vm:GeneralConfigViewModel}" Theme="{StaticResource DarkTextBox}">
-						<Interaction.Behaviors>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>
-					</TextBox>
-				</StackPanel>
-			</Border>
-		</StackPanel>
-		<TextBlock Foreground="#FFA500" TextWrapping="Wrap" FontWeight="Medium">Note: Saving changes to the ATIS configuration will automatically<LineBreak/>disconnect it from the network if it is currently connected.</TextBlock>
-		<TextBlock Foreground="White" FontWeight="Medium" Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}"/>
-	</StackPanel>
+    <UserControl.Resources>
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+        <converters:CharToStringConverter x:Key="CharToStringConverter" />
+    </UserControl.Resources>
+    <StackPanel Spacing="8">
+        <StackPanel>
+            <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Frequency:" />
+                    <TextBox Name="Frequency" Text="{Binding Frequency, DataType=vm:GeneralConfigViewModel}"
+                             Theme="{StaticResource DarkTextBox}">
+                        <Interaction.Behaviors>
+                            <behaviors:VhfFrequencyFormatBehavior />
+                            <behaviors:SelectAllTextOnFocusBehavior />
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <StackPanel>
+            <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+                <StackPanel Spacing="5">
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <TextBlock Text="ATIS Type:" />
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType"
+                                             Content="Combined"
+                                             IsChecked="{Binding AtisType, DataType=vm:GeneralConfigViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Combined}}" />
+                                <RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType"
+                                             Content="Departure"
+                                             IsChecked="{Binding AtisType, DataType=vm:GeneralConfigViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Departure}}" />
+                                <RadioButton Theme="{StaticResource RadioButton}" GroupName="AtisType"
+                                             Content="Arrival"
+                                             IsChecked="{Binding AtisType, DataType=vm:GeneralConfigViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static models:AtisType.Arrival}}" />
+                            </StackPanel>
+                            <TextBlock Foreground="#FCBA03"
+                                       Text="Another ATIS station already exists with this ATIS Type."
+                                       IsVisible="{Binding ShowDuplicateAtisTypeError, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="5">
+                            <TextBlock Text="Code Range:" />
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBox
+                                    Text="{Binding CodeRangeLow, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}"
+                                    MaxLength="1" MinWidth="60" Name="CodeRangeLow"
+                                    Theme="{StaticResource DarkTextBox}">
+                                    <Interaction.Behaviors>
+                                        <behaviors:SelectAllTextOnFocusBehavior />
+                                        <behaviors:TextBoxUppercaseBehavior />
+                                        <behaviors:TextBoxAlphaOnlyBehavior />
+                                    </Interaction.Behaviors>
+                                </TextBox>
+                                <TextBlock Text="to" VerticalAlignment="Center" />
+                                <TextBox
+                                    Text="{Binding CodeRangeHigh, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}"
+                                    MaxLength="1" MinWidth="60" Name="CodeRangeHigh"
+                                    Theme="{StaticResource DarkTextBox}">
+                                    <Interaction.Behaviors>
+                                        <behaviors:SelectAllTextOnFocusBehavior />
+                                        <behaviors:TextBoxUppercaseBehavior />
+                                        <behaviors:TextBoxAlphaOnlyBehavior />
+                                    </Interaction.Behaviors>
+                                    <TextBox.Styles>
+                                        <Style Selector="DataValidationErrors">
+                                            <Setter Property="Template">
+                                                <ControlTemplate>
+                                                    <DockPanel LastChildFill="True">
+                                                        <ContentControl DockPanel.Dock="Right"
+                                                                        ContentTemplate="{TemplateBinding ErrorTemplate}"
+                                                                        DataContext="{TemplateBinding Owner}"
+                                                                        Content="{Binding (DataValidationErrors.Errors)}"
+                                                                        IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+                                                        <ContentPresenter Name="PART_ContentPresenter"
+                                                                          Background="{TemplateBinding Background}"
+                                                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                                                          CornerRadius="{TemplateBinding CornerRadius}"
+                                                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                                          Content="{TemplateBinding Content}"
+                                                                          Padding="{TemplateBinding Padding}" />
+                                                    </DockPanel>
+                                                </ControlTemplate>
+                                            </Setter>
+                                            <Setter Property="ErrorTemplate">
+                                                <DataTemplate x:DataType="{x:Type x:Object}">
+                                                    <Canvas Width="16" Height="14" Background="Transparent"
+                                                            Margin="10 0 0 0">
+                                                        <Canvas.Styles>
+                                                            <Style Selector="ToolTip">
+                                                                <Setter Property="Background" Value="#FFA500" />
+                                                                <Setter Property="BorderBrush" Value="#FFA500" />
+                                                            </Style>
+                                                        </Canvas.Styles>
+                                                        <ToolTip.Tip>
+                                                            <ItemsControl ItemsSource="{Binding}" />
+                                                        </ToolTip.Tip>
+                                                        <Path
+                                                            Data="M14,7 A7,7 0 0,0 0,7 M0,7 A7,7 0 1,0 14,7 M7,3l0,5 M7,9l0,2"
+                                                            Stroke="#FFA500"
+                                                            StrokeThickness="2" />
+                                                    </Canvas>
+                                                </DataTemplate>
+                                            </Setter>
+                                        </Style>
+                                    </TextBox.Styles>
+                                </TextBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <StackPanel>
+            <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+                <StackPanel Orientation="Vertical" Spacing="10">
+                    <StackPanel Spacing="20" Orientation="Horizontal">
+                        <RadioButton Theme="{StaticResource RadioButton}" Content="Text to Speech"
+                                     Name="UseTextToSpeech"
+                                     IsChecked="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel}" />
+                        <ComboBox Width="280" Classes="Dark" HorizontalAlignment="Stretch"
+                                  ItemsSource="{Binding AvailableVoices, DataType=vm:GeneralConfigViewModel}"
+                                  SelectedValue="{Binding TextToSpeechVoice, DataType=vm:GeneralConfigViewModel}"
+                                  DisplayMemberBinding="{Binding Name, DataType=tts:VoiceMetaData}"
+                                  SelectedValueBinding="{Binding Name, DataType=tts:VoiceMetaData}"
+                                  IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" />
+                        <RadioButton Theme="{StaticResource RadioButton}" Content="Voice Recorded"
+                                     IsChecked="{Binding !UseTextToSpeech, DataType=vm:GeneralConfigViewModel}" />
+                    </StackPanel>
+                    <CheckBox Theme="{StaticResource CheckBox}"
+                              Content="Use &quot;decimal&quot; terminology in spoken text"
+                              ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)."
+                              IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <StackPanel>
+            <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="IDS Endpoint:" />
+                    <TextBox Name="IdsEndpoint" Text="{Binding IdsEndpoint, DataType=vm:GeneralConfigViewModel}"
+                             Theme="{StaticResource DarkTextBox}">
+                        <Interaction.Behaviors>
+                            <behaviors:SelectAllTextOnFocusBehavior />
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <TextBlock Foreground="#FFA500" TextWrapping="Wrap" FontWeight="Medium">
+            Note: Saving changes to the ATIS configuration will automatically
+            <LineBreak />disconnect it from the network if it is currently connected.
+        </TextBlock>
+        <TextBlock Foreground="White" FontWeight="Medium"
+                   Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}" />
+    </StackPanel>
 </UserControl>

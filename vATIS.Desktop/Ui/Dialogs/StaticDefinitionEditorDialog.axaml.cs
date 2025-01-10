@@ -10,26 +10,26 @@ public partial class StaticDefinitionEditorDialog : ReactiveWindow<StaticDefinit
 {
     public StaticDefinitionEditorDialog(StaticDefinitionEditorDialogViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        Closed += OnClosed;
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.Closed += this.OnClosed;
     }
 
     public StaticDefinitionEditorDialog()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.Dispose();
+        this.ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 }

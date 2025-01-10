@@ -26,6 +26,7 @@ using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
+using Vatsim.Vatis.Ui.Windows;
 using Vatsim.Vatis.Utils;
 using Vatsim.Vatis.Voice.Audio;
 
@@ -33,68 +34,18 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly CompositeDisposable _disposables = new();
     private readonly IAppConfig _appConfig;
-    private readonly ISessionManager _sessionManager;
-    private readonly IWindowFactory _windowFactory;
+    private readonly CompositeDisposable _disposables = new();
     private readonly INavDataRepository _navDataRepository;
-    private readonly IViewModelFactory _viewModelFactory;
-    private readonly ITextToSpeechService _textToSpeechService;
     private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
+    private readonly ITextToSpeechService _textToSpeechService;
+    private readonly IViewModelFactory _viewModelFactory;
+    private readonly IWindowFactory _windowFactory;
     private IDialogOwner? _dialogOwner;
 
-    public GeneralConfigViewModel? GeneralConfigViewModel { get; private set; }
-    public PresetsViewModel? PresetsViewModel { get;  private set;}
-    public FormattingViewModel? FormattingViewModel { get; private set; }
-    public ContractionsViewModel? ContractionsViewModel { get; private set; }
-    public SandboxViewModel? SandboxViewModel { get; private set; }
-
-    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
-    public ReactiveCommand<AtisStation, Unit> SelectedAtisStationChanged { get;  }
-    public ReactiveCommand<ICloseable, Unit> SaveAndCloseCommand { get;  }
-    public ReactiveCommand<Unit, Unit> ApplyChangesCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> CancelChangesCommand { get;  }
-    public ReactiveCommand<Unit, Unit> NewAtisStationDialogCommand { get;  }
-    public ReactiveCommand<Unit, Unit> ExportAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> DeleteAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> RenameAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> CopyAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> ImportAtisStationCommand { get;  }
-
-    #region Reactive UI Properties
-    private readonly SourceList<AtisStation> _atisStationSource = new();
-    public ReadOnlyObservableCollection<AtisStation> AtisStations { get; set; }
-
-    private bool _hasUnsavedChanges;
-    public bool HasUnsavedChanges
-    {
-        get => _hasUnsavedChanges;
-        private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
-    }
-
-    private bool _showOverlay;
-    public bool ShowOverlay
-    {
-        get => _showOverlay;
-        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
-    }
-
-    private int _selectedTabControlTabIndex;
-    public int SelectedTabControlTabIndex
-    {
-        get => _selectedTabControlTabIndex;
-        set => this.RaiseAndSetIfChanged(ref _selectedTabControlTabIndex, value);
-    }
-
-    private AtisStation? _selectedAtisStation;
-    public AtisStation? SelectedAtisStation
-    {
-        get => _selectedAtisStation;
-        set => this.RaiseAndSetIfChanged(ref _selectedAtisStation, value);
-    }
-    #endregion
-
-    public AtisConfigurationWindowViewModel(IAppConfig appConfig,
+    public AtisConfigurationWindowViewModel(
+        IAppConfig appConfig,
         ISessionManager sessionManager,
         IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory,
@@ -102,70 +53,108 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         INavDataRepository navDataRepository,
         IProfileRepository profileRepository)
     {
-        _appConfig = appConfig;
-        _sessionManager = sessionManager;
-        _windowFactory = windowFactory;
-        _viewModelFactory = viewModelFactory;
-        _textToSpeechService = textToSpeechService;
-        _navDataRepository = navDataRepository;
-        _profileRepository = profileRepository;
+        this._appConfig = appConfig;
+        this._sessionManager = sessionManager;
+        this._windowFactory = windowFactory;
+        this._viewModelFactory = viewModelFactory;
+        this._textToSpeechService = textToSpeechService;
+        this._navDataRepository = navDataRepository;
+        this._profileRepository = profileRepository;
 
-        CloseWindowCommand = ReactiveCommand.CreateFromTask<ICloseable>(HandleCloseWindow);
-        SelectedAtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleSelectedAtisStationChanged);
-        SaveAndCloseCommand = ReactiveCommand.Create<ICloseable>(HandleSaveAndClose);
-        ApplyChangesCommand = ReactiveCommand.Create(HandleApplyChanges, this.WhenAnyValue(x => x.HasUnsavedChanges));
-        CancelChangesCommand = ReactiveCommand.CreateFromTask<ICloseable>(HandleCancelChanges);
-        NewAtisStationDialogCommand = ReactiveCommand.CreateFromTask(HandleNewAtisStationDialog);
-        ExportAtisCommand = ReactiveCommand.CreateFromTask(HandleExportAtisStation);
-        DeleteAtisCommand = ReactiveCommand.CreateFromTask(HandleDeleteAtis);
-        RenameAtisCommand = ReactiveCommand.CreateFromTask(HandleRenameAtis);
-        CopyAtisCommand = ReactiveCommand.CreateFromTask(HandleCopyAtis);
-        ImportAtisStationCommand = ReactiveCommand.Create(HandleImportAtisStation);
+        this.CloseWindowCommand = ReactiveCommand.CreateFromTask<ICloseable>(this.HandleCloseWindow);
+        this.SelectedAtisStationChanged = ReactiveCommand.Create<AtisStation>(this.HandleSelectedAtisStationChanged);
+        this.SaveAndCloseCommand = ReactiveCommand.Create<ICloseable>(this.HandleSaveAndClose);
+        this.ApplyChangesCommand = ReactiveCommand.Create(
+            this.HandleApplyChanges,
+            this.WhenAnyValue(x => x.HasUnsavedChanges));
+        this.CancelChangesCommand = ReactiveCommand.CreateFromTask<ICloseable>(this.HandleCancelChanges);
+        this.NewAtisStationDialogCommand = ReactiveCommand.CreateFromTask(this.HandleNewAtisStationDialog);
+        this.ExportAtisCommand = ReactiveCommand.CreateFromTask(this.HandleExportAtisStation);
+        this.DeleteAtisCommand = ReactiveCommand.CreateFromTask(this.HandleDeleteAtis);
+        this.RenameAtisCommand = ReactiveCommand.CreateFromTask(this.HandleRenameAtis);
+        this.CopyAtisCommand = ReactiveCommand.CreateFromTask(this.HandleCopyAtis);
+        this.ImportAtisStationCommand = ReactiveCommand.Create(this.HandleImportAtisStation);
 
-        _disposables.Add(CloseWindowCommand);
-        _disposables.Add(SaveAndCloseCommand);
-        _disposables.Add(ApplyChangesCommand);
-        _disposables.Add(CancelChangesCommand);
-        _disposables.Add(NewAtisStationDialogCommand);
-        _disposables.Add(ExportAtisCommand);
-        _disposables.Add(DeleteAtisCommand);
-        _disposables.Add(RenameAtisCommand);
-        _disposables.Add(CopyAtisCommand);
-        _disposables.Add(ImportAtisStationCommand);
+        this._disposables.Add(this.CloseWindowCommand);
+        this._disposables.Add(this.SaveAndCloseCommand);
+        this._disposables.Add(this.ApplyChangesCommand);
+        this._disposables.Add(this.CancelChangesCommand);
+        this._disposables.Add(this.NewAtisStationDialogCommand);
+        this._disposables.Add(this.ExportAtisCommand);
+        this._disposables.Add(this.DeleteAtisCommand);
+        this._disposables.Add(this.RenameAtisCommand);
+        this._disposables.Add(this.CopyAtisCommand);
+        this._disposables.Add(this.ImportAtisStationCommand);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
             {
-                ShowOverlay = lifetime.Windows.Count(w => w.GetType() != typeof(Windows.MainWindow)) > 1;
+                this.ShowOverlay = lifetime.Windows.Count(w => w.GetType() != typeof(MainWindow)) > 1;
             };
         }
 
-        if (_sessionManager.CurrentProfile?.Stations != null)
+        if (this._sessionManager.CurrentProfile?.Stations != null)
         {
-            foreach (var station in _sessionManager.CurrentProfile.Stations)
+            foreach (var station in this._sessionManager.CurrentProfile.Stations)
             {
-                _atisStationSource.Add(station);
+                this._atisStationSource.Add(station);
             }
         }
 
-        _atisStationSource.Connect()
+        this._atisStationSource.Connect()
             .AutoRefresh(x => x.Name)
             .AutoRefresh(x => x.AtisType)
-            .Sort(SortExpressionComparer<AtisStation>
-                .Ascending(i => i.Identifier)
-                .ThenBy(i => i.AtisType))
+            .Sort(
+                SortExpressionComparer<AtisStation>
+                    .Ascending(i => i.Identifier)
+                    .ThenBy(i => i.AtisType))
             .Bind(out var sortedStations)
-            .Subscribe(_ =>
-            {
-                AtisStations = sortedStations;
-            });
-        AtisStations = sortedStations;
+            .Subscribe(_ => { this.AtisStations = sortedStations; });
+        this.AtisStations = sortedStations;
+    }
+
+    public GeneralConfigViewModel? GeneralConfigViewModel { get; private set; }
+
+    public PresetsViewModel? PresetsViewModel { get; private set; }
+
+    public FormattingViewModel? FormattingViewModel { get; private set; }
+
+    public ContractionsViewModel? ContractionsViewModel { get; private set; }
+
+    public SandboxViewModel? SandboxViewModel { get; private set; }
+
+    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
+
+    public ReactiveCommand<AtisStation, Unit> SelectedAtisStationChanged { get; }
+
+    public ReactiveCommand<ICloseable, Unit> SaveAndCloseCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ApplyChangesCommand { get; }
+
+    public ReactiveCommand<ICloseable, Unit> CancelChangesCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> NewAtisStationDialogCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ExportAtisCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> DeleteAtisCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> RenameAtisCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> CopyAtisCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ImportAtisStationCommand { get; }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this._disposables.Dispose();
     }
 
     private async Task HandleCloseWindow(ICloseable? window)
     {
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
         {
             window?.Close();
             return;
@@ -173,11 +162,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
         NativeAudio.StopBufferPlayback();
 
-        if (SelectedAtisStation != null && HasUnsavedChanges)
+        if (this.SelectedAtisStation != null && this.HasUnsavedChanges)
         {
-            if (await MessageBox.ShowDialog((Window)_dialogOwner,
-                    "You have unsaved changes. Are you sure you want to discard them?", "Confirm",
-                    MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+            if (await MessageBox.ShowDialog(
+                    (Window)this._dialogOwner,
+                    "You have unsaved changes. Are you sure you want to discard them?",
+                    "Confirm",
+                    MessageBoxButton.YesNo,
+                    MessageBoxIcon.Information) == MessageBoxResult.Yes)
             {
                 window?.Close();
             }
@@ -190,43 +182,36 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
     public void Initialize(IDialogOwner dialogOwner)
     {
-        _dialogOwner = dialogOwner;
+        this._dialogOwner = dialogOwner;
 
-        GeneralConfigViewModel = _viewModelFactory.CreateGeneralConfigViewModel();
-        GeneralConfigViewModel.AvailableVoices = new ObservableCollection<VoiceMetaData>(_textToSpeechService.VoiceList);
-        GeneralConfigViewModel.WhenAnyValue(x => x.SelectedTabIndex).Subscribe(idx =>
-        {
-            SelectedTabControlTabIndex = idx;
-        });
-        GeneralConfigViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val =>
-        {
-            HasUnsavedChanges = val;
-        });
+        this.GeneralConfigViewModel = this._viewModelFactory.CreateGeneralConfigViewModel();
+        this.GeneralConfigViewModel.AvailableVoices =
+            new ObservableCollection<VoiceMetaData>(this._textToSpeechService.VoiceList);
+        this.GeneralConfigViewModel.WhenAnyValue(x => x.SelectedTabIndex)
+            .Subscribe(idx => { this.SelectedTabControlTabIndex = idx; });
+        this.GeneralConfigViewModel.WhenAnyValue(x => x.HasUnsavedChanges)
+            .Subscribe(val => { this.HasUnsavedChanges = val; });
 
-        PresetsViewModel = _viewModelFactory.CreatePresetsViewModel();
-        PresetsViewModel.DialogOwner = _dialogOwner;
-        PresetsViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val =>
-        {
-            HasUnsavedChanges = val;
-        });
+        this.PresetsViewModel = this._viewModelFactory.CreatePresetsViewModel();
+        this.PresetsViewModel.DialogOwner = this._dialogOwner;
+        this.PresetsViewModel.WhenAnyValue(x => x.HasUnsavedChanges)
+            .Subscribe(val => { this.HasUnsavedChanges = val; });
 
-        FormattingViewModel = _viewModelFactory.CreateFormattingViewModel();
-        FormattingViewModel.DialogOwner = _dialogOwner;
-        FormattingViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val =>
-        {
-            HasUnsavedChanges = val;
-        });
+        this.FormattingViewModel = this._viewModelFactory.CreateFormattingViewModel();
+        this.FormattingViewModel.DialogOwner = this._dialogOwner;
+        this.FormattingViewModel.WhenAnyValue(x => x.HasUnsavedChanges)
+            .Subscribe(val => { this.HasUnsavedChanges = val; });
 
-        ContractionsViewModel = _viewModelFactory.CreateContractionsViewModel();
-        ContractionsViewModel.SetDialogOwner(_dialogOwner);
+        this.ContractionsViewModel = this._viewModelFactory.CreateContractionsViewModel();
+        this.ContractionsViewModel.SetDialogOwner(this._dialogOwner);
 
-        SandboxViewModel = _viewModelFactory.CreateSandboxViewModel();
-        SandboxViewModel.DialogOwner = _dialogOwner;
+        this.SandboxViewModel = this._viewModelFactory.CreateSandboxViewModel();
+        this.SandboxViewModel.DialogOwner = this._dialogOwner;
     }
 
     private async Task HandleCancelChanges(ICloseable window)
     {
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
         {
             window.Close();
             return;
@@ -234,11 +219,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
         NativeAudio.StopBufferPlayback();
 
-        if (SelectedAtisStation != null && HasUnsavedChanges)
+        if (this.SelectedAtisStation != null && this.HasUnsavedChanges)
         {
-            if (await MessageBox.ShowDialog((Window)_dialogOwner,
-                    "You have unsaved changes. Are you sure you want to discard them?", "Confirm",
-                    MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+            if (await MessageBox.ShowDialog(
+                    (Window)this._dialogOwner,
+                    "You have unsaved changes. Are you sure you want to discard them?",
+                    "Confirm",
+                    MessageBoxButton.YesNo,
+                    MessageBoxIcon.Information) == MessageBoxResult.Yes)
             {
                 window.Close();
             }
@@ -251,45 +239,63 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
     private async Task HandleDeleteAtis()
     {
-        if (SelectedAtisStation == null)
-            return;
-
-        if (_dialogOwner == null)
-            return;
-
-        if (await MessageBox.ShowDialog((Window)_dialogOwner, $"Are you sure you want to delete the selected ATIS Station? This action will also delete all associated ATIS presets.\r\n\r\n{SelectedAtisStation}", "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+        if (this.SelectedAtisStation == null)
         {
-            if (_sessionManager.CurrentProfile?.Stations == null)
-                return;
-
-            MessageBus.Current.SendMessage(new AtisStationDeleted(SelectedAtisStation.Id));
-            _sessionManager.CurrentProfile.Stations.Remove(SelectedAtisStation);
-            _appConfig.SaveConfig();
-            _atisStationSource.Remove(SelectedAtisStation);
-            SelectedAtisStation = null;
-            ResetFields();
+            return;
         }
-        ClearAllErrors();
+
+        if (this._dialogOwner == null)
+        {
+            return;
+        }
+
+        if (await MessageBox.ShowDialog(
+                (Window)this._dialogOwner,
+                $"Are you sure you want to delete the selected ATIS Station? This action will also delete all associated ATIS presets.\r\n\r\n{this.SelectedAtisStation}",
+                "Confirm",
+                MessageBoxButton.YesNo,
+                MessageBoxIcon.Information) == MessageBoxResult.Yes)
+        {
+            if (this._sessionManager.CurrentProfile?.Stations == null)
+            {
+                return;
+            }
+
+            MessageBus.Current.SendMessage(new AtisStationDeleted(this.SelectedAtisStation.Id));
+            this._sessionManager.CurrentProfile.Stations.Remove(this.SelectedAtisStation);
+            this._appConfig.SaveConfig();
+            this._atisStationSource.Remove(this.SelectedAtisStation);
+            this.SelectedAtisStation = null;
+            this.ResetFields();
+        }
+
+        this.ClearAllErrors();
     }
 
     private async Task HandleCopyAtis()
     {
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
-        if (SelectedAtisStation == null)
+        if (this.SelectedAtisStation == null)
+        {
             return;
+        }
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             if (lifetime.MainWindow == null)
+            {
                 return;
+            }
 
             var previousAirportIdentifier = "";
             var previousStationName = "";
             var previousAtisType = AtisType.Combined;
 
-            var dialog = _windowFactory.CreateNewAtisStationDialog();
+            var dialog = this._windowFactory.CreateNewAtisStationDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is NewAtisStationDialogViewModel context)
             {
@@ -310,7 +316,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         {
                             context.RaiseError("AirportIdentifier", "Airport Identifier is required.");
                         }
-                        else if (_navDataRepository.GetAirport(context.AirportIdentifier) == null)
+                        else if (this._navDataRepository.GetAirport(context.AirportIdentifier) == null)
                         {
                             context.RaiseError("AirportIdentifier", "Airport Identifier does not exist.");
                         }
@@ -320,34 +326,43 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             context.RaiseError("StationName", "Name is required.");
                         }
 
-                        if (context.HasErrors) return;
+                        if (context.HasErrors)
+                        {
+                            return;
+                        }
 
-                        if (_atisStationSource.Items.Any(x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
+                        if (this._atisStationSource.Items.Any(
+                                x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
                         {
                             context.RaiseError("Duplicate", "");
 
-                            if (await MessageBox.ShowDialog(dialog, $"{context.AirportIdentifier} ({context.AtisType}) already exists.", "Error", MessageBoxButton.Ok, MessageBoxIcon.Information) == MessageBoxResult.Ok)
+                            if (await MessageBox.ShowDialog(
+                                    dialog,
+                                    $"{context.AirportIdentifier} ({context.AtisType}) already exists.",
+                                    "Error",
+                                    MessageBoxButton.Ok,
+                                    MessageBoxIcon.Information) == MessageBoxResult.Ok)
                             {
                                 return;
                             }
                         }
 
-                        if (_sessionManager.CurrentProfile?.Stations != null)
+                        if (this._sessionManager.CurrentProfile?.Stations != null)
                         {
-                            var clone = SelectedAtisStation.Clone();
+                            var clone = this.SelectedAtisStation.Clone();
                             clone.Identifier = context.AirportIdentifier;
                             clone.Name = context.StationName;
                             clone.AtisType = context.AtisType;
 
-                            _sessionManager.CurrentProfile.Stations.Add(clone);
-                            _appConfig.SaveConfig();
-                            _atisStationSource.Add(clone);
-                            SelectedAtisStation = clone;
-                            MessageBus.Current.SendMessage(new AtisStationAdded(SelectedAtisStation.Id));
+                            this._sessionManager.CurrentProfile.Stations.Add(clone);
+                            this._appConfig.SaveConfig();
+                            this._atisStationSource.Add(clone);
+                            this.SelectedAtisStation = clone;
+                            MessageBus.Current.SendMessage(new AtisStationAdded(this.SelectedAtisStation.Id));
                         }
                     }
                 };
-                await dialog.ShowDialog((Window)_dialogOwner);
+                await dialog.ShowDialog((Window)this._dialogOwner);
             }
         }
     }
@@ -356,14 +371,18 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     {
         try
         {
-            if (_dialogOwner == null)
+            if (this._dialogOwner == null)
+            {
                 return;
+            }
 
             var filters = new List<FilePickerFileType> { new("ATIS Station (*.station)") { Patterns = ["*.station"] } };
             var files = await FilePickerExtensions.OpenFilePickerAsync(filters, "Import ATIS Station");
 
             if (files == null)
+            {
                 return;
+            }
 
             foreach (var file in files)
             {
@@ -371,19 +390,25 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                 var station = JsonSerializer.Deserialize(fileContent, SourceGenerationContext.NewDefault.AtisStation);
                 if (station != null)
                 {
-                    if (_sessionManager.CurrentProfile?.Stations == null)
-                        return;
-
-                    if (_sessionManager.CurrentProfile.Stations.Any(x =>
-                            x.Identifier == station.Identifier && x.AtisType == station.AtisType))
+                    if (this._sessionManager.CurrentProfile?.Stations == null)
                     {
-                        if (await MessageBox.ShowDialog((Window)_dialogOwner,
+                        return;
+                    }
+
+                    if (this._sessionManager.CurrentProfile.Stations.Any(
+                            x =>
+                                x.Identifier == station.Identifier && x.AtisType == station.AtisType))
+                    {
+                        if (await MessageBox.ShowDialog(
+                                (Window)this._dialogOwner,
                                 $"{station.Identifier} ({station.AtisType}) already exists. Do you want to overwrite it?",
                                 "Confirm",
-                                MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                                MessageBoxButton.YesNo,
+                                MessageBoxIcon.Information) == MessageBoxResult.Yes)
                         {
-                            _sessionManager.CurrentProfile?.Stations?.RemoveAll(x =>
-                                x.Identifier == station.Identifier && x.AtisType == station.AtisType);
+                            this._sessionManager.CurrentProfile?.Stations?.RemoveAll(
+                                x =>
+                                    x.Identifier == station.Identifier && x.AtisType == station.AtisType);
                         }
                         else
                         {
@@ -391,9 +416,9 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         }
                     }
 
-                    _sessionManager.CurrentProfile?.Stations?.Add(station);
-                    _appConfig.SaveConfig();
-                    _atisStationSource.Add(station);
+                    this._sessionManager.CurrentProfile?.Stations?.Add(station);
+                    this._appConfig.SaveConfig();
+                    this._atisStationSource.Add(station);
                     MessageBus.Current.SendMessage(new AtisStationAdded(station.Id));
                 }
             }
@@ -406,20 +431,26 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
     private async Task HandleRenameAtis()
     {
-        if (SelectedAtisStation == null)
+        if (this.SelectedAtisStation == null)
+        {
             return;
+        }
 
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             if (lifetime.MainWindow == null)
+            {
                 return;
+            }
 
-            var previousValue = SelectedAtisStation.Name;
+            var previousValue = this.SelectedAtisStation.Name;
 
-            var dialog = _windowFactory.CreateUserInputDialog();
+            var dialog = this._windowFactory.CreateUserInputDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is UserInputDialogViewModel context)
             {
@@ -438,60 +469,82 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         }
                         else
                         {
-                            SelectedAtisStation.Name = context.UserValue.Trim();
-                            _appConfig.SaveConfig();
-                            _atisStationSource.Edit(list =>
-                            {
-                                var item = list.FirstOrDefault(x => x.Id == SelectedAtisStation.Id);
-                                if (item != null)
+                            this.SelectedAtisStation.Name = context.UserValue.Trim();
+                            this._appConfig.SaveConfig();
+                            this._atisStationSource.Edit(
+                                list =>
                                 {
-                                    item.Name = context.UserValue.Trim();
-                                }
-                            });
+                                    var item = list.FirstOrDefault(x => x.Id == this.SelectedAtisStation.Id);
+                                    if (item != null)
+                                    {
+                                        item.Name = context.UserValue.Trim();
+                                    }
+                                });
                         }
                     }
                 };
             }
-            await dialog.ShowDialog((Window)_dialogOwner);
+
+            await dialog.ShowDialog((Window)this._dialogOwner);
         }
     }
 
     private async Task HandleExportAtisStation()
     {
-        if (SelectedAtisStation == null)
+        if (this.SelectedAtisStation == null)
+        {
             return;
+        }
 
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
         var filters = new List<FilePickerFileType> { new("ATIS Station (*.station)") { Patterns = ["*.station"] } };
-        var file = await FilePickerExtensions.SaveFileAsync("Export ATIS Station", filters, $"{SelectedAtisStation.Name} ({SelectedAtisStation.AtisType})");
+        var file = await FilePickerExtensions.SaveFileAsync(
+            "Export ATIS Station",
+            filters,
+            $"{this.SelectedAtisStation.Name} ({this.SelectedAtisStation.AtisType})");
 
         if (file == null)
+        {
             return;
+        }
 
-        SelectedAtisStation.Id = null!;
+        this.SelectedAtisStation.Id = null!;
 
-        await File.WriteAllTextAsync(file.Path.LocalPath, JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation));
-        await MessageBox.ShowDialog((Window)_dialogOwner, "ATIS Station successfully exported.", "Success", MessageBoxButton.Ok, MessageBoxIcon.Information);
+        await File.WriteAllTextAsync(
+            file.Path.LocalPath,
+            JsonSerializer.Serialize(this.SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation));
+        await MessageBox.ShowDialog(
+            (Window)this._dialogOwner,
+            "ATIS Station successfully exported.",
+            "Success",
+            MessageBoxButton.Ok,
+            MessageBoxIcon.Information);
     }
 
     private async Task HandleNewAtisStationDialog()
     {
-        if (_dialogOwner == null)
+        if (this._dialogOwner == null)
+        {
             return;
+        }
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             if (lifetime.MainWindow == null)
+            {
                 return;
+            }
 
             var previousAirportIdentifier = "";
             var previousStationName = "";
             var previousAtisType = AtisType.Combined;
             var isDuplicateAcknowledged = false;
 
-            var dialog = _windowFactory.CreateNewAtisStationDialog();
+            var dialog = this._windowFactory.CreateNewAtisStationDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is NewAtisStationDialogViewModel context)
             {
@@ -512,7 +565,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         {
                             context.RaiseError("AirportIdentifier", "Airport Identifier is required.");
                         }
-                        else if (_navDataRepository.GetAirport(context.AirportIdentifier) == null)
+                        else if (this._navDataRepository.GetAirport(context.AirportIdentifier) == null)
                         {
                             context.RaiseError("AirportIdentifier", "Airport Identifier does not exist.");
                         }
@@ -522,24 +575,34 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             context.RaiseError("StationName", "Name is required.");
                         }
 
-                        if (context.HasErrors) return;
+                        if (context.HasErrors)
+                        {
+                            return;
+                        }
 
-                        if (_atisStationSource.Items.Any(x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
+                        if (this._atisStationSource.Items.Any(
+                                x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
                         {
                             if (!isDuplicateAcknowledged)
                             {
                                 context.RaiseError("Duplicate", "");
                             }
 
-                            if (await MessageBox.ShowDialog(dialog, $"{context.AirportIdentifier} ({context.AtisType}) already exists. Would you like to overwrite it?", "Error", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                            if (await MessageBox.ShowDialog(
+                                    dialog,
+                                    $"{context.AirportIdentifier} ({context.AtisType}) already exists. Would you like to overwrite it?",
+                                    "Error",
+                                    MessageBoxButton.YesNo,
+                                    MessageBoxIcon.Information) == MessageBoxResult.Yes)
                             {
                                 isDuplicateAcknowledged = true;
 
                                 context.ClearErrors("Duplicate");
                                 context.OkButtonCommand.Execute(dialog).Subscribe();
 
-                                _sessionManager.CurrentProfile?.Stations?.RemoveAll(x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType);
-                                _appConfig.SaveConfig();
+                                this._sessionManager.CurrentProfile?.Stations?.RemoveAll(
+                                    x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType);
+                                this._appConfig.SaveConfig();
                             }
                             else
                             {
@@ -547,44 +610,45 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             }
                         }
 
-                        if (_sessionManager.CurrentProfile?.Stations != null)
+                        if (this._sessionManager.CurrentProfile?.Stations != null)
                         {
-                            var station = new AtisStation()
+                            var station = new AtisStation
                             {
                                 Identifier = context.AirportIdentifier,
                                 Name = context.StationName,
                                 AtisType = context.AtisType
                             };
-                            _sessionManager.CurrentProfile.Stations.Add(station);
-                            _profileRepository.Save(_sessionManager.CurrentProfile);
+                            this._sessionManager.CurrentProfile.Stations.Add(station);
+                            this._profileRepository.Save(this._sessionManager.CurrentProfile);
 
-                            _atisStationSource.Add(station);
-                            SelectedAtisStation = station;
+                            this._atisStationSource.Add(station);
+                            this.SelectedAtisStation = station;
 
                             MessageBus.Current.SendMessage(new AtisStationAdded(station.Id));
                         }
                     }
                 };
-                await dialog.ShowDialog((Window)_dialogOwner);
+                await dialog.ShowDialog((Window)this._dialogOwner);
             }
         }
     }
 
     private void HandleSaveAndClose(ICloseable? window)
     {
-        var general = GeneralConfigViewModel?.ApplyConfig();
-        var presets = PresetsViewModel?.ApplyConfig();
-        var formatting = FormattingViewModel?.ApplyChanges();
-        var sandbox = SandboxViewModel?.ApplyConfig();
+        var general = this.GeneralConfigViewModel?.ApplyConfig();
+        var presets = this.PresetsViewModel?.ApplyConfig();
+        var formatting = this.FormattingViewModel?.ApplyChanges();
+        var sandbox = this.SandboxViewModel?.ApplyConfig();
 
         if (general != null && presets != null && formatting != null && sandbox != null)
         {
             if (general.Value && presets.Value && formatting.Value && sandbox.Value)
             {
-                if (SelectedAtisStation != null)
+                if (this.SelectedAtisStation != null)
                 {
-                    MessageBus.Current.SendMessage(new AtisStationUpdated(SelectedAtisStation.Id));
+                    MessageBus.Current.SendMessage(new AtisStationUpdated(this.SelectedAtisStation.Id));
                 }
+
                 window?.Close();
             }
         }
@@ -592,36 +656,72 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
     private void HandleApplyChanges()
     {
-        GeneralConfigViewModel?.ApplyConfig();
-        PresetsViewModel?.ApplyConfig();
-        FormattingViewModel?.ApplyChanges();
-        SandboxViewModel?.ApplyConfig();
+        this.GeneralConfigViewModel?.ApplyConfig();
+        this.PresetsViewModel?.ApplyConfig();
+        this.FormattingViewModel?.ApplyChanges();
+        this.SandboxViewModel?.ApplyConfig();
     }
 
     private void HandleSelectedAtisStationChanged(AtisStation? station)
     {
         if (station == null)
+        {
             return;
+        }
 
-        SelectedAtisStation = station;
+        this.SelectedAtisStation = station;
 
-        GeneralConfigViewModel?.AtisStationChanged.Execute(station).Subscribe();
-        PresetsViewModel?.AtisStationChanged.Execute(station).Subscribe();
-        FormattingViewModel?.AtisStationChanged.Execute(station).Subscribe();
-        ContractionsViewModel?.AtisStationChanged.Execute(station).Subscribe();
-        SandboxViewModel?.AtisStationChanged.Execute(station).Subscribe();
+        this.GeneralConfigViewModel?.AtisStationChanged.Execute(station).Subscribe();
+        this.PresetsViewModel?.AtisStationChanged.Execute(station).Subscribe();
+        this.FormattingViewModel?.AtisStationChanged.Execute(station).Subscribe();
+        this.ContractionsViewModel?.AtisStationChanged.Execute(station).Subscribe();
+        this.SandboxViewModel?.AtisStationChanged.Execute(station).Subscribe();
     }
 
     private void ResetFields()
     {
-        GeneralConfigViewModel?.Reset();
-        SelectedTabControlTabIndex = 0;
-        HasUnsavedChanges = false;
+        this.GeneralConfigViewModel?.Reset();
+        this.SelectedTabControlTabIndex = 0;
+        this.HasUnsavedChanges = false;
     }
 
-    public void Dispose()
+    #region Reactive UI Properties
+
+    private readonly SourceList<AtisStation> _atisStationSource = new();
+
+    public ReadOnlyObservableCollection<AtisStation> AtisStations { get; set; }
+
+    private bool _hasUnsavedChanges;
+
+    public bool HasUnsavedChanges
     {
-        GC.SuppressFinalize(this);
-        _disposables.Dispose();
+        get => this._hasUnsavedChanges;
+        private set => this.RaiseAndSetIfChanged(ref this._hasUnsavedChanges, value);
     }
+
+    private bool _showOverlay;
+
+    public bool ShowOverlay
+    {
+        get => this._showOverlay;
+        set => this.RaiseAndSetIfChanged(ref this._showOverlay, value);
+    }
+
+    private int _selectedTabControlTabIndex;
+
+    public int SelectedTabControlTabIndex
+    {
+        get => this._selectedTabControlTabIndex;
+        set => this.RaiseAndSetIfChanged(ref this._selectedTabControlTabIndex, value);
+    }
+
+    private AtisStation? _selectedAtisStation;
+
+    public AtisStation? SelectedAtisStation
+    {
+        get => this._selectedAtisStation;
+        set => this.RaiseAndSetIfChanged(ref this._selectedAtisStation, value);
+    }
+
+    #endregion
 }

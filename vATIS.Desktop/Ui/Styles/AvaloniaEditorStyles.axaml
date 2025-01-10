@@ -2,19 +2,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:cc="clr-namespace:AvaloniaEdit.CodeCompletion;assembly=AvaloniaEdit">
-    
+
     <Style Selector="ae|TextEditor">
-        <Setter Property="Background" Value="#1e1e1e"/>
-        <Setter Property="BorderBrush" Value="#646464"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Background" Value="#1e1e1e" />
+        <Setter Property="BorderBrush" Value="#646464" />
+        <Setter Property="BorderThickness" Value="1" />
         <Style Selector="^:focus-within">
-            <Setter Property="Background" Value="#141414"/>
+            <Setter Property="Background" Value="#141414" />
         </Style>
     </Style>
     <Style Selector="ae|TextEditor /template/ Border">
-        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="CornerRadius" Value="3" />
     </Style>
-    
+
     <Style Selector="cc|CompletionList">
         <Setter Property="Template">
             <ControlTemplate>
@@ -37,13 +37,13 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    
+
     <Style Selector="cc|CompletionList ListBox > ListBoxItem">
         <Setter Property="Margin" Value="0" />
         <Setter Property="Padding" Value="5, 3, 3, 3" />
-        <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Height" Value="20"/>
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Height" Value="20" />
     </Style>
 
     <Style Selector="cc|CompletionList > ListBox">
@@ -52,7 +52,7 @@
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
     </Style>
-    
+
     <Style Selector="cc|CompletionTipContentControl">
         <Setter Property="Background" Value="#1e1e1e" />
         <Setter Property="Foreground" Value="White" />

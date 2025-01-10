@@ -10,27 +10,27 @@ public partial class StaticNotamsDialog : ReactiveWindow<StaticNotamsDialogViewM
 {
     public StaticNotamsDialog(StaticNotamsDialogViewModel viewModel)
     {
-        InitializeComponent();
-        ViewModel = viewModel;
-        ViewModel.Owner = this;
-        Closed += OnClosed;
+        this.InitializeComponent();
+        this.ViewModel = viewModel;
+        this.ViewModel.Owner = this;
+        this.Closed += this.OnClosed;
     }
 
     public StaticNotamsDialog()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
-        ViewModel?.Dispose();
+        this.ViewModel?.Dispose();
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            this.BeginMoveDrag(e);
         }
     }
 }

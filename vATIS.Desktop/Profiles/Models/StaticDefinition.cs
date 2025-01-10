@@ -2,29 +2,34 @@
 
 namespace Vatsim.Vatis.Profiles.Models;
 
-public class StaticDefinition: ReactiveObject
+public class StaticDefinition : ReactiveObject
 {
-    public string Text { get; set; }
-    public int Ordinal { get; set; }
-
     private bool _enabled;
-    public bool Enabled
-    {
-        get => _enabled;
-        set => this.RaiseAndSetIfChanged(ref _enabled, value);
-    }
-
-    public override string ToString() => Text;
 
     public StaticDefinition(string text, int ordinal, bool enabled = true)
     {
-        Text = text;
-        Ordinal = ordinal;
-        Enabled = enabled;
+        this.Text = text;
+        this.Ordinal = ordinal;
+        this.Enabled = enabled;
+    }
+
+    public string Text { get; set; }
+
+    public int Ordinal { get; set; }
+
+    public bool Enabled
+    {
+        get => this._enabled;
+        set => this.RaiseAndSetIfChanged(ref this._enabled, value);
+    }
+
+    public override string ToString()
+    {
+        return this.Text;
     }
 
     public StaticDefinition Clone()
     {
-        return new StaticDefinition(Text, Ordinal, Enabled);
+        return new StaticDefinition(this.Text, this.Ordinal, this.Enabled);
     }
 }

@@ -8,7 +8,9 @@ namespace Vatsim.Vatis.Profiles.Converter;
 
 public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
 {
-    public override Dictionary<string, CloudType> Read(ref Utf8JsonReader reader, Type typeToConvert,
+    public override Dictionary<string, CloudType> Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
         JsonSerializerOptions options)
     {
         // Deserialize the JSON into a JsonDocument for inspection
@@ -32,9 +34,13 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
                 if (property.Value.ValueKind == JsonValueKind.Object)
                 {
                     // If the value is an object, it's the new format (CloudType)
-                    var cloudType = JsonSerializer.Deserialize(property.Value.GetRawText(),
+                    var cloudType = JsonSerializer.Deserialize(
+                        property.Value.GetRawText(),
                         SourceGenerationContext.NewDefault.CloudType);
-                    if (cloudType != null) result.Add(property.Name, cloudType);
+                    if (cloudType != null)
+                    {
+                        result.Add(property.Name, cloudType);
+                    }
                 }
                 else if (property.Value.ValueKind == JsonValueKind.String)
                 {
@@ -67,7 +73,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
                 if (!result.ContainsKey(key))
                 {
                     // Add missing keys with default values
-                    result.Add(key, CreateDefaultCloudType(key));
+                    result.Add(key, this.CreateDefaultCloudType(key));
                 }
             }
 
@@ -76,7 +82,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
 
         throw new JsonException("Invalid JSON format.");
     }
-    
+
     private CloudType CreateDefaultCloudType(string key)
     {
         return key switch
@@ -94,7 +100,9 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
         };
     }
 
-    public override void Write(Utf8JsonWriter writer, Dictionary<string, CloudType> value,
+    public override void Write(
+        Utf8JsonWriter writer,
+        Dictionary<string, CloudType> value,
         JsonSerializerOptions options)
     {
         JsonSerializer.Serialize(writer, value, SourceGenerationContext.NewDefault.DictionaryStringCloudType);

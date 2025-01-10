@@ -2,12 +2,13 @@
 
 public class CodeRangeMeta
 {
-    public char Low { get; set; }
-    public char High { get; set; }
-
     public CodeRangeMeta(char low, char high)
     {
-        Low = low;
-        High = high;
+        this.Low = low;
+        this.High = high;
     }
+
+    public char Low { get; set; }
+
+    public char High { get; set; }
 }

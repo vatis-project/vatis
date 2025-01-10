@@ -6,6 +6,5 @@ public class AuthTokenException : Exception
 {
     public AuthTokenException(string message) : base(message)
     {
-        
     }
 }

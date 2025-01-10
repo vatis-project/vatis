@@ -13,79 +13,93 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
-    public ReactiveCommand<Unit, Unit> MovePresetUpCommand { get; }
-    public ReactiveCommand<Unit, Unit> MovePresetDownCommand { get; }
-
     private ObservableCollection<AtisPreset> _presets = [];
-    public ObservableCollection<AtisPreset> Presets
-    {
-        get => _presets;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _presets, value);
-            Source.Items = _presets.OrderBy(x => x.Ordinal);
-        }
-    }
-
-    public FlatTreeDataGridSource<AtisPreset> Source { get; }
 
     public SortPresetsDialogViewModel()
     {
         var textColumnLength = new GridLength(1, GridUnitType.Star);
-        Source = new FlatTreeDataGridSource<AtisPreset>(Presets)
+        this.Source = new FlatTreeDataGridSource<AtisPreset>(this.Presets)
         {
             Columns =
             {
-                new TextColumn<AtisPreset, string>("", x => x.ToString(), width: textColumnLength,
-                    new TextColumnOptions<AtisPreset>()
+                new TextColumn<AtisPreset, string>(
+                    "",
+                    x => x.ToString(),
+                    textColumnLength,
+                    new TextColumnOptions<AtisPreset>
                     {
                         TextWrapping = TextWrapping.Wrap
                     })
             }
         };
-        Source.RowSelection!.SingleSelect = false;
+        this.Source.RowSelection!.SingleSelect = false;
 
         var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
             .Select(x => x > 0);
         var canMoveDown = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
-            .Select(x => x < Presets.Count - 1);
+            .Select(x => x < this.Presets.Count - 1);
 
-        CloseWindowCommand = ReactiveCommand.Create<ICloseable>(HandleCloseWindow);
-        MovePresetUpCommand = ReactiveCommand.Create(HandleMovePresetUp, canMoveUp);
-        MovePresetDownCommand = ReactiveCommand.Create(HandleMovePresetDown, canMoveDown);
+        this.CloseWindowCommand = ReactiveCommand.Create<ICloseable>(HandleCloseWindow);
+        this.MovePresetUpCommand = ReactiveCommand.Create(this.HandleMovePresetUp, canMoveUp);
+        this.MovePresetDownCommand = ReactiveCommand.Create(this.HandleMovePresetDown, canMoveDown);
+    }
+
+    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> MovePresetUpCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> MovePresetDownCommand { get; }
+
+    public ObservableCollection<AtisPreset> Presets
+    {
+        get => this._presets;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._presets, value);
+            this.Source.Items = this._presets.OrderBy(x => x.Ordinal);
+        }
+    }
+
+    public FlatTreeDataGridSource<AtisPreset> Source { get; }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.CloseWindowCommand.Dispose();
+        this.MovePresetUpCommand.Dispose();
+        this.MovePresetDownCommand.Dispose();
     }
 
     private void HandleMovePresetUp()
     {
-        if (Source.RowSelection?.SelectedIndex >= 1)
+        if (this.Source.RowSelection?.SelectedIndex >= 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var definition = this.Source.RowSelection.SelectedItem;
+            var newIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
+            var oldIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault();
             if (definition != null)
             {
-                Presets.Move(oldIndex, newIndex);
+                this.Presets.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
-                Source.Items = Presets.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                this.Source.Items = this.Presets.OrderBy(x => x.Ordinal).ToList();
+                this.Source.RowSelection.SelectedIndex = newIndex;
             }
         }
     }
 
     private void HandleMovePresetDown()
     {
-        if (Source.RowSelection?.SelectedIndex <= Source.Items.Count() - 1)
+        if (this.Source.RowSelection?.SelectedIndex <= this.Source.Items.Count() - 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
+            var definition = this.Source.RowSelection.SelectedItem;
+            var oldIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var newIndex = this.Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
             if (definition != null)
             {
-                Presets.Move(oldIndex, newIndex);
+                this.Presets.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
-                Source.Items = Presets.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                this.Source.Items = this.Presets.OrderBy(x => x.Ordinal).ToList();
+                this.Source.RowSelection.SelectedIndex = newIndex;
             }
         }
     }
@@ -93,13 +107,5 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
     private static void HandleCloseWindow(ICloseable window)
     {
         window.Close();
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        CloseWindowCommand.Dispose();
-        MovePresetUpCommand.Dispose();
-        MovePresetDownCommand.Dispose();
     }
 }

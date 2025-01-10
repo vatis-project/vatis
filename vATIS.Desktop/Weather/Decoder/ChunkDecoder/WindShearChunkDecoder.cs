@@ -5,6 +5,11 @@ using Vatsim.Vatis.Weather.Decoder.Exception;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Represents a decoder for wind shear information in METAR strings.
+/// This decoder processes data regarding wind shear for all runways or specific runways
+/// and extracts the relevant details into a structured format.
+/// </summary>
 public sealed class WindShearChunkDecoder : MetarChunkDecoder
 {
     private const string WindshearAllRunwaysParameterName = "WindshearAllRunways";
@@ -12,14 +17,16 @@ public sealed class WindShearChunkDecoder : MetarChunkDecoder
 
     private const string RunwayRegexPattern = "WS R(WY)?([0-9]{2}[LCR]?)";
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
         return $"^(WS ALL RWY|({RunwayRegexPattern})( {RunwayRegexPattern})?( {RunwayRegexPattern})?)( )";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
-        var consumed = Consume(remainingMetar);
+        var consumed = this.Consume(remainingMetar);
         var found = consumed.Value;
         var newRemainingMetar = consumed.Key;
         var result = new Dictionary<string, object?>();
@@ -46,12 +53,16 @@ public sealed class WindShearChunkDecoder : MetarChunkDecoder
                     {
                         var runway = found[k + 2].Value;
                         var qfuAsInt = Value.ToInt(runway);
+
                         // check runway qfu validity
                         if (qfuAsInt > 36 || qfuAsInt < 1)
                         {
-                            throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+                            throw new MetarChunkDecoderException(
+                                remainingMetar,
+                                newRemainingMetar,
                                 MetarChunkDecoderException.Messages.InvalidRunwayQfuRunwaVisualRangeInformation);
                         }
+
                         runways.Add(runway);
                     }
                 }
@@ -61,6 +72,6 @@ public sealed class WindShearChunkDecoder : MetarChunkDecoder
         result.Add(WindshearAllRunwaysParameterName, all);
         result.Add(WindshearRunwaysParameterName, runways);
 
-        return GetResults(newRemainingMetar, result);
+        return this.GetResults(newRemainingMetar, result);
     }
 }

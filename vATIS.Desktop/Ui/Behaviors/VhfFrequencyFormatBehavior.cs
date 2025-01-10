@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
@@ -12,38 +13,46 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
     protected override void OnAttached()
     {
         base.OnAttached();
-        if (AssociatedObject != null)
+        if (this.AssociatedObject != null)
         {
-            AssociatedObject.AddHandler(InputElement.TextInputEvent, TextInputHandler, Avalonia.Interactivity.RoutingStrategies.Tunnel);
-            AssociatedObject.TextChanged += OnTextChanged;
+            this.AssociatedObject.AddHandler(
+                InputElement.TextInputEvent,
+                this.TextInputHandler,
+                RoutingStrategies.Tunnel);
+            this.AssociatedObject.TextChanged += this.OnTextChanged;
         }
     }
 
     protected override void OnDetaching()
     {
         base.OnDetaching();
-        if (AssociatedObject != null)
+        if (this.AssociatedObject != null)
         {
-            AssociatedObject.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
-            AssociatedObject.TextChanged -= OnTextChanged;
+            this.AssociatedObject.RemoveHandler(InputElement.TextInputEvent, this.TextInputHandler);
+            this.AssociatedObject.TextChanged -= this.OnTextChanged;
         }
     }
 
     private void TextInputHandler(object? sender, TextInputEventArgs e)
     {
-        if (AssociatedObject == null)
+        if (this.AssociatedObject == null)
+        {
             return;
+        }
 
         if (e.Text == null)
+        {
             return;
+        }
 
-        var textBox = AssociatedObject;
+        var textBox = this.AssociatedObject;
         var text = textBox.Text ?? string.Empty;
         var input = e.Text;
 
         var newText = textBox.SelectedText == text ? input : text.Insert(textBox.CaretIndex, input);
 
-        if (!s_validInputRegex.IsMatch(newText.Replace(".", string.Empty)) || newText.Replace(".", string.Empty).Length > 6)
+        if (!s_validInputRegex.IsMatch(newText.Replace(".", string.Empty)) ||
+            newText.Replace(".", string.Empty).Length > 6)
         {
             e.Handled = true;
             return;
@@ -74,14 +83,18 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
 
     private void OnTextChanged(object? sender, TextChangedEventArgs e)
     {
-        if (AssociatedObject == null)
+        if (this.AssociatedObject == null)
+        {
             return;
+        }
 
-        var textBox = AssociatedObject;
+        var textBox = this.AssociatedObject;
         var text = textBox.Text;
 
         if (string.IsNullOrEmpty(text))
+        {
             return;
+        }
 
         if (text.Contains('.') && text.Length > 7)
         {

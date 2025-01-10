@@ -5,6 +5,13 @@ using Vatsim.Vatis.Weather.Decoder.Exception;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Represents a decoder that extracts and validates the datetime information from a METAR string segment.
+/// </summary>
+/// <remarks>
+/// This decoder is used to parse the day, hour, and minute, ensuring they meet the expected ranges,
+/// and formats the time information as per METAR specifications.
+/// </remarks>
 public sealed class DatetimeChunkDecoder : MetarChunkDecoder
 {
     private const string DayParameterName = "Day";
@@ -12,14 +19,16 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
     private const string HourParameterName = "Hour";
     private const string MinuteParameterName = "Minute";
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
         return "^([0-9]{2})([0-9]{2})([0-9]{2})Z ";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
-        var consumed = Consume(remainingMetar);
+        var consumed = this.Consume(remainingMetar);
         var found = consumed.Value;
         var newRemainingMetar = consumed.Key;
         var result = new Dictionary<string, object?>();
@@ -27,7 +36,9 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
         // handle the case where nothing has been found
         if (found.Count <= 1)
         {
-            throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+            throw new MetarChunkDecoderException(
+                remainingMetar,
+                newRemainingMetar,
                 MetarChunkDecoderException.Messages.BadDayHourMinuteInformation);
         }
 
@@ -36,9 +47,11 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
         var hour = Convert.ToInt32(found[2].Value);
         var minute = Convert.ToInt32(found[3].Value);
 
-        if (!CheckValidity(day, hour, minute))
+        if (!this.CheckValidity(day, hour, minute))
         {
-            throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+            throw new MetarChunkDecoderException(
+                remainingMetar,
+                newRemainingMetar,
                 MetarChunkDecoderException.Messages.InvalidDayHourMinuteRanges);
         }
 
@@ -47,16 +60,18 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
         result.Add(DayParameterName, day);
         result.Add(TimeParameterName, $"{hour:00}:{minute:00} UTC");
 
-        return GetResults(newRemainingMetar, result);
+        return this.GetResults(newRemainingMetar, result);
     }
 
     /// <summary>
-    /// Check the validity of the decoded information for date time.
+    /// Checks the validity of the provided day, hour, and minute values.
     /// </summary>
-    /// <param name="day"></param>
-    /// <param name="hour"></param>
-    /// <param name="minute"></param>
-    /// <returns></returns>
+    /// <param name="day">The day value to validate, ranging from 1 to 31.</param>
+    /// <param name="hour">The hour value to validate, ranging from 0 to 23.</param>
+    /// <param name="minute">The minute value to validate, ranging from 0 to 59.</param>
+    /// <returns>
+    /// <see langword="true"/> if the provided values for day, hour, and minute fall within valid ranges; otherwise, <see langword="false"/>.
+    /// </returns>
     private bool CheckValidity(int day, int hour, int minute)
     {
         // check value range
@@ -64,10 +79,12 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
         {
             return false;
         }
+
         if (hour is < 0 or > 23)
         {
             return false;
         }
+
         return minute is >= 0 and <= 59;
     }
 }

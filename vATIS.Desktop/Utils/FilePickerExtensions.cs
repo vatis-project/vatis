@@ -21,25 +21,30 @@ public static class FilePickerExtensions
         return provider;
     }
 
-    public static async Task<List<string>?> OpenFilePickerAsync(IReadOnlyList<FilePickerFileType>? filters = null,
+    public static async Task<List<string>?> OpenFilePickerAsync(
+        IReadOnlyList<FilePickerFileType>? filters = null,
         string? title = null)
     {
-        var files = await GetStorageProvider().OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            AllowMultiple = true, FileTypeFilter = filters, Title = title
-        });
+        var files = await GetStorageProvider().OpenFilePickerAsync(
+            new FilePickerOpenOptions
+            {
+                AllowMultiple = true, FileTypeFilter = filters, Title = title
+            });
         return files.Select(file => file.TryGetLocalPath()).OfType<string>().ToList();
     }
 
-    public static async Task<IStorageFile?> SaveFileAsync(string title, IReadOnlyList<FilePickerFileType> filters,
+    public static async Task<IStorageFile?> SaveFileAsync(
+        string title,
+        IReadOnlyList<FilePickerFileType> filters,
         string? initialFileName = null)
     {
-        return await GetStorageProvider().SaveFilePickerAsync(new FilePickerSaveOptions
-        {
-            Title = title,
-            FileTypeChoices = filters,
-            ShowOverwritePrompt = true,
-            SuggestedFileName = initialFileName
-        });
+        return await GetStorageProvider().SaveFilePickerAsync(
+            new FilePickerSaveOptions
+            {
+                Title = title,
+                FileTypeChoices = filters,
+                ShowOverwritePrompt = true,
+                SuggestedFileName = initialFileName
+            });
     }
 }

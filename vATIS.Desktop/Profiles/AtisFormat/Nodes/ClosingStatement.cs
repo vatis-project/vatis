@@ -1,9 +1,10 @@
 ﻿namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
+
 public class ClosingStatement : BaseFormat
 {
     public ClosingStatement()
     {
-        Template = new()
+        this.Template = new Template
         {
             Text = "...ADVS YOU HAVE INFO {letter}.",
             Voice = "ADVISE ON INITIAL CONTACT, YOU HAVE INFORMATION {letter|word}"
@@ -12,5 +13,8 @@ public class ClosingStatement : BaseFormat
 
     public bool AutoIncludeClosingStatement { get; set; } = true;
 
-    public ClosingStatement Clone() => (ClosingStatement)MemberwiseClone();
+    public ClosingStatement Clone()
+    {
+        return (ClosingStatement)this.MemberwiseClone();
+    }
 }

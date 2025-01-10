@@ -14,9 +14,13 @@ public class Profile
     public int Version { get; set; } = CurrentVersion;
 
     public string Name { get; set; } = "";
+
     public string Id { get; set; } = Guid.NewGuid().ToString();
+
     public string? UpdateUrl { get; set; }
+
     public int? UpdateSerial { get; set; }
+
     public List<AtisStation>? Stations { get; set; } = [];
 
     [Obsolete("Use 'Stations' instead")]
@@ -24,8 +28,11 @@ public class Profile
     public List<AtisStation>? Composites
     {
         get => null;
-        set => Stations = value;
+        set => this.Stations = value;
     }
 
-    public override string ToString() => Name;
+    public override string ToString()
+    {
+        return this.Name;
+    }
 }

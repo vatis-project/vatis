@@ -5,16 +5,25 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Represents a decoder for parsing METAR trend information chunks such as "NOSIG", "BECMG", or "TEMPO".
+/// </summary>
+/// <remarks>
+/// This class is responsible for recognizing and extracting trend-related data from METAR reports.
+/// It extends the <see cref="MetarChunkDecoder"/> abstract class to provide specific implementation for decoding trend chunks.
+/// </remarks>
 public sealed class TrendChunkDecoder : MetarChunkDecoder
 {
+    /// <inheritdoc/>
     public override string GetRegex()
     {
         return @"(TREND|NOSIG|BECMG|TEMPO)\s*(?:(FM(\d{4}))?\s*(TL(\d{4}))?\s*(AT(\d{4}))?)?\s*([\w\d\/\s]+)?=";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
-        var consumed = Consume(remainingMetar);
+        var consumed = this.Consume(remainingMetar);
         var found = consumed.Value;
         var newRemainingMetar = consumed.Key;
         var result = new Dictionary<string, object?>();
@@ -28,8 +37,8 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
                     "NOSIG" => TrendForecastType.NoSignificantChanges,
                     "BECMG" => TrendForecastType.Becoming,
                     "TEMPO" => TrendForecastType.Temporary,
-                    _ => throw new ArgumentException("Invalid ChangeIndicator")
-                }
+                    _ => throw new ArgumentException("Invalid ChangeIndicator"),
+                },
             };
 
             if (!string.IsNullOrEmpty(found[2].Value) && found[2].Value.StartsWith("FM"))
@@ -51,10 +60,10 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
             {
                 trend.Forecast = found[8].Value;
             }
-            
+
             result.Add(newRemainingMetar, trend);
         }
 
-        return GetResults(newRemainingMetar, result);
+        return this.GetResults(newRemainingMetar, result);
     }
 }

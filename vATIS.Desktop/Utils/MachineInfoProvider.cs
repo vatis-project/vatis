@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
@@ -13,13 +14,19 @@ internal static class MachineInfoProvider
     public static IMachineInfoProvider GetDefaultProvider()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
             return new WindowsMachineInfoProvider();
+        }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
             return new LinuxMachineInfoProvider();
+        }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
             return new MacOsMachineInfoProvider();
+        }
 
         throw new NotImplementedException();
     }
@@ -36,7 +43,9 @@ internal sealed class MacOsMachineInfoProvider : IMachineInfoProvider
         {
             try
             {
-                using var serialNumberKey = CFStringCreateWithCString(CfTypeRef.None, KIoPlatformSerialNumberKey,
+                using var serialNumberKey = CFStringCreateWithCString(
+                    CfTypeRef.None,
+                    KIoPlatformSerialNumberKey,
                     CfStringEncoding.CfStringEncodingAscii);
                 var serialNumberAsString =
                     IORegistryEntryCreateCFProperty(platformExpert, serialNumberKey, CfTypeRef.None, 0);
@@ -69,14 +78,14 @@ internal class LinuxMachineInfoProvider : IMachineInfoProvider
             "/sys/class/net/eth1/address",
             "/sys/class/net/eth2/address",
             "/sys/class/net/eth3/address",
-            "/etc/hostname",
+            "/etc/hostname"
         ];
 
         foreach (var fileName in machineFiles)
         {
             try
             {
-                return System.IO.File.ReadAllBytes(fileName);
+                return File.ReadAllBytes(fileName);
             }
             catch
             {
@@ -97,7 +106,9 @@ internal sealed class WindowsMachineInfoProvider : IMachineInfoProvider
         using var localKey = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
 
         if (localKey == null)
+        {
             return null;
+        }
 
         var guid = localKey.GetValue("MachineGuid");
 

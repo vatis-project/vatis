@@ -14,296 +14,339 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 public class GeneralConfigViewModel : ReactiveViewModelBase
 {
+    private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
-    private readonly HashSet<string> _initializedProperties = [];
-
-    public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
-
-    #region Reactive Properties
-    private bool _hasUnsavedChanges;
-    public bool HasUnsavedChanges
-    {
-        get => _hasUnsavedChanges;
-        private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
-    }
-
-    private int _selectedTabIndex;
-    public int SelectedTabIndex
-    {
-        get => _selectedTabIndex;
-        private set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
-    }
-
-    private AtisStation? _selectedStation;
-    private AtisStation? SelectedStation
-    {
-        get => _selectedStation;
-        set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
-    }
-
-    private string _profileSerialNumber = "";
-    public string ProfileSerialNumber
-    {
-        get => _profileSerialNumber;
-        set => this.RaiseAndSetIfChanged(ref _profileSerialNumber, value);
-    }
-
-    private string? _frequency;
-    public string? Frequency
-    {
-        get => _frequency;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _frequency, value);
-            if (!_initializedProperties.Add(nameof(Frequency)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private AtisType _atisType = AtisType.Combined;
-    public AtisType AtisType
-    {
-        get => _atisType;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _atisType, value);
-            if (!_initializedProperties.Add(nameof(AtisType)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private char _codeRangeLow = 'A';
-    public char CodeRangeLow
-    {
-        get => _codeRangeLow;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _codeRangeLow, value);
-            if (!_initializedProperties.Add(nameof(CodeRangeLow)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private char _codeRangeHigh = 'Z';
-    public char CodeRangeHigh
-    {
-        get => _codeRangeHigh;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _codeRangeHigh, value);
-            if (!_initializedProperties.Add(nameof(CodeRangeHigh)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private bool _useTextToSpeech;
-    public bool UseTextToSpeech
-    {
-        get => _useTextToSpeech;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _useTextToSpeech, value);
-            if (!_initializedProperties.Add(nameof(UseTextToSpeech)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _textToSpeechVoice;
-    public string? TextToSpeechVoice
-    {
-        get => _textToSpeechVoice;
-        set
-        {
-            if (_textToSpeechVoice == value || string.IsNullOrEmpty(value)) return;
-            this.RaiseAndSetIfChanged(ref _textToSpeechVoice, value);
-            if (!_initializedProperties.Add(nameof(TextToSpeechVoice)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private bool _useDecimalTerminology;
-    public bool UseDecimalTerminology
-    {
-        get => _useDecimalTerminology;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _useDecimalTerminology, value);
-            if (!_initializedProperties.Add(nameof(UseDecimalTerminology)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private string? _idsEndpoint;
-    public string? IdsEndpoint
-    {
-        get => _idsEndpoint;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _idsEndpoint, value);
-            if (!_initializedProperties.Add(nameof(IdsEndpoint)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    private ObservableCollection<VoiceMetaData>? _availableVoices;
-    public ObservableCollection<VoiceMetaData>? AvailableVoices
-    {
-        get => _availableVoices;
-        set => this.RaiseAndSetIfChanged(ref _availableVoices, value);
-    }
-
-    private bool _showDuplicateAtisTypeError;
-    public bool ShowDuplicateAtisTypeError
-    {
-        get => _showDuplicateAtisTypeError;
-        set => this.RaiseAndSetIfChanged(ref _showDuplicateAtisTypeError, value);
-    }
-    #endregion
 
     public GeneralConfigViewModel(ISessionManager sessionManager, IProfileRepository profileRepository)
     {
-        _sessionManager = sessionManager;
-        _profileRepository = profileRepository;
+        this._sessionManager = sessionManager;
+        this._profileRepository = profileRepository;
 
-        AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+        this.AtisStationChanged = ReactiveCommand.Create<AtisStation>(this.HandleUpdateProperties);
 
-        ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
-            ? $"Profile Serial: {_sessionManager.CurrentProfile.UpdateSerial}"
+        this.ProfileSerialNumber = this._sessionManager.CurrentProfile?.UpdateSerial != null
+            ? $"Profile Serial: {this._sessionManager.CurrentProfile.UpdateSerial}"
             : string.Empty;
     }
+
+    public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
 
     private void HandleUpdateProperties(AtisStation? station)
     {
         if (station == null)
+        {
             return;
+        }
 
-        _initializedProperties.Clear();
+        this._initializedProperties.Clear();
 
-        SelectedTabIndex = -1;
-        SelectedStation = station;
-        Frequency = station.Frequency > 0 ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US")) : "";
-        AtisType = station.AtisType;
-        CodeRangeLow = station.CodeRange.Low;
-        CodeRangeHigh = station.CodeRange.High;
-        UseDecimalTerminology = station.UseDecimalTerminology;
-        IdsEndpoint = station.IdsEndpoint;
-        UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
-        TextToSpeechVoice = station.AtisVoice.Voice;
+        this.SelectedTabIndex = -1;
+        this.SelectedStation = station;
+        this.Frequency = station.Frequency > 0
+            ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US"))
+            : "";
+        this.AtisType = station.AtisType;
+        this.CodeRangeLow = station.CodeRange.Low;
+        this.CodeRangeHigh = station.CodeRange.High;
+        this.UseDecimalTerminology = station.UseDecimalTerminology;
+        this.IdsEndpoint = station.IdsEndpoint;
+        this.UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
+        this.TextToSpeechVoice = station.AtisVoice.Voice;
 
-        HasUnsavedChanges = false;
+        this.HasUnsavedChanges = false;
     }
 
     public void Reset()
     {
-        Frequency = null;
-        AtisType = AtisType.Combined;
-        CodeRangeLow = '\0';
-        CodeRangeHigh = '\0';
-        UseDecimalTerminology = false;
-        UseTextToSpeech = true;
-        IdsEndpoint = null;
-        HasUnsavedChanges = false;
+        this.Frequency = null;
+        this.AtisType = AtisType.Combined;
+        this.CodeRangeLow = '\0';
+        this.CodeRangeHigh = '\0';
+        this.UseDecimalTerminology = false;
+        this.UseTextToSpeech = true;
+        this.IdsEndpoint = null;
+        this.HasUnsavedChanges = false;
     }
 
     public bool ApplyConfig()
     {
-        if (SelectedStation == null)
+        if (this.SelectedStation == null)
+        {
             return true;
+        }
 
-        ClearAllErrors();
-        ShowDuplicateAtisTypeError = false;
+        this.ClearAllErrors();
+        this.ShowDuplicateAtisTypeError = false;
 
-        if (decimal.TryParse(Frequency, CultureInfo.InvariantCulture, out var frequency))
+        if (decimal.TryParse(this.Frequency, CultureInfo.InvariantCulture, out var frequency))
         {
             frequency = frequency * 1000 * 1000;
             if (frequency is < 118000000 or > 137000000)
             {
-                SelectedTabIndex = 0;
-                RaiseError(nameof(Frequency),
+                this.SelectedTabIndex = 0;
+                this.RaiseError(
+                    nameof(this.Frequency),
                     "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
             }
 
             if (frequency is >= 0 and <= uint.MaxValue)
             {
-                if (frequency != SelectedStation.Frequency)
-                    SelectedStation.Frequency = (uint)frequency;
+                if (frequency != this.SelectedStation.Frequency)
+                {
+                    this.SelectedStation.Frequency = (uint)frequency;
+                }
             }
         }
         else
         {
-            SelectedTabIndex = 0;
-            RaiseError(nameof(Frequency), "Frequency is required.");
+            this.SelectedTabIndex = 0;
+            this.RaiseError(nameof(this.Frequency), "Frequency is required.");
         }
 
-        if (SelectedStation.AtisType != AtisType)
+        if (this.SelectedStation.AtisType != this.AtisType)
         {
-            if (_sessionManager.CurrentProfile?.Stations != null && _sessionManager.CurrentProfile.Stations.Any(x =>
-                    x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
-                    x.AtisType == AtisType))
+            if (this._sessionManager.CurrentProfile?.Stations != null &&
+                this._sessionManager.CurrentProfile.Stations.Any(
+                    x =>
+                        x != this.SelectedStation && x.Identifier == this.SelectedStation.Identifier &&
+                        x.AtisType == this.AtisType))
             {
-                ShowDuplicateAtisTypeError = true;
+                this.ShowDuplicateAtisTypeError = true;
             }
             else
             {
-                SelectedStation.AtisType = AtisType;
+                this.SelectedStation.AtisType = this.AtisType;
             }
         }
 
-        if (CodeRangeLow == '\0' || CodeRangeHigh == '\0')
+        if (this.CodeRangeLow == '\0' || this.CodeRangeHigh == '\0')
         {
-            SelectedTabIndex = 0;
-            RaiseError(nameof(CodeRangeHigh), "ATIS code range is required.");
+            this.SelectedTabIndex = 0;
+            this.RaiseError(nameof(this.CodeRangeHigh), "ATIS code range is required.");
         }
-        else if (CodeRangeHigh < CodeRangeLow)
+        else if (this.CodeRangeHigh < this.CodeRangeLow)
         {
-            SelectedTabIndex = 0;
-            RaiseError(nameof(CodeRangeHigh), "ATIS code range must be in sequential alphabetical order.");
-        }
-
-        var codeRange = new CodeRangeMeta(CodeRangeLow, CodeRangeHigh);
-
-        if (SelectedStation.CodeRange != codeRange)
-            SelectedStation.CodeRange = codeRange;
-
-        if (SelectedStation.UseDecimalTerminology != UseDecimalTerminology)
-            SelectedStation.UseDecimalTerminology = UseDecimalTerminology;
-
-        if (SelectedStation.IdsEndpoint != IdsEndpoint)
-            SelectedStation.IdsEndpoint = IdsEndpoint ?? "";
-
-        if (SelectedStation.AtisVoice.UseTextToSpeech != UseTextToSpeech)
-        {
-            SelectedStation.AtisVoice.UseTextToSpeech = UseTextToSpeech;
-            MessageBus.Current.SendMessage(new AtisVoiceTypeChanged(SelectedStation.Id, UseTextToSpeech));
+            this.SelectedTabIndex = 0;
+            this.RaiseError(nameof(this.CodeRangeHigh), "ATIS code range must be in sequential alphabetical order.");
         }
 
-        if (SelectedStation.AtisVoice.Voice != TextToSpeechVoice)
-            SelectedStation.AtisVoice.Voice = TextToSpeechVoice;
+        var codeRange = new CodeRangeMeta(this.CodeRangeLow, this.CodeRangeHigh);
 
-        if (HasErrors || ShowDuplicateAtisTypeError)
+        if (this.SelectedStation.CodeRange != codeRange)
+        {
+            this.SelectedStation.CodeRange = codeRange;
+        }
+
+        if (this.SelectedStation.UseDecimalTerminology != this.UseDecimalTerminology)
+        {
+            this.SelectedStation.UseDecimalTerminology = this.UseDecimalTerminology;
+        }
+
+        if (this.SelectedStation.IdsEndpoint != this.IdsEndpoint)
+        {
+            this.SelectedStation.IdsEndpoint = this.IdsEndpoint ?? "";
+        }
+
+        if (this.SelectedStation.AtisVoice.UseTextToSpeech != this.UseTextToSpeech)
+        {
+            this.SelectedStation.AtisVoice.UseTextToSpeech = this.UseTextToSpeech;
+            MessageBus.Current.SendMessage(new AtisVoiceTypeChanged(this.SelectedStation.Id, this.UseTextToSpeech));
+        }
+
+        if (this.SelectedStation.AtisVoice.Voice != this.TextToSpeechVoice)
+        {
+            this.SelectedStation.AtisVoice.Voice = this.TextToSpeechVoice;
+        }
+
+        if (this.HasErrors || this.ShowDuplicateAtisTypeError)
+        {
             return false;
+        }
 
-        if (_sessionManager.CurrentProfile != null)
-            _profileRepository.Save(_sessionManager.CurrentProfile);
+        if (this._sessionManager.CurrentProfile != null)
+        {
+            this._profileRepository.Save(this._sessionManager.CurrentProfile);
+        }
 
-        HasUnsavedChanges = false;
+        this.HasUnsavedChanges = false;
         return true;
     }
+
+    #region Reactive Properties
+
+    private bool _hasUnsavedChanges;
+
+    public bool HasUnsavedChanges
+    {
+        get => this._hasUnsavedChanges;
+        private set => this.RaiseAndSetIfChanged(ref this._hasUnsavedChanges, value);
+    }
+
+    private int _selectedTabIndex;
+
+    public int SelectedTabIndex
+    {
+        get => this._selectedTabIndex;
+        private set => this.RaiseAndSetIfChanged(ref this._selectedTabIndex, value);
+    }
+
+    private AtisStation? _selectedStation;
+
+    private AtisStation? SelectedStation
+    {
+        get => this._selectedStation;
+        set => this.RaiseAndSetIfChanged(ref this._selectedStation, value);
+    }
+
+    private string _profileSerialNumber = "";
+
+    public string ProfileSerialNumber
+    {
+        get => this._profileSerialNumber;
+        set => this.RaiseAndSetIfChanged(ref this._profileSerialNumber, value);
+    }
+
+    private string? _frequency;
+
+    public string? Frequency
+    {
+        get => this._frequency;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._frequency, value);
+            if (!this._initializedProperties.Add(nameof(this.Frequency)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private AtisType _atisType = AtisType.Combined;
+
+    public AtisType AtisType
+    {
+        get => this._atisType;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._atisType, value);
+            if (!this._initializedProperties.Add(nameof(this.AtisType)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private char _codeRangeLow = 'A';
+
+    public char CodeRangeLow
+    {
+        get => this._codeRangeLow;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._codeRangeLow, value);
+            if (!this._initializedProperties.Add(nameof(this.CodeRangeLow)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private char _codeRangeHigh = 'Z';
+
+    public char CodeRangeHigh
+    {
+        get => this._codeRangeHigh;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._codeRangeHigh, value);
+            if (!this._initializedProperties.Add(nameof(this.CodeRangeHigh)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private bool _useTextToSpeech;
+
+    public bool UseTextToSpeech
+    {
+        get => this._useTextToSpeech;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._useTextToSpeech, value);
+            if (!this._initializedProperties.Add(nameof(this.UseTextToSpeech)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private string? _textToSpeechVoice;
+
+    public string? TextToSpeechVoice
+    {
+        get => this._textToSpeechVoice;
+        set
+        {
+            if (this._textToSpeechVoice == value || string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            this.RaiseAndSetIfChanged(ref this._textToSpeechVoice, value);
+            if (!this._initializedProperties.Add(nameof(this.TextToSpeechVoice)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private bool _useDecimalTerminology;
+
+    public bool UseDecimalTerminology
+    {
+        get => this._useDecimalTerminology;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._useDecimalTerminology, value);
+            if (!this._initializedProperties.Add(nameof(this.UseDecimalTerminology)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private string? _idsEndpoint;
+
+    public string? IdsEndpoint
+    {
+        get => this._idsEndpoint;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref this._idsEndpoint, value);
+            if (!this._initializedProperties.Add(nameof(this.IdsEndpoint)))
+            {
+                this.HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private ObservableCollection<VoiceMetaData>? _availableVoices;
+
+    public ObservableCollection<VoiceMetaData>? AvailableVoices
+    {
+        get => this._availableVoices;
+        set => this.RaiseAndSetIfChanged(ref this._availableVoices, value);
+    }
+
+    private bool _showDuplicateAtisTypeError;
+
+    public bool ShowDuplicateAtisTypeError
+    {
+        get => this._showDuplicateAtisTypeError;
+        set => this.RaiseAndSetIfChanged(ref this._showDuplicateAtisTypeError, value);
+    }
+
+    #endregion
 }

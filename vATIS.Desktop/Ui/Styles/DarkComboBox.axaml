@@ -1,147 +1,147 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-	<Design.PreviewWith>
-		<Border Padding="20" Background="#323232" Height="200" Width="500">
-			<ComboBox Classes="Dark" HorizontalAlignment="Stretch">
-				<ComboBoxItem>Item 1</ComboBoxItem>
-				<ComboBoxItem>Item 2</ComboBoxItem>
-			</ComboBox>
-		</Border>
-	</Design.PreviewWith>
+    <Design.PreviewWith>
+        <Border Padding="20" Background="#323232" Height="200" Width="500">
+            <ComboBox Classes="Dark" HorizontalAlignment="Stretch">
+                <ComboBoxItem>Item 1</ComboBoxItem>
+                <ComboBoxItem>Item 2</ComboBoxItem>
+            </ComboBox>
+        </Border>
+    </Design.PreviewWith>
 
-	<Style Selector="ComboBox.Dark">
+    <Style Selector="ComboBox.Dark">
 
-		<Setter Property="HorizontalAlignment" Value="Stretch"/>
-		<Setter Property="MaxDropDownHeight" Value="150" />
-		<Setter Property="Foreground" Value="#C0C0C0" />
-		<Setter Property="Background" Value="#1E1E1E" />
-		<Setter Property="BorderBrush" Value="#646464" />
-		<Setter Property="BorderThickness" Value="1" />
-		<Setter Property="CornerRadius" Value="3" />
-		<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
-		<Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-		<Setter Property="HorizontalContentAlignment" Value="Stretch" />
-		<Setter Property="VerticalContentAlignment" Value="Center" />
-		<Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
-		<Setter Property="PlaceholderForeground" Value="#C0C0C0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="MaxDropDownHeight" Value="150" />
+        <Setter Property="Foreground" Value="#C0C0C0" />
+        <Setter Property="Background" Value="#1E1E1E" />
+        <Setter Property="BorderBrush" Value="#646464" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="PlaceholderForeground" Value="#C0C0C0" />
 
-		<Setter Property="Template">
-			<ControlTemplate>
-				<Grid ColumnDefinitions="*,32" MaxHeight="28">
-					<Border x:Name="Background"
-							Grid.Column="0"
-							Grid.ColumnSpan="2"
-							BorderBrush="{TemplateBinding BorderBrush}"
-							BorderThickness="{TemplateBinding BorderThickness}"
-							CornerRadius="{TemplateBinding CornerRadius}"
-							Background="{TemplateBinding Background}" />
-					<ContentControl x:Name="ContentPresenter"
-									Content="{TemplateBinding SelectionBoxItem}"
-									ContentTemplate="{TemplateBinding ItemTemplate}"
-									Grid.Column="0"
-									Foreground="White"
-									Padding="5,3"
-									HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-									VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="*,32" MaxHeight="28">
+                    <Border x:Name="Background"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Background="{TemplateBinding Background}" />
+                    <ContentControl x:Name="ContentPresenter"
+                                    Content="{TemplateBinding SelectionBoxItem}"
+                                    ContentTemplate="{TemplateBinding ItemTemplate}"
+                                    Grid.Column="0"
+                                    Foreground="White"
+                                    Padding="5,3"
+                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 
-					<PathIcon x:Name="DropDownGlyph"
-							  Grid.Column="1"
-							  UseLayoutRounding="True"
-							  IsHitTestVisible="False"
-							  Height="12"
-							  Width="12"
-							  Margin="0,0,10,0"
-							  HorizontalAlignment="Right"
-							  VerticalAlignment="Center"
-							  Foreground="#C0C0C0"
-							  Data="M6.5,8.5l6,7l6-7H6.5z"/>
-						<Popup
-							Name="PART_Popup"
-							Grid.Column="0"
-							MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
-							MaxHeight="{TemplateBinding MaxDropDownHeight}"
-							ClipToBounds="False"
-							InheritsTransform="True"
-							IsLightDismissEnabled="True"
-							IsOpen="{TemplateBinding IsDropDownOpen,Mode=TwoWay}"
-							HorizontalAlignment="Stretch"
-							WindowManagerAddShadowHint="False">
-							<Border
-								x:Name="PopupBorder"
-								Margin="0"
-								HorizontalAlignment="Stretch"
-								Background="#141414"
-								BorderBrush="{TemplateBinding BorderBrush}"
-								BorderThickness="{TemplateBinding BorderThickness}"
-								ClipToBounds="True"
-								CornerRadius="{TemplateBinding CornerRadius}">
-								<ScrollViewer
-									HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
-									VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
-									<ItemsPresenter
-										Name="PART_ItemsPresenter"
-										ItemsPanel="{TemplateBinding ItemsPanel}" />
-								</ScrollViewer>
-							</Border>
-						</Popup>
-				</Grid>
-			</ControlTemplate>
-		</Setter>
+                    <PathIcon x:Name="DropDownGlyph"
+                              Grid.Column="1"
+                              UseLayoutRounding="True"
+                              IsHitTestVisible="False"
+                              Height="12"
+                              Width="12"
+                              Margin="0,0,10,0"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center"
+                              Foreground="#C0C0C0"
+                              Data="M6.5,8.5l6,7l6-7H6.5z" />
+                    <Popup
+                        Name="PART_Popup"
+                        Grid.Column="0"
+                        MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                        MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                        ClipToBounds="False"
+                        InheritsTransform="True"
+                        IsLightDismissEnabled="True"
+                        IsOpen="{TemplateBinding IsDropDownOpen,Mode=TwoWay}"
+                        HorizontalAlignment="Stretch"
+                        WindowManagerAddShadowHint="False">
+                        <Border
+                            x:Name="PopupBorder"
+                            Margin="0"
+                            HorizontalAlignment="Stretch"
+                            Background="#141414"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            ClipToBounds="True"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                            <ScrollViewer
+                                HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                                <ItemsPresenter
+                                    Name="PART_ItemsPresenter"
+                                    ItemsPanel="{TemplateBinding ItemsPanel}" />
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
 
-		<!--  PointerOver State  -->
-		<Style Selector="^:pointerover /template/ Border#Background">
-			<Setter Property="Background" Value="{TemplateBinding Background}" />
-			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
-		</Style>
+        <!--  PointerOver State  -->
+        <Style Selector="^:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="{TemplateBinding Background}" />
+            <Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
+        </Style>
 
-		<!--  Pressed State  -->
-		<Style Selector="^:pressed /template/ Border#Background">
-			<Setter Property="Background" Value="{TemplateBinding Background}" />
-			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
-		</Style>
+        <!--  Pressed State  -->
+        <Style Selector="^:pressed /template/ Border#Background">
+            <Setter Property="Background" Value="{TemplateBinding Background}" />
+            <Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
+        </Style>
 
-		<Style Selector="^:focus">
-			<Style Selector="^ /template/ PathIcon#DropDownGlyph">
-				<Setter Property="Foreground" Value="#ADBAC7" />
-			</Style>
-		</Style>
+        <Style Selector="^:focus">
+            <Style Selector="^ /template/ PathIcon#DropDownGlyph">
+                <Setter Property="Foreground" Value="#ADBAC7" />
+            </Style>
+        </Style>
 
-		<Style Selector="^:dropdownopen">
-			<Style Selector="^ /template/ Border#Background">
-				<Setter Property="Background" Value="#141414"/>
-			</Style>
-		</Style>
+        <Style Selector="^:dropdownopen">
+            <Style Selector="^ /template/ Border#Background">
+                <Setter Property="Background" Value="#141414" />
+            </Style>
+        </Style>
 
-		<Style Selector="^ ComboBoxItem">
-			<Setter Property="Foreground" Value="Silver" />
-			<Setter Property="FontSize" Value="14"/>
-			<Setter Property="Padding" Value="5,3"/>
+        <Style Selector="^ ComboBoxItem">
+            <Setter Property="Foreground" Value="Silver" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="5,3" />
 
-			<!--  PointerOver state  -->
-			<Style Selector="^:pointerover /template/ ContentPresenter">
-				<Setter Property="Background" Value="#323232" />
-				<Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
-			</Style>
+            <!--  PointerOver state  -->
+            <Style Selector="^:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="#323232" />
+                <Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
+            </Style>
 
-			<!--  Pressed state  -->
-			<Style Selector="^:pressed /template/ ContentPresenter">
-				<Setter Property="Background" Value="#323232" />
-				<Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
-			</Style>
+            <!--  Pressed state  -->
+            <Style Selector="^:pressed /template/ ContentPresenter">
+                <Setter Property="Background" Value="#323232" />
+                <Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
+            </Style>
 
-			<!--  Selected state  -->
-			<Style Selector="^:selected">
-				<Style Selector="^ /template/ ContentPresenter">
-					<Setter Property="Background" Value="#323232" />
-					<Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
-				</Style>
-				<!--  Selected Pressed state  -->
-				<Style Selector="^:pressed /template/ ContentPresenter">
-					<Setter Property="Background" Value="#323232" />
-					<Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
-				</Style>
-			</Style>
-		</Style>
-	</Style>
+            <!--  Selected state  -->
+            <Style Selector="^:selected">
+                <Style Selector="^ /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#323232" />
+                    <Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
+                </Style>
+                <!--  Selected Pressed state  -->
+                <Style Selector="^:pressed /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#323232" />
+                    <Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
+                </Style>
+            </Style>
+        </Style>
+    </Style>
 </Styles>
