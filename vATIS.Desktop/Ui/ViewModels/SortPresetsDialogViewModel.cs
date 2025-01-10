@@ -16,18 +16,18 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
     public ReactiveCommand<Unit, Unit> MovePresetUpCommand { get; }
     public ReactiveCommand<Unit, Unit> MovePresetDownCommand { get; }
-    
-    private ObservableCollection<AtisPreset> mPresets = [];
+
+    private ObservableCollection<AtisPreset> _presets = [];
     public ObservableCollection<AtisPreset> Presets
     {
-        get => mPresets;
+        get => _presets;
         set
         {
-            this.RaiseAndSetIfChanged(ref mPresets, value);
-            Source.Items = mPresets.OrderBy(x => x.Ordinal);
+            this.RaiseAndSetIfChanged(ref _presets, value);
+            Source.Items = _presets.OrderBy(x => x.Ordinal);
         }
     }
-    
+
     public FlatTreeDataGridSource<AtisPreset> Source { get; }
 
     public SortPresetsDialogViewModel()
@@ -45,12 +45,12 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
             }
         };
         Source.RowSelection!.SingleSelect = false;
-        
+
         var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
             .Select(x => x > 0);
         var canMoveDown = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
             .Select(x => x < Presets.Count - 1);
-        
+
         CloseWindowCommand = ReactiveCommand.Create<ICloseable>(HandleCloseWindow);
         MovePresetUpCommand = ReactiveCommand.Create(HandleMovePresetUp, canMoveUp);
         MovePresetDownCommand = ReactiveCommand.Create(HandleMovePresetDown, canMoveDown);
@@ -72,7 +72,7 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
             }
         }
     }
-    
+
     private void HandleMovePresetDown()
     {
         if (Source.RowSelection?.SelectedIndex <= Source.Items.Count() - 1)

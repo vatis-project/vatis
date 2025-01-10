@@ -16,8 +16,8 @@ namespace Vatsim.Vatis.Ui.Components;
 
 public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 {
-    private bool mAirportConditionsInitialized;
-    private bool mNotamsInitialized;
+    private bool _airportConditionsInitialized;
+    private bool _notamsInitialized;
 
     public AtisStationView()
     {
@@ -69,22 +69,29 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
     private async void AtisLetterOnDoubleTapped(object? sender, TappedEventArgs e)
     {
-        if (ViewModel == null)
-            return;
-
-        if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
-            return;
-
-        if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
+        try
         {
-            ViewModel.IsAtisLetterInputMode = true;
+            if (ViewModel == null)
+                return;
+
+            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+                return;
+
+            if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
+            {
+                ViewModel.IsAtisLetterInputMode = true;
+            }
+            // If the shift key wasn't held down during a double tap it is likely
+            // the user is just tapping/clicking really fast to advance the letter
+            // so treat it like a single tap and increment.
+            else
+            {
+                await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+            }
         }
-        // If the shift key wasn't held down during a double tap it is likely
-        // the user is just tapping/clicking really fast to advance the letter
-        // so treat it like a single tap and increment.
-        else
+        catch (Exception ex)
         {
-            await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+            Log.Error(ex, "Error in AtisLetterOnDoubleTapped");
         }
     }
 
@@ -202,12 +209,12 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (!AirportConditions.TextArea.IsFocused)
             return;
 
-        if (mAirportConditionsInitialized)
+        if (_airportConditionsInitialized)
         {
             ViewModel.HasUnsavedAirportConditions = true;
         }
 
-        mAirportConditionsInitialized = true;
+        _airportConditionsInitialized = true;
     }
 
     private void NotamFreeText_OnTextChanged(object? sender, EventArgs e)
@@ -218,12 +225,12 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (!NotamFreeText.TextArea.IsFocused)
             return;
 
-        if (mNotamsInitialized)
+        if (_notamsInitialized)
         {
             ViewModel.HasUnsavedNotams = true;
         }
 
-        mNotamsInitialized = true;
+        _notamsInitialized = true;
     }
     
     class ReadOnlySegmentTransformer : DocumentColorizingTransformer

@@ -10,9 +10,9 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 
 public class BlinkingTextBehavior : Behavior<Control>
 {
-    private IBrush? mOriginalBrush;
-    private static bool _isBlinking;
-    private static readonly List<BlinkingTextBehavior> Instances = [];
+    private IBrush? _originalBrush;
+    private static bool s_isBlinking;
+    private static readonly List<BlinkingTextBehavior> s_instances = [];
 
     public static readonly StyledProperty<bool> IsBlinkingProperty =
         AvaloniaProperty.Register<BlinkingTextBehavior, bool>(nameof(IsBlinking));
@@ -53,8 +53,8 @@ public class BlinkingTextBehavior : Behavior<Control>
 
         if (AssociatedObject is not null)
         {
-            mOriginalBrush = GetForeground(AssociatedObject);
-            Instances.Add(this);
+            _originalBrush = GetForeground(AssociatedObject);
+            s_instances.Add(this);
         }
     }
 
@@ -64,26 +64,26 @@ public class BlinkingTextBehavior : Behavior<Control>
 
         if (AssociatedObject is not null)
         {
-            SetForeground(AssociatedObject, mOriginalBrush);
-            Instances.Remove(this);
+            SetForeground(AssociatedObject, _originalBrush);
+            s_instances.Remove(this);
         }
     }
 
     private static bool OnTimerTick()
     {
-        _isBlinking = !_isBlinking;
+        s_isBlinking = !s_isBlinking;
 
-        foreach (var instance in Instances)
+        foreach (var instance in s_instances)
         {
             if (instance.AssociatedObject is not null)
             {
                 if (instance.IsBlinking)
                 {
-                    SetForeground(instance.AssociatedObject, _isBlinking ? instance.Color1 : instance.Color2);
+                    SetForeground(instance.AssociatedObject, s_isBlinking ? instance.Color1 : instance.Color2);
                 }
                 else
                 {
-                    SetForeground(instance.AssociatedObject, instance.mOriginalBrush);
+                    SetForeground(instance.AssociatedObject, instance._originalBrush);
                 }
             }
         }

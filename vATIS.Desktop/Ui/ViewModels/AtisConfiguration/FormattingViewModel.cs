@@ -21,11 +21,11 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 public class FormattingViewModel : ReactiveViewModelBase
 {
-    private readonly IWindowFactory mWindowFactory;
-    private readonly IProfileRepository mProfileRepository;
-    private readonly ISessionManager mSessionManager;
-    private readonly HashSet<string> mInitializedProperties = [];
-    
+    private readonly IWindowFactory _windowFactory;
+    private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
+    private readonly HashSet<string> _initializedProperties = [];
+
     public IDialogOwner? DialogOwner { get; set; }
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
     public ReactiveCommand<string, Unit> TemplateVariableClicked { get;  }
@@ -34,984 +34,984 @@ public class FormattingViewModel : ReactiveViewModelBase
     public ReactiveCommand<TransitionLevelMeta, Unit> DeleteTransitionLevelCommand { get;  }
 
     #region UI Properties
-    private ObservableCollection<string>? mFormattingOptions;
+    private ObservableCollection<string>? _formattingOptions;
     public ObservableCollection<string>? FormattingOptions
     {
-        get => mFormattingOptions;
-        set => this.RaiseAndSetIfChanged(ref mFormattingOptions, value);
-    }
-    
-    private AtisStation? mSelectedStation;
-    public AtisStation? SelectedStation
-    {
-        get => mSelectedStation;
-        set => this.RaiseAndSetIfChanged(ref mSelectedStation, value);
+        get => _formattingOptions;
+        set => this.RaiseAndSetIfChanged(ref _formattingOptions, value);
     }
 
-    private bool mHasUnsavedChanges;
+    private AtisStation? _selectedStation;
+    public AtisStation? SelectedStation
+    {
+        get => _selectedStation;
+        private set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
+    }
+
+    private bool _hasUnsavedChanges;
     public bool HasUnsavedChanges
     {
-        get => mHasUnsavedChanges;
-        set => this.RaiseAndSetIfChanged(ref mHasUnsavedChanges, value);
+        get => _hasUnsavedChanges;
+        private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
     }
-    
-    private string? mSelectedFormattingOption;
+
+    private string? _selectedFormattingOption;
     public string? SelectedFormattingOption
     {
-        get => mSelectedFormattingOption;
-        set => this.RaiseAndSetIfChanged(ref mSelectedFormattingOption, value);
+        get => _selectedFormattingOption;
+        set => this.RaiseAndSetIfChanged(ref _selectedFormattingOption, value);
     }
     #endregion
 
     #region Config Properties
-     private string? mRoutineObservationTime;
+     private string? _routineObservationTime;
     public string? RoutineObservationTime
     {
-        get => mRoutineObservationTime;
+        get => _routineObservationTime;
         set
         {
-            this.RaiseAndSetIfChanged(ref mRoutineObservationTime, value);
-            if (!mInitializedProperties.Add(nameof(RoutineObservationTime)))
+            this.RaiseAndSetIfChanged(ref _routineObservationTime, value);
+            if (!_initializedProperties.Add(nameof(RoutineObservationTime)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mObservationTimeTextTemplate;
+    private string? _observationTimeTextTemplate;
     public string? ObservationTimeTextTemplate
     {
-        get => mObservationTimeTextTemplate;
+        get => _observationTimeTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mObservationTimeTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(ObservationTimeTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _observationTimeTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(ObservationTimeTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mObservationTimeVoiceTemplate;
+    private string? _observationTimeVoiceTemplate;
     public string? ObservationTimeVoiceTemplate
     {
-        get => mObservationTimeVoiceTemplate;
+        get => _observationTimeVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mObservationTimeVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(ObservationTimeVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _observationTimeVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(ObservationTimeVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mSpeakWindSpeedLeadingZero;
+    private bool _speakWindSpeedLeadingZero;
     public bool SpeakWindSpeedLeadingZero
     {
-        get => mSpeakWindSpeedLeadingZero;
+        get => _speakWindSpeedLeadingZero;
         set
         {
-            this.RaiseAndSetIfChanged(ref mSpeakWindSpeedLeadingZero, value);
-            if (!mInitializedProperties.Add(nameof(SpeakWindSpeedLeadingZero)))
+            this.RaiseAndSetIfChanged(ref _speakWindSpeedLeadingZero, value);
+            if (!_initializedProperties.Add(nameof(SpeakWindSpeedLeadingZero)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mMagneticVariationEnabled;
+    private bool _magneticVariationEnabled;
     public bool MagneticVariationEnabled
     {
-        get => mMagneticVariationEnabled;
+        get => _magneticVariationEnabled;
         set
         {
-            this.RaiseAndSetIfChanged(ref mMagneticVariationEnabled, value);
-            if (!mInitializedProperties.Add(nameof(MagneticVariationEnabled)))
+            this.RaiseAndSetIfChanged(ref _magneticVariationEnabled, value);
+            if (!_initializedProperties.Add(nameof(MagneticVariationEnabled)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mMagneticVariationValue;
+    private string? _magneticVariationValue;
     public string? MagneticVariationValue
     {
-        get => mMagneticVariationValue;
+        get => _magneticVariationValue;
         set
         {
-            this.RaiseAndSetIfChanged(ref mMagneticVariationValue, value);
-            if (!mInitializedProperties.Add(nameof(MagneticVariationValue)))
+            this.RaiseAndSetIfChanged(ref _magneticVariationValue, value);
+            if (!_initializedProperties.Add(nameof(MagneticVariationValue)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mStandardWindTextTemplate;
+    private string? _standardWindTextTemplate;
     public string? StandardWindTextTemplate
     {
-        get => mStandardWindTextTemplate;
+        get => _standardWindTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mStandardWindTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(StandardWindTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _standardWindTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(StandardWindTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mStandardWindVoiceTemplate;
+    private string? _standardWindVoiceTemplate;
     public string? StandardWindVoiceTemplate
     {
-        get => mStandardWindVoiceTemplate;
+        get => _standardWindVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mStandardWindVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(StandardWindVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _standardWindVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(StandardWindVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mStandardGustWindTextTemplate;
+    private string? _standardGustWindTextTemplate;
     public string? StandardGustWindTextTemplate
     {
-        get => mStandardGustWindTextTemplate;
+        get => _standardGustWindTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mStandardGustWindTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(StandardGustWindTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _standardGustWindTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(StandardGustWindTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mStandardGustWindVoiceTemplate;
+    private string? _standardGustWindVoiceTemplate;
     public string? StandardGustWindVoiceTemplate
     {
-        get => mStandardGustWindVoiceTemplate;
+        get => _standardGustWindVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mStandardGustWindVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(StandardGustWindVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _standardGustWindVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(StandardGustWindVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVariableWindTextTemplate;
+    private string? _variableWindTextTemplate;
     public string? VariableWindTextTemplate
     {
-        get => mVariableWindTextTemplate;
+        get => _variableWindTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVariableWindTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VariableWindTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _variableWindTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(VariableWindTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVariableWindVoiceTemplate;
+    private string? _variableWindVoiceTemplate;
     public string? VariableWindVoiceTemplate
     {
-        get => mVariableWindVoiceTemplate;
+        get => _variableWindVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVariableWindVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VariableWindVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _variableWindVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(VariableWindVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVariableGustWindTextTemplate;
+    private string? _variableGustWindTextTemplate;
     public string? VariableGustWindTextTemplate
     {
-        get => mVariableGustWindTextTemplate;
+        get => _variableGustWindTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVariableGustWindTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VariableGustWindTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _variableGustWindTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(VariableGustWindTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVariableGustWindVoiceTemplate;
+    private string? _variableGustWindVoiceTemplate;
     public string? VariableGustWindVoiceTemplate
     {
-        get => mVariableGustWindVoiceTemplate;
+        get => _variableGustWindVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVariableGustWindVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VariableGustWindVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _variableGustWindVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(VariableGustWindVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVariableDirectionWindTextTemplate;
+    private string? _variableDirectionWindTextTemplate;
     public string? VariableDirectionWindTextTemplate
     {
-        get => mVariableDirectionWindTextTemplate;
+        get => _variableDirectionWindTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVariableDirectionWindTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VariableDirectionWindTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _variableDirectionWindTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(VariableDirectionWindTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVariableDirectionWindVoiceTemplate;
+    private string? _variableDirectionWindVoiceTemplate;
     public string? VariableDirectionWindVoiceTemplate
     {
-        get => mVariableDirectionWindVoiceTemplate;
+        get => _variableDirectionWindVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVariableDirectionWindVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VariableDirectionWindVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _variableDirectionWindVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(VariableDirectionWindVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mCalmWindTextTemplate;
+    private string? _calmWindTextTemplate;
     public string? CalmWindTextTemplate
     {
-        get => mCalmWindTextTemplate;
+        get => _calmWindTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCalmWindTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(CalmWindTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _calmWindTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(CalmWindTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mCalmWindVoiceTemplate;
+    private string? _calmWindVoiceTemplate;
     public string? CalmWindVoiceTemplate
     {
-        get => mCalmWindVoiceTemplate;
+        get => _calmWindVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCalmWindVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(CalmWindVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _calmWindVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(CalmWindVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mCalmWindSpeed;
+    private string? _calmWindSpeed;
     public string? CalmWindSpeed
     {
-        get => mCalmWindSpeed;
+        get => _calmWindSpeed;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCalmWindSpeed, value);
-            if (!mInitializedProperties.Add(nameof(CalmWindSpeed)))
+            this.RaiseAndSetIfChanged(ref _calmWindSpeed, value);
+            if (!_initializedProperties.Add(nameof(CalmWindSpeed)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
-    
-    private string? mVisibilityTextTemplate;
+
+    private string? _visibilityTextTemplate;
     public string? VisibilityTextTemplate
     {
-        get => mVisibilityTextTemplate;
+        get => _visibilityTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _visibilityTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(VisibilityTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityVoiceTemplate;
+    private string? _visibilityVoiceTemplate;
     public string? VisibilityVoiceTemplate
     {
-        get => mVisibilityVoiceTemplate;
+        get => _visibilityVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _visibilityVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(VisibilityVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mPresentWeatherTextTemplate;
+    private string? _presentWeatherTextTemplate;
     public string? PresentWeatherTextTemplate
     {
-        get => mPresentWeatherTextTemplate;
+        get => _presentWeatherTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mPresentWeatherTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(PresentWeatherTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mPresentWeatherVoiceTemplate;
+    private string? _presentWeatherVoiceTemplate;
     public string? PresentWeatherVoiceTemplate
     {
-        get => mPresentWeatherVoiceTemplate;
+        get => _presentWeatherVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mPresentWeatherVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(PresentWeatherVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mRecentWeatherTextTemplate;
+    private string? _recentWeatherTextTemplate;
     public string? RecentWeatherTextTemplate
     {
-        get => mRecentWeatherTextTemplate;
+        get => _recentWeatherTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mRecentWeatherTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(RecentWeatherTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _recentWeatherTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(RecentWeatherTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
-    
-    private string? mRecentWeatherVoiceTemplate;
+
+    private string? _recentWeatherVoiceTemplate;
     public string? RecentWeatherVoiceTemplate
     {
-        get => mRecentWeatherVoiceTemplate;
+        get => _recentWeatherVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mRecentWeatherVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(RecentWeatherVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _recentWeatherVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(RecentWeatherVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mCloudsTextTemplate;
+    private string? _cloudsTextTemplate;
     public string? CloudsTextTemplate
     {
-        get => mCloudsTextTemplate;
+        get => _cloudsTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCloudsTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(CloudsTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _cloudsTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(CloudsTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mCloudsVoiceTemplate;
+    private string? _cloudsVoiceTemplate;
     public string? CloudsVoiceTemplate
     {
-        get => mCloudsVoiceTemplate;
+        get => _cloudsVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCloudsVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(CloudsVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _cloudsVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(CloudsVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mTemperatureTextTemplate;
+    private string? _temperatureTextTemplate;
     public string? TemperatureTextTemplate
     {
-        get => mTemperatureTextTemplate;
+        get => _temperatureTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mTemperatureTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(TemperatureTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _temperatureTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(TemperatureTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mTemperatureVoiceTemplate;
+    private string? _temperatureVoiceTemplate;
     public string? TemperatureVoiceTemplate
     {
-        get => mTemperatureVoiceTemplate;
+        get => _temperatureVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mTemperatureVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(TemperatureVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _temperatureVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(TemperatureVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mDewpointTextTemplate;
+    private string? _dewpointTextTemplate;
     public string? DewpointTextTemplate
     {
-        get => mDewpointTextTemplate;
+        get => _dewpointTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mDewpointTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(DewpointTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _dewpointTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(DewpointTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mDewpointVoiceTemplate;
+    private string? _dewpointVoiceTemplate;
     public string? DewpointVoiceTemplate
     {
-        get => mDewpointVoiceTemplate;
+        get => _dewpointVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mDewpointVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(DewpointVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _dewpointVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(DewpointVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mAltimeterTextTemplate;
+    private string? _altimeterTextTemplate;
     public string? AltimeterTextTemplate
     {
-        get => mAltimeterTextTemplate;
+        get => _altimeterTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mAltimeterTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(AltimeterTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _altimeterTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(AltimeterTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mAltimeterVoiceTemplate;
+    private string? _altimeterVoiceTemplate;
     public string? AltimeterVoiceTemplate
     {
-        get => mAltimeterVoiceTemplate;
+        get => _altimeterVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mAltimeterVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(AltimeterVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _altimeterVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(AltimeterVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mClosingStatementTextTemplate;
+    private string? _closingStatementTextTemplate;
     public string? ClosingStatementTextTemplate
     {
-        get => mClosingStatementTextTemplate;
+        get => _closingStatementTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mClosingStatementTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(ClosingStatementTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _closingStatementTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(ClosingStatementTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mClosingStatementVoiceTemplate;
+    private string? _closingStatementVoiceTemplate;
     public string? ClosingStatementVoiceTemplate
     {
-        get => mClosingStatementVoiceTemplate;
+        get => _closingStatementVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mClosingStatementVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(ClosingStatementVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _closingStatementVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(ClosingStatementVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityNorth;
+    private string? _visibilityNorth;
     public string? VisibilityNorth
     {
-        get => mVisibilityNorth;
+        get => _visibilityNorth;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityNorth, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityNorth)))
+            this.RaiseAndSetIfChanged(ref _visibilityNorth, value);
+            if (!_initializedProperties.Add(nameof(VisibilityNorth)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityNorthEast;
+    private string? _visibilityNorthEast;
     public string? VisibilityNorthEast
     {
-        get => mVisibilityNorthEast;
+        get => _visibilityNorthEast;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityNorthEast, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityNorthEast)))
+            this.RaiseAndSetIfChanged(ref _visibilityNorthEast, value);
+            if (!_initializedProperties.Add(nameof(VisibilityNorthEast)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityEast;
+    private string? _visibilityEast;
     public string? VisibilityEast
     {
-        get => mVisibilityEast;
+        get => _visibilityEast;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityEast, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityEast)))
+            this.RaiseAndSetIfChanged(ref _visibilityEast, value);
+            if (!_initializedProperties.Add(nameof(VisibilityEast)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilitySouthEast;
+    private string? _visibilitySouthEast;
     public string? VisibilitySouthEast
     {
-        get => mVisibilitySouthEast;
+        get => _visibilitySouthEast;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilitySouthEast, value);
-            if (!mInitializedProperties.Add(nameof(VisibilitySouthEast)))
+            this.RaiseAndSetIfChanged(ref _visibilitySouthEast, value);
+            if (!_initializedProperties.Add(nameof(VisibilitySouthEast)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilitySouth;
+    private string? _visibilitySouth;
     public string? VisibilitySouth
     {
-        get => mVisibilitySouth;
+        get => _visibilitySouth;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilitySouth, value);
-            if (!mInitializedProperties.Add(nameof(VisibilitySouth)))
+            this.RaiseAndSetIfChanged(ref _visibilitySouth, value);
+            if (!_initializedProperties.Add(nameof(VisibilitySouth)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilitySouthWest;
+    private string? _visibilitySouthWest;
     public string? VisibilitySouthWest
     {
-        get => mVisibilitySouthWest;
+        get => _visibilitySouthWest;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilitySouthWest, value);
-            if (!mInitializedProperties.Add(nameof(VisibilitySouthWest)))
+            this.RaiseAndSetIfChanged(ref _visibilitySouthWest, value);
+            if (!_initializedProperties.Add(nameof(VisibilitySouthWest)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityWest;
+    private string? _visibilityWest;
     public string? VisibilityWest
     {
-        get => mVisibilityWest;
+        get => _visibilityWest;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityWest, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityWest)))
+            this.RaiseAndSetIfChanged(ref _visibilityWest, value);
+            if (!_initializedProperties.Add(nameof(VisibilityWest)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityNorthWest;
+    private string? _visibilityNorthWest;
     public string? VisibilityNorthWest
     {
-        get => mVisibilityNorthWest;
+        get => _visibilityNorthWest;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityNorthWest, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityNorthWest)))
+            this.RaiseAndSetIfChanged(ref _visibilityNorthWest, value);
+            if (!_initializedProperties.Add(nameof(VisibilityNorthWest)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityUnlimitedVisibilityVoice;
+    private string? _visibilityUnlimitedVisibilityVoice;
     public string? VisibilityUnlimitedVisibilityVoice
     {
-        get => mVisibilityUnlimitedVisibilityVoice;
+        get => _visibilityUnlimitedVisibilityVoice;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityUnlimitedVisibilityVoice, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityUnlimitedVisibilityVoice)))
+            this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityVoice, value);
+            if (!_initializedProperties.Add(nameof(VisibilityUnlimitedVisibilityVoice)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mVisibilityUnlimitedVisibilityText;
+    private string? _visibilityUnlimitedVisibilityText;
     public string? VisibilityUnlimitedVisibilityText
     {
-        get => mVisibilityUnlimitedVisibilityText;
+        get => _visibilityUnlimitedVisibilityText;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityUnlimitedVisibilityText, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityUnlimitedVisibilityText)))
+            this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityText, value);
+            if (!_initializedProperties.Add(nameof(VisibilityUnlimitedVisibilityText)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mVisibilityIncludeVisibilitySuffix;
+    private bool _visibilityIncludeVisibilitySuffix;
     public bool VisibilityIncludeVisibilitySuffix
     {
-        get => mVisibilityIncludeVisibilitySuffix;
+        get => _visibilityIncludeVisibilitySuffix;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityIncludeVisibilitySuffix, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityIncludeVisibilitySuffix)))
+            this.RaiseAndSetIfChanged(ref _visibilityIncludeVisibilitySuffix, value);
+            if (!_initializedProperties.Add(nameof(VisibilityIncludeVisibilitySuffix)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private int mVisibilityMetersCutoff;
+    private int _visibilityMetersCutoff;
     public int VisibilityMetersCutoff
     {
-        get => mVisibilityMetersCutoff;
+        get => _visibilityMetersCutoff;
         set
         {
-            this.RaiseAndSetIfChanged(ref mVisibilityMetersCutoff, value);
-            if (!mInitializedProperties.Add(nameof(VisibilityMetersCutoff)))
+            this.RaiseAndSetIfChanged(ref _visibilityMetersCutoff, value);
+            if (!_initializedProperties.Add(nameof(VisibilityMetersCutoff)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mPresentWeatherLightIntensity;
+    private string? _presentWeatherLightIntensity;
     public string? PresentWeatherLightIntensity
     {
-        get => mPresentWeatherLightIntensity;
+        get => _presentWeatherLightIntensity;
         set
         {
-            this.RaiseAndSetIfChanged(ref mPresentWeatherLightIntensity, value);
-            if (!mInitializedProperties.Add(nameof(PresentWeatherLightIntensity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherLightIntensity, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherLightIntensity)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mPresentWeatherModerateIntensity;
+    private string? _presentWeatherModerateIntensity;
     public string? PresentWeatherModerateIntensity
     {
-        get => mPresentWeatherModerateIntensity;
+        get => _presentWeatherModerateIntensity;
         set
         {
-            this.RaiseAndSetIfChanged(ref mPresentWeatherModerateIntensity, value);
-            if (!mInitializedProperties.Add(nameof(PresentWeatherModerateIntensity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherModerateIntensity, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherModerateIntensity)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mPresentWeatherHeavyIntensity;
+    private string? _presentWeatherHeavyIntensity;
     public string? PresentWeatherHeavyIntensity
     {
-        get => mPresentWeatherHeavyIntensity;
+        get => _presentWeatherHeavyIntensity;
         set
         {
-            this.RaiseAndSetIfChanged(ref mPresentWeatherHeavyIntensity, value);
-            if (!mInitializedProperties.Add(nameof(PresentWeatherHeavyIntensity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherHeavyIntensity, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherHeavyIntensity)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mPresentWeatherVicinity;
+    private string? _presentWeatherVicinity;
     public string? PresentWeatherVicinity
     {
-        get => mPresentWeatherVicinity;
+        get => _presentWeatherVicinity;
         set
         {
-            this.RaiseAndSetIfChanged(ref mPresentWeatherVicinity, value);
-            if (!mInitializedProperties.Add(nameof(PresentWeatherVicinity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherVicinity, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherVicinity)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mCloudsIdentifyCeilingLayer;
+    private bool _cloudsIdentifyCeilingLayer;
     public bool CloudsIdentifyCeilingLayer
     {
-        get => mCloudsIdentifyCeilingLayer;
+        get => _cloudsIdentifyCeilingLayer;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCloudsIdentifyCeilingLayer, value);
-            if (!mInitializedProperties.Add(nameof(CloudsIdentifyCeilingLayer)))
+            this.RaiseAndSetIfChanged(ref _cloudsIdentifyCeilingLayer, value);
+            if (!_initializedProperties.Add(nameof(CloudsIdentifyCeilingLayer)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mCloudsConvertToMetric;
+    private bool _cloudsConvertToMetric;
     public bool CloudsConvertToMetric
     {
-        get => mCloudsConvertToMetric;
+        get => _cloudsConvertToMetric;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCloudsConvertToMetric, value);
-            if (!mInitializedProperties.Add(nameof(CloudsConvertToMetric)))
+            this.RaiseAndSetIfChanged(ref _cloudsConvertToMetric, value);
+            if (!_initializedProperties.Add(nameof(CloudsConvertToMetric)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mUndeterminedLayerAltitudeText;
+    private string? _undeterminedLayerAltitudeText;
     public string? UndeterminedLayerAltitudeText
     {
-        get => mUndeterminedLayerAltitudeText;
+        get => _undeterminedLayerAltitudeText;
         set
         {
-            this.RaiseAndSetIfChanged(ref mUndeterminedLayerAltitudeText, value);
-            if (!mInitializedProperties.Add(nameof(UndeterminedLayerAltitudeText)))
+            this.RaiseAndSetIfChanged(ref _undeterminedLayerAltitudeText, value);
+            if (!_initializedProperties.Add(nameof(UndeterminedLayerAltitudeText)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mUndeterminedLayerAltitudeVoice;
+    private string? _undeterminedLayerAltitudeVoice;
     public string? UndeterminedLayerAltitudeVoice
     {
-        get => mUndeterminedLayerAltitudeVoice;
+        get => _undeterminedLayerAltitudeVoice;
         set
         {
-            this.RaiseAndSetIfChanged(ref mUndeterminedLayerAltitudeVoice, value);
-            if (!mInitializedProperties.Add(nameof(UndeterminedLayerAltitudeVoice)))
+            this.RaiseAndSetIfChanged(ref _undeterminedLayerAltitudeVoice, value);
+            if (!_initializedProperties.Add(nameof(UndeterminedLayerAltitudeVoice)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mCloudHeightAltitudeInHundreds;
+    private bool _cloudHeightAltitudeInHundreds;
     public bool CloudHeightAltitudeInHundreds
     {
-        get => mCloudHeightAltitudeInHundreds;
+        get => _cloudHeightAltitudeInHundreds;
         set
         {
-            this.RaiseAndSetIfChanged(ref mCloudHeightAltitudeInHundreds, value);
-            if (!mInitializedProperties.Add(nameof(CloudHeightAltitudeInHundreds)))
+            this.RaiseAndSetIfChanged(ref _cloudHeightAltitudeInHundreds, value);
+            if (!_initializedProperties.Add(nameof(CloudHeightAltitudeInHundreds)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mTemperatureUsePlusPrefix;
+    private bool _temperatureUsePlusPrefix;
     public bool TemperatureUsePlusPrefix
     {
-        get => mTemperatureUsePlusPrefix;
+        get => _temperatureUsePlusPrefix;
         set
         {
-            this.RaiseAndSetIfChanged(ref mTemperatureUsePlusPrefix, value);
-            if (!mInitializedProperties.Add(nameof(TemperatureUsePlusPrefix)))
+            this.RaiseAndSetIfChanged(ref _temperatureUsePlusPrefix, value);
+            if (!_initializedProperties.Add(nameof(TemperatureUsePlusPrefix)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mTemperatureSpeakLeadingZero;
+    private bool _temperatureSpeakLeadingZero;
     public bool TemperatureSpeakLeadingZero
     {
-        get => mTemperatureSpeakLeadingZero;
+        get => _temperatureSpeakLeadingZero;
         set
         {
-            this.RaiseAndSetIfChanged(ref mTemperatureSpeakLeadingZero, value);
-            if (!mInitializedProperties.Add(nameof(TemperatureSpeakLeadingZero)))
+            this.RaiseAndSetIfChanged(ref _temperatureSpeakLeadingZero, value);
+            if (!_initializedProperties.Add(nameof(TemperatureSpeakLeadingZero)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mDewpointUsePlusPrefix;
+    private bool _dewpointUsePlusPrefix;
     public bool DewpointUsePlusPrefix
     {
-        get => mDewpointUsePlusPrefix;
+        get => _dewpointUsePlusPrefix;
         set
         {
-            this.RaiseAndSetIfChanged(ref mDewpointUsePlusPrefix, value);
-            if (!mInitializedProperties.Add(nameof(DewpointUsePlusPrefix)))
+            this.RaiseAndSetIfChanged(ref _dewpointUsePlusPrefix, value);
+            if (!_initializedProperties.Add(nameof(DewpointUsePlusPrefix)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mDewpointSpeakLeadingZero;
+    private bool _dewpointSpeakLeadingZero;
     public bool DewpointSpeakLeadingZero
     {
-        get => mDewpointSpeakLeadingZero;
+        get => _dewpointSpeakLeadingZero;
         set
         {
-            this.RaiseAndSetIfChanged(ref mDewpointSpeakLeadingZero, value);
-            if (!mInitializedProperties.Add(nameof(DewpointSpeakLeadingZero)))
+            this.RaiseAndSetIfChanged(ref _dewpointSpeakLeadingZero, value);
+            if (!_initializedProperties.Add(nameof(DewpointSpeakLeadingZero)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mAltimeterSpeakDecimal;
+    private bool _altimeterSpeakDecimal;
     private bool AltimeterSpeakDecimal
     {
-        get => mAltimeterSpeakDecimal;
+        get => _altimeterSpeakDecimal;
         set
         {
-            this.RaiseAndSetIfChanged(ref mAltimeterSpeakDecimal, value);
-            if (!mInitializedProperties.Add(nameof(AltimeterSpeakDecimal)))
+            this.RaiseAndSetIfChanged(ref _altimeterSpeakDecimal, value);
+            if (!_initializedProperties.Add(nameof(AltimeterSpeakDecimal)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private bool mClosingStatementAutoIncludeClosingStatement;
+    private bool _closingStatementAutoIncludeClosingStatement;
     public bool ClosingStatementAutoIncludeClosingStatement
     {
-        get => mClosingStatementAutoIncludeClosingStatement;
+        get => _closingStatementAutoIncludeClosingStatement;
         set
         {
-            this.RaiseAndSetIfChanged(ref mClosingStatementAutoIncludeClosingStatement, value);
-            if (!mInitializedProperties.Add(nameof(ClosingStatementAutoIncludeClosingStatement)))
+            this.RaiseAndSetIfChanged(ref _closingStatementAutoIncludeClosingStatement, value);
+            if (!_initializedProperties.Add(nameof(ClosingStatementAutoIncludeClosingStatement)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
-    
 
-    private ObservableCollection<TransitionLevelMeta>? mTransitionLevels;
+
+    private ObservableCollection<TransitionLevelMeta>? _transitionLevelMetas;
     public ObservableCollection<TransitionLevelMeta>? TransitionLevels
     {
-        get => mTransitionLevels;
+        get => _transitionLevelMetas;
         set
         {
-            this.RaiseAndSetIfChanged(ref mTransitionLevels, value);
-            if (!mInitializedProperties.Add(nameof(TransitionLevels)))
+            this.RaiseAndSetIfChanged(ref _transitionLevelMetas, value);
+            if (!_initializedProperties.Add(nameof(TransitionLevels)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mTransitionLevelTextTemplate;
+    private string? _transitionLevelTextTemplate;
     public string? TransitionLevelTextTemplate
     {
-        get => mTransitionLevelTextTemplate;
+        get => _transitionLevelTextTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mTransitionLevelTextTemplate, value);
-            if (!mInitializedProperties.Add(nameof(TransitionLevelTextTemplate)))
+            this.RaiseAndSetIfChanged(ref _transitionLevelTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(TransitionLevelTextTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
 
-    private string? mTransitionLevelVoiceTemplate;
+    private string? _transitionLevelVoiceTemplate;
     public string? TransitionLevelVoiceTemplate
     {
-        get => mTransitionLevelVoiceTemplate;
+        get => _transitionLevelVoiceTemplate;
         set
         {
-            this.RaiseAndSetIfChanged(ref mTransitionLevelVoiceTemplate, value);
-            if (!mInitializedProperties.Add(nameof(TransitionLevelVoiceTemplate)))
+            this.RaiseAndSetIfChanged(ref _transitionLevelVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(TransitionLevelVoiceTemplate)))
             {
                 HasUnsavedChanges = true;
             }
         }
     }
-    
-    private ObservableCollection<PresentWeatherMeta>? mPresentWeatherTypes;
+
+    private ObservableCollection<PresentWeatherMeta>? _presentWeatherTypes;
     public ObservableCollection<PresentWeatherMeta>? PresentWeatherTypes
     {
-        get => mPresentWeatherTypes;
-        set => this.RaiseAndSetIfChanged(ref mPresentWeatherTypes, value);
+        get => _presentWeatherTypes;
+        set => this.RaiseAndSetIfChanged(ref _presentWeatherTypes, value);
     }
 
-    private ObservableCollection<CloudTypeMeta>? mCloudTypes;
+    private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     public ObservableCollection<CloudTypeMeta>? CloudTypes
     {
-        get => mCloudTypes;
-        set => this.RaiseAndSetIfChanged(ref mCloudTypes, value);
+        get => _cloudTypes;
+        set => this.RaiseAndSetIfChanged(ref _cloudTypes, value);
     }
-    
-    private ObservableCollection<ConvectiveCloudTypeMeta>? mConvectiveCloudTypes;
+
+    private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
     public ObservableCollection<ConvectiveCloudTypeMeta>? ConvectiveCloudTypes
     {
-        get => mConvectiveCloudTypes;
-        set => this.RaiseAndSetIfChanged(ref mConvectiveCloudTypes, value);
+        get => _convectiveCloudTypes;
+        set => this.RaiseAndSetIfChanged(ref _convectiveCloudTypes, value);
     }
-    
-    private List<ICompletionData> mContractionCompletionData = [];
-    public List<ICompletionData> ContractionCompletionData
+
+    private List<ICompletionData> _contractionCompletionData = [];
+    private List<ICompletionData> ContractionCompletionData
     {
-        get => mContractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref mContractionCompletionData, value);
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
     }
     #endregion
-    
+
     public FormattingViewModel(IWindowFactory windowFactory, IProfileRepository profileRepository, ISessionManager sessionManager)
     {
-        mWindowFactory = windowFactory;
-        mProfileRepository = profileRepository;
-        mSessionManager = sessionManager;
+        _windowFactory = windowFactory;
+        _profileRepository = profileRepository;
+        _sessionManager = sessionManager;
 
         FormattingOptions = [];
-        
+
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
         CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEditEndingEventArgs>(HandleCellEditEnding);
@@ -1025,7 +1025,7 @@ public class FormattingViewModel : ReactiveViewModelBase
             return;
 
         SelectedStation = station;
-        
+
         FormattingOptions = [];
         if (station.IsFaaAtis)
         {
@@ -1058,7 +1058,7 @@ public class FormattingViewModel : ReactiveViewModelBase
                 "Closing Statement"
             ];
         }
-        
+
         SpeakWindSpeedLeadingZero = station.AtisFormat.SurfaceWind.SpeakLeadingZero;
         MagneticVariationEnabled = station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
         MagneticVariationValue = station.AtisFormat.SurfaceWind.MagneticVariation.MagneticDegrees.ToString();
@@ -1121,34 +1121,34 @@ public class FormattingViewModel : ReactiveViewModelBase
         DewpointSpeakLeadingZero = station.AtisFormat.Dewpoint.SpeakLeadingZero;
         AltimeterSpeakDecimal = station.AtisFormat.Altimeter.PronounceDecimal;
         ClosingStatementAutoIncludeClosingStatement = station.AtisFormat.ClosingStatement.AutoIncludeClosingStatement;
-        
+
         PresentWeatherTypes = [];
         foreach (var kvp in station.AtisFormat.PresentWeather.PresentWeatherTypes)
         {
             PresentWeatherTypes.Add(new PresentWeatherMeta(kvp.Key, kvp.Value.Text, kvp.Value.Spoken));
         }
-        
+
         CloudTypes = [];
         foreach (var item in station.AtisFormat.Clouds.Types)
         {
             CloudTypes.Add(new CloudTypeMeta(item.Key, item.Value.Voice, item.Value.Text));
         }
-        
+
         ConvectiveCloudTypes = [];
         foreach (var item in station.AtisFormat.Clouds.ConvectiveTypes)
         {
             ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(item.Key, item.Value));
         }
-        
+
         TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
         TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
-        
+
         TransitionLevels = [];
         foreach (var item in station.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low))
         {
             TransitionLevels.Add(item);
         }
-        
+
         ContractionCompletionData = [];
         foreach (var contraction in station.Contractions)
         {
@@ -1175,7 +1175,7 @@ public class FormattingViewModel : ReactiveViewModelBase
             string? previousQnhHigh = null;
             string? previousTransitionLevel = null;
 
-            var dialog = mWindowFactory.CreateTransitionLevelDialog();
+            var dialog = _windowFactory.CreateTransitionLevelDialog();
             dialog.Topmost = lifetime.MainWindow.Topmost;
             if (dialog.DataContext is TransitionLevelDialogViewModel context)
             {
@@ -1188,7 +1188,7 @@ public class FormattingViewModel : ReactiveViewModelBase
                     if (dialogResult == DialogResult.Ok)
                     {
                         context.ClearAllErrors();
-                        
+
                         previousQnhLow = context.QnhLow;
                         previousQnhHigh = context.QnhHigh;
                         previousTransitionLevel = context.TransitionLevel;
@@ -1223,7 +1223,7 @@ public class FormattingViewModel : ReactiveViewModelBase
 
                         SelectedStation.AtisFormat.TransitionLevel.Values.Add(
                             new TransitionLevelMeta(intLow, intHigh, intLevel));
-                        
+
                         TransitionLevels = [];
                         var sorted = SelectedStation.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low);
                         foreach (var item in sorted)
@@ -1231,8 +1231,8 @@ public class FormattingViewModel : ReactiveViewModelBase
                             TransitionLevels.Add(item);
                         }
 
-                        if (mSessionManager.CurrentProfile != null)
-                            mProfileRepository.Save(mSessionManager.CurrentProfile);
+                        if (_sessionManager.CurrentProfile != null)
+                            _profileRepository.Save(_sessionManager.CurrentProfile);
                     }
                 };
                 await dialog.ShowDialog((Window)DialogOwner);
@@ -1252,8 +1252,8 @@ public class FormattingViewModel : ReactiveViewModelBase
             if (TransitionLevels.Remove(obj))
             {
                 SelectedStation.AtisFormat.TransitionLevel.Values.Remove(obj);
-                if (mSessionManager.CurrentProfile != null)
-                    mProfileRepository.Save(mSessionManager.CurrentProfile);
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             }
         }
     }
@@ -1275,13 +1275,13 @@ public class FormattingViewModel : ReactiveViewModelBase
 
             var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
             var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
-            
+
             if (focusedElement is TemplateVariableTextBox focusedTextBox)
             {
                 focusedTextBox.Text += variable?.Replace("__", "_");
                 focusedTextBox.CaretIndex = focusedTextBox.Text.Length;
             }
-            
+
             if (focusedElement is AvaloniaEdit.Editing.TextArea focusedTextEditor)
             {
                 focusedTextEditor.Document.Text += variable?.Replace("__", "_");
@@ -1402,10 +1402,10 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if (SelectedStation.AtisFormat.PresentWeather.Template.Voice != PresentWeatherVoiceTemplate)
             SelectedStation.AtisFormat.PresentWeather.Template.Voice = PresentWeatherVoiceTemplate;
-        
+
         if(SelectedStation.AtisFormat.RecentWeather.Template.Text != RecentWeatherTextTemplate)
             SelectedStation.AtisFormat.RecentWeather.Template.Text = RecentWeatherTextTemplate;
-        
+
         if(SelectedStation.AtisFormat.RecentWeather.Template.Voice != RecentWeatherVoiceTemplate)
             SelectedStation.AtisFormat.RecentWeather.Template.Voice = RecentWeatherVoiceTemplate;
 
@@ -1502,7 +1502,7 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if(SelectedStation.AtisFormat.Clouds.IsAltitudeInHundreds != CloudHeightAltitudeInHundreds)
             SelectedStation.AtisFormat.Clouds.IsAltitudeInHundreds = CloudHeightAltitudeInHundreds;
-        
+
         if (SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Text != UndeterminedLayerAltitudeText)
             SelectedStation.AtisFormat.Clouds.UndeterminedLayerAltitude.Text = UndeterminedLayerAltitudeText ?? "";
 
@@ -1543,18 +1543,18 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if(SelectedStation.AtisFormat.TransitionLevel.Template.Text != TransitionLevelTextTemplate)
             SelectedStation.AtisFormat.TransitionLevel.Template.Text = TransitionLevelTextTemplate;
-        
+
         if(SelectedStation.AtisFormat.TransitionLevel.Template.Voice != TransitionLevelVoiceTemplate)
             SelectedStation.AtisFormat.TransitionLevel.Template.Voice = TransitionLevelVoiceTemplate;
-        
+
         if (HasErrors)
             return false;
-        
-        if (mSessionManager.CurrentProfile != null)
-            mProfileRepository.Save(mSessionManager.CurrentProfile);
+
+        if (_sessionManager.CurrentProfile != null)
+            _profileRepository.Save(_sessionManager.CurrentProfile);
 
         HasUnsavedChanges = false;
-        
+
         return true;
     }
 }
