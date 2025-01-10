@@ -891,9 +891,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             TextAtis = _atisStation.TextAtis,
             IsNewAtis = IsNewAtis,
             NetworkConnectionStatus = NetworkConnectionStatus,
-            Pressure = _DecodedMetar?.Pressure?.Value ?? null,
-            Ceiling = _DecodedMetar?.Ceiling?.BaseHeight ?? null,
-            PrevailingVisibility = _DecodedMetar?.Visibility?.PrevailingVisibility ?? null
+            Pressure = _decodedMetar?.Pressure?.Value ?? null,
+            Ceiling = _decodedMetar?.Ceiling?.BaseHeight ?? null,
+            PrevailingVisibility = _decodedMetar?.Visibility?.PrevailingVisibility ?? null
         });
     }
 
