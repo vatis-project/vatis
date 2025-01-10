@@ -1,3 +1,8 @@
+// <copyright file="WebsocketService.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,51 +17,51 @@ using WatsonWebsocket;
 namespace Vatsim.Vatis.Ui.Services;
 
 /// <summary>
-///     Provides a websocket interface to vATIS.
+/// Provides a websocket interface to vATIS.
 /// </summary>
 public class WebsocketService : IWebsocketService
 {
     // The websocket server.
-    private readonly WatsonWsServer _server;
+    private readonly WatsonWsServer server;
 
     // A list of connected clients so messages can be broadcast to all connected clients when requested.
-    private readonly ConcurrentDictionary<Guid, ClientMetadata> _sessions = new();
+    private readonly ConcurrentDictionary<Guid, ClientMetadata> sessions = new();
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="WebsocketService" /> class.
+    /// Initializes a new instance of the <see cref="WebsocketService" /> class.
     /// </summary>
     public WebsocketService()
     {
         // The loopback address is used to avoid Windows prompting for firewall permissions
         // when vATIS runs.
-        this._server = new WatsonWsServer(IPAddress.Loopback.ToString(), 49082);
-        this._server.Logger = Log.Information;
-        this._server.ClientConnected += this.OnClientConnected;
-        this._server.ClientDisconnected += this.OnClientDisconnected;
-        this._server.MessageReceived += this.OnMessageReceived;
+        this.server = new WatsonWsServer(IPAddress.Loopback.ToString(), 49082);
+        this.server.Logger = Log.Information;
+        this.server.ClientConnected += this.OnClientConnected;
+        this.server.ClientDisconnected += this.OnClientDisconnected;
+        this.server.MessageReceived += this.OnMessageReceived;
     }
 
     /// <summary>
-    ///     Event that is raised when a client requests ATIS information. The requesting session and the station requested, if
-    ///     specified, are passed as parameters.
+    /// Event that is raised when a client requests ATIS information. The requesting session and the station requested, if
+    /// specified, are passed as parameters.
     /// </summary>
     public event EventHandler<GetAtisReceived> GetAtisReceived = (_, _) => { };
 
     /// <summary>
-    ///     Event that is raised when a client acknowledges an ATIS update. The requesting session and the station
-    ///     acknowledged, if specified, is passed as a parameter.
+    /// Event that is raised when a client acknowledges an ATIS update. The requesting session and the station
+    /// acknowledged, if specified, is passed as a parameter.
     /// </summary>
     public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = (_, _) => { };
 
     /// <summary>
-    ///     Starts the WebSocket server.
+    /// Starts the WebSocket server.
     /// </summary>
     /// <returns>A task.</returns>
     public async Task StartAsync()
     {
         try
         {
-            await this._server.StartAsync();
+            await this.server.StartAsync();
         }
         catch (Exception e)
         {
@@ -73,7 +78,7 @@ public class WebsocketService : IWebsocketService
         try
         {
             await this.CloseAllClientsAsync();
-            this._server.Stop();
+            this.server.Stop();
         }
         catch (Exception e)
         {
@@ -82,7 +87,7 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <summary>
-    ///     Sends an ATIS message to a specific session, or to all connected clients if session is null.
+    /// Sends an ATIS message to a specific session, or to all connected clients if session is null.
     /// </summary>
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
@@ -91,12 +96,12 @@ public class WebsocketService : IWebsocketService
     {
         var message = new AtisMessage
         {
-            Value = value
+            Value = value,
         };
 
         if (session is not null)
         {
-            await this._server.SendAsync(
+            await this.server.SendAsync(
                 session.Guid,
                 JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
@@ -123,10 +128,10 @@ public class WebsocketService : IWebsocketService
             {
                 Value = new ErrorMessage.ErrorValue
                 {
-                    Message = ex.Message
-                }
+                    Message = ex.Message,
+                },
             };
-            await this._server.SendAsync(
+            await this.server.SendAsync(
                 e.Client.Guid,
                 JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
         }
@@ -139,7 +144,7 @@ public class WebsocketService : IWebsocketService
     /// <param name="e">The data about the client that disconnected.</param>
     private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
     {
-        this._sessions.TryRemove(e.Client.Guid, out _);
+        this.sessions.TryRemove(e.Client.Guid, out _);
     }
 
     /// <summary>
@@ -149,7 +154,7 @@ public class WebsocketService : IWebsocketService
     /// <param name="e">The data about the client that connected.</param>
     private void OnClientConnected(object? sender, ConnectionEventArgs e)
     {
-        this._sessions.TryAdd(e.Client.Guid, e.Client);
+        this.sessions.TryAdd(e.Client.Guid, e.Client);
     }
 
     /// <summary>
@@ -193,7 +198,7 @@ public class WebsocketService : IWebsocketService
     {
         var tasks = new List<Task>();
 
-        foreach (var session in this._sessions.Values)
+        foreach (var session in this.sessions.Values)
         {
             tasks.Add(
                 Task.Run(
@@ -201,7 +206,7 @@ public class WebsocketService : IWebsocketService
                     {
                         try
                         {
-                            this._server.DisconnectClient(session.Guid);
+                            this.server.DisconnectClient(session.Guid);
                         }
                         catch (Exception ex)
                         {
@@ -224,7 +229,7 @@ public class WebsocketService : IWebsocketService
     {
         var tasks = new List<Task>();
 
-        foreach (var session in this._sessions.Values)
+        foreach (var session in this.sessions.Values)
         {
             tasks.Add(
                 Task.Run(
@@ -232,7 +237,7 @@ public class WebsocketService : IWebsocketService
                     {
                         try
                         {
-                            await this._server.SendAsync(session.Guid, message);
+                            await this.server.SendAsync(session.Guid, message);
                         }
                         catch (Exception ex)
                         {
