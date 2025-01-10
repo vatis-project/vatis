@@ -214,7 +214,10 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             AtisType = selectedStation.AtisType
         };
         var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-        selectedStation.SetAtisLetterCommand.Execute(atisLetter).Subscribe();
+        if (atisLetter != null)
+        {
+            selectedStation.SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
+        }
     }
 
     public async Task PopulateAtisStations()

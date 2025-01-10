@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Net;
 using System.Threading.Tasks;
@@ -128,10 +127,10 @@ public class MockAtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
-    public async Task<char> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
+    public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
     {
         if (string.IsNullOrEmpty(dto.Id))
-            return '\0';
+            return null;
 
         var response = await _downloader.GetAsync("https://datis.clowd.io/api/" + dto.Id);
         if (response.IsSuccessStatusCode)
@@ -185,7 +184,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             }
         }
 
-        return '\0';
+        return null;
     }
 
     private Task OnHubConnectionClosed(Exception? exception)

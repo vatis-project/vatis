@@ -97,10 +97,10 @@ public class AtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
-    public async Task<char> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
+    public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
-            return '\0';
+            return null;
 
         return await _hubConnection.InvokeAsync<char>("GetDigitalAtisLetter", dto);
     }
