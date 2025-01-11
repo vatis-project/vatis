@@ -62,7 +62,8 @@ public interface IDownloader
         CancellationToken? cancellationToken = null);
 
     /// <summary>
-    /// Posts the specified JSON content to the specified URL and returns the response.
+    /// Posts the specified JSON content to the specified URL without returning the response content.
+    /// Use this method when the response body is not needed.
     /// </summary>
     /// <param name="url">The URL to download.</param>
     /// <param name="jsonContent">The JSON content to post.</param>
