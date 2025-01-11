@@ -22,62 +22,61 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 
 public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly IWindowFactory mWindowFactory;
-    
+    private readonly IWindowFactory _windowFactory;
+
     public Window? Owner { get; set; }
-    
     public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
     public ReactiveCommand<Unit, Unit> NewDefinitionCommand { get; }
     public ReactiveCommand<Unit, Unit> EditDefinitionCommand { get; }
     public ReactiveCommand<Unit, Unit> DeleteDefinitionCommand { get; }
     public ReactiveCommand<Unit, Unit> MoveDefinitionUpCommand { get; }
     public ReactiveCommand<Unit, Unit> MoveDefinitionDownCommand { get; }
-    
-    private bool mShowOverlay;
+
+    private bool _showOverlay;
     public bool ShowOverlay
     {
-        get => mShowOverlay;
-        set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
+        get => _showOverlay;
+        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
     }
 
-    private bool mHasDefinitions;
+    private bool _hasDefinitions;
     public bool HasDefinitions
     {
-        get => mHasDefinitions;
-        set => this.RaiseAndSetIfChanged(ref mHasDefinitions, value);
+        get => _hasDefinitions;
+        set => this.RaiseAndSetIfChanged(ref _hasDefinitions, value);
     }
 
-    private bool mIncludeBeforeFreeText;
+    private bool _includeBeforeFreeText;
     public bool IncludeBeforeFreeText
     {
-        get => mIncludeBeforeFreeText;
-        set => this.RaiseAndSetIfChanged(ref mIncludeBeforeFreeText, value);
-    }
-    
-    private List<ICompletionData> mContractionCompletionData = [];
-    public List<ICompletionData> ContractionCompletionData
-    {
-        get => mContractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref mContractionCompletionData, value);
+        get => _includeBeforeFreeText;
+        set => this.RaiseAndSetIfChanged(ref _includeBeforeFreeText, value);
     }
 
-    private ObservableCollection<StaticDefinition> mDefinitions = [];
+    private List<ICompletionData> _contractionCompletionData = [];
+    public List<ICompletionData> ContractionCompletionData
+    {
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+    }
+
+    private ObservableCollection<StaticDefinition> _definitions = [];
     public ObservableCollection<StaticDefinition> Definitions
     {
-        get => mDefinitions;
+        get => _definitions;
         set
         {
-            this.RaiseAndSetIfChanged(ref mDefinitions, value);
-            Source.Items = mDefinitions.OrderBy(x => x.Ordinal);
-            HasDefinitions = mDefinitions.Count != 0;
+            this.RaiseAndSetIfChanged(ref _definitions, value);
+            Source.Items = _definitions.OrderBy(x => x.Ordinal);
+            HasDefinitions = _definitions.Count != 0;
         }
     }
-    
+
     public FlatTreeDataGridSource<StaticDefinition> Source { get; }
 
     public StaticAirportConditionsDialogViewModel(IWindowFactory windowFactory)
     {
-        mWindowFactory = windowFactory;
+        _windowFactory = windowFactory;
 
         var textColumnLength = new GridLength(1, GridUnitType.Star);
         var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) =>
@@ -88,7 +87,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         {
             TextWrapping = TextWrapping.Wrap
         });
-        
+
         Source = new FlatTreeDataGridSource<StaticDefinition>(Definitions)
         {
             Columns =
@@ -100,7 +99,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         Source.RowSelection!.SingleSelect = false;
 
         var canExecute = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem).Select(x => x != null);
-        
+
         NewDefinitionCommand = ReactiveCommand.CreateFromTask(HandleNewDefinition);
         DeleteDefinitionCommand = ReactiveCommand.CreateFromTask(HandleDeleteDefinition, canExecute);
         EditDefinitionCommand = ReactiveCommand.CreateFromTask(HandleEditDefinition, canExecute);
@@ -113,13 +112,13 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
         MoveDefinitionUpCommand = ReactiveCommand.Create(HandleMoveDefinitionUp, canMoveUp);
         MoveDefinitionDownCommand = ReactiveCommand.Create(HandleMoveDefinitionDown, canMoveDown);
-        
+
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
             {
                 ShowOverlay = lifetime.Windows.Count(w =>
-                    w.GetType() != typeof(MainWindow) && 
+                    w.GetType() != typeof(MainWindow) &&
                     w.GetType() != typeof(AtisConfigurationWindow)) > 1;
             };
         }
@@ -179,11 +178,11 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         {
             if (lifetime.MainWindow == null)
                 return;
-            
+
             if (Source.RowSelection?.SelectedItem is { } definition)
             {
 
-                var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
+                var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
                 dlg.Topmost = lifetime.MainWindow.Topmost;
                 if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
                 {
@@ -233,8 +232,8 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         {
             if (lifetime.MainWindow == null)
                 return;
-            
-            var dlg = mWindowFactory.CreateStaticDefinitionEditorDialog();
+
+            var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
             dlg.Topmost = lifetime.MainWindow.Topmost;
             if (dlg.DataContext is StaticDefinitionEditorDialogViewModel vm)
             {
@@ -259,9 +258,9 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
                         if (vm.HasErrors)
                             return;
-                    
+
                         var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";
-                    
+
                         Definitions.Add(new StaticDefinition(text, Definitions.Count + 1));
                         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         HasDefinitions = Definitions.Count != 0;

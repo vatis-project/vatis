@@ -7,11 +7,11 @@ namespace Vatsim.Vatis.Profiles.Models;
 
 public class Profile
 {
-    private const int CURRENT_VERSION = 1;
+    private const int CurrentVersion = 1;
 
     [DefaultValue(0)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public int Version { get; set; } = CURRENT_VERSION;
+    public int Version { get; set; } = CurrentVersion;
 
     public string Name { get; set; } = "";
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -23,9 +23,9 @@ public class Profile
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public List<AtisStation>? Composites
     {
-        get => default;
+        get => null;
         set => Stations = value;
     }
 
-    public override string? ToString() => Name;
+    public override string ToString() => Name;
 }

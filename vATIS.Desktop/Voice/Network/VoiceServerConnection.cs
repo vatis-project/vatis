@@ -15,29 +15,29 @@ public class VoiceServerConnection : IVoiceServerConnection
     private const string ClientName = "vATIS";
     private const string VoiceServerUrl = "https://voice1.vatsim.net";
 
-    private readonly IDownloader mDownloader;
-    private string? mUserId;
-    private string? mUserPassword;
-    private string? mJwtToken;
-    private DateTime mExpiryLocalUtc;
-    private TimeSpan mServerToUserOffset;
+    private readonly IDownloader _downloader;
+    private string? _userId;
+    private string? _userPassword;
+    private string? _jwtToken;
+    private DateTime _expiryLocalUtc;
+    private TimeSpan _serverToUserOffset;
 
     public VoiceServerConnection(IDownloader downloader)
     {
-        mDownloader = downloader;
+        _downloader = downloader;
     }
 
     public async Task Connect(string username, string password)
     {
-        mUserId = username;
-        mUserPassword = password;
+        _userId = username;
+        _userPassword = password;
 
         try
         {
             var dto = JsonSerializer.Serialize(new PostUserRequestDto(username, password, ClientName),
                 SourceGenerationContext.NewDefault.PostUserRequestDto);
             var response =
-                await mDownloader.PostJsonResponse(VoiceServerUrl + "/api/v1/auth", dto);
+                await _downloader.PostJsonResponse(VoiceServerUrl + "/api/v1/auth", dto);
 
             response.EnsureSuccessStatusCode();
 
@@ -45,10 +45,10 @@ public class VoiceServerConnection : IVoiceServerConnection
 
             if (!string.IsNullOrEmpty(responseJson))
             {
-                mJwtToken = responseJson;
+                _jwtToken = responseJson;
                 var jwtToken = new JwtSecurityToken(responseJson);
-                mServerToUserOffset = jwtToken.ValidFrom - DateTime.UtcNow;
-                mExpiryLocalUtc = jwtToken.ValidTo.Subtract(mServerToUserOffset);
+                _serverToUserOffset = jwtToken.ValidFrom - DateTime.UtcNow;
+                _expiryLocalUtc = jwtToken.ValidTo.Subtract(_serverToUserOffset);
             }
         }
         catch (Exception ex)
@@ -59,13 +59,13 @@ public class VoiceServerConnection : IVoiceServerConnection
 
     public void Disconnect()
     {
-        mJwtToken = null;
+        _jwtToken = null;
     }
 
     public async Task AddOrUpdateBot(string callsign, PutBotRequestDto dto, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         if (Debugger.IsAttached)
             return;
 
@@ -73,7 +73,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         {
             await CheckExpiry();
             var request = JsonSerializer.Serialize(dto, SourceGenerationContext.NewDefault.PutBotRequestDto);
-            var response = await mDownloader.PutJson(VoiceServerUrl + "/api/v1/bots/" + callsign, request, mJwtToken,
+            var response = await _downloader.PutJson(VoiceServerUrl + "/api/v1/bots/" + callsign, request, _jwtToken,
                 cancellationToken);
             response.EnsureSuccessStatusCode();
         }
@@ -91,14 +91,14 @@ public class VoiceServerConnection : IVoiceServerConnection
     {
         if (Debugger.IsAttached)
             return;
-        
+
         try
         {
-            if (mJwtToken == null)
+            if (_jwtToken == null)
                 return;
 
             await CheckExpiry();
-            await mDownloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, mJwtToken);
+            await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken);
         }
         catch (Exception ex)
         {
@@ -108,12 +108,12 @@ public class VoiceServerConnection : IVoiceServerConnection
 
     private async Task CheckExpiry()
     {
-        ArgumentException.ThrowIfNullOrEmpty(mUserId, "UserID");
-        ArgumentException.ThrowIfNullOrEmpty(mUserPassword, "User Password");
+        ArgumentException.ThrowIfNullOrEmpty(_userId, "UserID");
+        ArgumentException.ThrowIfNullOrEmpty(_userPassword, "User Password");
 
-        if (DateTime.UtcNow > mExpiryLocalUtc.AddMinutes(-5))
+        if (DateTime.UtcNow > _expiryLocalUtc.AddMinutes(-5))
         {
-            await Connect(mUserId, mUserPassword);
+            await Connect(_userId, _userPassword);
         }
     }
 }

@@ -140,7 +140,7 @@ public class CloudNode : BaseNode<CloudLayer>
             CloudLayer.CloudType.ToweringCumulus => "TCU",
             CloudLayer.CloudType.CannotMeasure => "///",
             CloudLayer.CloudType.None => "",
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown CloudType")
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, @"Unknown CloudType")
         };
     }
 
@@ -158,7 +158,7 @@ public class CloudNode : BaseNode<CloudLayer>
             CloudLayer.CloudAmount.NoCloudsDetected => "NCD",
             CloudLayer.CloudAmount.Clear => "CLR",
             CloudLayer.CloudAmount.SkyClear => "SKC",
-            _ => throw new ArgumentOutOfRangeException(nameof(amount), amount, "Unknown CloudAmount")
+            _ => throw new ArgumentOutOfRangeException(nameof(amount), amount, @"Unknown CloudAmount")
         };
     }
 

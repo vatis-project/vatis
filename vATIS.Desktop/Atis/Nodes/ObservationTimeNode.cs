@@ -7,7 +7,7 @@ namespace Vatsim.Vatis.Atis.Nodes;
 public class ObservationTimeNode : BaseNode<string>
 {
     private const string SpecialText = "SPECIAL";
-    private bool mIsSpecialAtis;
+    private bool _isSpecialAtis;
 
     public override void Parse(DecodedMetar metar)
     {
@@ -18,7 +18,7 @@ public class ObservationTimeNode : BaseNode<string>
     {
         ArgumentNullException.ThrowIfNull(Station);
 
-        mIsSpecialAtis = Station.AtisFormat.ObservationTime.StandardUpdateTime != null
+        _isSpecialAtis = Station.AtisFormat.ObservationTime.StandardUpdateTime != null
                          && !Station.AtisFormat.ObservationTime.StandardUpdateTime.Contains(metarMinute);
 
         VoiceAtis = ParseVoiceVariables(metarHour, metarMinute, Station.AtisFormat.ObservationTime.Template.Voice);
@@ -31,9 +31,9 @@ public class ObservationTimeNode : BaseNode<string>
             return "";
 
         format = Regex.Replace(format, "{time}", $"{metarHour:00}{metarMinute:00}", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{hours}", $"{metarHour:00}", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{minutes}", $"{metarMinute:00}", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{special}", mIsSpecialAtis ? SpecialText : "", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{hour}", $"{metarHour:00}", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{minute}", $"{metarMinute:00}", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{special}", _isSpecialAtis ? SpecialText : "", RegexOptions.IgnoreCase);
 
         return format;
     }
@@ -44,13 +44,13 @@ public class ObservationTimeNode : BaseNode<string>
             return "";
 
         format = Regex.Replace(format, "{time}", $"{metarHour.ToString("00").ToSerialFormat()} {metarMinute.ToString("00").ToSerialFormat()}", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{hours}", metarHour.ToString("00").ToSerialFormat() ?? string.Empty, RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{minutes}", metarMinute.ToString("00").ToSerialFormat() ?? string.Empty, RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{special}", mIsSpecialAtis ? SpecialText : "", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{hour}", metarHour.ToString("00").ToSerialFormat() ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{minute}", metarMinute.ToString("00").ToSerialFormat() ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{special}", _isSpecialAtis ? SpecialText : "", RegexOptions.IgnoreCase);
 
         return format;
     }
-    
+
     public override string ParseVoiceVariables(string node, string? format)
     {
         throw new NotImplementedException();

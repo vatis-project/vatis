@@ -50,28 +50,18 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                         var minVis = int.Parse(match.Groups[4].Value);
                         var maxVis = int.Parse(match.Groups[6].Value);
 
-                        if (match.Groups[3].Value == "M")
-                        {
-                            result.Add($"variable from less than {minVis.ToGroupForm()} to {maxVis.ToGroupForm()}");
-                        }
-                        else
-                        {
-                            result.Add($"variable between {minVis.ToGroupForm()} and {maxVis.ToGroupForm()}");
-                        }
+                        result.Add(match.Groups[3].Value == "M"
+                            ? $"variable from less than {minVis.ToGroupForm()} to {maxVis.ToGroupForm()}"
+                            : $"variable between {minVis.ToGroupForm()} and {maxVis.ToGroupForm()}");
                     }
                     else if (match.Groups[5].Value == "VP")
                     {
                         var minVis = int.Parse(match.Groups[4].Value);
                         var maxVis = int.Parse(match.Groups[6].Value);
 
-                        if (match.Groups[3].Value == "M")
-                        {
-                            result.Add($"variable from less than {minVis.ToGroupForm()} to greater than{maxVis.ToGroupForm()}");
-                        }
-                        else
-                        {
-                            result.Add($"{minVis.ToGroupForm()} variable to greater than {maxVis.ToGroupForm()}");
-                        }
+                        result.Add(match.Groups[3].Value == "M"
+                            ? $"variable from less than {minVis.ToGroupForm()} to greater than{maxVis.ToGroupForm()}"
+                            : $"{minVis.ToGroupForm()} variable to greater than {maxVis.ToGroupForm()}");
                     }
                     else
                     {

@@ -13,15 +13,15 @@ namespace Vatsim.Vatis.Sessions;
 
 public class SessionManager : ISessionManager
 {
-    private MainWindow? mMainWindow;
-    private ProfileListDialog? mProfileListDialog;
-    private readonly IWindowFactory mWindowFactory;
-    private readonly IProfileRepository mProfileRepository;
+    private MainWindow? _mainWindow;
+    private ProfileListDialog? _profileListDialog;
+    private readonly IWindowFactory _windowFactory;
+    private readonly IProfileRepository _profileRepository;
 
     public SessionManager(IWindowFactory windowFactory, IProfileRepository profileRepository)
     {
-        mWindowFactory = windowFactory;
-        mProfileRepository = profileRepository;
+        _windowFactory = windowFactory;
+        _profileRepository = profileRepository;
     }
 
     public int MaxConnectionCount => 4;
@@ -36,31 +36,31 @@ public class SessionManager : ISessionManager
 
     private void ShowProfileListDialog()
     {
-        mProfileListDialog = mWindowFactory.CreateProfileListDialog();
+        _profileListDialog = _windowFactory.CreateProfileListDialog();
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = mProfileListDialog;
+            desktop.MainWindow = _profileListDialog;
         }
 
-        mProfileListDialog.Show();
+        _profileListDialog.Show();
     }
 
     public async Task StartSession(string profileId)
     {
-        var profile = (await mProfileRepository.LoadAll()).Find(p => p.Id == profileId);
+        var profile = (await _profileRepository.LoadAll()).Find(p => p.Id == profileId);
         if (profile == null)
             return;
-        
-        mProfileListDialog?.Close();
+
+        _profileListDialog?.Close();
         CurrentProfile = profile;
         CurrentConnectionCount = 0;
-        mMainWindow = mWindowFactory.CreateMainWindow();
+        _mainWindow = _windowFactory.CreateMainWindow();
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = mMainWindow;
+            desktop.MainWindow = _mainWindow;
         }
 
-        mMainWindow.Show();
+        _mainWindow.Show();
     }
 
     public void EndSession()
@@ -68,7 +68,7 @@ public class SessionManager : ISessionManager
         MessageBus.Current.SendMessage(new SessionEnded());
         CurrentProfile = null;
         CurrentConnectionCount = 0;
-        mMainWindow?.Close();
+        _mainWindow?.Close();
         ShowProfileListDialog();
     }
 }

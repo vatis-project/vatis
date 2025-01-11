@@ -32,7 +32,7 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
         if (found.Count <= 1)
         {
             throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                MetarChunkDecoderException.Messages.FOR_VISIBILITY_INFORMATION_BAD_FORMAT);
+                MetarChunkDecoderException.Messages.ForVisibilityInformationBadFormat);
         }
 
         Visibility visibility = new Visibility();

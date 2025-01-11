@@ -20,7 +20,7 @@ public class Temperature : BaseFormat
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool PronounceLeadingZero
     {
-        get => default;
+        get => false;
         set => SpeakLeadingZero = value;
     }
 

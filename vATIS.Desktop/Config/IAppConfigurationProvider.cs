@@ -11,4 +11,5 @@ public interface IAppConfigurationProvider
     string AtisHubUrl { get; }
     string VoiceListUrl { get; }
     string TextToSpeechUrl { get; }
+    string DigitalAtisApiUrl { get; }
 }

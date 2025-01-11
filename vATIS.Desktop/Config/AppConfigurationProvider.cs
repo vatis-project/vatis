@@ -11,41 +11,42 @@ namespace Vatsim.Vatis.Config;
 
 public class AppConfigurationProvider : IAppConfigurationProvider
 {
-    private const string APP_CONFIGURATION_URL = "https://configuration.vatis.app/";
-    private readonly IDownloader mDownloader;
-    private readonly List<string> mMetarUrls;
-    private AppConfiguration? mAppConfiguration;
+    private const string AppConfigurationUrl = "https://configuration.vatis.app/";
+    private readonly IDownloader _downloader;
+    private readonly List<string> _metarUrls;
+    private AppConfiguration? _appConfiguration;
 
     public AppConfigurationProvider(IDownloader downloader)
     {
-        mDownloader = downloader;
-        mMetarUrls = [];
+        _downloader = downloader;
+        _metarUrls = [];
     }
 
     public async Task Initialize()
     {
         Log.Information("Initializing app configuration provider");
         MessageBus.Current.SendMessage(new StartupStatusChanged("Initializing app configuration provider..."));
-        Log.Information($"Loading app configuration from {APP_CONFIGURATION_URL}");
-        mAppConfiguration =
-            JsonSerializer.Deserialize(await mDownloader.DownloadStringAsync(APP_CONFIGURATION_URL),
+        Log.Information($"Loading app configuration from {AppConfigurationUrl}");
+        _appConfiguration =
+            JsonSerializer.Deserialize(await _downloader.DownloadStringAsync(AppConfigurationUrl),
                 SourceGenerationContext.NewDefault.AppConfiguration) ??
             throw new ApplicationException("Could not deserialize app configuration.");
         var vatsimStatus =
-            JsonSerializer.Deserialize(await mDownloader.DownloadStringAsync(mAppConfiguration.VatsimStatusUrl),
+            JsonSerializer.Deserialize(await _downloader.DownloadStringAsync(_appConfiguration.VatsimStatusUrl),
                 SourceGenerationContext.NewDefault.VatsimStatus) ??
             throw new ApplicationException("Deserialization of VATSIM status JSON data returned null.");
-        mMetarUrls.AddRange(vatsimStatus.MetarUrls);
-        if (mMetarUrls.Count == 0)
+        _metarUrls.AddRange(vatsimStatus.MetarUrls);
+        if (_metarUrls.Count == 0)
         {
             throw new ApplicationException("No METAR URLs found in VATSIM status data.");
         }
     }
 
-    public string VersionUrl => mAppConfiguration?.VersionUrl ?? throw new ArgumentNullException(nameof(VersionUrl));
-    public string MetarUrl => mMetarUrls[Random.Shared.Next(mMetarUrls.Count)];
-    public string NavDataUrl => mAppConfiguration?.NavDataUrl ?? throw new ArgumentNullException(nameof(NavDataUrl));
-    public string AtisHubUrl => mAppConfiguration?.AtisHubUrl ?? throw new ArgumentNullException(nameof(AtisHubUrl));
-    public string VoiceListUrl => mAppConfiguration?.VoiceListUrl ?? throw new ArgumentNullException(nameof(VoiceListUrl));
-    public string TextToSpeechUrl => mAppConfiguration?.TextToSpeechUrl ?? throw new ArgumentNullException(nameof(TextToSpeechUrl));
+    public string VersionUrl => _appConfiguration?.VersionUrl ?? throw new ArgumentNullException(nameof(VersionUrl));
+    public string MetarUrl => _metarUrls[Random.Shared.Next(_metarUrls.Count)];
+    public string NavDataUrl => _appConfiguration?.NavDataUrl ?? throw new ArgumentNullException(nameof(NavDataUrl));
+    public string AtisHubUrl => _appConfiguration?.AtisHubUrl ?? throw new ArgumentNullException(nameof(AtisHubUrl));
+    public string VoiceListUrl => _appConfiguration?.VoiceListUrl ?? throw new ArgumentNullException(nameof(VoiceListUrl));
+    public string TextToSpeechUrl => _appConfiguration?.TextToSpeechUrl ?? throw new ArgumentNullException(nameof(TextToSpeechUrl));
+    public string DigitalAtisApiUrl=> _appConfiguration?.DigitalAtisApiUrl ?? throw new ArgumentNullException(nameof(DigitalAtisApiUrl));
 }

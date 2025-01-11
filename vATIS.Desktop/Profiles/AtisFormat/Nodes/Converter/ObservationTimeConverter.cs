@@ -13,7 +13,7 @@ public class ObservationTimeConverter : JsonConverter<List<int>>
         if (reader.TokenType == JsonTokenType.Number)
         {
             // Read the integer and return it as a list
-            int value = reader.GetInt32();
+            var value = reader.GetInt32();
             return [value];
         }
 

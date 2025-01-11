@@ -1,42 +1,41 @@
 ﻿using System.Text;
 
-namespace Vatsim.Network.PDU
+namespace Vatsim.Network.PDU;
+
+public class PDUMetarResponse : PDUBase
 {
-    public class PDUMetarResponse : PDUBase
+    public string Metar { get; set; }
+
+    public PDUMetarResponse(string to, string metar)
+        : base(SERVER_CALLSIGN, to)
     {
-        public string Metar { get; set; }
+        Metar = metar;
+    }
 
-        public PDUMetarResponse(string to, string metar)
-            : base(SERVER_CALLSIGN, to)
+    public override string Serialize()
+    {
+        StringBuilder msg = new StringBuilder("$AR");
+        msg.Append(From);
+        msg.Append(DELIMITER);
+        msg.Append(To);
+        msg.Append(DELIMITER);
+        msg.Append(Metar);
+        return msg.ToString();
+    }
+
+    public static PDUMetarResponse Parse(string[] fields)
+    {
+        if (fields.Length < 4) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
+        try
         {
-            Metar = metar;
+            return new PDUMetarResponse(
+                fields[1],
+                fields[3]
+            );
         }
-
-        public override string Serialize()
+        catch (Exception ex)
         {
-            StringBuilder msg = new StringBuilder("$AR");
-            msg.Append(From);
-            msg.Append(DELIMITER);
-            msg.Append(To);
-            msg.Append(DELIMITER);
-            msg.Append(Metar);
-            return msg.ToString();
-        }
-
-        public static PDUMetarResponse Parse(string[] fields)
-        {
-            if (fields.Length < 4) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
-            try
-            {
-                return new PDUMetarResponse(
-                    fields[1],
-                    fields[3]
-                );
-            }
-            catch (Exception ex)
-            {
-                throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
-            }
+            throw new PDUFormatException("Parse error.", Reassemble(fields), ex);
         }
     }
 }
