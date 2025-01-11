@@ -141,11 +141,11 @@ public class SandboxViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isSandboxPlaybackActive, value);
     }
 
-    private AtisBuilderResponse? _atisBuilderResponse;
-    private AtisBuilderResponse? AtisBuilderResponse
+    private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceAtisResponse;
+    private AtisBuilderVoiceAtisResponse? AtisBuilderVoiceAtisResponse
     {
-        get => _atisBuilderResponse;
-        set => this.RaiseAndSetIfChanged(ref _atisBuilderResponse, value);
+        get => _atisBuilderVoiceAtisResponse;
+        set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceAtisResponse, value);
     }
     #endregion
 
@@ -176,7 +176,7 @@ public class SandboxViewModel : ReactiveViewModelBase
         RefreshSandboxAtisCommand = ReactiveCommand.CreateFromTask(HandleRefreshSandboxAtis, canRefreshAtis);
 
         var canPlaySandboxAtis = this.WhenAnyValue(
-            x => x.AtisBuilderResponse,
+            x => x.AtisBuilderVoiceAtisResponse,
             (resp) => resp?.AudioBytes != null);
         PlaySandboxAtisCommand = ReactiveCommand.CreateFromTask(HandlePlaySandboxAtis, canPlaySandboxAtis);
 
@@ -221,20 +221,20 @@ public class SandboxViewModel : ReactiveViewModelBase
 
     private async Task HandlePlaySandboxAtis(CancellationToken token)
     {
-        if (SelectedStation == null || SelectedPreset == null || AtisBuilderResponse == null)
+        if (SelectedStation == null || SelectedPreset == null || AtisBuilderVoiceAtisResponse == null)
             return;
 
         await _cancellationToken.CancelAsync();
         _cancellationToken.Dispose();
         _cancellationToken = new CancellationTokenSource();
 
-        if (AtisBuilderResponse.AudioBytes == null)
+        if (AtisBuilderVoiceAtisResponse.AudioBytes == null)
             return;
 
         if (!IsSandboxPlaybackActive)
         {
-            IsSandboxPlaybackActive = NativeAudio.StartBufferPlayback(AtisBuilderResponse.AudioBytes,
-                AtisBuilderResponse.AudioBytes.Length);
+            IsSandboxPlaybackActive = NativeAudio.StartBufferPlayback(AtisBuilderVoiceAtisResponse.AudioBytes,
+                AtisBuilderVoiceAtisResponse.AudioBytes.Length);
         }
         else
         {
@@ -251,7 +251,7 @@ public class SandboxViewModel : ReactiveViewModelBase
                 return;
 
             NativeAudio.StopBufferPlayback();
-            AtisBuilderResponse = null;
+            AtisBuilderVoiceAtisResponse = null;
 
             await _cancellationToken.CancelAsync();
             _cancellationToken.Dispose();
@@ -272,10 +272,12 @@ public class SandboxViewModel : ReactiveViewModelBase
             if (SandboxMetar != null)
             {
                 var decodedMetar = _metarDecoder.ParseNotStrict(SandboxMetar);
-                AtisBuilderResponse = await _atisBuilder.BuildAtis(SelectedStation, SelectedPreset, randomLetter,
+                var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, SelectedPreset, randomLetter,
+                    decodedMetar, _cancellationToken.Token);
+                AtisBuilderVoiceAtisResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
                     decodedMetar, _cancellationToken.Token, true);
-                SandboxTextAtis = AtisBuilderResponse.TextAtis?.ToUpperInvariant();
-                SandboxSpokenTextAtis = AtisBuilderResponse.SpokenText?.ToUpperInvariant();
+                SandboxTextAtis = textAtis?.ToUpperInvariant();
+                SandboxSpokenTextAtis = AtisBuilderVoiceAtisResponse.SpokenText?.ToUpperInvariant();
             }
         }
         catch (Exception)
