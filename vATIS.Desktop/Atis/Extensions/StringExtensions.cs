@@ -15,6 +15,8 @@ namespace Vatsim.Vatis.Atis.Extensions;
 /// </summary>
 public static class StringExtensions
 {
+    private static readonly Random Random = new();
+
     private static Dictionary<char, string> Alphabet => new()
     {
         { 'A', "Alpha" },
@@ -172,8 +174,7 @@ public static class StringExtensions
     public static string RandomLetter()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        var random = new Random();
-        return new string(Enumerable.Range(1, 1).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+        return chars[Random.Next(chars.Length)].ToString();
     }
 
     /// <summary>
