@@ -18,6 +18,7 @@ public interface ITextToSpeechService
     /// <summary>
     /// Gets the available list of voices with their metadata for text-to-speech conversion.
     /// </summary>
+    /// <value>A list of voice metadata objects containing information about available voices.</value>
     List<VoiceMetaData> VoiceList { get; }
 
     /// <summary>
