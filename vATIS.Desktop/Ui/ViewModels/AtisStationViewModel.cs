@@ -1259,8 +1259,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
-
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
 
