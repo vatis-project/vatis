@@ -40,23 +40,28 @@ public class DewpointNode : BaseNode<Value>
     public override string ParseVoiceVariables(Value node, string? format)
     {
         ArgumentNullException.ThrowIfNull(this.Station);
+        ArgumentNullException.ThrowIfNull(this.Station.AtisFormat);
+        ArgumentNullException.ThrowIfNull(node);
 
         if (format == null)
         {
             return string.Empty;
         }
 
-        return node.ActualValue < 0
-            ? Regex.Replace(
-                format,
-                "{dewpoint}",
-                "minus " + Math.Abs((int)node.ActualValue).ToString(this.Station.AtisFormat.Dewpoint.SpeakLeadingZero ? "00" : string.Empty).ToSerialFormat(),
-                RegexOptions.IgnoreCase)
-            : Regex.Replace(
-                format,
-                "{dewpoint}",
-                (this.Station.AtisFormat.Dewpoint.UsePlusPrefix ? "plus " : string.Empty) + Math.Abs((int)node.ActualValue).ToString(this.Station.AtisFormat.Dewpoint.SpeakLeadingZero ? "00" : string.Empty).ToSerialFormat(),
-                RegexOptions.IgnoreCase);
+        string FormatDewpoint(int value, bool isNegative)
+        {
+            var prefix = isNegative
+                ? "minus "
+                : (this.Station.AtisFormat.Dewpoint.UsePlusPrefix ? "plus " : string.Empty);
+            var stringFormat = this.Station.AtisFormat.Dewpoint.SpeakLeadingZero ? "00" : string.Empty;
+            return $"{prefix}{Math.Abs(value).ToString(stringFormat).ToSerialFormat()}";
+        }
+
+        return Regex.Replace(
+            format,
+            "{dewpoint}",
+            FormatDewpoint((int)node.ActualValue, node.ActualValue < 0),
+            RegexOptions.IgnoreCase);
     }
 
     private void Parse(Value? node)
