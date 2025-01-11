@@ -30,7 +30,7 @@ public interface ISessionManager
     int CurrentConnectionCount { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SessionManager"/> class.
+    /// Starts the session manager.
     /// </summary>
     void Run();
 
