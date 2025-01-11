@@ -11,12 +11,28 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 
+/// <summary>
+/// Represents an ATIS node that provides recent weather information.
+/// </summary>
 public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         if (metar.RecentWeather != null) 
             Parse(metar.RecentWeather);
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(WeatherPhenomenon value, string? format)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(WeatherPhenomenon node, string? format)
+    {
+        throw new NotImplementedException();
     }
 
     private void Parse(WeatherPhenomenon weather)
@@ -50,11 +66,11 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
     {
         if (weather == null)
             return string.Empty;
-        
+
         ArgumentNullException.ThrowIfNull(Station);
 
         var result = new List<string>();
-        
+
         switch (weather.IntensityProximity)
         {
             case "-":
@@ -72,22 +88,22 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
             result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Spoken);
 
         result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Spoken));
-        
-        if(weather.IntensityProximity == "VC")
+
+        if (weather.IntensityProximity == "VC")
             result.Add(Station.AtisFormat.PresentWeather.Vicinity);
 
         return string.Join(" ", result);
     }
-    
+
     private string FormatWeatherText(WeatherPhenomenon? weather)
     {
         if (weather == null)
             return string.Empty;
-        
+
         ArgumentNullException.ThrowIfNull(Station);
 
         var result = new List<string>();
-        
+
         switch (weather.IntensityProximity)
         {
             case "-":
@@ -105,20 +121,10 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
             result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Text);
 
         result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Text));
-        
-        if(weather.IntensityProximity == "VC")
+
+        if (weather.IntensityProximity == "VC")
             result.Add(Station.AtisFormat.PresentWeather.Vicinity);
 
         return string.Join(" ", result);
-    }
-
-    public override string ParseTextVariables(WeatherPhenomenon value, string? format)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ParseVoiceVariables(WeatherPhenomenon node, string? format)
-    {
-        throw new NotImplementedException();
     }
 }

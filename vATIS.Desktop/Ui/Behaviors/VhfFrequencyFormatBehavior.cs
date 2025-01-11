@@ -6,24 +6,30 @@
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// Provides behavior for formatting VHF frequency input in a <see cref="TextBox"/>.
+/// </summary>
 public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
 {
     private static readonly Regex s_validInputRegex = FrequencyRegex();
 
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
         if (AssociatedObject != null)
         {
-            AssociatedObject.AddHandler(InputElement.TextInputEvent, TextInputHandler, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+            AssociatedObject.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
             AssociatedObject.TextChanged += OnTextChanged;
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         base.OnDetaching();
@@ -34,13 +40,20 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
         }
     }
 
+    [GeneratedRegex(@"^\d*\.?\d*$")]
+    private static partial Regex FrequencyRegex();
+
     private void TextInputHandler(object? sender, TextInputEventArgs e)
     {
         if (AssociatedObject == null)
+        {
             return;
+        }
 
         if (e.Text == null)
+        {
             return;
+        }
 
         var textBox = AssociatedObject;
         var text = textBox.Text ?? string.Empty;
@@ -48,7 +61,8 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
 
         var newText = textBox.SelectedText == text ? input : text.Insert(textBox.CaretIndex, input);
 
-        if (!s_validInputRegex.IsMatch(newText.Replace(".", string.Empty)) || newText.Replace(".", string.Empty).Length > 6)
+        if (!s_validInputRegex.IsMatch(newText.Replace(".", string.Empty)) ||
+            newText.Replace(".", string.Empty).Length > 6)
         {
             e.Handled = true;
             return;
@@ -80,13 +94,17 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
     private void OnTextChanged(object? sender, TextChangedEventArgs e)
     {
         if (AssociatedObject == null)
+        {
             return;
+        }
 
         var textBox = AssociatedObject;
         var text = textBox.Text;
 
         if (string.IsNullOrEmpty(text))
+        {
             return;
+        }
 
         if (text.Contains('.') && text.Length > 7)
         {
@@ -95,7 +113,4 @@ public partial class VhfFrequencyFormatBehavior : Behavior<TextBox>
             textBox.CaretIndex = text.Length;
         }
     }
-
-    [GeneratedRegex(@"^\d*\.?\d*$")]
-    private static partial Regex FrequencyRegex();
 }

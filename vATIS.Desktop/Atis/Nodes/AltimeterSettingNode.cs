@@ -14,22 +14,101 @@ using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides the altimeter setting.
+/// </summary>
 public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
 {
+    private readonly Dictionary<string, Value> _altimeterSettings = new();
+    private IMetarRepository? _metarRepository;
     private int _pressureHpa;
     private double _pressureInHg;
-    private IMetarRepository? _metarRepository;
-    private readonly Dictionary<string, Value> _altimeterSettings = new();
 
+     /// <inheritdoc/>
     public override async Task Parse(DecodedMetar metar, IMetarRepository metarRepository)
     {
         _metarRepository = metarRepository;
         await Parse(metar.Pressure);
     }
 
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(Value node, string? format)
+    {
+        if (format == null)
+            return "";
+
+        format = Regex.Replace(format, "{altimeter}", node.ActualValue.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|inhg}", _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|hpa}", _pressureHpa.ToString(), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|text}", node.ActualValue.ToString("0000").ToSerialFormat()?.ToUpperInvariant() ?? string.Empty, RegexOptions.IgnoreCase);
+
+        var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
+        if (qfeMatch.Success)
+        {
+            int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
+            var qfe = CalculateQfe(_pressureHpa, elevation);
+            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", qfe.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
+        }
+
+        var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
+        if (secondaryAltimeterMatch.Success)
+        {
+            if (_altimeterSettings.TryGetValue(secondaryAltimeterMatch.Groups[1].Value.ToUpperInvariant(), out var pressure))
+            {
+                format = Regex.Replace(format, @"{altimeter\|(\w{4})}", pressure.ActualValue.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
+            }
+        }
+
+        return format;
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(Value node, string? format)
+    {
+        ArgumentNullException.ThrowIfNull(Station);
+
+        if (format == null)
+            return "";
+
+        format = Regex.Replace(format, "{altimeter}", ((int)node.ActualValue).ToSerialFormat(), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|inhg}", _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")).ToSerialFormat(Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|hpa}", _pressureHpa.ToSerialFormat(), RegexOptions.IgnoreCase);
+
+        var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
+        if (qfeMatch.Success)
+        {
+            int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
+            var qfe = CalculateQfe(_pressureHpa, elevation);
+            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", qfe.ToSerialFormat(), RegexOptions.IgnoreCase);
+        }
+
+        var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
+        if (secondaryAltimeterMatch.Success)
+        {
+            if (_altimeterSettings.TryGetValue(secondaryAltimeterMatch.Groups[1].Value.ToUpperInvariant(), out var pressure))
+            {
+                format = Regex.Replace(format, @"{altimeter\|(\w{4})}", pressure.ActualValue.ToSerialFormat(), RegexOptions.IgnoreCase);
+            }
+        }
+
+        return format;
+    }
+
+    private static int CalculateQfe(double qnh, double elevationFeet)
+    {
+        // Pressure lapse rate: approximately 1 hPa per 30 feet
+        const double pressureLapseRateFeet = 30.0;
+
+        // Calculate the QFE
+        var qfe = qnh - (elevationFeet / pressureLapseRateFeet);
+        return (int)qfe;
     }
 
     private async Task Parse(Pressure? pressure)
@@ -82,76 +161,5 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         {
             Log.Warning(e, "Failed to parse altimeter setting");
         }
-    }
-
-    public override string ParseTextVariables(Value node, string? format)
-    {
-        if (format == null)
-            return "";
-
-        format = Regex.Replace(format, "{altimeter}", node.ActualValue.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|inhg}", _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|hpa}", _pressureHpa.ToString(), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|text}", node.ActualValue.ToString("0000").ToSerialFormat()?.ToUpperInvariant() ?? string.Empty, RegexOptions.IgnoreCase);
-
-        var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
-        if (qfeMatch.Success)
-        {
-            int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
-            var qfe = CalculateQfe(_pressureHpa, elevation);
-            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", qfe.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
-        }
-
-        var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
-        if (secondaryAltimeterMatch.Success)
-        {
-            if (_altimeterSettings.TryGetValue(secondaryAltimeterMatch.Groups[1].Value.ToUpperInvariant(), out var pressure))
-            {
-                format = Regex.Replace(format, @"{altimeter\|(\w{4})}", pressure.ActualValue.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
-            }
-        }
-
-        return format;
-    }
-
-    public override string ParseVoiceVariables(Value node, string? format)
-    {
-        ArgumentNullException.ThrowIfNull(Station);
-
-        if (format == null)
-            return "";
-
-        format = Regex.Replace(format, "{altimeter}", ((int)node.ActualValue).ToSerialFormat(), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|inhg}", _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")).ToSerialFormat(Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty, RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|hpa}", _pressureHpa.ToSerialFormat(), RegexOptions.IgnoreCase);
-
-        var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
-        if (qfeMatch.Success)
-        {
-            int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
-            var qfe = CalculateQfe(_pressureHpa, elevation);
-            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", qfe.ToSerialFormat(), RegexOptions.IgnoreCase);
-        }
-
-        var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
-        if (secondaryAltimeterMatch.Success)
-        {
-            if (_altimeterSettings.TryGetValue(secondaryAltimeterMatch.Groups[1].Value.ToUpperInvariant(), out var pressure))
-            {
-                format = Regex.Replace(format, @"{altimeter\|(\w{4})}", pressure.ActualValue.ToSerialFormat(), RegexOptions.IgnoreCase);
-            }
-        }
-
-        return format;
-    }
-
-    private static int CalculateQfe(double qnh, double elevationFeet)
-    {
-        // Pressure lapse rate: approximately 1 hPa per 30 feet
-        const double pressureLapseRateFeet = 30.0;
-
-        // Calculate the QFE
-        var qfe = qnh - (elevationFeet / pressureLapseRateFeet);
-        return (int)qfe;
     }
 }

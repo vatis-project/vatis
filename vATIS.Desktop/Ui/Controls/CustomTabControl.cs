@@ -7,8 +7,12 @@ using Avalonia.Controls;
 
 namespace Vatsim.Vatis.Ui.Controls;
 
+/// <summary>
+/// Represents a custom tab control that extends the functionality of <see cref="TabControl"/>.
+/// </summary>
 public class CustomTabControl : TabControl
 {
+    /// <inheritdoc/>
     protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)
     {
         return new CustomTabItem();

@@ -12,10 +12,16 @@ using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
+/// <summary>
+/// Represents the view for displaying and interacting with custom contractions.
+/// </summary>
 public partial class ContractionsView : UserControl
 {
     private static readonly SlugHelper s_slug = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ContractionsView"/> class.
+    /// </summary>
     public ContractionsView()
     {
         InitializeComponent();

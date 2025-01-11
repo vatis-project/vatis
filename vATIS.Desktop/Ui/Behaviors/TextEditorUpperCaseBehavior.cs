@@ -10,22 +10,34 @@ using AvaloniaEdit;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// A behavior that translates all input text into uppercase for an associated <see cref="AvaloniaEdit.TextEditor"/> instance.
+/// </summary>
 public class TextEditorUpperCaseBehavior : Behavior<TextEditor>
 {
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
-        
+
         if (IsEnabled)
-            AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
+        {
+            AssociatedObject?.AddHandler(
+                InputElement.TextInputEvent,
+                TextInputHandler,
+                RoutingStrategies.Tunnel);
+        }
     }
-    
+
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         base.OnDetaching();
 
         if (IsEnabled)
+        {
             AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        }
     }
 
     private void TextInputHandler(object? sender, TextInputEventArgs e)

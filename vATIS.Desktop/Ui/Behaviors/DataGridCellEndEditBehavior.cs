@@ -10,31 +10,47 @@ using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// Provides behavior to execute a command when cell editing ends in a DataGrid control.
+/// </summary>
 public class DataGridCellEndEditBehavior : Behavior<DataGrid>
 {
+    /// <summary>
+    /// Identifies the <see cref="Command"/> dependency property, which stores the command to execute
+    /// when cell editing ends in a DataGrid control.
+    /// </summary>
     public static readonly StyledProperty<ICommand?> CommandProperty =
         AvaloniaProperty.Register<DataGridCellEndEditBehavior, ICommand?>(nameof(Command));
-    
+
+    /// <summary>
+    /// Gets or sets the command to be executed when cell editing ends in a DataGrid control.
+    /// </summary>
     public ICommand? Command
     {
         get => GetValue(CommandProperty);
         set => SetValue(CommandProperty, value);
     }
-    
+
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
 
-        if (AssociatedObject != null) 
+        if (AssociatedObject != null)
+        {
             AssociatedObject.CellEditEnding += AssociatedObjectOnCellEditEnding;
+        }
     }
 
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         base.OnDetaching();
 
-        if (AssociatedObject != null) 
+        if (AssociatedObject != null)
+        {
             AssociatedObject.CellEditEnding -= AssociatedObjectOnCellEditEnding;
+        }
     }
 
     private void AssociatedObjectOnCellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)

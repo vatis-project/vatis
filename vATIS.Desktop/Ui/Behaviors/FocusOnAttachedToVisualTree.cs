@@ -8,8 +8,13 @@ using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// Represents a behavior that automatically focuses the associated <see cref="TextBox"/> control
+/// when it is attached to the visual tree.
+/// </summary>
 public class FocusOnAttachedToVisualTree : Behavior<TextBox>
 {
+    /// <inheritdoc/>
     protected override void OnAttachedToVisualTree()
     {
         base.OnAttachedToVisualTree();

@@ -10,9 +10,22 @@ using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis;
+
+/// <summary>
+/// Provides methods to parse ATIS nodes.
+/// </summary>
 public static class NodeParser
 {
-    public static ParsedResult Parse<T, TU>(DecodedMetar metar, AtisStation station) where T : BaseNode<TU>, new()
+    /// <summary>
+    /// Parses the specified ATIS node.
+    /// </summary>
+    /// <typeparam name="T">The type of node to parse.</typeparam>
+    /// <typeparam name="TU">The type of the node's unit.</typeparam>
+    /// <param name="metar">The decoded METAR.</param>
+    /// <param name="station">The ATIS station.</param>
+    /// <returns>The parsed result.</returns>
+    public static ParsedResult Parse<T, TU>(DecodedMetar metar, AtisStation station)
+        where T : BaseNode<TU>, new()
     {
         var obj = new T
         {
@@ -26,7 +39,16 @@ public static class NodeParser
             VoiceAtis = $"{obj.VoiceAtis}."
         };
     }
-    
+
+    /// <summary>
+    /// Parses the specified ATIS node, provides <see cref="MetarRepository"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of node to parse.</typeparam>
+    /// <typeparam name="TU">The type of the node's unit.</typeparam>
+    /// <param name="metar">The decoded METAR.</param>
+    /// <param name="station">The ATIS station.</param>
+    /// <param name="metarRepository">The METAR repository.</param>
+    /// <returns>The parsed result.</returns>
     public static async Task<ParsedResult> Parse<T, TU>(DecodedMetar metar, AtisStation station, IMetarRepository metarRepository)
         where T : BaseNodeMetarRepository<TU>, new()
     {
@@ -42,10 +64,4 @@ public static class NodeParser
             VoiceAtis = $"{obj.VoiceAtis}."
         };
     }
-}
-
-public class ParsedResult
-{
-    public required string TextAtis { get; init; }
-    public required string VoiceAtis { get; init; }
 }

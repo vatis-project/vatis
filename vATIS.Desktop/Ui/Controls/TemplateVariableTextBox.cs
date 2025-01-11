@@ -6,4 +6,8 @@
 using Avalonia.Controls;
 
 namespace Vatsim.Vatis.Ui.Controls;
+
+/// <summary>
+/// Represents a specialized text box control for handling template variables.
+/// </summary>
 public class TemplateVariableTextBox : TextBox;

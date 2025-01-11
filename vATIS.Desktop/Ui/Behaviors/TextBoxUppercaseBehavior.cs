@@ -4,28 +4,37 @@
 // </copyright>
 
 using Avalonia.Controls;
-using Avalonia.Xaml.Interactivity;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// A behavior designed to ensure that all text input in a TextBox control is converted to uppercase.
+/// </summary>
 public class TextBoxUppercaseBehavior : Behavior<TextBox>
 {
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
 
         if (IsEnabled)
+        {
             AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
+        }
     }
 
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         base.OnDetaching();
 
         if (IsEnabled)
+        {
             AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);
+        }
     }
 
     private static void TextInputHandler(object? sender, TextInputEventArgs e)

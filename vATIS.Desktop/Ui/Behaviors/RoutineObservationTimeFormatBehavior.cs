@@ -3,20 +3,29 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using Avalonia.Controls;
-using Avalonia.Xaml.Interactivity;
 using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
+
+/// <summary>
+/// Represents a behavior used to enforce a specific input format within a TextBox
+/// for routine observation times, validating that input contains only numeric characters
+/// and commas.
+/// </summary>
 public class RoutineObservationTimeFormatBehavior : Behavior<TextBox>
 {
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
-        AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
     }
 
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);

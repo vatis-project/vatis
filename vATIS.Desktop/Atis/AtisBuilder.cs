@@ -3,7 +3,6 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,6 +14,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Atis.Nodes;
 using Vatsim.Vatis.Io;
@@ -26,6 +26,9 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis;
 
+/// <summary>
+/// The ATIS builder that builds ATIS messages in text and voice formats.
+/// </summary>
 public class AtisBuilder : IAtisBuilder
 {
     private readonly IDownloader? _downloader;
@@ -33,6 +36,13 @@ public class AtisBuilder : IAtisBuilder
     private readonly INavDataRepository? _navDataRepository;
     private readonly ITextToSpeechService? _textToSpeechService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisBuilder"/> class.
+    /// </summary>
+    /// <param name="downloader">The downloader.</param>
+    /// <param name="navDataRepository">The navigation data repository.</param>
+    /// <param name="textToSpeechService">The text to speech service.</param>
+    /// <param name="metarRepository">The METAR repository.</param>
     public AtisBuilder(IDownloader downloader, INavDataRepository navDataRepository,
         ITextToSpeechService textToSpeechService, IMetarRepository metarRepository)
     {
@@ -42,6 +52,7 @@ public class AtisBuilder : IAtisBuilder
         _textToSpeechService = textToSpeechService;
     }
 
+    /// <inheritdoc/>
     public async Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset, char currentAtisLetter, DecodedMetar decodedMetar,
         CancellationToken cancellationToken, bool sandboxRequest = false)
     {
@@ -62,6 +73,7 @@ public class AtisBuilder : IAtisBuilder
         return new AtisBuilderVoiceAtisResponse(spokenText, audioBytes);
     }
 
+    /// <inheritdoc/>
     public async Task<string?> BuildTextAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
         DecodedMetar decodedMetar, CancellationToken cancellationToken)
     {
@@ -79,7 +91,60 @@ public class AtisBuilder : IAtisBuilder
         return await CreateTextAtis(station, preset, currentAtisLetter, variables);
     }
 
-    private async Task<(string?, byte[]?)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
+    /// <inheritdoc/>
+    public async Task UpdateIds(AtisStation station, AtisPreset preset, char currentAtisLetter,
+        CancellationToken cancellationToken)
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        if (string.IsNullOrEmpty(station.IdsEndpoint))
+            return;
+
+        var request = new IdsUpdateRequest
+        {
+            Facility = station.Identifier,
+            Preset = preset.Name ?? "",
+            AtisLetter = currentAtisLetter.ToString(),
+            AirportConditions = preset.AirportConditions?.StripNewLineChars() ?? "",
+            Notams = preset.Notams?.StripNewLineChars() ?? "",
+            Timestamp = DateTime.UtcNow,
+            Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "",
+            AtisType = station.AtisType.ToString().ToLowerInvariant()
+        };
+
+        try
+        {
+            ArgumentNullException.ThrowIfNull(_downloader);
+
+            var jsonSerialized = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.IdsUpdateRequest);
+            await _downloader.PostJson(station.IdsEndpoint, jsonSerialized);
+        }
+        catch (OperationCanceledException)
+        {
+            // ignored
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Error(ex.ToString());
+        }
+        catch (Exception ex)
+        {
+            throw new AtisBuilderException($"Failed to Update IDS: " + ex.Message);
+        }
+    }
+
+    private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
+    {
+        return Regex.Replace(text, @"\@([\w]+(?:_[\w]+)*)", match =>
+        {
+            var key = match.Groups[1].Value; // Get the matched variable
+            var variable = station.Contractions.Find(v => v.VariableName == key); // Find matching variable
+            return variable != null ? (voiceVariable ? variable.Voice : variable.Text) ?? "" : ""; // Replace or remove if not found
+        });
+    }
+
+    private async Task<(string? SpokenText, byte[]? AudioBytes)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
         char currentAtisLetter, List<AtisVariable> variables, CancellationToken cancellationToken,
         bool sandboxRequest = false)
     {
@@ -241,6 +306,7 @@ public class AtisBuilder : IAtisBuilder
         template = Regex.Replace(template, @"(?<=\+)([A-Z]{3})", "$1");
         template = Regex.Replace(template, @"(?<=\+)([A-Z]{4})", "$1");
         template = Regex.Replace(template, @"\*", "");
+
         // strip caret from runway parsing
         template = Regex.Replace(template, @"(?<![\w\d])\^((?:0?[1-9]|[1-2][0-9]|3[0-6])(?:[LRC]?))(?![\w\d])", "$1");
 
@@ -253,48 +319,6 @@ public class AtisBuilder : IAtisBuilder
         }
 
         return template;
-    }
-
-    public async Task UpdateIds(AtisStation station, AtisPreset preset, char currentAtisLetter,
-        CancellationToken cancellationToken)
-    {
-        if (Debugger.IsAttached)
-            return;
-
-        if (string.IsNullOrEmpty(station.IdsEndpoint))
-            return;
-
-        var request = new IdsUpdateRequest
-        {
-            Facility = station.Identifier,
-            Preset = preset.Name ?? "",
-            AtisLetter = currentAtisLetter.ToString(),
-            AirportConditions = preset.AirportConditions?.StripNewLineChars() ?? "",
-            Notams = preset.Notams?.StripNewLineChars() ?? "",
-            Timestamp = DateTime.UtcNow,
-            Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "",
-            AtisType = station.AtisType.ToString().ToLowerInvariant()
-        };
-
-        try
-        {
-            ArgumentNullException.ThrowIfNull(_downloader);
-
-            var jsonSerialized = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.IdsUpdateRequest);
-            await _downloader.PostJson(station.IdsEndpoint, jsonSerialized);
-        }
-        catch (OperationCanceledException)
-        {
-            //ignored
-        }
-        catch (HttpRequestException ex)
-        {
-            Log.Error(ex.ToString());
-        }
-        catch (Exception ex)
-        {
-            throw new AtisBuilderException($"Failed to Update IDS: " + ex.Message);
-        }
     }
 
     private async Task<List<AtisVariable>> ParseNodesFromMetar(AtisStation station, AtisPreset preset, DecodedMetar metar, Airport airportData,
@@ -380,6 +404,7 @@ public class AtisBuilder : IAtisBuilder
             if (template.Text != null)
             {
                 notamsText = Regex.Replace(template.Text, "{notams}", notams, RegexOptions.IgnoreCase);
+
                 // replace contraction variables
                 notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
             }
@@ -387,6 +412,7 @@ public class AtisBuilder : IAtisBuilder
             if (template.Voice != null)
             {
                 notamsVoice = Regex.Replace(template.Voice, "{notams}", notams, RegexOptions.IgnoreCase);
+
                 // replace contraction variables
                 notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
             }
@@ -575,15 +601,5 @@ public class AtisBuilder : IAtisBuilder
         input = Regex.Replace(input, @"\*", "");
 
         return input.ToUpper();
-    }
-
-    private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
-    {
-        return Regex.Replace(text, @"\@([\w]+(?:_[\w]+)*)", match =>
-        {
-            var key = match.Groups[1].Value; // Get the matched variable
-            var variable = station.Contractions.Find(v => v.VariableName == key); // Find matching variable
-            return variable != null ? (voiceVariable ? variable.Voice : variable.Text) ?? "" : ""; // Replace or remove if not found
-        });
     }
 }

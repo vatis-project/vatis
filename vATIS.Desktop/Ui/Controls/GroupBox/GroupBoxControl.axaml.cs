@@ -7,7 +7,17 @@ using Avalonia.Controls.Primitives;
 
 namespace Vatsim.Vatis.Ui.Controls.GroupBox;
 
+/// <summary>
+/// Represents a customizable group box control that inherits from <see cref="HeaderedContentControl"/>
+/// and provides functionality for grouping related UI elements with an optional header.
+/// </summary>
 public partial class GroupBoxControl : HeaderedContentControl
 {
-    public GroupBoxControl() => InitializeComponent();
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GroupBoxControl"/> class.
+    /// </summary>
+    public GroupBoxControl()
+    {
+        InitializeComponent();
+    }
 }

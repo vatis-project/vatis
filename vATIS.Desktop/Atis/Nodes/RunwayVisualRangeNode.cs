@@ -10,11 +10,28 @@ using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides runway visual range information.
+/// </summary>
 public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         Parse(metar.RunwaysVisualRange);
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(RunwayVisualRange value, string? format)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(RunwayVisualRange node, string? format)
+    {
+        throw new NotImplementedException();
     }
 
     private void Parse(List<RunwayVisualRange> runwayVisualRanges)
@@ -99,6 +116,7 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                             tendency = "going down";
                             break;
                     }
+
                     result.Add(tendency);
 
                     tts.Add($"Runway {rwyNumber.ToSerialFormat()} {rwyDesignator} R-V-R {string.Join(" ", result)}.");
@@ -108,15 +126,5 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 
         TextAtis = string.Join(" ", acars);
         VoiceAtis = string.Join(" ", tts).TrimEnd('.');
-    }
-
-    public override string ParseTextVariables(RunwayVisualRange value, string? format)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ParseVoiceVariables(RunwayVisualRange node, string? format)
-    {
-        throw new NotImplementedException();
     }
 }

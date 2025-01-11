@@ -52,6 +52,7 @@ public class AppConfigurationProvider : IAppConfigurationProvider
     public string TextToSpeechUrl =>
         _appConfiguration?.TextToSpeechUrl ?? throw new ArgumentNullException(nameof(TextToSpeechUrl));
 
+    /// <inheritdoc />
     public string DigitalAtisApiUrl =>
         _appConfiguration?.DigitalAtisApiUrl ?? throw new ArgumentNullException(nameof(DigitalAtisApiUrl));
 

@@ -6,18 +6,24 @@
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// A behavior that restricts input in an associated <see cref="TextBox"/> to alphabetic characters only.
+/// </summary>
 public class TextBoxAlphaOnlyBehavior : Behavior<TextBox>
 {
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
-        AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        AssociatedObject?.AddHandler(InputElement.TextInputEvent, TextInputHandler, RoutingStrategies.Tunnel);
     }
 
+    /// <inheritdoc/>
     protected override void OnDetaching()
     {
         AssociatedObject?.RemoveHandler(InputElement.TextInputEvent, TextInputHandler);

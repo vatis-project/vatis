@@ -9,27 +9,19 @@ using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides the dewpoint temperature.
+/// </summary>
 public class DewpointNode : BaseNode<Value>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         Parse(metar.DewPointTemperature);
     }
 
-    private void Parse(Value? node)
-    {
-        ArgumentNullException.ThrowIfNull(Station);
-
-        if (node == null)
-        {
-            VoiceAtis = "Dewpoint missing";
-            return;
-        }
-
-        VoiceAtis = ParseVoiceVariables(node, Station.AtisFormat.Dewpoint.Template.Voice);
-        TextAtis = ParseTextVariables(node, Station.AtisFormat.Dewpoint.Template.Text);
-    }
-
+    /// <inheritdoc/>
     public override string ParseTextVariables(Value value, string? format)
     {
         if (format == null)
@@ -79,6 +71,7 @@ public class DewpointNode : BaseNode<Value>
         return format;
     }
 
+    /// <inheritdoc/>
     public override string ParseVoiceVariables(Value node, string? format)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -95,5 +88,19 @@ public class DewpointNode : BaseNode<Value>
                 (Station.AtisFormat.Dewpoint.UsePlusPrefix ? "plus " : "") + Math.Abs((int)node.ActualValue)
                     .ToString(Station.AtisFormat.Dewpoint.SpeakLeadingZero ? "00" : "").ToSerialFormat(),
                 RegexOptions.IgnoreCase);
+    }
+
+    private void Parse(Value? node)
+    {
+        ArgumentNullException.ThrowIfNull(Station);
+
+        if (node == null)
+        {
+            VoiceAtis = "Dewpoint missing";
+            return;
+        }
+
+        VoiceAtis = ParseVoiceVariables(node, Station.AtisFormat.Dewpoint.Template.Voice);
+        TextAtis = ParseTextVariables(node, Station.AtisFormat.Dewpoint.Template.Text);
     }
 }

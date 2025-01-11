@@ -13,11 +13,17 @@ using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
+/// <summary>
+/// Represents a view for configuring presets in the ATIS configuration system.
+/// </summary>
 public partial class PresetsView : UserControl
 {
     private int _previousSelectedPresetIndex;
     private bool _suppressSelectionChanged;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PresetsView"/> class.
+    /// </summary>
     public PresetsView()
     {
         InitializeComponent();

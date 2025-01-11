@@ -124,6 +124,7 @@ public class AtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
+    /// <inheritdoc />
     public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })

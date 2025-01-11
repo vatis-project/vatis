@@ -9,14 +9,31 @@ using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides the observation time.
+/// </summary>
 public class ObservationTimeNode : BaseNode<string>
 {
     private const string SpecialText = "SPECIAL";
     private bool _isSpecialAtis;
 
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         Parse(metar.Hour, metar.Minute);
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(string node, string? format)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(string value, string? format)
+    {
+        throw new NotImplementedException();
     }
 
     private void Parse(int metarHour, int metarMinute)
@@ -54,15 +71,5 @@ public class ObservationTimeNode : BaseNode<string>
         format = Regex.Replace(format, "{special}", _isSpecialAtis ? SpecialText : "", RegexOptions.IgnoreCase);
 
         return format;
-    }
-
-    public override string ParseVoiceVariables(string node, string? format)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ParseTextVariables(string value, string? format)
-    {
-        throw new NotImplementedException();
     }
 }

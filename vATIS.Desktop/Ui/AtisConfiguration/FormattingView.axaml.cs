@@ -7,8 +7,14 @@ using Avalonia.Controls;
 
 namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
+/// <summary>
+/// Represents a view that manages the user interface for configuring ATIS format.
+/// </summary>
 public partial class FormattingView : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FormattingView"/> class.
+    /// </summary>
     public FormattingView()
     {
         InitializeComponent();

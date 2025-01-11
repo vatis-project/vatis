@@ -7,8 +7,14 @@ using Avalonia.Controls;
 
 namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
+/// <summary>
+/// Represents the view for configuring general ATIS settings in the application.
+/// </summary>
 public partial class GeneralConfigView : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GeneralConfigView"/> class.
+    /// </summary>
     public GeneralConfigView()
     {
         InitializeComponent();
