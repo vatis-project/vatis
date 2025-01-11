@@ -32,6 +32,11 @@ public class TextBoxNumericOnlyBehavior : Behavior<TextBox>
 
     private static void TextInputHandler(object? sender, TextInputEventArgs e)
     {
+        if (sender == null)
+        {
+            return;
+        }
+
         if (e.Text != null && e.Text.Any(c => !char.IsNumber(c)))
         {
             e.Handled = true;
