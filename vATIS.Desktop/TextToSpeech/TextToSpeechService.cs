@@ -36,9 +36,9 @@ public class TextToSpeechService : ITextToSpeechService
         IAuthTokenManager authTokenManager,
         IAppConfigurationProvider appConfigurationProvider)
     {
-        this.downloader = downloader;
-        this.authTokenManager = authTokenManager;
-        this.appConfigurationProvider = appConfigurationProvider;
+        this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
+        this.authTokenManager = authTokenManager ?? throw new ArgumentNullException(nameof(authTokenManager));
+        this.appConfigurationProvider = appConfigurationProvider ?? throw new ArgumentNullException(nameof(appConfigurationProvider));
         this.VoiceList = [];
     }
 
