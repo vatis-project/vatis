@@ -27,7 +27,7 @@ public class ProfileRepository : IProfileRepository
     /// <param name="downloader">The downloader instance used to facilitate downloading operations.</param>
     public ProfileRepository(IDownloader downloader)
     {
-        this.downloader = downloader;
+        this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
         this.EnsureProfilesFolderExists();
     }
 
