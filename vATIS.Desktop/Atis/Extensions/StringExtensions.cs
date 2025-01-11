@@ -184,7 +184,7 @@ public static class StringExtensions
     /// <returns>True if the string is a valid URL; otherwise, false.</returns>
     public static bool IsValidUrl(this string value)
     {
-        var pattern = new Regex(@"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$");
-        return pattern.IsMatch(value.Trim());
+        return Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uriResult)
+               && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
     }
 }
