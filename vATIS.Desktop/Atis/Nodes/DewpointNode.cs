@@ -30,9 +30,14 @@ public class DewpointNode : BaseNode<Value>
         if (format == null)
             return "";
 
-        return Regex.Replace(format, "{dewpoint}",
-            string.Concat(value.ActualValue < 0 ? "M" : "", Math.Abs((int)value.ActualValue).ToString("00")),
-            RegexOptions.IgnoreCase);
+        if (Station == null)
+            return "";
+
+        format = Regex.Replace(format, "{dewpoint}", string.Concat(value.ActualValue < 0 && Station.IsFaaAtis ? "M" : "",
+            Math.Abs(value.ActualValue).ToString("00")), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{prefix_symbol}", value.ActualValue < 0 ? "-" : "+", RegexOptions.IgnoreCase);
+
+        return format;
     }
 
     public override string ParseVoiceVariables(Value node, string? format)
