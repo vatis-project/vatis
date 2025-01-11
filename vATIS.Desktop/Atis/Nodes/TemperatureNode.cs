@@ -68,7 +68,7 @@ public class TemperatureNode : BaseNode<Value>
             formattedValue = Math.Abs(value.ActualValue).ToString(formatString);
         }
 
-        // Replace the {dewpoint} variable in the format string with the formatted value
+        // Replace the temperature placeholder in the format string with the formatted value
         format = format.Replace(match.Value, formattedValue);
 
         return format;
