@@ -202,7 +202,7 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
                         }));
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(15));
 
             if (pressure.Value != null)
             {
