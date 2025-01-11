@@ -30,6 +30,9 @@ public class TemperatureNode : BaseNode<Value>
         if (format == null)
             return "";
 
+        // handle {prefix_symbol}
+        format = Regex.Replace(format, @"\{prefix_symbol\}", value.ActualValue < 0 ? "-" : "+", RegexOptions.IgnoreCase);
+
         // Parse the input format using regex to match patterns like {temp}, {temp:##}, {temp:##M}, or {temp:M}
         var match = Regex.Match(format, @"\{temp(?::(?<format>#*M?))?\}");
         if (!match.Success)
@@ -65,7 +68,10 @@ public class TemperatureNode : BaseNode<Value>
             formattedValue = Math.Abs(value.ActualValue).ToString(formatString);
         }
 
-        return formattedValue;
+        // Replace the {dewpoint} variable in the format string with the formatted value
+        format = format.Replace(match.Value, formattedValue);
+
+        return format;
     }
 
     public override string ParseVoiceVariables(Value node, string? format)

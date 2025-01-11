@@ -1,20 +1,33 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Serilog;
+using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Io;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
+using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather.Decoder;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
 public class MockAtisHubConnection : IAtisHubConnection
 {
+    private readonly IDownloader _downloader;
+    private readonly IAppConfigurationProvider _appConfigurationProvider;
     private HubConnection? _hubConnection;
     private ConnectionState _hubConnectionState;
+
+    public MockAtisHubConnection(IDownloader downloader, IAppConfigurationProvider appConfigurationProvider)
+    {
+        _downloader = downloader;
+        _appConfigurationProvider = appConfigurationProvider;
+    }
 
     public async Task Connect()
     {
@@ -115,6 +128,66 @@ public class MockAtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
+    }
+
+    public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
+    {
+        if (string.IsNullOrEmpty(dto.Id))
+            return null;
+
+        var response = await _downloader.GetAsync(_appConfigurationProvider.DigitalAtisApiUrl + "/" + dto.Id);
+        if (response.IsSuccessStatusCode)
+        {
+            var json = JsonSerializer.Deserialize(await response.Content.ReadAsStringAsync(),
+                SourceGenerationContext.NewDefault.ListDigitalAtisResponseDto);
+            if (json != null)
+            {
+                foreach (var atis in json)
+                {
+                    // user only has combined ATIS configured
+                    if (dto.AtisType == AtisType.Combined)
+                    {
+                        if (atis.AtisType == "dep")
+                        {
+                            if (char.TryParse(atis.AtisLetter, out var atisLetter))
+                            {
+                                return atisLetter;
+                            }
+                        }
+                    }
+
+                    if (atis.AtisType == "arr")
+                    {
+                        if (dto.AtisType == AtisType.Arrival)
+                        {
+                            if (char.TryParse(atis.AtisLetter, out var atisLetter))
+                            {
+                                return atisLetter;
+                            }
+                        }
+                    }
+                    else if (atis.AtisType == "dep")
+                    {
+                        if (dto.AtisType == AtisType.Departure)
+                        {
+                            if (char.TryParse(atis.AtisLetter, out var atisLetter))
+                            {
+                                return atisLetter;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (char.TryParse(atis.AtisLetter, out var atisLetter))
+                        {
+                            return atisLetter;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private Task OnHubConnectionClosed(Exception? exception)

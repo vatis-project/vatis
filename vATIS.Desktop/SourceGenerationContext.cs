@@ -7,6 +7,7 @@ using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking.AtisHub;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.TextToSpeech;
@@ -52,6 +53,8 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(AtisMessage))]
 [JsonSerializable(typeof(CommandMessage))]
 [JsonSerializable(typeof(ErrorMessage))]
+[JsonSerializable(typeof(DigitalAtisRequestDto))]
+[JsonSerializable(typeof(List<DigitalAtisResponseDto>))]
 [JsonSerializable(typeof(JsonElement))]
 public partial class SourceGenerationContext : JsonSerializerContext
 {
