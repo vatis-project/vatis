@@ -87,7 +87,11 @@ public partial class PresetsView : UserControl
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error while loading presets");
+            Log.Error(
+                ex,
+                "Error while loading presets. Selected index: {SelectedIndex}, Added items count: {Count}",
+                this.SelectedPreset.SelectedIndex,
+                e.AddedItems.Count);
         }
     }
 }
