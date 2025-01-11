@@ -134,6 +134,7 @@ public class App : Application
                 }
 
                 TopMostViewModel.Instance.Initialize(appConfig);
+                CompactWindowTopMostViewModel.Instance.Initialize(appConfig);
 
                 _startupWindow = _serviceProvider.GetService<StartupWindow>();
                 desktop.MainWindow = _startupWindow;

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Serilog;
+using Vatsim.Network;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
@@ -13,13 +14,15 @@ namespace Vatsim.Vatis.Networking.AtisHub;
 
 public class AtisHubConnection : IAtisHubConnection
 {
+    private readonly IClientAuth _clientAuth;
     private HubConnection? _hubConnection;
     private ConnectionState _connectionState;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
 
-    public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider)
+    public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider, IClientAuth clientAuth)
     {
         _appConfigurationProvider = appConfigurationProvider;
+        _clientAuth = clientAuth;
     }
 
     public async Task Connect()
@@ -32,12 +35,15 @@ public class AtisHubConnection : IAtisHubConnection
             var serverUrl = _appConfigurationProvider.AtisHubUrl;
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(serverUrl)
-                .WithAutomaticReconnect()
+                .WithUrl(serverUrl, options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult(_clientAuth.GenerateHubToken());
+                })
                 .AddJsonProtocol(options =>
                 {
                     options.PayloadSerializerOptions.TypeInfoResolverChain.Add(SourceGenerationContext.NewDefault);
                 })
+                .WithAutomaticReconnect()
                 .Build();
 
             _hubConnection.Closed += OnHubConnectionClosed;
@@ -112,6 +118,7 @@ public class AtisHubConnection : IAtisHubConnection
             Log.Error(exception, "AtisHub connection closed unexpectedly.");
         }
 
+        Log.Information("Disconnected from AtisHub.");
         SetConnectionState(ConnectionState.Disconnected);
         return Task.CompletedTask;
     }
