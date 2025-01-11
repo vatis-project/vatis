@@ -40,23 +40,28 @@ public class TemperatureNode : BaseNode<Value>
     public override string ParseVoiceVariables(Value node, string? format)
     {
         ArgumentNullException.ThrowIfNull(this.Station);
+        ArgumentNullException.ThrowIfNull(this.Station.AtisFormat);
+        ArgumentNullException.ThrowIfNull(node);
 
         if (format == null)
         {
             return string.Empty;
         }
 
-        return node.ActualValue < 0
-            ? Regex.Replace(
-                format,
-                "{temp}",
-                "minus " + Math.Abs(node.ActualValue).ToString(this.Station.AtisFormat.Temperature.SpeakLeadingZero ? "00" : string.Empty).ToSerialFormat(),
-                RegexOptions.IgnoreCase)
-            : Regex.Replace(
-                format,
-                "{temp}",
-                (this.Station.AtisFormat.Temperature.UsePlusPrefix ? "plus " : string.Empty) + Math.Abs(node.ActualValue).ToString(this.Station.AtisFormat.Temperature.SpeakLeadingZero ? "00" : string.Empty).ToSerialFormat(),
-                RegexOptions.IgnoreCase);
+        string FormatTemperature(int value, bool isNegative)
+        {
+            var prefix = isNegative
+                ? "minus "
+                : this.Station.AtisFormat.Temperature.UsePlusPrefix ? "plus " : string.Empty;
+            var numberFormat = this.Station.AtisFormat.Temperature.SpeakLeadingZero ? "00" : string.Empty;
+            return $"{prefix}{Math.Abs(value).ToString(numberFormat).ToSerialFormat()}";
+        }
+
+        return Regex.Replace(
+            format,
+            "{temp}",
+            FormatTemperature((int)node.ActualValue, node.ActualValue < 0),
+            RegexOptions.IgnoreCase);
     }
 
     private void Parse(Value? temperature)
