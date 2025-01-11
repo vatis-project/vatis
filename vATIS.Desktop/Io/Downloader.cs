@@ -105,12 +105,7 @@ public class Downloader : IDownloader
         string? jwtToken = null,
         CancellationToken? cancellationToken = null)
     {
-        this.httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            this.httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", jwtToken);
-        }
+        this.SetAuthorizationHeader(jwtToken);
 
         return await this.httpClient.PostAsync(
             url,
@@ -125,12 +120,7 @@ public class Downloader : IDownloader
         string? jwtToken = null,
         CancellationToken? cancellationToken = null)
     {
-        this.httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            this.httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", jwtToken);
-        }
+        this.SetAuthorizationHeader(jwtToken);
 
         await this.httpClient.PostAsync(
             url,
@@ -145,12 +135,7 @@ public class Downloader : IDownloader
         string? jwtToken = null,
         CancellationToken? cancellationToken = null)
     {
-        this.httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            this.httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", jwtToken);
-        }
+        this.SetAuthorizationHeader(jwtToken);
 
         return await this.httpClient.PutAsync(
             url,
@@ -175,12 +160,7 @@ public class Downloader : IDownloader
     /// <inheritdoc/>
     public async Task Delete(string url, string? jwtToken = null, CancellationToken? cancellationToken = null)
     {
-        this.httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            this.httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", jwtToken);
-        }
+        this.SetAuthorizationHeader(jwtToken);
 
         await this.httpClient.DeleteAsync(url, cancellationToken.GetValueOrDefault());
     }
@@ -241,5 +221,15 @@ public class Downloader : IDownloader
         }
 
         stopWatch.Stop();
+    }
+
+    private void SetAuthorizationHeader(string? jwtToken)
+    {
+        this.httpClient.DefaultRequestHeaders.Authorization = null;
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            this.httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", jwtToken);
+        }
     }
 }
