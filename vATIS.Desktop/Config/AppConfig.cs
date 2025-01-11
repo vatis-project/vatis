@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Serilog;
 using Vatsim.Network;
 using Vatsim.Vatis.Io;
 
@@ -149,8 +150,9 @@ public class AppConfig : IAppConfig
                 cryptoProvider.CreateDecryptor()
                     .TransformFinalBlock(byteBuff, 0, byteBuff.Length));
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Error(ex, "Failed to decrypt value. This could indicate tampering or corruption.");
             return string.Empty;
         }
     }
