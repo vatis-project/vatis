@@ -1,4 +1,10 @@
-﻿namespace Vatsim.Vatis.Weather.Decoder.Exception;
+﻿// <copyright file="MetarChunkDecoderException.cs" company="Afonso Dutra Nogueira Filho">
+// Copyright (c) Afonso Dutra Nogueira Filho. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// https://github.com/afonsoft/metar-decoder
+// </copyright>
+
+namespace Vatsim.Vatis.Weather.Decoder.Exception;
 
 public sealed class MetarChunkDecoderException : System.Exception
 {

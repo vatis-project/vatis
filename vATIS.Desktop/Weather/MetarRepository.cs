@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="MetarRepository.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,27 +17,75 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Weather;
 
+/// <inheritdoc cref="IMetarRepository"/>
 public sealed class MetarRepository : IMetarRepository, IDisposable
 {
     private const int UpdateIntervalSeconds = 300;
+    private static readonly string[] s_separators = ["\r\n", "\r", "\n"];
     private readonly IDownloader _downloader;
     private readonly Decoder.MetarDecoder _metarDecoder;
     private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromSeconds(UpdateIntervalSeconds) };
     private readonly HashSet<string> _monitoredStations = [];
     private readonly Dictionary<string, DecodedMetar> _metars = [];
-    private static readonly string[] s_separators = ["\r\n", "\r", "\n"];
     private readonly string? _metarUrl;
     private bool _isDisposed;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MetarRepository"/> class.
+    /// </summary>
+    /// <param name="downloader">The downloader used to retrieve METAR information.</param>
+    /// <param name="appConfigurationProvider">The application configuration provider containing necessary configurations.</param>
+    /// <exception cref="ArgumentNullException">Thrown if any of the parameters are null.</exception>
     public MetarRepository(IDownloader downloader, IAppConfigurationProvider appConfigurationProvider)
     {
         _downloader = downloader;
         _metarDecoder = new Decoder.MetarDecoder();
 
-        _updateTimer.Tick += async delegate { await UpdateAsync(); };
+        _updateTimer.Tick += async (_, _) => { await UpdateAsync(); };
         _updateTimer.Start();
 
         _metarUrl = appConfigurationProvider.MetarUrl;
+    }
+
+    /// <inheritdoc />
+    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
+    {
+        if (_metars.TryGetValue(station, out var metar))
+        {
+            return metar;
+        }
+
+        if (monitor)
+        {
+            _monitoredStations.Add(station);
+        }
+
+        var rawMetar = await DownloadMetarAsync(station);
+        if (string.IsNullOrWhiteSpace(rawMetar))
+        {
+            return null;
+        }
+
+        var parsedMetar = _metarDecoder.ParseNotStrict(rawMetar);
+        if (triggerMessageBus)
+        {
+            MessageBus.Current.SendMessage(new MetarReceived(parsedMetar));
+        }
+
+        return parsedMetar;
+    }
+
+    /// <inheritdoc />
+    public void RemoveMetar(string station)
+    {
+        _metars.Remove(station);
+        _monitoredStations.Remove(station);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Dispose(disposing: true);
     }
 
     private async Task UpdateAsync()
@@ -93,39 +146,6 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
         return "";
     }
 
-    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
-    {
-        if (_metars.TryGetValue(station, out var metar))
-        {
-            return metar;
-        }
-
-        if (monitor)
-        {
-            _monitoredStations.Add(station);
-        }
-
-        var rawMetar = await DownloadMetarAsync(station);
-        if (string.IsNullOrWhiteSpace(rawMetar))
-        {
-            return null;
-        }
-
-        var parsedMetar = _metarDecoder.ParseNotStrict(rawMetar);
-        if (triggerMessageBus)
-        {
-            MessageBus.Current.SendMessage(new MetarReceived(parsedMetar));
-        }
-
-        return parsedMetar;
-    }
-
-    public void RemoveMetar(string station)
-    {
-        _metars.Remove(station);
-        _monitoredStations.Remove(station);
-    }
-
     private void Dispose(bool disposing)
     {
         if (!_isDisposed)
@@ -137,10 +157,5 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
 
             _isDisposed = true;
         }
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
     }
 }

@@ -1,4 +1,9 @@
-﻿using System.Windows.Input;
+﻿// <copyright file="PointerPressedEventTrigger.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Input;
 using Avalonia.Interactivity;

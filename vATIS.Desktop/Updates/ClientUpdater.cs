@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="ClientUpdater.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -8,11 +13,19 @@ using Velopack;
 
 namespace Vatsim.Vatis.Updates;
 
+/// <summary>
+/// Provides functionality for updating the client application.
+/// </summary>
 public class ClientUpdater : IClientUpdater
 {
     private readonly UpdateManager _updateManager;
     private UpdateInfo? _updateInfo;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClientUpdater"/> class.
+    /// </summary>
+    /// <param name="appConfigurationProvider">The application configuration provider.</param>
+    /// <exception cref="PlatformNotSupportedException">Thrown when the current platform is not supported.</exception>
     public ClientUpdater(IAppConfigurationProvider appConfigurationProvider)
     {
         var versionUrl = appConfigurationProvider.VersionUrl;
@@ -39,6 +52,7 @@ public class ClientUpdater : IClientUpdater
         });
     }
 
+    /// <inheritdoc />
     public async Task<bool> Run()
     {
         MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new client version..."));

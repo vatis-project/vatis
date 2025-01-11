@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="Downloader.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -11,11 +16,15 @@ using System.Threading.Tasks;
 
 namespace Vatsim.Vatis.Io;
 
+/// <inheritdoc />
 public class Downloader : IDownloader
 {
-    private readonly HttpClient _httpClient;
     private const int BufferSize = 131072;
+    private readonly HttpClient _httpClient;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Downloader"/> class.
+    /// </summary>
     public Downloader()
     {
         _httpClient = new HttpClient(new SocketsHttpHandler()
@@ -54,11 +63,13 @@ public class Downloader : IDownloader
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "Vatsim.Vatis/" + productVersion);
     }
 
+    /// <inheritdoc />
     public Task<HttpResponseMessage> GetAsync(string url)
     {
         return _httpClient.GetAsync(url);
     }
 
+    /// <inheritdoc />
     public async Task<string> DownloadStringAsync(string url)
     {
         var response = await _httpClient.GetAsync(url);
@@ -66,6 +77,7 @@ public class Downloader : IDownloader
         return await response.Content.ReadAsStringAsync();
     }
 
+    /// <inheritdoc />
     public async Task DownloadFileAsync(string url, string path, IProgress<int> progress)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path) ?? throw new IOException("Destination path is null"));
@@ -74,11 +86,79 @@ public class Downloader : IDownloader
         await DownloadToStreamAsync(url, fileStream, progress);
     }
 
+    /// <inheritdoc />
     public async Task<byte[]> DownloadBytesAsync(string url, IProgress<int> progress)
     {
         using var stream = new MemoryStream();
         await DownloadToStreamAsync(url, stream, progress);
         return stream.ToArray();
+    }
+
+    /// <inheritdoc />
+    public async Task<HttpResponseMessage> PostJsonResponse(string url, string content, string? jwtToken = null,
+        CancellationToken? cancellationToken = null)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = null;
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+
+        return await _httpClient.PostAsync(url, new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken.GetValueOrDefault());
+    }
+
+    /// <inheritdoc />
+    public async Task PostJson(string url, string content, string? jwtToken = null,
+        CancellationToken? cancellationToken = null)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = null;
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+
+        await _httpClient.PostAsync(url, new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken.GetValueOrDefault());
+    }
+
+    /// <inheritdoc />
+    public async Task<HttpResponseMessage> PutJson(string url, string jsonContent, string? jwtToken = null, CancellationToken? cancellationToken = null)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = null;
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+
+        return await _httpClient.PutAsync(url, new StringContent(jsonContent, Encoding.UTF8, "application/json"),
+            cancellationToken.GetValueOrDefault());
+    }
+
+    /// <inheritdoc />
+    public async Task<Stream> PostJsonDownloadAsync(string url, string jsonContent,
+        CancellationToken? cancellationToken = null)
+    {
+        var response = await _httpClient.PostAsync(url,
+            new StringContent(jsonContent, Encoding.UTF8, "application/json"), cancellationToken.GetValueOrDefault());
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStreamAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task Delete(string url, string? jwtToken = null, CancellationToken? cancellationToken = null)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = null;
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+
+        await _httpClient.DeleteAsync(url, cancellationToken.GetValueOrDefault());
     }
 
     private async Task DownloadToStreamAsync(string url, Stream stream, IProgress<int>? progress)
@@ -122,7 +202,8 @@ public class Downloader : IDownloader
                 }
 
                 nextProgressReportTime = elapsedMs + 250;
-            } while (hasMoreToRead);
+            }
+            while (hasMoreToRead);
 
             if (canReportProgress && progress != null)
             {
@@ -132,84 +213,5 @@ public class Downloader : IDownloader
         }
 
         stopWatch.Stop();
-    }
-
-    public async Task<HttpResponseMessage> PostJsonResponse(string url, string content, string? jwtToken = null,
-        CancellationToken? cancellationToken = null)
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-        }
-
-        return await _httpClient.PostAsync(url, new StringContent(content, Encoding.UTF8, "application/json"),
-            cancellationToken.GetValueOrDefault());
-    }
-
-    public async Task PostJson(string url, string content, string? jwtToken = null,
-        CancellationToken? cancellationToken = null)
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-        }
-
-        await _httpClient.PostAsync(url, new StringContent(content, Encoding.UTF8, "application/json"),
-            cancellationToken.GetValueOrDefault());
-    }
-
-    public async Task<HttpResponseMessage> PutJson(string url, string jsonContent, string? jwtToken = null, CancellationToken? cancellationToken = null)
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-        }
-
-        return await _httpClient.PutAsync(url, new StringContent(jsonContent, Encoding.UTF8, "application/json"),
-            cancellationToken.GetValueOrDefault());
-    }
-
-    public async Task<Stream> PostJsonDownloadAsync(string url, string jsonContent,
-        CancellationToken? cancellationToken = null)
-    {
-        var response = await _httpClient.PostAsync(url,
-            new StringContent(jsonContent, Encoding.UTF8, "application/json"), cancellationToken.GetValueOrDefault());
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStreamAsync();
-    }
-
-    public async Task Delete(string url, string? jwtToken = null, CancellationToken? cancellationToken = null)
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = null;
-        if (!string.IsNullOrEmpty(jwtToken))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-        }
-
-        await _httpClient.DeleteAsync(url, cancellationToken.GetValueOrDefault());
-    }
-}
-
-public static class HttpClientExtensions
-{
-    public static async Task ValidateResponseStatus(this HttpResponseMessage response)
-    {
-        if (!response.IsSuccessStatusCode)
-        {
-            var message = await response.Content.ReadAsStringAsync();
-            if (!string.IsNullOrEmpty(message))
-            {
-                throw new Exception($"Request Failed ({response.StatusCode}): " + message);
-            }
-
-            throw new Exception($"Request Failed ({response.StatusCode})");
-        }
     }
 }

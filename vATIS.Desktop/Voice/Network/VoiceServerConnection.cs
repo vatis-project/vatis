@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="VoiceServerConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
@@ -10,6 +15,9 @@ using Vatsim.Vatis.Voice.Dto;
 
 namespace Vatsim.Vatis.Voice.Network;
 
+/// <summary>
+/// Provides functionality for connecting to and interacting with a voice server.
+/// </summary>
 public class VoiceServerConnection : IVoiceServerConnection
 {
     private const string ClientName = "vATIS";
@@ -22,11 +30,18 @@ public class VoiceServerConnection : IVoiceServerConnection
     private DateTime _expiryLocalUtc;
     private TimeSpan _serverToUserOffset;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VoiceServerConnection"/> class.
+    /// </summary>
+    /// <param name="downloader">
+    /// The downloader instance used for handling download operations.
+    /// </param>
     public VoiceServerConnection(IDownloader downloader)
     {
         _downloader = downloader;
     }
 
+    /// <inheritdoc />
     public async Task Connect(string username, string password)
     {
         _userId = username;
@@ -34,7 +49,11 @@ public class VoiceServerConnection : IVoiceServerConnection
 
         try
         {
-            var dto = JsonSerializer.Serialize(new PostUserRequestDto(username, password, ClientName),
+            var dto = JsonSerializer.Serialize(
+                new PostUserRequestDto(
+                    username,
+                    password,
+                    ClientName),
                 SourceGenerationContext.NewDefault.PostUserRequestDto);
             var response =
                 await _downloader.PostJsonResponse(VoiceServerUrl + "/api/v1/auth", dto);
@@ -57,11 +76,13 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
     }
 
+    /// <inheritdoc />
     public void Disconnect()
     {
         _jwtToken = null;
     }
 
+    /// <inheritdoc />
     public async Task AddOrUpdateBot(string callsign, PutBotRequestDto dto, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -87,6 +108,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
     }
 
+    /// <inheritdoc />
     public async Task RemoveBot(string callsign)
     {
         if (Debugger.IsAttached)

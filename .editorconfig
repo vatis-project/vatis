@@ -39,23 +39,24 @@ csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
 
 # Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+dotnet_style_require_accessibility_modifiers = always:warning
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
 
 # avoid this. unless absolutely necessary
-dotnet_style_qualification_for_field = false:suggestion
-dotnet_style_qualification_for_property = false:suggestion
-dotnet_style_qualification_for_method = false:suggestion
-dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
 
 # Types: use keywords instead of BCL types, and permit var only when the type is clear
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = false:suggestion
-dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
-dotnet_style_predefined_type_for_member_access = true:suggestion
+csharp_style_var_elsewhere = true
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+dotnet_style_predefined_type_for_locals_parameters_members = true:silet
+dotnet_style_predefined_type_for_member_access = true:silet
 
 # name all constant fields using PascalCase
-dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = warning
 dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
 dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_style
 dotnet_naming_symbols.constant_fields.applicable_kinds   = field
@@ -63,7 +64,7 @@ dotnet_naming_symbols.constant_fields.required_modifiers = const
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # static fields should have s_ prefix
-dotnet_naming_rule.static_fields_should_have_prefix.severity = suggestion
+dotnet_naming_rule.static_fields_should_have_prefix.severity = warning
 dotnet_naming_rule.static_fields_should_have_prefix.symbols  = static_fields
 dotnet_naming_rule.static_fields_should_have_prefix.style    = static_prefix_style
 dotnet_naming_symbols.static_fields.applicable_kinds   = field
@@ -73,7 +74,7 @@ dotnet_naming_style.static_prefix_style.required_prefix = s_
 dotnet_naming_style.static_prefix_style.capitalization = camel_case
 
 # internal and private fields should be _camelCase
-dotnet_naming_rule.camel_case_for_private_internal_fields.severity = suggestion
+dotnet_naming_rule.camel_case_for_private_internal_fields.severity = warning
 dotnet_naming_rule.camel_case_for_private_internal_fields.symbols  = private_internal_fields
 dotnet_naming_rule.camel_case_for_private_internal_fields.style    = camel_case_underscore_style
 dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
@@ -82,8 +83,8 @@ dotnet_naming_style.camel_case_underscore_style.required_prefix = _
 dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
 
 # Code style defaults
-csharp_using_directive_placement = outside_namespace:suggestion
-dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true:warning
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true:none
 csharp_preserve_single_line_statements = false:none
@@ -91,6 +92,7 @@ csharp_prefer_static_local_function = true:suggestion
 csharp_prefer_simple_using_statement = false:none
 csharp_style_prefer_switch_expression = true:suggestion
 dotnet_style_readonly_field = true:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
 
 # Expression-level preferences
 dotnet_style_object_initializer = true:suggestion
@@ -153,6 +155,29 @@ csharp_space_between_method_declaration_name_and_open_parenthesis = false
 csharp_space_between_method_declaration_parameter_list_parentheses = false
 csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
+
+# File header
+file_header_template = <copyright file="{fileName}" company="Justin Shannon">\nCopyright (c) Justin Shannon. All rights reserved.\nLicensed under the GPLv3 license. See LICENSE file in the project root for full license information.\n</copyright>
+dotnet_diagnostic.IDE0073.severity = warning
+
+# IDE Rules
+dotnet_diagnostic.IDE0290.severity = none # Use primary constructor
+
+# StyleCop Rules
+dotnet_diagnostic.SA1101.severity = none # Disable this. prefix
+dotnet_diagnostic.SA1309.severity = none # Field name beigns with underscore
+dotnet_diagnostic.SA1633.severity = none # StyleCop header
+dotnet_diagnostic.SA1413.severity = none # Last statement trailing comma
+dotnet_diagnostic.SA1009.severity = none # Closing parenthesis must be spaced correctly
+dotnet_diagnostic.SA1111.severity = none # Closing parenthesis must be on line of last parameter
+dotnet_diagnostic.SA1117.severity = none # Parameters must be on separate lines
+dotnet_diagnostic.SA1311.severity = none # Static readonly fields should begin with upper-case letter
+dotnet_diagnostic.SA1308.severity = none # Static fields should not begin with the prefix 's_'
+dotnet_diagnostic.SA1122.severity = none # Use string.Empty for empty strings
+dotnet_diagnostic.SA1503.severity = none # Braces should not be omitted
+dotnet_diagnostic.SA1116.severity = none # Parameters must start on line after declaration
+dotnet_diagnostic.SA1636.severity = none # File header copyright text must match
+dotnet_diagnostic.SA1118.severity = none # The parameter spans multiple lines
 
 # C++ Files
 [*.{cpp,h,in}]

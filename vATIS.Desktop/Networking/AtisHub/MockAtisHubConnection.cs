@@ -1,3 +1,8 @@
+// <copyright file="MockAtisHubConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -11,11 +16,15 @@ using Vatsim.Vatis.Weather.Decoder;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
+/// <summary>
+/// A mock implementation of the <see cref="MockAtisHubConnection"/> class used for connecting to and interacting with the ATIS Hub.
+/// </summary>
 public class MockAtisHubConnection : IAtisHubConnection
 {
     private HubConnection? _hubConnection;
     private ConnectionState _hubConnectionState;
 
+    /// <inheritdoc />
     public async Task Connect()
     {
         try
@@ -71,21 +80,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         }
     }
 
-    private void SetConnectionState(ConnectionState connectionState)
-    {
-        _hubConnectionState = connectionState;
-        MessageBus.Current.SendMessage(new ConnectionStateChanged(_hubConnectionState));
-        switch (_hubConnectionState)
-        {
-            case ConnectionState.Connected:
-                MessageBus.Current.SendMessage(new HubConnected());
-                break;
-            case ConnectionState.Disconnected:
-                MessageBus.Current.SendMessage(new HubDisconnected());
-                break;
-        }
-    }
-
+    /// <inheritdoc />
     public async Task Disconnect()
     {
         if (_hubConnection == null)
@@ -101,6 +96,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc />
     public async Task PublishAtis(AtisHubDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
@@ -109,12 +105,28 @@ public class MockAtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("PublishAtis", dto);
     }
 
+    /// <inheritdoc />
     public async Task SubscribeToAtis(SubscribeDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
             return;
 
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
+    }
+
+    private void SetConnectionState(ConnectionState connectionState)
+    {
+        _hubConnectionState = connectionState;
+        MessageBus.Current.SendMessage(new ConnectionStateChanged(_hubConnectionState));
+        switch (_hubConnectionState)
+        {
+            case ConnectionState.Connected:
+                MessageBus.Current.SendMessage(new HubConnected());
+                break;
+            case ConnectionState.Disconnected:
+                MessageBus.Current.SendMessage(new HubDisconnected());
+                break;
+        }
     }
 
     private Task OnHubConnectionClosed(Exception? exception)

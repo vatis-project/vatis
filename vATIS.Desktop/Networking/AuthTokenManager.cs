@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="AuthTokenManager.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -8,6 +13,10 @@ using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.Networking;
+
+/// <summary>
+/// Manages the authentication token for the VATSIM network.
+/// </summary>
 public class AuthTokenManager : IAuthTokenManager
 {
     private const string AuthTokenUrl = "https://auth.vatsim.net/api/fsd-jwt";
@@ -17,6 +26,11 @@ public class AuthTokenManager : IAuthTokenManager
     private readonly IAppConfig _appConfig;
     private DateTime _authTokenGeneratedAt;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthTokenManager"/> class.
+    /// </summary>
+    /// <param name="downloader">An implementation of <see cref="IDownloader"/> to manage data downloading operations.</param>
+    /// <param name="appConfig">An implementation of <see cref="IAppConfig"/> to manage application configurations.</param>
     public AuthTokenManager(IDownloader downloader, IAppConfig appConfig)
     {
         _downloader = downloader;
@@ -25,8 +39,10 @@ public class AuthTokenManager : IAuthTokenManager
         MessageBus.Current.Listen<GeneralSettingsUpdated>().Subscribe(_ => { AuthToken = null; });
     }
 
+    /// <inheritdoc />
     public string? AuthToken { get; private set; }
 
+    /// <inheritdoc />
     public async Task<string?> GetAuthToken()
     {
         if (AuthToken != null && (DateTime.UtcNow - _authTokenGeneratedAt).TotalMinutes < AuthTokenShelfLifeMinutes)
