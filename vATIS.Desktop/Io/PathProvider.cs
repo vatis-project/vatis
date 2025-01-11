@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.IO;
 
 namespace Vatsim.Vatis.Io;
@@ -60,6 +61,11 @@ public static class PathProvider
     /// <param name="path">The application data path.</param>
     public static void SetAppDataPath(string path)
     {
+        if (string.IsNullOrEmpty(path))
+        {
+            throw new ArgumentException(@"Path cannot be null or empty", nameof(path));
+        }
+
         appDataPath = path;
     }
 }
