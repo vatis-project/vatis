@@ -48,4 +48,5 @@ public class AppConfigurationProvider : IAppConfigurationProvider
     public string AtisHubUrl => _appConfiguration?.AtisHubUrl ?? throw new ArgumentNullException(nameof(AtisHubUrl));
     public string VoiceListUrl => _appConfiguration?.VoiceListUrl ?? throw new ArgumentNullException(nameof(VoiceListUrl));
     public string TextToSpeechUrl => _appConfiguration?.TextToSpeechUrl ?? throw new ArgumentNullException(nameof(TextToSpeechUrl));
+    public string DigitalAtisApiUrl=> _appConfiguration?.DigitalAtisApiUrl ?? throw new ArgumentNullException(nameof(DigitalAtisApiUrl));
 }

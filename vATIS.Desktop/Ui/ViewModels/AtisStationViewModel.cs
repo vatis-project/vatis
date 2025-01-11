@@ -21,6 +21,7 @@ using Vatsim.Vatis.Events;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -212,6 +213,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         get => _hasUnsavedNotams;
         set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
     }
+
+    public AtisType AtisType => _atisStation.AtisType;
     #endregion
 
     public ReactiveCommand<Unit, Unit> DecrementAtisLetterCommand { get; }
@@ -224,6 +227,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveAirportConditionsText { get; }
     public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
+    public ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
 
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
         IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
@@ -273,6 +277,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         OpenStaticAirportConditionsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenAirportConditionsDialog);
         OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
 
+        SetAtisLetterCommand = ReactiveCommand.Create<char>(HandleSetAtisLetter);
         SaveAirportConditionsText = ReactiveCommand.Create(HandleSaveAirportConditionsText);
         SaveNotamsText = ReactiveCommand.Create(HandleSaveNotamsText);
         SelectedPresetChangedCommand = ReactiveCommand.CreateFromTask<AtisPreset>(HandleSelectedAtisPresetChanged);
@@ -368,6 +373,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
         this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
         this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(HandleNetworkStatusChanged);
+    }
+
+    private void HandleSetAtisLetter(char letter)
+    {
+        if (letter < _atisStation.CodeRange.Low || letter > _atisStation.CodeRange.High)
+            return;
+        AtisLetter = letter;
     }
 
     private void HandleSaveNotamsText()

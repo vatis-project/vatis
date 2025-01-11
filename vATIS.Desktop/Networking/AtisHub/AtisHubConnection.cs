@@ -8,6 +8,7 @@ using Serilog;
 using Vatsim.Network;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
@@ -100,6 +101,14 @@ public class AtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
+    }
+
+    public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
+    {
+        if (_hubConnection is not { State: HubConnectionState.Connected })
+            return null;
+
+        return await _hubConnection.InvokeAsync<char>("GetDigitalAtisLetter", dto);
     }
 
     private Task OnHubConnectionClosed(Exception? exception)
