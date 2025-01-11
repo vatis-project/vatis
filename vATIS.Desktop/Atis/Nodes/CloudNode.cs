@@ -8,30 +8,21 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 namespace Vatsim.Vatis.Atis.Nodes;
 public class CloudNode : BaseNode<CloudLayer>
 {
-    private CloudLayer? _ceilingLayer;
-
     public override void Parse(DecodedMetar metar)
     {
-        Parse(metar.Clouds);
+        Parse(metar.Clouds, metar.Ceiling);
     }
 
-    private void Parse(List<CloudLayer> cloudLayers)
+    private void Parse(List<CloudLayer> cloudLayers, CloudLayer? ceiling)
     {
         ArgumentNullException.ThrowIfNull(Station);
 
         var voiceAtis = new List<string>();
         var textAtis = new List<string>();
 
-        _ceilingLayer = cloudLayers
-            .Where(n => n.BaseHeight?.ActualValue > 0 &&
-                        n.Amount is CloudLayer.CloudAmount.Overcast or CloudLayer.CloudAmount.Broken)
-            .Select(n => n)
-            .OrderBy(n => n.BaseHeight?.ActualValue)
-            .FirstOrDefault();
-
         foreach (var layer in cloudLayers)
         {
-            voiceAtis.Add(FormatCloudsVoice(layer));
+            voiceAtis.Add(FormatCloudsVoice(layer, ceiling));
             textAtis.Add(FormatCloudsText(layer));
         }
 
@@ -105,7 +96,7 @@ public class CloudNode : BaseNode<CloudLayer>
         return "";
     }
 
-    private string FormatCloudsVoice(CloudLayer layer)
+    private string FormatCloudsVoice(CloudLayer layer, CloudLayer? ceiling)
     {
         ArgumentNullException.ThrowIfNull(Station);
 
@@ -133,7 +124,7 @@ public class CloudNode : BaseNode<CloudLayer>
                     ? Station.AtisFormat.Clouds.ConvectiveTypes.GetValueOrDefault(TypeToString(layer.Type), "")
                     : "", RegexOptions.IgnoreCase);
 
-            return Station.AtisFormat.Clouds.IdentifyCeilingLayer && layer == _ceilingLayer
+            return Station.AtisFormat.Clouds.IdentifyCeilingLayer && layer == ceiling
                 ? "ceiling " + template.Trim().ToUpperInvariant()
                 : template.Trim().ToUpperInvariant();
         }

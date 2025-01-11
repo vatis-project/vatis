@@ -904,8 +904,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             TextAtis = _atisStation.TextAtis,
             IsNewAtis = IsNewAtis,
             NetworkConnectionStatus = NetworkConnectionStatus,
-            PressureUnit = _decodedMetar?.Pressure?.Value?.ActualUnit,
-            PressureValue = _decodedMetar?.Pressure?.Value?.ActualValue,
+            Pressure = _decodedMetar?.Pressure?.Value ?? null,
+            Ceiling = _decodedMetar?.Ceiling?.BaseHeight ?? null,
+            PrevailingVisibility = _decodedMetar?.Visibility?.PrevailingVisibility ?? null
         });
     }
 
@@ -1258,8 +1259,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
-
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
 
