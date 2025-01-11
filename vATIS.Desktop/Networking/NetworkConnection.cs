@@ -58,7 +58,7 @@ public class NetworkConnection : INetworkConnection
     public bool IsConnected => _fsdSession.Connected;
 
     public NetworkConnection(AtisStation station, IAppConfig appConfig, IAuthTokenManager authTokenManager,
-        IMetarRepository metarRepository, IDownloader downloader, INavDataRepository navDataRepository)
+        IMetarRepository metarRepository, IDownloader downloader, INavDataRepository navDataRepository, IClientAuth clientAuth)
     {
         ArgumentNullException.ThrowIfNull(station);
 
@@ -95,7 +95,7 @@ public class NetworkConnection : INetworkConnection
         _fsdPositionUpdateTimer.Interval = 15000; // 15 seconds
         _fsdPositionUpdateTimer.Elapsed += OnFsdPositionUpdateTimerElapsed;
 
-        _fsdSession = new FsdSession(_clientProperties, SynchronizationContext.Current ?? throw new InvalidOperationException())
+        _fsdSession = new FsdSession(clientAuth, _clientProperties, SynchronizationContext.Current ?? throw new InvalidOperationException())
         {
             IgnoreUnknownPackets = true
         };
@@ -242,11 +242,8 @@ public class NetworkConnection : INetworkConnection
                 num++;
                 _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
                     ["E", num.ToString()]));
-                if (_atisStation?.AtisLetter != null)
-                {
-                    _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
-                        ["A", _atisStation.AtisLetter]));
-                }
+                _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
+                    ["A", _atisStation?.AtisLetter.ToString() ?? string.Empty]));
 
                 break;
             case ClientQueryType.Inf:

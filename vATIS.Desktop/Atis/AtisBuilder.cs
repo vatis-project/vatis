@@ -303,14 +303,19 @@ public class AtisBuilder : IAtisBuilder
         {
             if (station.AirportConditionsBeforeFreeText)
             {
-                airportConditions = string.Join(" ",
+                airportConditions = string.Join(" ", new[]
+                {
                     string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text)),
-                    preset.AirportConditions);
+                    preset.AirportConditions
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
             else
             {
-                airportConditions = string.Join(" ", preset.AirportConditions,
-                    string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text)));
+                airportConditions = string.Join(" ", new[]
+                {
+                    preset.AirportConditions,
+                    string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text))
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
         }
 
@@ -329,35 +334,42 @@ public class AtisBuilder : IAtisBuilder
         {
             if (station.NotamsBeforeFreeText)
             {
-                notams += string.Join(". ",
+                notams += string.Join(". ", new[]
+                {
                     string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)),
-                    preset.Notams);
+                    preset.Notams
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
             else
             {
-                notams += string.Join(". ", preset.Notams,
-                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)));
+                notams += string.Join(". ", new[]
+                {
+                    preset.Notams,
+                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text))
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
             }
 
             // strip extraneous punctuation
             notams = Regex.Replace(notams, @"[!?.]*([!?.])", "$1");
             notams = Regex.Replace(notams, "\\s+([.,!\":])", "$1");
+        }
 
-            if (station.UseNotamPrefix)
+        if (!string.IsNullOrEmpty(notams))
+        {
+            var template = station.AtisFormat.Notams.Template;
+            if (template.Text != null)
             {
-                notamsText += "NOTAMS... ";
-                notamsVoice += $"{(station.IsFaaAtis ? "Notices to air missions" : "Notices to airmen")}: ";
+                notamsText = Regex.Replace(template.Text, "{notams}", notams, RegexOptions.IgnoreCase);
+                // replace contraction variables
+                notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
             }
 
-            if (!string.IsNullOrEmpty(notams))
+            if (template.Voice != null)
             {
-                notamsText += $"{notams} ";
-                notamsVoice += $"{notams} ";
+                notamsVoice = Regex.Replace(template.Voice, "{notams}", notams, RegexOptions.IgnoreCase);
+                // replace contraction variables
+                notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
             }
-
-            // translate contraction variables
-            notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
-            notamsVoice = ReplaceContractionVariable(notamsVoice, station, voiceVariable: true);
         }
 
         var variables = new List<AtisVariable>

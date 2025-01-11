@@ -1,5 +1,6 @@
 ﻿using System;
 using Jab;
+using Vatsim.Network;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
@@ -38,6 +39,7 @@ namespace Vatsim.Vatis;
 [Singleton(typeof(IWindowLocationService), typeof(WindowLocationService))]
 [Singleton(typeof(IProfileRepository), typeof(ProfileRepository))]
 [Singleton(typeof(IWebsocketService), typeof(WebsocketService))]
+[Singleton(typeof(IClientAuth), typeof(ClientAuth))]
 [Singleton<IMetarRepository>(Factory = nameof(CreateMetarRepository))]
 [Singleton<IVoiceServerConnection>(Factory = nameof(CreateVoiceServerConnection))]
 [Singleton<IAtisHubConnection>(Factory = nameof(CreateAtisHubConnection))]
@@ -109,7 +111,7 @@ internal sealed partial class ServiceProvider
             return new MockAtisHubConnection();
         }
 
-        return new AtisHubConnection(GetService<IAppConfigurationProvider>());
+        return new AtisHubConnection(GetService<IAppConfigurationProvider>(), GetService<IClientAuth>());
     }
 
     private IVoiceServerConnection CreateVoiceServerConnection()
@@ -145,7 +147,8 @@ internal class NetworkConnectionFactory : INetworkConnectionFactory
 
         return new NetworkConnection(station, _provider.GetService<IAppConfig>(),
             _provider.GetService<IAuthTokenManager>(), _provider.GetService<IMetarRepository>(),
-            _provider.GetService<IDownloader>(), _provider.GetService<INavDataRepository>());
+            _provider.GetService<IDownloader>(), _provider.GetService<INavDataRepository>(), 
+            _provider.GetService<IClientAuth>());
     }
 }
 

@@ -19,7 +19,6 @@ public class AtisStation : ReactiveObject
     public bool AirportConditionsBeforeFreeText { get; set; }
     public uint Frequency { get; set; }
     public string? IdsEndpoint { get; set; }
-    public bool UseNotamPrefix { get; set; }
     public bool UseDecimalTerminology { get; set; }
     public AtisVoiceMeta AtisVoice { get; set; } = new();
     public List<AtisPreset> Presets { get; set; } = [];
@@ -51,7 +50,7 @@ public class AtisStation : ReactiveObject
 
     [JsonIgnore] public bool IsFaaAtis => (Identifier.StartsWith('K') || Identifier.StartsWith('P'));
     [JsonIgnore] public string? TextAtis { get; set; }
-    [JsonIgnore] public string? AtisLetter { get; set; }
+    [JsonIgnore] public char AtisLetter { get; set; }
 
     // Legacy
     [Obsolete("Use 'Frequency' instead")]
@@ -131,7 +130,6 @@ public class AtisStation : ReactiveObject
             AirportConditionsBeforeFreeText = AirportConditionsBeforeFreeText,
             Frequency = Frequency,
             IdsEndpoint = IdsEndpoint,
-            UseNotamPrefix = UseNotamPrefix,
             UseDecimalTerminology = UseDecimalTerminology,
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),

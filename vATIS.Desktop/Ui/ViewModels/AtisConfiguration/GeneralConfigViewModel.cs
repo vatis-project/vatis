@@ -42,6 +42,13 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
     }
 
+    private string _profileSerialNumber = "";
+    public string ProfileSerialNumber
+    {
+        get => _profileSerialNumber;
+        set => this.RaiseAndSetIfChanged(ref _profileSerialNumber, value);
+    }
+
     private string? _frequency;
     public string? Frequency
     {
@@ -127,20 +134,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private bool _useNotamPrefix;
-    public bool UseNotamPrefix
-    {
-        get => _useNotamPrefix;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _useNotamPrefix, value);
-            if (!_initializedProperties.Add(nameof(UseNotamPrefix)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
     private bool _useDecimalTerminology;
     public bool UseDecimalTerminology
     {
@@ -190,6 +183,10 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         _profileRepository = profileRepository;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+
+        ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
+            ? $"Profile Serial: {_sessionManager.CurrentProfile.UpdateSerial}"
+            : string.Empty;
     }
 
     private void HandleUpdateProperties(AtisStation? station)
@@ -206,7 +203,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         CodeRangeLow = station.CodeRange.Low;
         CodeRangeHigh = station.CodeRange.High;
         UseDecimalTerminology = station.UseDecimalTerminology;
-        UseNotamPrefix = station.UseNotamPrefix;
         IdsEndpoint = station.IdsEndpoint;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
         TextToSpeechVoice = station.AtisVoice.Voice;
@@ -221,7 +217,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         CodeRangeLow = '\0';
         CodeRangeHigh = '\0';
         UseDecimalTerminology = false;
-        UseNotamPrefix = false;
         UseTextToSpeech = true;
         IdsEndpoint = null;
         HasUnsavedChanges = false;
@@ -286,9 +281,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
 
         if (SelectedStation.CodeRange != codeRange)
             SelectedStation.CodeRange = codeRange;
-
-        if (SelectedStation.UseNotamPrefix != UseNotamPrefix)
-            SelectedStation.UseNotamPrefix = UseNotamPrefix;
 
         if (SelectedStation.UseDecimalTerminology != UseDecimalTerminology)
             SelectedStation.UseDecimalTerminology = UseDecimalTerminology;

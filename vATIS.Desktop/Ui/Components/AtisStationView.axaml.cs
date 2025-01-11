@@ -1,7 +1,12 @@
 using System;
 using System.Reactive.Linq;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
+using AvaloniaEdit.Document;
+using AvaloniaEdit.Editing;
+using AvaloniaEdit.Rendering;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Networking;
@@ -22,6 +27,44 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         AtisLetter.DoubleTapped += AtisLetterOnDoubleTapped;
         AtisLetter.Tapped += AtisLetterOnTapped;
         AtisLetter.PointerPressed += AtisLetterOnPointerPressed;
+
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel == null)
+            return;
+
+        NotamFreeText.Options.AllowScrollBelowDocument = false;
+        NotamFreeText.TextArea.Caret.PositionChanged += (_, _) =>
+        {
+            foreach (var segment in ViewModel.ReadOnlyNotams)
+            {
+                // If caret is within or at the start of a read-only segment
+                if (NotamFreeText.CaretOffset >= segment.StartOffset && NotamFreeText.CaretOffset <= segment.EndOffset)
+                {
+                    // Move caret to the end of the read-only segment
+                    NotamFreeText.CaretOffset = segment.EndOffset;
+                    break;
+                }
+            }
+        };
+        
+        AirportConditions.Options.AllowScrollBelowDocument = false;
+        AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
+        {
+            foreach (var segment in ViewModel.ReadOnlyAirportConditions)
+            {
+                // If caret is within or at the start of a read-only segment
+                if (AirportConditions.CaretOffset >= segment.StartOffset && AirportConditions.CaretOffset <= segment.EndOffset)
+                {
+                    // Move caret to the end of the read-only segment
+                    AirportConditions.CaretOffset = segment.EndOffset;
+                    break;
+                }
+            }
+        };
     }
 
     private async void AtisLetterOnDoubleTapped(object? sender, TappedEventArgs e)
@@ -144,8 +187,20 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
                 TypeAtisLetter.SelectAll();
             }
         });
-    }
 
+        if (ViewModel != null)
+        {
+            AirportConditions.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyAirportConditions);
+            NotamFreeText.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyNotams);
+            AirportConditions.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyAirportConditions));
+            NotamFreeText.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
+        }
+    }
+    
     private void AirportConditions_OnTextChanged(object? sender, EventArgs e)
     {
         if (ViewModel?.SelectedAtisPreset == null)
@@ -176,5 +231,30 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         }
 
         _notamsInitialized = true;
+    }
+    
+    class ReadOnlySegmentTransformer : DocumentColorizingTransformer
+    {
+        private readonly TextSegmentCollection<TextSegment> _readOnlySegments;
+
+        public ReadOnlySegmentTransformer(TextSegmentCollection<TextSegment> readOnlySegments)
+        {
+            _readOnlySegments = readOnlySegments;
+        }
+
+        protected override void ColorizeLine(DocumentLine line)
+        {
+            foreach (var segment in _readOnlySegments.FindOverlappingSegments(line.Offset, line.Length))
+            {
+                ChangeLinePart(
+                    Math.Max(segment.StartOffset, line.Offset),
+                    Math.Min(segment.EndOffset, line.Offset + line.Length),
+                    element =>
+                    {
+                        element.TextRunProperties.SetForegroundBrush(Brushes.Aqua);
+                    }
+                );
+            }
+        }
     }
 }
