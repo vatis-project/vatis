@@ -132,7 +132,7 @@ public class AtisBuilder : IAtisBuilder
         }
         catch (Exception ex)
         {
-            throw new AtisBuilderException("Failed to Update IDS: " + ex.Message);
+            throw new AtisBuilderException("Failed to update IDS.", ex);
         }
     }
 
