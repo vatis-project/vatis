@@ -10,8 +10,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents a dialog for capturing user input.
+/// </summary>
 public partial class UserInputDialog : ReactiveWindow<UserInputDialogViewModel>, ICloseable
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserInputDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with the dialog.</param>
     public UserInputDialog(UserInputDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -19,11 +26,14 @@ public partial class UserInputDialog : ReactiveWindow<UserInputDialogViewModel>,
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserInputDialog"/> class.
+    /// </summary>
     public UserInputDialog()
     {
         InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();

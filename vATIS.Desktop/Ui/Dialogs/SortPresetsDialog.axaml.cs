@@ -10,8 +10,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents a dialog for sorting ATIS presets.
+/// </summary>
 public partial class SortPresetsDialog : ReactiveWindow<SortPresetsDialogViewModel>, ICloseable
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SortPresetsDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with this dialog.</param>
     public SortPresetsDialog(SortPresetsDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -19,11 +26,14 @@ public partial class SortPresetsDialog : ReactiveWindow<SortPresetsDialogViewMod
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SortPresetsDialog"/> class.
+    /// </summary>
     public SortPresetsDialog()
     {
         InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();

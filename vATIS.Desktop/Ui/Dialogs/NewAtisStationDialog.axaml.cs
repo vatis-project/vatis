@@ -10,8 +10,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents a dialog for creating or configuring a new ATIS station.
+/// </summary>
 public partial class NewAtisStationDialog : ReactiveWindow<NewAtisStationDialogViewModel>, ICloseable
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NewAtisStationDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with this dialog.</param>
     public NewAtisStationDialog(NewAtisStationDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -19,11 +26,14 @@ public partial class NewAtisStationDialog : ReactiveWindow<NewAtisStationDialogV
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NewAtisStationDialog"/> class.
+    /// </summary>
     public NewAtisStationDialog()
     {
         InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();

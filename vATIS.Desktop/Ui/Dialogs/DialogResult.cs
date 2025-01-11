@@ -5,9 +5,23 @@
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents the result of a dialog operation.
+/// </summary>
 public enum DialogResult
 {
+    /// <summary>
+    /// Indicates that no result has been returned from the dialog.
+    /// </summary>
     None,
+
+    /// <summary>
+    /// Indicates that the dialog was closed with a confirmation or acceptance.
+    /// </summary>
     Ok,
-    Cancel
+
+    /// <summary>
+    /// Indicates that the dialog operation was canceled.
+    /// </summary>
+    Cancel,
 }

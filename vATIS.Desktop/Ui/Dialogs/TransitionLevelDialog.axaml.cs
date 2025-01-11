@@ -10,8 +10,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents the dialog window for configuring the transition level.
+/// </summary>
 public partial class TransitionLevelDialog : ReactiveWindow<TransitionLevelDialogViewModel>, ICloseable
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TransitionLevelDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with this dialog.</param>
     public TransitionLevelDialog(TransitionLevelDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -19,6 +26,9 @@ public partial class TransitionLevelDialog : ReactiveWindow<TransitionLevelDialo
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TransitionLevelDialog"/> class.
+    /// </summary>
     public TransitionLevelDialog()
     {
         InitializeComponent();
@@ -28,7 +38,7 @@ public partial class TransitionLevelDialog : ReactiveWindow<TransitionLevelDialo
     {
         ViewModel?.Dispose();
     }
-    
+
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

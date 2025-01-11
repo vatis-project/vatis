@@ -11,8 +11,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents a dialog window for managing static NOTAMs.
+/// </summary>
 public partial class StaticNotamsDialog : ReactiveWindow<StaticNotamsDialogViewModel>, ICloseable
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StaticNotamsDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with the dialog.</param>
     public StaticNotamsDialog(StaticNotamsDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -21,11 +28,14 @@ public partial class StaticNotamsDialog : ReactiveWindow<StaticNotamsDialogViewM
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StaticNotamsDialog"/> class.
+    /// </summary>
     public StaticNotamsDialog()
     {
         InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();

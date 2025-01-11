@@ -11,8 +11,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents a dialog window for updating user settings in the application.
+/// </summary>
 public partial class SettingsDialog : ReactiveWindow<SettingsDialogViewModel>, ICloseable
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SettingsDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with the dialog.</param>
     public SettingsDialog(SettingsDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -20,11 +27,14 @@ public partial class SettingsDialog : ReactiveWindow<SettingsDialogViewModel>, I
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SettingsDialog"/> class.
+    /// </summary>
     public SettingsDialog()
     {
         InitializeComponent();
     }
-    
+
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();

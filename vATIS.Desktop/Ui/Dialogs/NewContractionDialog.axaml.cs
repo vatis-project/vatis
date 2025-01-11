@@ -13,10 +13,17 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
 
+/// <summary>
+/// Represents a dialog for creating a new contraction.
+/// </summary>
 public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogViewModel>, ICloseable
 {
     private static readonly SlugHelper s_slug = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NewContractionDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The ViewModel used to manage the dialog.</param>
     public NewContractionDialog(NewContractionDialogViewModel viewModel)
     {
         InitializeComponent();
@@ -24,6 +31,9 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NewContractionDialog"/> class.
+    /// </summary>
     public NewContractionDialog()
     {
         InitializeComponent();

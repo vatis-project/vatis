@@ -10,17 +10,26 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
 namespace Vatsim.Vatis.Ui.Extensions;
+
+/// <summary>
+/// Provides a value converter that converts a string representing an asset URI into a <see cref="Avalonia.Media.Imaging.Bitmap"/>.
+/// </summary>
 public class BitmapAssetValueConverter : IValueConverter
 {
+    /// <inheritdoc/>
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null)
+        {
             return null;
+        }
 
         if (value is string rawUri && targetType.IsAssignableFrom(typeof(Bitmap)))
         {
             if (string.IsNullOrEmpty(rawUri))
+            {
                 return null;
+            }
 
             return new Bitmap(AssetLoader.Open(new Uri(rawUri)));
         }
@@ -28,7 +37,8 @@ public class BitmapAssetValueConverter : IValueConverter
         throw new NotSupportedException();
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    /// <inheritdoc/>
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

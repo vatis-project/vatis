@@ -10,8 +10,13 @@ using Vatsim.Vatis.Networking;
 
 namespace Vatsim.Vatis.Ui.Converters;
 
+/// <summary>
+/// Converts a <see cref="NetworkConnectionStatus" /> to a corresponding color string
+/// representing different network statuses for styling purposes in the user interface.
+/// </summary>
 public class ConnectButtonColorConverter : IValueConverter
 {
+    /// <inheritdoc/>
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is NetworkConnectionStatus flag)
@@ -22,6 +27,7 @@ public class ConnectButtonColorConverter : IValueConverter
         return "#323232";
     }
 
+    /// <inheritdoc/>
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();

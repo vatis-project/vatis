@@ -27,6 +27,9 @@ using Vatsim.Vatis.Weather.Decoder;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
+/// <summary>
+/// Represents the view model for the sandbox environment.
+/// </summary>
 public class SandboxViewModel : ReactiveViewModelBase
 {
     private readonly IProfileRepository _profileRepository;
@@ -34,126 +37,31 @@ public class SandboxViewModel : ReactiveViewModelBase
     private readonly IWindowFactory _windowFactory;
     private readonly IAtisBuilder _atisBuilder;
     private readonly IMetarRepository _metarRepository;
-    private CancellationTokenSource _cancellationToken;
     private readonly Random _random = new();
     private readonly MetarDecoder _metarDecoder = new();
-
-    public IDialogOwner? DialogOwner { get; set; }
-    public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
-    public ReactiveCommand<Unit, Unit> FetchSandboxMetarCommand { get; }
-    public ReactiveCommand<Unit, Unit> SelectedPresetChangedCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenStaticAirportConditionsDialogCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveAirportConditionsTextCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveNotamsTextCommand { get; }
-    public ReactiveCommand<Unit, Unit> RefreshSandboxAtisCommand { get; }
-    public ReactiveCommand<Unit, Unit> PlaySandboxAtisCommand { get; }
-
-    #region Reactive Properties
+    private CancellationTokenSource _cancellationToken;
     private ObservableCollection<AtisPreset>? _presets;
-    public ObservableCollection<AtisPreset>? Presets
-    {
-        get => _presets;
-        set => this.RaiseAndSetIfChanged(ref _presets, value);
-    }
-
     private AtisPreset? _selectedPreset;
-    public AtisPreset? SelectedPreset
-    {
-        get => _selectedPreset;
-        set => this.RaiseAndSetIfChanged(ref _selectedPreset, value);
-    }
-
     private AtisStation? _selectedStation;
-    private AtisStation? SelectedStation
-    {
-        get => _selectedStation;
-        set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
-    }
-
     private string? _sandboxMetar;
-    public string? SandboxMetar
-    {
-        get => _sandboxMetar;
-        set => this.RaiseAndSetIfChanged(ref _sandboxMetar, value);
-    }
-
     private bool _hasUnsavedAirportConditions;
-    public bool HasUnsavedAirportConditions
-    {
-        get => _hasUnsavedAirportConditions;
-        set => this.RaiseAndSetIfChanged(ref _hasUnsavedAirportConditions, value);
-    }
-
     private bool _hasUnsavedNotams;
-    public bool HasUnsavedNotams
-    {
-        get => _hasUnsavedNotams;
-        set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
-    }
-
-    private string? AirportConditionsText
-    {
-        get => _airportConditionsTextDocument.Text ?? "";
-        set => AirportConditionsTextDocument = new TextDocument(value);
-    }
-
     private TextDocument _airportConditionsTextDocument = new();
-    public TextDocument AirportConditionsTextDocument
-    {
-        get => _airportConditionsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
-    }
-
-    private string? NotamText
-    {
-        get => _notamsTextDocument.Text ?? "";
-        set => NotamsTextDocument = new TextDocument(value);
-    }
-
     private TextDocument _notamsTextDocument = new();
-    public TextDocument NotamsTextDocument
-    {
-        get => _notamsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _notamsTextDocument, value);
-    }
-
     private List<ICompletionData> _contractionCompletionData = [];
-    public List<ICompletionData> ContractionCompletionData
-    {
-        get => _contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
-    }
-
     private string? _sandboxTextAtis;
-    public string? SandboxTextAtis
-    {
-        get => _sandboxTextAtis;
-        set => this.RaiseAndSetIfChanged(ref _sandboxTextAtis, value);
-    }
-
     private string? _sandboxSpokenTextAtis;
-    public string? SandboxSpokenTextAtis
-    {
-        get => _sandboxSpokenTextAtis;
-        set => this.RaiseAndSetIfChanged(ref _sandboxSpokenTextAtis, value);
-    }
-
     private bool _isSandboxPlaybackActive;
-    public bool IsSandboxPlaybackActive
-    {
-        get => _isSandboxPlaybackActive;
-        set => this.RaiseAndSetIfChanged(ref _isSandboxPlaybackActive, value);
-    }
+    private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceResponse;
 
-    private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceAtisResponse;
-    private AtisBuilderVoiceAtisResponse? AtisBuilderVoiceAtisResponse
-    {
-        get => _atisBuilderVoiceAtisResponse;
-        set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceAtisResponse, value);
-    }
-    #endregion
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SandboxViewModel"/> class.
+    /// </summary>
+    /// <param name="windowFactory">An instance of <see cref="IWindowFactory"/> used for creating application windows.</param>
+    /// <param name="atisBuilder">An instance of <see cref="IAtisBuilder"/> used for building ATIS.</param>
+    /// <param name="metarRepository">An instance of <see cref="IMetarRepository"/> used for accessing METAR data.</param>
+    /// <param name="profileRepository">An instance of <see cref="IProfileRepository"/> used for managing user profiles.</param>
+    /// <param name="sessionManager">An instance of <see cref="ISessionManager"/> used for managing sessions.</param>
     public SandboxViewModel(IWindowFactory windowFactory, IAtisBuilder atisBuilder, IMetarRepository metarRepository,
         IProfileRepository profileRepository, ISessionManager sessionManager)
     {
@@ -181,7 +89,7 @@ public class SandboxViewModel : ReactiveViewModelBase
         RefreshSandboxAtisCommand = ReactiveCommand.CreateFromTask(HandleRefreshSandboxAtis, canRefreshAtis);
 
         var canPlaySandboxAtis = this.WhenAnyValue(
-            x => x.AtisBuilderVoiceAtisResponse,
+            x => x.AtisBuilderVoiceResponse,
             (resp) => resp?.AudioBytes != null);
         PlaySandboxAtisCommand = ReactiveCommand.CreateFromTask(HandlePlaySandboxAtis, canPlaySandboxAtis);
 
@@ -192,6 +100,191 @@ public class SandboxViewModel : ReactiveViewModelBase
                 Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
             }
         });
+    }
+
+    /// <summary>
+    /// Gets or sets the dialog owner used for displaying dialogs within the view model.
+    /// </summary>
+    public IDialogOwner? DialogOwner { get; set; }
+
+    /// <summary>
+    /// Gets the command executed when the ATIS station changes.
+    /// </summary>
+    public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
+
+    /// <summary>
+    /// Gets the command used to fetch the sandbox METAR.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> FetchSandboxMetarCommand { get; }
+
+    /// <summary>
+    /// Gets the command executed when the selected preset changes.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SelectedPresetChangedCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to open the static airport conditions dialog.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenStaticAirportConditionsDialogCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to open the static NOTAMs dialog.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to save the airport conditions text.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SaveAirportConditionsTextCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to save the NOTAMs text.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SaveNotamsTextCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to refresh the sandbox ATIS.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RefreshSandboxAtisCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to play the sandbox ATIS.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> PlaySandboxAtisCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the collection of ATIS presets.
+    /// </summary>
+    public ObservableCollection<AtisPreset>? Presets
+    {
+        get => _presets;
+        set => this.RaiseAndSetIfChanged(ref _presets, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the selected ATIS preset.
+    /// </summary>
+    public AtisPreset? SelectedPreset
+    {
+        get => _selectedPreset;
+        set => this.RaiseAndSetIfChanged(ref _selectedPreset, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the selected ATIS station.
+    /// </summary>
+    public AtisStation? SelectedStation
+    {
+        get => _selectedStation;
+        set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the sandbox METAR.
+    /// </summary>
+    public string? SandboxMetar
+    {
+        get => _sandboxMetar;
+        set => this.RaiseAndSetIfChanged(ref _sandboxMetar, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether there are unsaved airport conditions.
+    /// </summary>
+    public bool HasUnsavedAirportConditions
+    {
+        get => _hasUnsavedAirportConditions;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedAirportConditions, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether there are unsaved NOTAMs.
+    /// </summary>
+    public bool HasUnsavedNotams
+    {
+        get => _hasUnsavedNotams;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the airport conditions text.
+    /// </summary>
+    public string? AirportConditionsText
+    {
+        get => _airportConditionsTextDocument.Text ?? string.Empty;
+        set => AirportConditionsTextDocument = new TextDocument(value);
+    }
+
+    /// <summary>
+    /// Gets or sets the airport conditions text document.
+    /// </summary>
+    public TextDocument AirportConditionsTextDocument
+    {
+        get => _airportConditionsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the NOTAMs text.
+    /// </summary>
+    public string? NotamText
+    {
+        get => _notamsTextDocument.Text ?? string.Empty;
+        set => NotamsTextDocument = new TextDocument(value);
+    }
+
+    /// <summary>
+    /// Gets or sets the NOTAMs text document.
+    /// </summary>
+    public TextDocument NotamsTextDocument
+    {
+        get => _notamsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _notamsTextDocument, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the contraction completion data.
+    /// </summary>
+    public List<ICompletionData> ContractionCompletionData
+    {
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the sandbox text ATIS.
+    /// </summary>
+    public string? SandboxTextAtis
+    {
+        get => _sandboxTextAtis;
+        set => this.RaiseAndSetIfChanged(ref _sandboxTextAtis, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the sandbox spoken text ATIS.
+    /// </summary>
+    public string? SandboxSpokenTextAtis
+    {
+        get => _sandboxSpokenTextAtis;
+        set => this.RaiseAndSetIfChanged(ref _sandboxSpokenTextAtis, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether sandbox playback is active.
+    /// </summary>
+    public bool IsSandboxPlaybackActive
+    {
+        get => _isSandboxPlaybackActive;
+        set => this.RaiseAndSetIfChanged(ref _isSandboxPlaybackActive, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the ATIS builder response.
+    /// </summary>
+    public AtisBuilderVoiceAtisResponse? AtisBuilderVoiceResponse
+    {
+        get => _atisBuilderVoiceResponse;
+        set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceResponse, value);
     }
 
     private void HandleAtisStationChanged(AtisStation? station)
@@ -213,6 +306,12 @@ public class SandboxViewModel : ReactiveViewModelBase
         NativeAudio.StopBufferPlayback();
     }
 
+    /// <summary>
+    /// Applies sandbox configuration by verifying the state of unsaved data and stopping sandbox playback if required.
+    /// </summary>
+    /// <returns>
+    /// Returns <c>true</c> if the configuration is applied successfully; <c>false</c> if there are unsaved airport conditions or NOTAMs.
+    /// </returns>
     public bool ApplyConfig()
     {
         if (HasUnsavedNotams || HasUnsavedAirportConditions)
@@ -226,20 +325,20 @@ public class SandboxViewModel : ReactiveViewModelBase
 
     private async Task HandlePlaySandboxAtis(CancellationToken token)
     {
-        if (SelectedStation == null || SelectedPreset == null || AtisBuilderVoiceAtisResponse == null)
+        if (SelectedStation == null || SelectedPreset == null || AtisBuilderVoiceResponse == null)
             return;
 
         await _cancellationToken.CancelAsync();
         _cancellationToken.Dispose();
         _cancellationToken = new CancellationTokenSource();
 
-        if (AtisBuilderVoiceAtisResponse.AudioBytes == null)
+        if (AtisBuilderVoiceResponse.AudioBytes == null)
             return;
 
         if (!IsSandboxPlaybackActive)
         {
-            IsSandboxPlaybackActive = NativeAudio.StartBufferPlayback(AtisBuilderVoiceAtisResponse.AudioBytes,
-                AtisBuilderVoiceAtisResponse.AudioBytes.Length);
+            IsSandboxPlaybackActive = NativeAudio.StartBufferPlayback(AtisBuilderVoiceResponse.AudioBytes,
+                AtisBuilderVoiceResponse.AudioBytes.Length);
         }
         else
         {
@@ -256,7 +355,7 @@ public class SandboxViewModel : ReactiveViewModelBase
                 return;
 
             NativeAudio.StopBufferPlayback();
-            AtisBuilderVoiceAtisResponse = null;
+            AtisBuilderVoiceResponse = null;
 
             await _cancellationToken.CancelAsync();
             _cancellationToken.Dispose();
@@ -279,10 +378,10 @@ public class SandboxViewModel : ReactiveViewModelBase
                 var decodedMetar = _metarDecoder.ParseNotStrict(SandboxMetar);
                 var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, SelectedPreset, randomLetter,
                     decodedMetar, _cancellationToken.Token);
-                AtisBuilderVoiceAtisResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
+                AtisBuilderVoiceResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
                     decodedMetar, _cancellationToken.Token, true);
                 SandboxTextAtis = textAtis?.ToUpperInvariant();
-                SandboxSpokenTextAtis = AtisBuilderVoiceAtisResponse.SpokenText?.ToUpperInvariant();
+                SandboxSpokenTextAtis = AtisBuilderVoiceResponse.SpokenText?.ToUpperInvariant();
             }
         }
         catch (Exception)

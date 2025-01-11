@@ -8,14 +8,24 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Startup;
 
+/// <summary>
+/// Represents the startup window of the application.
+/// </summary>
 public partial class StartupWindow : ReactiveWindow<StartupWindowViewModel>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StartupWindow"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model associated with the startup window.</param>
     public StartupWindow(StartupWindowViewModel viewModel)
     {
         InitializeComponent();
         ViewModel = viewModel;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StartupWindow"/> class.
+    /// </summary>
     public StartupWindow()
     {
         InitializeComponent();

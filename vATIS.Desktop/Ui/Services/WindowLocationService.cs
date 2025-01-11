@@ -3,38 +3,54 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
-using System.Linq;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Profiles;
+using Vatsim.Vatis.Ui.Windows;
 
 namespace Vatsim.Vatis.Ui.Services;
+
+/// <summary>
+/// Provides services for storing and restoring the location of application windows.
+/// </summary>
 public class WindowLocationService : IWindowLocationService
 {
     private readonly IAppConfig _appConfig;
     private int? _left;
     private int? _top;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WindowLocationService"/> class.
+    /// </summary>
+    /// <param name="appConfig">The application configuration instance.</param>
     public WindowLocationService(IAppConfig appConfig)
     {
         _appConfig = appConfig;
     }
 
+    /// <inheritdoc/>
     public void Restore(Window? window)
     {
         if (window is null)
+        {
             return;
+        }
 
-        if (window.GetType() == typeof(Windows.MainWindow))
+        if (window.GetType() == typeof(MainWindow))
         {
             if (_appConfig.MainWindowPosition == null)
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
-                if (primaryScreen == null) return;
+                if (primaryScreen == null)
+                {
+                    return;
+                }
+
                 var screenWorkingArea = primaryScreen.WorkingArea;
 
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
@@ -47,16 +63,21 @@ public class WindowLocationService : IWindowLocationService
                 _appConfig.SaveConfig();
                 return;
             }
+
             _left = _appConfig.MainWindowPosition.X;
             _top = _appConfig.MainWindowPosition.Y;
         }
-        else if (window.GetType() == typeof(Windows.CompactWindow))
+        else if (window.GetType() == typeof(CompactWindow))
         {
             if (_appConfig.CompactWindowPosition == null)
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
-                if (primaryScreen == null) return;
+                if (primaryScreen == null)
+                {
+                    return;
+                }
+
                 var screenWorkingArea = primaryScreen.WorkingArea;
 
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
@@ -69,6 +90,7 @@ public class WindowLocationService : IWindowLocationService
                 _appConfig.SaveConfig();
                 return;
             }
+
             _left = _appConfig.CompactWindowPosition.X;
             _top = _appConfig.CompactWindowPosition.Y;
         }
@@ -78,7 +100,11 @@ public class WindowLocationService : IWindowLocationService
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
-                if (primaryScreen == null) return;
+                if (primaryScreen == null)
+                {
+                    return;
+                }
+
                 var screenWorkingArea = primaryScreen.WorkingArea;
 
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
@@ -91,6 +117,7 @@ public class WindowLocationService : IWindowLocationService
                 _appConfig.SaveConfig();
                 return;
             }
+
             _left = _appConfig.ProfileListDialogWindowPosition.X;
             _top = _appConfig.ProfileListDialogWindowPosition.Y;
         }
@@ -100,7 +127,11 @@ public class WindowLocationService : IWindowLocationService
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
-                if (primaryScreen == null) return;
+                if (primaryScreen == null)
+                {
+                    return;
+                }
+
                 var screenWorkingArea = primaryScreen.WorkingArea;
 
                 var centeredLeft = (int)(screenWorkingArea.X + ((screenWorkingArea.Width - window.Width) / 2));
@@ -113,12 +144,15 @@ public class WindowLocationService : IWindowLocationService
                 _appConfig.SaveConfig();
                 return;
             }
+
             _left = _appConfig.VoiceRecordAtisDialogWindowPosition.X;
             _top = _appConfig.VoiceRecordAtisDialogWindowPosition.Y;
         }
 
         if (_left is null || _top is null)
+        {
             return;
+        }
 
         var savedPosition = new PixelPoint(_left.Value, _top.Value);
         var screen = FindScreenContainingPositionInWorkingArea(window, savedPosition);
@@ -128,6 +162,7 @@ public class WindowLocationService : IWindowLocationService
             // of any active screen. Therefore, keep the window's size and position at their default values.
             return;
         }
+
         const int minDistance = 50;
         if (_left.Value > screen.WorkingArea.X + screen.WorkingArea.Width - minDistance ||
             _top.Value > screen.WorkingArea.Y + screen.WorkingArea.Height - minDistance)
@@ -141,22 +176,25 @@ public class WindowLocationService : IWindowLocationService
         window.Position = savedPosition;
     }
 
+    /// <inheritdoc/>
     public void Update(Window? window)
     {
         if (window is null)
+        {
             return;
+        }
 
         _left = window.Position.X;
         _top = window.Position.Y;
 
         var savedPosition = new WindowPosition(_left.Value, _top.Value);
 
-        if (window.GetType() == typeof(Windows.MainWindow))
+        if (window.GetType() == typeof(MainWindow))
         {
             _appConfig.MainWindowPosition = savedPosition;
             _appConfig.SaveConfig();
         }
-        else if (window.GetType() == typeof(Windows.CompactWindow))
+        else if (window.GetType() == typeof(CompactWindow))
         {
             _appConfig.CompactWindowPosition = savedPosition;
             _appConfig.SaveConfig();
@@ -176,8 +214,11 @@ public class WindowLocationService : IWindowLocationService
     private static Screen? FindScreenContainingPositionInWorkingArea(Window? window, PixelPoint position)
     {
         if (window is null)
+        {
             return null;
+        }
 
-        return (from screen in window.Screens.All where screen.WorkingArea.Contains(position) select screen).FirstOrDefault();
+        return (from screen in window.Screens.All where screen.WorkingArea.Contains(position) select screen)
+            .FirstOrDefault();
     }
 }
