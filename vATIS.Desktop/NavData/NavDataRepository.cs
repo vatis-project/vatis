@@ -141,8 +141,8 @@ public class NavDataRepository : INavDataRepository
         this.airports = await Task.Run(
             () =>
             {
-                var content = File.ReadAllText(PathProvider.AirportsFilePath);
-                return JsonSerializer.Deserialize(content, SourceGenerationContext.NewDefault.ListAirport);
+                using var fileStream = File.OpenRead(PathProvider.AirportsFilePath);
+                return JsonSerializer.Deserialize(fileStream, SourceGenerationContext.NewDefault.ListAirport);
             }) ?? [];
     }
 
@@ -151,9 +151,8 @@ public class NavDataRepository : INavDataRepository
         this.navaids = await Task.Run(
             () =>
             {
-                using var source = File.OpenRead(PathProvider.NavaidsFilePath);
-                using StreamReader reader = new(source);
-                return JsonSerializer.Deserialize(reader.ReadToEnd(), SourceGenerationContext.NewDefault.ListNavaid);
+                using var fileStream = File.OpenRead(PathProvider.NavaidsFilePath);
+                return JsonSerializer.Deserialize(fileStream, SourceGenerationContext.NewDefault.ListNavaid);
             }) ?? [];
     }
 }
