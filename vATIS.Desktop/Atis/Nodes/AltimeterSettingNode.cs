@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="AltimeterSettingNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -10,94 +15,35 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 
+/// <summary>
+/// Represents an ATIS node that provides the altimeter setting.
+/// </summary>
 public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
 {
-    private readonly Dictionary<string, Value> _altimeterSettings = new();
-    private IMetarRepository? _metarRepository;
-    private int _pressureHpa;
-    private double _pressureInHg;
+    private readonly Dictionary<string, Value> altimeterSettings = new();
+    private IMetarRepository? metarRepository;
+    private int pressureHpa;
+    private double pressureInHg;
 
-    public override async Task Parse(DecodedMetar metar, IMetarRepository metarRepository)
+    /// <inheritdoc/>
+    public override async Task Parse(DecodedMetar metar, IMetarRepository repository)
     {
-        this._metarRepository = metarRepository;
+        this.metarRepository = repository;
         await this.Parse(metar.Pressure);
     }
 
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         throw new NotImplementedException();
     }
 
-    private async Task Parse(Pressure? pressure)
-    {
-        ArgumentNullException.ThrowIfNull(this.Station);
-
-        if (pressure == null)
-        {
-            return;
-        }
-
-        try
-        {
-            if (pressure.Value?.ActualUnit == Value.Unit.MercuryInch)
-            {
-                this._pressureInHg = pressure.Value.ActualValue / 100.0;
-                this._pressureHpa = (int)Math.Floor(pressure.Value.ActualValue / 100.0 * 33.86);
-            }
-            else
-            {
-                if (pressure.Value != null)
-                {
-                    this._pressureHpa = (int)pressure.Value.ActualValue;
-                    this._pressureInHg = (int)Math.Floor(pressure.Value.ActualValue * 0.02953 * 100) / 100.0;
-                }
-            }
-
-            // get custom altimeters
-            var matches = Regex.Matches(
-                this.Station.AtisFormat.Altimeter.Template.Voice!,
-                @"{altimeter\|(\w{4})}",
-                RegexOptions.IgnoreCase);
-            var tasks = new List<Task>();
-
-            foreach (Match match in matches)
-            {
-                tasks.Add(
-                    Task.Run(
-                        async () =>
-                        {
-                            var icao = match.Groups[1].Value;
-                            var metar = await this._metarRepository?.GetMetar(icao, triggerMessageBus: false)!;
-                            if (metar?.Pressure?.Value != null)
-                            {
-                                this._altimeterSettings[metar.Icao] = metar.Pressure.Value;
-                            }
-                        }));
-            }
-
-            await Task.WhenAll(tasks);
-
-            if (pressure.Value != null)
-            {
-                this.VoiceAtis = this.ParseVoiceVariables(
-                    pressure.Value,
-                    this.Station?.AtisFormat.Altimeter.Template.Voice);
-                this.TextAtis = this.ParseTextVariables(
-                    pressure.Value,
-                    this.Station?.AtisFormat.Altimeter.Template.Text);
-            }
-        }
-        catch (Exception e)
-        {
-            Log.Warning(e, "Failed to parse altimeter setting");
-        }
-    }
-
+    /// <inheritdoc/>
     public override string ParseTextVariables(Value node, string? format)
     {
         if (format == null)
         {
-            return "";
+            return string.Empty;
         }
 
         format = Regex.Replace(
@@ -108,9 +54,9 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         format = Regex.Replace(
             format,
             @"{altimeter\|inhg}",
-            this._pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")),
+            this.pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")),
             RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|hpa}", this._pressureHpa.ToString(), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|hpa}", this.pressureHpa.ToString(), RegexOptions.IgnoreCase);
         format = Regex.Replace(
             format,
             @"{altimeter\|text}",
@@ -121,7 +67,7 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         if (qfeMatch.Success)
         {
             int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
-            var qfe = CalculateQfe(this._pressureHpa, elevation);
+            var qfe = CalculateQfe(this.pressureHpa, elevation);
             format = Regex.Replace(
                 format,
                 @"\{qfe\|(\d+)\}",
@@ -132,7 +78,7 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
         if (secondaryAltimeterMatch.Success)
         {
-            if (this._altimeterSettings.TryGetValue(
+            if (this.altimeterSettings.TryGetValue(
                     secondaryAltimeterMatch.Groups[1].Value.ToUpperInvariant(),
                     out var pressure))
             {
@@ -147,13 +93,14 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         return format;
     }
 
+    /// <inheritdoc/>
     public override string ParseVoiceVariables(Value node, string? format)
     {
         ArgumentNullException.ThrowIfNull(this.Station);
 
         if (format == null)
         {
-            return "";
+            return string.Empty;
         }
 
         format = Regex.Replace(
@@ -164,27 +111,26 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         format = Regex.Replace(
             format,
             @"{altimeter\|inhg}",
-            this._pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US"))
-                .ToSerialFormat(this.Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty,
+            this.pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")).ToSerialFormat(this.Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty,
             RegexOptions.IgnoreCase);
         format = Regex.Replace(
             format,
             @"{altimeter\|hpa}",
-            this._pressureHpa.ToSerialFormat(),
+            this.pressureHpa.ToSerialFormat(),
             RegexOptions.IgnoreCase);
 
         var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
         if (qfeMatch.Success)
         {
             int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
-            var qfe = CalculateQfe(this._pressureHpa, elevation);
+            var qfe = CalculateQfe(this.pressureHpa, elevation);
             format = Regex.Replace(format, @"\{qfe\|(\d+)\}", qfe.ToSerialFormat(), RegexOptions.IgnoreCase);
         }
 
         var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
         if (secondaryAltimeterMatch.Success)
         {
-            if (this._altimeterSettings.TryGetValue(
+            if (this.altimeterSettings.TryGetValue(
                     secondaryAltimeterMatch.Groups[1].Value.ToUpperInvariant(),
                     out var pressure))
             {
@@ -207,5 +153,70 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         // Calculate the QFE
         var qfe = qnh - (elevationFeet / pressureLapseRateFeet);
         return (int)qfe;
+    }
+
+    private async Task Parse(Pressure? pressure)
+    {
+        ArgumentNullException.ThrowIfNull(this.Station);
+
+        if (pressure == null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (pressure.Value?.ActualUnit == Value.Unit.MercuryInch)
+            {
+                this.pressureInHg = pressure.Value.ActualValue / 100.0;
+                this.pressureHpa = (int)Math.Floor(pressure.Value.ActualValue / 100.0 * 33.86);
+            }
+            else
+            {
+                if (pressure.Value != null)
+                {
+                    this.pressureHpa = (int)pressure.Value.ActualValue;
+                    this.pressureInHg = (int)Math.Floor(pressure.Value.ActualValue * 0.02953 * 100) / 100.0;
+                }
+            }
+
+            // get custom altimeters
+            var matches = Regex.Matches(
+                this.Station.AtisFormat.Altimeter.Template.Voice!,
+                @"{altimeter\|(\w{4})}",
+                RegexOptions.IgnoreCase);
+            var tasks = new List<Task>();
+
+            foreach (Match match in matches)
+            {
+                tasks.Add(
+                    Task.Run(
+                        async () =>
+                        {
+                            var icao = match.Groups[1].Value;
+                            var metar = await this.metarRepository?.GetMetar(icao, triggerMessageBus: false)!;
+                            if (metar?.Pressure?.Value != null)
+                            {
+                                this.altimeterSettings[metar.Icao] = metar.Pressure.Value;
+                            }
+                        }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            if (pressure.Value != null)
+            {
+                this.VoiceAtis = this.ParseVoiceVariables(
+                    pressure.Value,
+                    this.Station?.AtisFormat.Altimeter.Template.Voice);
+                this.TextAtis = this.ParseTextVariables(
+                    pressure.Value,
+                    this.Station?.AtisFormat.Altimeter.Template.Text);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Warning(e, "Failed to parse altimeter setting");
+        }
     }
 }

@@ -7,6 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <AssemblyName>vATIS</AssemblyName>
         <RootNamespace>Vatsim.Vatis</RootNamespace>
         <ApplicationIcon>Assets\MainIcon.ico</ApplicationIcon>

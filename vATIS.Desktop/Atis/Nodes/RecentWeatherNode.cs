@@ -1,3 +1,8 @@
+// <copyright file="RecentWeatherNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,14 +11,30 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 
+/// <summary>
+/// Represents an ATIS node that provides recent weather information.
+/// </summary>
 public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         if (metar.RecentWeather != null)
         {
             this.Parse(metar.RecentWeather);
         }
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(WeatherPhenomenon value, string? format)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(WeatherPhenomenon node, string? format)
+    {
+        throw new NotImplementedException();
     }
 
     private void Parse(WeatherPhenomenon weather)
@@ -127,15 +148,5 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         }
 
         return string.Join(" ", result);
-    }
-
-    public override string ParseTextVariables(WeatherPhenomenon value, string? format)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ParseVoiceVariables(WeatherPhenomenon node, string? format)
-    {
-        throw new NotImplementedException();
     }
 }

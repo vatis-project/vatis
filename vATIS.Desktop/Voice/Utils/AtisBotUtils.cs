@@ -95,4 +95,3 @@ public static class AtisBotUtils
         return output;
     }
 }
-

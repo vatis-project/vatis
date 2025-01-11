@@ -9,6 +9,9 @@
         "licenseName": "GPLv3",
         "licenseFile": "LICENSE"
       }
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace"
     }
   }
 }

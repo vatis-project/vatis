@@ -15,7 +15,7 @@ public class AuthTokenException : Exception
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthTokenException"/> class.
     /// </summary>
-    /// <param name="message">The message that describes the error</param>
+    /// <param name="message">The message that describes the error.</param>
     public AuthTokenException(string message)
         : base(message)
     {

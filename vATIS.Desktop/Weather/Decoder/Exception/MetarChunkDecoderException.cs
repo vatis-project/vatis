@@ -1,4 +1,9 @@
-﻿namespace Vatsim.Vatis.Weather.Decoder.Exception;
+﻿// <copyright file="MetarChunkDecoderException.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+namespace Vatsim.Vatis.Weather.Decoder.Exception;
 
 /// <summary>
 /// Represents an exception that is thrown when decoding a METAR chunk encounters an error.

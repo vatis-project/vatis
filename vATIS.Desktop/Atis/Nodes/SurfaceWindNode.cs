@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="SurfaceWindNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -7,11 +12,205 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 
+/// <summary>
+/// Represents an ATIS node that provides the surface wind information.
+/// </summary>
 public class SurfaceWindNode : BaseNode<SurfaceWind>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         this.Parse(metar.SurfaceWind);
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(SurfaceWind node, string? format)
+    {
+        ArgumentNullException.ThrowIfNull(this.Station);
+
+        if (format == null)
+        {
+            return string.Empty;
+        }
+
+        var magVarDeg = this.Station.AtisFormat.SurfaceWind.MagneticVariation.MagneticDegrees;
+        var leadingZero = this.Station.AtisFormat.SurfaceWind.SpeakLeadingZero ? "00" : string.Empty;
+
+        var meanDirection = node.MeanDirection?.ActualValue ?? null;
+        var meanSpeed = node.MeanSpeed?.ActualValue ?? null;
+        var speedVariations = node.SpeedVariations?.ActualValue ?? null;
+        var directionVariations = node.DirectionVariations ?? null;
+
+        int? minDirectionVariation = null;
+        if (directionVariations != null)
+        {
+            minDirectionVariation = (int)directionVariations[0].ActualValue;
+        }
+
+        int? maxDirectionVariation = null;
+        if (directionVariations != null)
+        {
+            maxDirectionVariation = (int)directionVariations[1].ActualValue;
+        }
+
+        int? meanSpeedKts = null;
+        if (node.MeanSpeed != null)
+        {
+            meanSpeedKts = SurfaceWind.ToKts(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        int? meanSpeedMps = null;
+        if (node.MeanSpeed != null)
+        {
+            meanSpeedMps = SurfaceWind.ToMps(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        int? speedVariationKts = null;
+        if (node.SpeedVariations != null)
+        {
+            speedVariationKts = SurfaceWind.ToKts(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        int? speedVariationMps = null;
+        if (node.SpeedVariations != null)
+        {
+            speedVariationMps = SurfaceWind.ToMps(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        var magVarEnabled = this.Station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
+        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
+
+        format = Regex.Replace(format, "{wind_dir}", meanDirectionMag.ToSerialFormat() ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            "{wind_spd}",
+            meanSpeed?.ToString(leadingZero).ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            @"{wind_spd\|kt}",
+            meanSpeedKts?.ToString(leadingZero).ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            @"{wind_spd\|mps}",
+            meanSpeedMps?.ToString(leadingZero).ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            "{wind_gust}",
+            speedVariations?.ToString(leadingZero).ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            @"{wind_gust\|kt}",
+            speedVariationKts?.ToString(leadingZero).ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            @"{wind_gust\|mps}",
+            speedVariationMps?.ToString(leadingZero).ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            "{wind_vmin}",
+            minDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000").ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            "{wind_vmax}",
+            maxDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000").ToSerialFormat() ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_unit}", this.GetSpokenWindUnit(node.MeanSpeed), RegexOptions.IgnoreCase);
+
+        return format;
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(SurfaceWind node, string? format)
+    {
+        ArgumentNullException.ThrowIfNull(this.Station);
+
+        if (format == null)
+        {
+            return string.Empty;
+        }
+
+        var magVarDeg = this.Station.AtisFormat.SurfaceWind.MagneticVariation.MagneticDegrees;
+
+        var meanDirection = node.MeanDirection?.ActualValue ?? null;
+        var meanSpeed = node.MeanSpeed?.ActualValue ?? null;
+        var speedVariations = node.SpeedVariations?.ActualValue ?? null;
+        var directionVariations = node.DirectionVariations ?? null;
+
+        int? minDirectionVariation = null;
+        if (directionVariations != null)
+        {
+            minDirectionVariation = (int)directionVariations[0].ActualValue;
+        }
+
+        int? maxDirectionVariation = null;
+        if (directionVariations != null)
+        {
+            maxDirectionVariation = (int)directionVariations[1].ActualValue;
+        }
+
+        int? meanSpeedKts = null;
+        if (node.MeanSpeed != null)
+        {
+            meanSpeedKts = SurfaceWind.ToKts(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        int? meanSpeedMps = null;
+        if (node.MeanSpeed != null)
+        {
+            meanSpeedMps = SurfaceWind.ToMps(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        int? speedVariationKts = null;
+        if (node.SpeedVariations != null)
+        {
+            speedVariationKts = SurfaceWind.ToKts(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        int? speedVariationMps = null;
+        if (node.SpeedVariations != null)
+        {
+            speedVariationMps = SurfaceWind.ToMps(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
+        }
+
+        var magVarEnabled = this.Station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
+        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
+
+        format = Regex.Replace(format, "{wind_dir}", meanDirectionMag, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_spd}", meanSpeed?.ToString("00") ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{wind_spd\|kt}", meanSpeedKts?.ToString("00") ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{wind_spd\|mps}", meanSpeedMps?.ToString("00") ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_gust}", speedVariations?.ToString("00") ?? string.Empty, RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            @"{wind_gust\|kt}",
+            speedVariationKts?.ToString("00") ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            @"{wind_gust\|mps}",
+            speedVariationMps?.ToString("00") ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            "{wind_vmin}",
+            minDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(
+            format,
+            "{wind_vmax}",
+            maxDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? string.Empty,
+            RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind_unit}", node.SpeedUnit.ToString(), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{wind}", node.RawValue ?? string.Empty, RegexOptions.IgnoreCase);
+
+        return format;
     }
 
     private void Parse(SurfaceWind? surfaceWind)
@@ -125,7 +324,7 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
     {
         if (unit == null)
         {
-            return "";
+            return string.Empty;
         }
 
         return unit.ActualUnit switch
@@ -133,195 +332,7 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
             Value.Unit.KilometerPerHour => unit.ActualValue > 1 ? "kilometers per hour" : "kilometer per hour",
             Value.Unit.MeterPerSecond => unit.ActualValue > 1 ? "meters per second" : "meter per second",
             Value.Unit.Knot => unit.ActualValue > 1 ? "knots" : "knot",
-            _ => ""
+            _ => string.Empty,
         };
-    }
-
-    public override string ParseVoiceVariables(SurfaceWind node, string? format)
-    {
-        ArgumentNullException.ThrowIfNull(this.Station);
-
-        if (format == null)
-        {
-            return "";
-        }
-
-        var magVarDeg = this.Station.AtisFormat.SurfaceWind.MagneticVariation?.MagneticDegrees ?? null;
-        var leadingZero = this.Station.AtisFormat.SurfaceWind.SpeakLeadingZero ? "00" : "";
-
-        var meanDirection = node.MeanDirection?.ActualValue ?? null;
-        var meanSpeed = node.MeanSpeed?.ActualValue ?? null;
-        var speedVariations = node.SpeedVariations?.ActualValue ?? null;
-        var directionVariations = node.DirectionVariations ?? null;
-
-        int? minDirectionVariation = null;
-        if (directionVariations != null)
-        {
-            minDirectionVariation = (int)directionVariations[0].ActualValue;
-        }
-
-        int? maxDirectionVariation = null;
-        if (directionVariations != null)
-        {
-            maxDirectionVariation = (int)directionVariations[1].ActualValue;
-        }
-
-        int? meanSpeedKts = null;
-        if (node.MeanSpeed != null)
-        {
-            meanSpeedKts = SurfaceWind.ToKts(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        int? meanSpeedMps = null;
-        if (node.MeanSpeed != null)
-        {
-            meanSpeedMps = SurfaceWind.ToMps(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        int? speedVariationKts = null;
-        if (node.SpeedVariations != null)
-        {
-            speedVariationKts = SurfaceWind.ToKts(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        int? speedVariationMps = null;
-        if (node.SpeedVariations != null)
-        {
-            speedVariationMps = SurfaceWind.ToMps(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        var magVarEnabled = this.Station.AtisFormat.SurfaceWind.MagneticVariation?.Enabled ?? false;
-        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
-
-        format = Regex.Replace(format, "{wind_dir}", meanDirectionMag.ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            "{wind_spd}",
-            meanSpeed?.ToString(leadingZero).ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            @"{wind_spd\|kt}",
-            meanSpeedKts?.ToString(leadingZero).ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            @"{wind_spd\|mps}",
-            meanSpeedMps?.ToString(leadingZero).ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            "{wind_gust}",
-            speedVariations?.ToString(leadingZero).ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            @"{wind_gust\|kt}",
-            speedVariationKts?.ToString(leadingZero).ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            @"{wind_gust\|mps}",
-            speedVariationMps?.ToString(leadingZero).ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            "{wind_vmin}",
-            minDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000").ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            "{wind_vmax}",
-            maxDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000").ToSerialFormat() ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_unit}", this.GetSpokenWindUnit(node.MeanSpeed), RegexOptions.IgnoreCase);
-
-        return format;
-    }
-
-    public override string ParseTextVariables(SurfaceWind node, string? format)
-    {
-        ArgumentNullException.ThrowIfNull(this.Station);
-
-        if (format == null)
-        {
-            return "";
-        }
-
-        var magVarDeg = this.Station.AtisFormat.SurfaceWind.MagneticVariation?.MagneticDegrees ?? null;
-
-        var meanDirection = node.MeanDirection?.ActualValue ?? null;
-        var meanSpeed = node.MeanSpeed?.ActualValue ?? null;
-        var speedVariations = node.SpeedVariations?.ActualValue ?? null;
-        var directionVariations = node.DirectionVariations ?? null;
-
-        int? minDirectionVariation = null;
-        if (directionVariations != null)
-        {
-            minDirectionVariation = (int)directionVariations[0].ActualValue;
-        }
-
-        int? maxDirectionVariation = null;
-        if (directionVariations != null)
-        {
-            maxDirectionVariation = (int)directionVariations[1].ActualValue;
-        }
-
-        int? meanSpeedKts = null;
-        if (node.MeanSpeed != null)
-        {
-            meanSpeedKts = SurfaceWind.ToKts(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        int? meanSpeedMps = null;
-        if (node.MeanSpeed != null)
-        {
-            meanSpeedMps = SurfaceWind.ToMps(node.MeanSpeed).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        int? speedVariationKts = null;
-        if (node.SpeedVariations != null)
-        {
-            speedVariationKts = SurfaceWind.ToKts(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        int? speedVariationMps = null;
-        if (node.SpeedVariations != null)
-        {
-            speedVariationMps = SurfaceWind.ToMps(node.SpeedVariations).ToInt32(CultureInfo.InvariantCulture);
-        }
-
-        var magVarEnabled = this.Station.AtisFormat.SurfaceWind.MagneticVariation?.Enabled ?? false;
-        var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
-
-        format = Regex.Replace(format, "{wind_dir}", meanDirectionMag, RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_spd}", meanSpeed?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_spd\|kt}", meanSpeedKts?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_spd\|mps}", meanSpeedMps?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_gust}", speedVariations?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            @"{wind_gust\|kt}",
-            speedVariationKts?.ToString("00") ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            @"{wind_gust\|mps}",
-            speedVariationMps?.ToString("00") ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            "{wind_vmin}",
-            minDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(
-            format,
-            "{wind_vmax}",
-            maxDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? "",
-            RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_unit}", node.SpeedUnit.ToString(), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind}", node.RawValue ?? "", RegexOptions.IgnoreCase);
-
-        return format;
     }
 }

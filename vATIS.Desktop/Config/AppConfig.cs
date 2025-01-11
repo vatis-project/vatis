@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="AppConfig.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,37 +14,49 @@ using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.Config;
 
+/// <inheritdoc />
 public class AppConfig : IAppConfig
 {
-    private static string EncryptionKey =>
-        new Guid(0xb650f0bd, 0x9823, 0x46b7, 0x8e, 0xa6, 0x12, 0x8a, 0x3b, 0x2f, 0x98, 0xaf).ToString();
+    /// <inheritdoc/>
+    public string Name { get; set; } = string.Empty;
 
-    public string Name { get; set; } = "";
+    /// <inheritdoc/>
+    public string UserId { get; set; } = string.Empty;
 
-    public string UserId { get; set; } = "";
+    /// <inheritdoc/>
+    public string Password { get; set; } = string.Empty;
 
-    public string Password { get; set; } = "";
-
+    /// <inheritdoc/>
     public NetworkRating NetworkRating { get; set; } = NetworkRating.Obs;
 
+    /// <inheritdoc/>
     public bool SuppressNotificationSound { get; set; }
 
+    /// <inheritdoc/>
     public bool AlwaysOnTop { get; set; }
 
+    /// <inheritdoc/>
     public bool CompactWindowAlwaysOnTop { get; set; }
 
+    /// <inheritdoc/>
     public WindowPosition? MainWindowPosition { get; set; }
 
+    /// <inheritdoc/>
     public WindowPosition? CompactWindowPosition { get; set; }
 
+    /// <inheritdoc/>
     public WindowPosition? ProfileListDialogWindowPosition { get; set; }
 
+    /// <inheritdoc/>
     public WindowPosition? VoiceRecordAtisDialogWindowPosition { get; set; }
 
+    /// <inheritdoc/>
     public string? MicrophoneDevice { get; set; }
 
+    /// <inheritdoc/>
     public string? PlaybackDevice { get; set; }
 
+    /// <inheritdoc/>
     [JsonIgnore]
     public string PasswordDecrypted
     {
@@ -47,11 +64,16 @@ public class AppConfig : IAppConfig
         set => this.Password = Encrypt(value);
     }
 
+    /// <inheritdoc/>
     [JsonIgnore]
     public bool ConfigRequired => string.IsNullOrEmpty(this.UserId) ||
                                   string.IsNullOrEmpty(this.PasswordDecrypted) ||
                                   string.IsNullOrEmpty(this.Name);
 
+    private static string EncryptionKey =>
+        new Guid(0xb650f0bd, 0x9823, 0x46b7, 0x8e, 0xa6, 0x12, 0x8a, 0x3b, 0x2f, 0x98, 0xaf).ToString();
+
+    /// <inheritdoc/>
     public void LoadConfig()
     {
         using var fs = new FileStream(
@@ -81,6 +103,7 @@ public class AppConfig : IAppConfig
         this.SaveConfig();
     }
 
+    /// <inheritdoc/>
     public void SaveConfig()
     {
         File.WriteAllText(
@@ -92,7 +115,7 @@ public class AppConfig : IAppConfig
     {
         if (string.IsNullOrEmpty(value))
         {
-            return "";
+            return string.Empty;
         }
 
         var cryptoProvider = TripleDES.Create();
@@ -112,7 +135,7 @@ public class AppConfig : IAppConfig
         {
             if (string.IsNullOrEmpty(value))
             {
-                return "";
+                return string.Empty;
             }
 
             var cryptoProvider = TripleDES.Create();
@@ -128,7 +151,7 @@ public class AppConfig : IAppConfig
         }
         catch
         {
-            return "";
+            return string.Empty;
         }
     }
 }

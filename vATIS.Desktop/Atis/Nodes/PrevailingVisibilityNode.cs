@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="PrevailingVisibilityNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
@@ -6,33 +11,25 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 
+/// <summary>
+/// Represents an ATIS node that provides the prevailing visibility.
+/// </summary>
 public class PrevailingVisibilityNode : BaseNode<Visibility>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         this.Parse(metar.Visibility);
     }
 
-    private void Parse(Visibility? node)
-    {
-        ArgumentNullException.ThrowIfNull(this.Station);
-
-        if (node == null)
-        {
-            return;
-        }
-
-        this.VoiceAtis = this.ParseVoiceVariables(node, this.Station.AtisFormat.Visibility.Template.Voice);
-        this.TextAtis = this.ParseTextVariables(node, this.Station.AtisFormat.Visibility.Template.Text);
-    }
-
+    /// <inheritdoc/>
     public override string ParseTextVariables(Visibility value, string? format)
     {
         ArgumentNullException.ThrowIfNull(this.Station);
 
         if (format == null)
         {
-            return "";
+            return string.Empty;
         }
 
         if (value.IsCavok)
@@ -51,16 +48,17 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
             return Regex.Replace(format, "{visibility}", value.RawValue, RegexOptions.IgnoreCase);
         }
 
-        return "";
+        return string.Empty;
     }
 
+    /// <inheritdoc/>
     public override string ParseVoiceVariables(Visibility node, string? format)
     {
         ArgumentNullException.ThrowIfNull(this.Station);
 
         if (format == null)
         {
-            return "";
+            return string.Empty;
         }
 
         var parsedValue = new List<string>();
@@ -130,13 +128,13 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
                 if (node.PrevailingVisibility.ActualValue > this.Station.AtisFormat.Visibility.MetersCutoff)
                 {
                     parsedValue.Add(
-                        $"{node.PrevailingVisibility.ActualValue / 1000} {(this.Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? "kilometers" : "")}");
+                        $"{node.PrevailingVisibility.ActualValue / 1000} {(this.Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? "kilometers" : string.Empty)}");
                 }
                 else
                 {
                     var vis = (int)node.PrevailingVisibility.ActualValue;
                     parsedValue.Add(
-                        $"{vis.ToWordString()} {(this.Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? "meters" : "")}");
+                        $"{vis.ToWordString()} {(this.Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? "meters" : string.Empty)}");
                 }
             }
         }
@@ -167,7 +165,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
                     "5/8SM" => "five eighths.",
                     "3/4SM" => "three quarters.",
                     "7/8SM" => "seven eighths.",
-                    _ => ""
+                    _ => string.Empty,
                 };
 
                 parsedValue.Add(result);
@@ -183,5 +181,18 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         }
 
         return Regex.Replace(format, "{visibility}", string.Join(", ", parsedValue), RegexOptions.IgnoreCase);
+    }
+
+    private void Parse(Visibility? node)
+    {
+        ArgumentNullException.ThrowIfNull(this.Station);
+
+        if (node == null)
+        {
+            return;
+        }
+
+        this.VoiceAtis = this.ParseVoiceVariables(node, this.Station.AtisFormat.Visibility.Template.Voice);
+        this.TextAtis = this.ParseTextVariables(node, this.Station.AtisFormat.Visibility.Template.Text);
     }
 }

@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="RunwayVisualRangeNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
@@ -6,11 +11,27 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 
+/// <summary>
+/// Represents an ATIS node that provides runway visual range information.
+/// </summary>
 public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         this.Parse(metar.RunwaysVisualRange);
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(RunwayVisualRange value, string? format)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(RunwayVisualRange node, string? format)
+    {
+        throw new NotImplementedException();
     }
 
     private void Parse(List<RunwayVisualRange> runwayVisualRanges)
@@ -33,7 +54,7 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                     acars.Add(rvr.RawValue);
 
                     var rwyNumber = match.Groups[1].Value;
-                    var rwyDesignator = "";
+                    var rwyDesignator = string.Empty;
 
                     switch (match.Groups[2].Value)
                     {
@@ -86,7 +107,7 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                         }
                     }
 
-                    var tendency = "";
+                    var tendency = string.Empty;
                     switch (match.Groups[8].Value)
                     {
                         case "N":
@@ -109,15 +130,5 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 
         this.TextAtis = string.Join(" ", acars);
         this.VoiceAtis = string.Join(" ", tts).TrimEnd('.');
-    }
-
-    public override string ParseTextVariables(RunwayVisualRange value, string? format)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ParseVoiceVariables(RunwayVisualRange node, string? format)
-    {
-        throw new NotImplementedException();
     }
 }
