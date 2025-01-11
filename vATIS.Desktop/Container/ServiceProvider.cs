@@ -98,19 +98,6 @@ namespace Vatsim.Vatis.Container;
 internal sealed partial class ServiceProvider
 {
     /// <summary>
-    /// Determines if the application is running in a development environment.
-    /// </summary>
-    /// <returns>
-    /// A boolean value indicating whether the current environment is set to "DEV".
-    /// </returns>
-    public static bool IsDevelopmentEnvironment()
-    {
-        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
-        return !string.IsNullOrEmpty(environmentVariable) &&
-               environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
     /// Provides a factory implementation for creating window instances within the application.
     /// </summary>
     /// <returns>
@@ -141,6 +128,19 @@ internal sealed partial class ServiceProvider
     public INetworkConnectionFactory NetworkConnectionFactory()
     {
         return new NetworkConnectionFactory(this);
+    }
+
+    /// <summary>
+    /// Determines if the application is running in a development environment.
+    /// </summary>
+    /// <returns>
+    /// A boolean value indicating whether the current environment is set to "DEV".
+    /// </returns>
+    internal static bool IsDevelopmentEnvironment()
+    {
+        var environmentVariable = Environment.GetEnvironmentVariable("ENV");
+        return !string.IsNullOrEmpty(environmentVariable) &&
+               environmentVariable.Equals("DEV", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
