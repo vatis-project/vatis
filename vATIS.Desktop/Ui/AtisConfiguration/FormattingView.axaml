@@ -607,6 +607,13 @@
 									CommandParameter="{Binding $self.Content}">
 									{temp}
 								</Button>
+								<Button
+									Theme="{StaticResource DarkVariable}"
+									ToolTip.Tip="The prefix symbol used to indicate a positive (+) or negative (-) value. Only applies to text ATIS."
+									Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+									CommandParameter="{Binding $self.Content}">
+									{prefix__symbol}
+								</Button>
 							</StackPanel>
 						</StackPanel>
 					</groupBox:GroupBoxControl>
@@ -636,6 +643,13 @@
 									Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 									CommandParameter="{Binding $self.Content}">
 									{dewpoint}
+								</Button>
+								<Button
+									Theme="{StaticResource DarkVariable}"
+									ToolTip.Tip="The prefix symbol used to indicate a positive (+) or negative (-) value. Only applies to text ATIS."
+									Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+									CommandParameter="{Binding $self.Content}">
+									{prefix__symbol}
 								</Button>
 							</StackPanel>
 						</StackPanel>

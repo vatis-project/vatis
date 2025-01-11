@@ -22,6 +22,7 @@ using ReactiveUI;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
@@ -43,6 +44,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     public Window? Owner { get; set; }
     public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
     private ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
+
+    public ReactiveCommand<Unit, Unit> GetDigitalAtisLetterCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenSettingsDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenProfileConfigurationWindowCommand { get; }
     public ReactiveCommand<Unit, Unit> EndClientSessionCommand { get; }
@@ -86,11 +89,13 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
+        GetDigitalAtisLetterCommand = ReactiveCommand.CreateFromTask(HandleGetDigitalAtisLetter);
 
         _disposables.Add(OpenSettingsDialogCommand);
         _disposables.Add(OpenProfileConfigurationWindowCommand);
         _disposables.Add(EndClientSessionCommand);
         _disposables.Add(InvokeCompactViewCommand);
+        _disposables.Add(GetDigitalAtisLetterCommand);
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
@@ -195,6 +200,29 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
         timer.Start();
+    }
+
+    private async Task HandleGetDigitalAtisLetter()
+    {
+        // This should never happen... but then again, I've been wrong before
+        if (SelectedTabIndex < 0 || SelectedTabIndex >= AtisStations.Count)
+            return;
+
+        var selectedStation = AtisStations[SelectedTabIndex];
+
+        if (string.IsNullOrEmpty(selectedStation.Identifier))
+            return;
+
+        var requestDto = new DigitalAtisRequestDto
+        {
+            Id = selectedStation.Identifier,
+            AtisType = selectedStation.AtisType
+        };
+        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+        if (atisLetter != null)
+        {
+            selectedStation.SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
+        }
     }
 
     public async Task PopulateAtisStations()

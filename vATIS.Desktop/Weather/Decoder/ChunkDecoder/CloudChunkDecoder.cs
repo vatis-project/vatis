@@ -1,4 +1,4 @@
-﻿// <copyright file="CloudChunkDecoder.cs" company="Afonso Dutra Nogueira Filho">
+// <copyright file="CloudChunkDecoder.cs" company="Afonso Dutra Nogueira Filho">
 // Copyright (c) Afonso Dutra Nogueira Filho. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // https://github.com/afonsoft/metar-decoder
@@ -14,15 +14,29 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
 public sealed class CloudChunkDecoder : MetarChunkDecoder
 {
+    private const string CeilingParameterName = "Ceiling";
     private const string CloudsParameterName = "Clouds";
     private const string NoCloudRegexPattern = "(NSC|NCD|CLR|SKC)";
     private const string LayerRegexPattern = "(VV|FEW|SCT|BKN|OVC|///)([0-9]{3}|///)(CB|TCU|///)?";
-    
+
     public override string GetRegex()
     {
         return $"^({NoCloudRegexPattern}|({LayerRegexPattern})( {LayerRegexPattern})?( {LayerRegexPattern})?( {LayerRegexPattern})?)( )";
     }
-    
+
+    private static CloudLayer? CalculateCeiling(List<CloudLayer> layers)
+    {
+        var ceiling = layers
+            .Where(n => n.BaseHeight != null &&
+                    n.BaseHeight.ActualValue > 0 &&
+                    (n.Amount == CloudLayer.CloudAmount.Overcast ||
+                     n.Amount == CloudLayer.CloudAmount.Broken))
+            .OrderBy(n => n.BaseHeight?.ActualValue)
+            .FirstOrDefault();
+
+        return ceiling;
+    }
+
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
         var consumed = Consume(remainingMetar);
@@ -87,7 +101,8 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
                 }
             }
         }
-        
+
+        result.Add(CeilingParameterName, CalculateCeiling(layers));
         result.Add(CloudsParameterName, layers);
         return GetResults(newRemainingMetar, result);
     }

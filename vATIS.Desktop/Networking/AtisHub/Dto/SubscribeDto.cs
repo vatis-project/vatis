@@ -5,7 +5,7 @@
 
 using Vatsim.Vatis.Profiles.Models;
 
-namespace Vatsim.Vatis.Networking.AtisHub;
+namespace Vatsim.Vatis.Networking.AtisHub.Dto;
 
 /// <summary>
 /// Represents a data transfer object for subscribing to ATIS (Automatic Terminal Information Service) updates.

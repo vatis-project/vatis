@@ -43,6 +43,11 @@ public interface IAppConfigurationProvider
     string TextToSpeechUrl { get; }
 
     /// <summary>
+    /// Gets the URL of the D-ATIS API.
+    /// </summary>
+    string DigitalAtisApiUrl { get; }
+
+    /// <summary>
     /// Provides configuration settings and URLs for the application.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>

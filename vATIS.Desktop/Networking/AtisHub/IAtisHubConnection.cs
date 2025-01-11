@@ -4,6 +4,7 @@
 // </copyright>
 
 using System.Threading.Tasks;
+using Vatsim.Vatis.Networking.AtisHub.Dto;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
@@ -38,4 +39,11 @@ public interface IAtisHubConnection
     /// <param name="dto">The data transfer object containing subscription information.</param>
     /// <returns>A task that represents the asynchronous subscribe operation.</returns>
     Task SubscribeToAtis(SubscribeDto dto);
+
+    /// <summary>
+    /// Retrieves the current real-world digital ATIS letter.
+    /// </summary>
+    /// <param name="dto">The request parameters to fetch the digital ATIS letter.</param>
+    /// <returns>The ATIS letter if available; otherwise, null.</returns>
+    Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto);
 }

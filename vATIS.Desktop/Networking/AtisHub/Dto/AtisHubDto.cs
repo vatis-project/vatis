@@ -5,7 +5,7 @@
 
 using Vatsim.Vatis.Profiles.Models;
 
-namespace Vatsim.Vatis.Networking.AtisHub;
+namespace Vatsim.Vatis.Networking.AtisHub.Dto;
 
 /// <summary>
 /// Represents a Data Transfer Object (DTO) for ATIS Hub.

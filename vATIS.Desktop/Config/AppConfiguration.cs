@@ -10,8 +10,9 @@ namespace Vatsim.Vatis.Config;
 /// </summary>
 public record AppConfiguration(
     string AtisHubUrl,
+    string DigitalAtisApiUrl,
     string NavDataUrl,
-    string VoiceListUrl,
     string TextToSpeechUrl,
     string VatsimStatusUrl,
-    string VersionUrl);
+    string VersionUrl,
+    string VoiceListUrl);

@@ -42,8 +42,8 @@ public class AtisBuilder : IAtisBuilder
         _textToSpeechService = textToSpeechService;
     }
 
-    public async Task<AtisBuilderResponse> BuildAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
-        DecodedMetar decodedMetar, CancellationToken cancellationToken, bool sandboxRequest = false)
+    public async Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset, char currentAtisLetter, DecodedMetar decodedMetar,
+        CancellationToken cancellationToken, bool sandboxRequest = false)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -56,12 +56,27 @@ public class AtisBuilder : IAtisBuilder
 
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
-        var textAtis = await CreateTextAtis(station, preset, currentAtisLetter, variables);
-
         var (spokenText, audioBytes) = await CreateVoiceAtis(station, preset, currentAtisLetter, variables,
             cancellationToken, sandboxRequest);
 
-        return new AtisBuilderResponse(textAtis, spokenText, audioBytes);
+        return new AtisBuilderVoiceAtisResponse(spokenText, audioBytes);
+    }
+
+    public async Task<string?> BuildTextAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
+        DecodedMetar decodedMetar, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ArgumentNullException.ThrowIfNull(station);
+        ArgumentNullException.ThrowIfNull(preset);
+        ArgumentNullException.ThrowIfNull(decodedMetar);
+
+        var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
+                          throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
+
+        var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
+
+        return await CreateTextAtis(station, preset, currentAtisLetter, variables);
     }
 
     private async Task<(string?, byte[]?)> CreateVoiceAtis(AtisStation station, AtisPreset preset,

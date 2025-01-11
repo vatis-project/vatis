@@ -1,14 +1,15 @@
 {
-  "files.exclude": {
-    "**/.run": true,
-    "**/.vs": true,
-    "DevServer/bin": true,
-    "DevServer/obj": true
-  },
-  "explorer.fileNesting.enabled": true,
-  "explorer.fileNesting.patterns": {
-    "README.md": "CONTRIBUTING.md,LICENSE"
-  },
-  "dotnet.defaultSolution": "vATIS.sln",
-  "cmake.sourceDirectory": "${workspaceFolder}/NativeAudio"
+    "files.exclude": {
+        "**/.run": true,
+        "**/.vs": true,
+        "DevServer/bin": true,
+        "DevServer/obj": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "README.md": "CONTRIBUTING.md,LICENSE"
+    },
+    "dotnet.defaultSolution": "vATIS.sln",
+    "cmake.sourceDirectory": "${workspaceFolder}/NativeAudio",
+    "cmake.revealLog": "error"
 }
