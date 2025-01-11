@@ -29,10 +29,10 @@ namespace Vatsim.Vatis.Atis;
 /// <inheritdoc />
 public class AtisBuilder : IAtisBuilder
 {
-    private readonly IDownloader? downloader;
-    private readonly IMetarRepository? metarRepository;
-    private readonly INavDataRepository? navDataRepository;
-    private readonly ITextToSpeechService? textToSpeechService;
+    private readonly IDownloader downloader;
+    private readonly IMetarRepository metarRepository;
+    private readonly INavDataRepository navDataRepository;
+    private readonly ITextToSpeechService textToSpeechService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisBuilder"/> class.
@@ -47,10 +47,10 @@ public class AtisBuilder : IAtisBuilder
         ITextToSpeechService textToSpeechService,
         IMetarRepository metarRepository)
     {
-        this.downloader = downloader;
-        this.metarRepository = metarRepository;
-        this.navDataRepository = navDataRepository;
-        this.textToSpeechService = textToSpeechService;
+        this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
+        this.navDataRepository = navDataRepository ?? throw new ArgumentNullException(nameof(navDataRepository));
+        this.textToSpeechService = textToSpeechService ?? throw new ArgumentNullException(nameof(textToSpeechService));
+        this.metarRepository = metarRepository ?? throw new ArgumentNullException(nameof(metarRepository));
     }
 
     /// <inheritdoc/>
@@ -68,7 +68,7 @@ public class AtisBuilder : IAtisBuilder
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentNullException.ThrowIfNull(decodedMetar);
 
-        var airportData = this.navDataRepository?.GetAirport(station.Identifier) ??
+        var airportData = this.navDataRepository.GetAirport(station.Identifier) ??
                           throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
 
         var variables = await this.ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
@@ -176,7 +176,7 @@ public class AtisBuilder : IAtisBuilder
                         async () =>
                         {
                             var icao = match.Groups[1].Value;
-                            var icaoMetar = await this.metarRepository!.GetMetar(icao, triggerMessageBus: false);
+                            var icaoMetar = await this.metarRepository.GetMetar(icao, triggerMessageBus: false);
 
                             if (icaoMetar?.Pressure != null)
                             {
@@ -294,7 +294,7 @@ public class AtisBuilder : IAtisBuilder
                         async () =>
                         {
                             var icao = match.Groups[1].Value;
-                            var icaoMetar = await this.metarRepository!.GetMetar(icao, triggerMessageBus: false);
+                            var icaoMetar = await this.metarRepository.GetMetar(icao, triggerMessageBus: false);
 
                             if (icaoMetar?.Pressure != null)
                             {
