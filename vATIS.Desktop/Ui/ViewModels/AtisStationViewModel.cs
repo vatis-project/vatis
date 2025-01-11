@@ -53,6 +53,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private IDisposable? _publishAtisTimer;
     private bool _isPublishAtisTriggeredInitially;
     private DecodedMetar? _decodedMetar;
+    private int _notamFreeTextOffset;
+    private int _airportConditionsFreeTextOffset;
+
+    public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
+    public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
 
     #region Reactive Properties
     private string? _id;
@@ -83,10 +88,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _atisLetter, value);
     }
 
-    public CodeRangeMeta CodeRange
-    {
-        get { return _atisStation.CodeRange; }
-    }
+    public CodeRangeMeta CodeRange => _atisStation.CodeRange;
 
     private bool _isAtisLetterInputMode;
     public bool IsAtisLetterInputMode
@@ -158,11 +160,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
     }
 
-    private string? AirportConditionsFreeText
-    {
-        get => AirportConditionsTextDocument?.Text;
-        set => AirportConditionsTextDocument = new TextDocument(value);
-    }
+    private string? AirportConditionsFreeText => AirportConditionsTextDocument?.Text;
 
     private TextDocument? _airportConditionsTextDocument = new();
     public TextDocument? AirportConditionsTextDocument
@@ -171,11 +169,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
     }
 
-    private string? NotamsFreeText
-    {
-        get => _notamsTextDocument?.Text;
-        set => NotamsTextDocument = new TextDocument(value);
-    }
+    private string? NotamsFreeText => _notamsTextDocument?.Text;
 
     private TextDocument? _notamsTextDocument = new();
     public TextDocument? NotamsTextDocument
@@ -252,6 +246,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         _atisLetter = _atisStation.CodeRange.Low;
 
+        ReadOnlyAirportConditions = new TextSegmentCollection<TextSegment>(AirportConditionsTextDocument);
+        ReadOnlyNotams = new TextSegmentCollection<TextSegment>(NotamsTextDocument);
+
         switch (station.AtisType)
         {
             case AtisType.Arrival:
@@ -273,8 +270,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         IsCombinedAtis = station.AtisType == AtisType.Combined;
         AtisPresetList = new ObservableCollection<AtisPreset>(station.Presets.OrderBy(x => x.Ordinal));
 
-        OpenStaticAirportConditionsDialogCommand = ReactiveCommand.Create(HandleOpenAirportConditionsDialog);
-        OpenStaticNotamsDialogCommand = ReactiveCommand.Create(HandleOpenStaticNotamsDialog);
+        OpenStaticAirportConditionsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenAirportConditionsDialog);
+        OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
 
         SaveAirportConditionsText = ReactiveCommand.Create(HandleSaveAirportConditionsText);
         SaveNotamsText = ReactiveCommand.Create(HandleSaveNotamsText);
@@ -378,8 +375,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        SelectedAtisPreset.Notams = NotamsFreeText;
-        _appConfig.SaveConfig();
+        SelectedAtisPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
+        if (_sessionManager.CurrentProfile != null)
+            _profileRepository.Save(_sessionManager.CurrentProfile);
 
         HasUnsavedNotams = false;
     }
@@ -389,8 +387,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        SelectedAtisPreset.AirportConditions = AirportConditionsFreeText;
-        _appConfig.SaveConfig();
+        SelectedAtisPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
+        if (_sessionManager.CurrentProfile != null)
+            _profileRepository.Save(_sessionManager.CurrentProfile);
 
         HasUnsavedAirportConditions = false;
     }
@@ -406,7 +405,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void HandleOpenStaticNotamsDialog()
+    private async Task HandleOpenStaticNotamsDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
             return;
@@ -424,14 +423,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
                 _atisStation.NotamsBeforeFreeText = val;
-                _appConfig.SaveConfig();
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
             {
                 _atisStation.NotamDefinitions.Clear();
                 _atisStation.NotamDefinitions.AddRange(changes);
-                _appConfig.SaveConfig();
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
@@ -448,10 +449,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog(lifetime.MainWindow);
+
+        // Update the free-form text area after the dialog is closed
+        PopulateNotams();
     }
 
-    private void HandleOpenAirportConditionsDialog()
+    private async Task HandleOpenAirportConditionsDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
             return;
@@ -469,14 +473,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
                 _atisStation.AirportConditionsBeforeFreeText = val;
-                _appConfig.SaveConfig();
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
             {
                 _atisStation.AirportConditionDefinitions.Clear();
                 _atisStation.AirportConditionDefinitions.AddRange(changes);
-                _appConfig.SaveConfig();
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.CollectionChanged += (_, _) =>
@@ -493,7 +499,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog(lifetime.MainWindow);
+
+        // Update the free-form text area after the dialog is closed
+        PopulateAirportConditions();
     }
 
     private void OnKillRequestedReceived(object? sender, KillRequestReceived e)
@@ -918,8 +927,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 SelectedAtisPreset = preset;
                 _previousAtisPreset = preset;
 
-                AirportConditionsFreeText = SelectedAtisPreset.AirportConditions ?? "";
-                NotamsFreeText = SelectedAtisPreset.Notams ?? "";
+                PopulateAirportConditions();
+                PopulateNotams();
 
                 HasUnsavedNotams = false;
                 HasUnsavedAirportConditions = false;
@@ -971,6 +980,103 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Metar = null;
                 ErrorMessage = e.Message;
             });
+        }
+    }
+
+    private void PopulateNotams()
+    {
+        if (NotamsTextDocument == null)
+            return;
+
+        // Clear the list of read-only NOTAM text segments.
+        ReadOnlyNotams.Clear();
+
+        // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
+        var staticDefinitions = _atisStation.NotamDefinitions
+            .Where(x => x.Enabled)
+            .OrderBy(x => x.Ordinal)
+            .ToList();
+
+        // Start with an empty document.
+        NotamsTextDocument.Text = "";
+
+        // Reset offset
+        _notamFreeTextOffset = 0;
+
+        // If static NOTAM definitions exist, insert them into the document.
+        if (staticDefinitions.Count > 0)
+        {
+            // Combine static NOTAM definitions into a single string, separated by periods.
+            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+            // Insert static NOTAM definitions at the beginning of the document.
+            NotamsTextDocument.Insert(0, staticDefinitionsString);
+
+            // Add the static NOTAM range to the read-only list to prevent modification.
+            ReadOnlyNotams.Add(new TextSegment
+            {
+                StartOffset = 0,
+                EndOffset = staticDefinitionsString.Length
+            });
+
+            // Update the starting index for the next insertion.
+            _notamFreeTextOffset = staticDefinitionsString.Length;
+        }
+
+        // Always append the free-form NOTAM text after the static definitions (if any).
+        if (!string.IsNullOrEmpty(SelectedAtisPreset?.Notams))
+        {
+            NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset?.Notams);
+        }
+    }
+
+    private void PopulateAirportConditions()
+    {
+        if (AirportConditionsTextDocument == null)
+            return;
+
+        // Clear the list of read-only NOTAM text segments.
+        ReadOnlyAirportConditions.Clear();
+
+        // Retrieve and sort enabled static airport conditions by their ordinal value.
+        var staticDefinitions = _atisStation.AirportConditionDefinitions
+            .Where(x => x.Enabled)
+            .OrderBy(x => x.Ordinal)
+            .ToList();
+
+        // Start with an empty document.
+        AirportConditionsTextDocument.Text = "";
+
+        // Reset offset
+        _airportConditionsFreeTextOffset = 0;
+
+        // If static airport conditions exist, insert them into the document.
+        if (staticDefinitions.Count > 0)
+        {
+            // Combine static airport conditions into a single string, separated by periods.
+            // A trailing space is added to ensure proper spacing between the static definitions
+            // and the subsequent free-form text.
+            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+            // Insert static airport conditions at the beginning of the document.
+            AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
+
+            // Add the static airport conditions to the read-only list to prevent modification.
+            ReadOnlyAirportConditions.Add(new TextSegment
+            {
+                StartOffset = 0,
+                EndOffset = staticDefinitionsString.Length
+            });
+
+            // Update the starting index for the next insertion.
+            _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
+        }
+
+        // Always append the free-form airport conditions after the static definitions (if any).
+        if (!string.IsNullOrEmpty(SelectedAtisPreset?.AirportConditions))
+        {
+            AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
+                SelectedAtisPreset?.AirportConditions);
         }
     }
 

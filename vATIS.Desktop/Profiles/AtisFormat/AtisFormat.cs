@@ -14,6 +14,7 @@ public class AtisFormat
     public Dewpoint Dewpoint { get; set; } = new();
     public Altimeter Altimeter { get; set; } = new();
     public TransitionLevel TransitionLevel { get; set; } = new();
+    public Notams Notams { get; set; } = new();
     public ClosingStatement ClosingStatement { get; set; } = new();
 
     public AtisFormat Clone()
@@ -30,6 +31,7 @@ public class AtisFormat
             Dewpoint = Dewpoint.Clone(),
             Altimeter = Altimeter.Clone(),
             TransitionLevel = TransitionLevel.Clone(),
+            Notams = Notams.Clone(),
             ClosingStatement = ClosingStatement.Clone()
         };
     }

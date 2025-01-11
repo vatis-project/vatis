@@ -108,18 +108,13 @@
 		</StackPanel>
 		<StackPanel>
 			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-				<StackPanel Spacing="5">
+				<StackPanel Orientation="Vertical" Spacing="10">
+					<StackPanel Spacing="20" Orientation="Horizontal">
+						<RadioButton Theme="{StaticResource RadioButton}" Content="Text to Speech" Name="UseTextToSpeech" IsChecked="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
+						<ComboBox Width="280" Classes="Dark" HorizontalAlignment="Stretch" ItemsSource="{Binding AvailableVoices, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding TextToSpeechVoice, DataType=vm:GeneralConfigViewModel}" DisplayMemberBinding="{Binding Name, DataType=tts:VoiceMetaData}" SelectedValueBinding="{Binding Name, DataType=tts:VoiceMetaData}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
+						<RadioButton Theme="{StaticResource RadioButton}" Content="Voice Recorded" IsChecked="{Binding !UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
+					</StackPanel>
 					<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
-					<CheckBox Theme="{StaticResource CheckBox}" Content="Prefix spoken NOTAMs with &quot;Notices to Air Missions&quot;" IsChecked="{Binding UseNotamPrefix, DataType=vm:GeneralConfigViewModel}" />
-				</StackPanel>
-			</Border>
-		</StackPanel>
-		<StackPanel>
-			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-				<StackPanel Spacing="20" Orientation="Horizontal">
-					<RadioButton Theme="{StaticResource RadioButton}" Content="Text to Speech" Name="UseTextToSpeech" IsChecked="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
-					<ComboBox Width="280" Classes="Dark" HorizontalAlignment="Stretch" ItemsSource="{Binding AvailableVoices, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding TextToSpeechVoice, DataType=vm:GeneralConfigViewModel}" DisplayMemberBinding="{Binding Name, DataType=tts:VoiceMetaData}" SelectedValueBinding="{Binding Name, DataType=tts:VoiceMetaData}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
-					<RadioButton Theme="{StaticResource RadioButton}" Content="Voice Recorded" IsChecked="{Binding !UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
 				</StackPanel>
 			</Border>
 		</StackPanel>
@@ -136,5 +131,6 @@
 			</Border>
 		</StackPanel>
 		<TextBlock Foreground="#FFA500" TextWrapping="Wrap" FontWeight="Medium">Note: Saving changes to the ATIS configuration will automatically<LineBreak/>disconnect it from the network if it is currently connected.</TextBlock>
+		<TextBlock Foreground="White" FontWeight="Medium" Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}"/>
 	</StackPanel>
 </UserControl>

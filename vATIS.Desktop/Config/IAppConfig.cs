@@ -11,6 +11,7 @@ public interface IAppConfig
     NetworkRating NetworkRating { get; set; }
     bool SuppressNotificationSound { get; set; }
     bool AlwaysOnTop { get; set; }
+    bool CompactWindowAlwaysOnTop { get; set; }
     bool ConfigRequired { get; }
     string? MicrophoneDevice { get; set; }
     string? PlaybackDevice { get; set; }
