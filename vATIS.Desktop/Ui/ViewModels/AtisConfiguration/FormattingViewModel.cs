@@ -554,6 +554,34 @@ public class FormattingViewModel : ReactiveViewModelBase
         }
     }
 
+    private string? _notamsTextTemplate;
+    public string? NotamsTextTemplate
+    {
+        get => _notamsTextTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _notamsTextTemplate, value);
+            if (!_initializedProperties.Add(nameof(NotamsTextTemplate)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    private string? _notamsVoiceTemplate;
+    public string? NotamsVoiceTemplate
+    {
+        get => _notamsVoiceTemplate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _notamsVoiceTemplate, value);
+            if (!_initializedProperties.Add(nameof(NotamsVoiceTemplate)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
     private string? _visibilityNorth;
     public string? VisibilityNorth
     {
@@ -1039,6 +1067,7 @@ public class FormattingViewModel : ReactiveViewModelBase
                 "Temperature",
                 "Dewpoint",
                 "Altimeter",
+                "NOTAMs",
                 "Closing Statement"
             ];
         }
@@ -1055,6 +1084,7 @@ public class FormattingViewModel : ReactiveViewModelBase
                 "Dewpoint",
                 "Altimeter",
                 "Transition Level",
+                "NOTAMs",
                 "Closing Statement"
             ];
         }
@@ -1120,6 +1150,8 @@ public class FormattingViewModel : ReactiveViewModelBase
         DewpointUsePlusPrefix = station.AtisFormat.Dewpoint.UsePlusPrefix;
         DewpointSpeakLeadingZero = station.AtisFormat.Dewpoint.SpeakLeadingZero;
         AltimeterSpeakDecimal = station.AtisFormat.Altimeter.PronounceDecimal;
+        NotamsTextTemplate = station.AtisFormat.Notams.Template.Text;
+        NotamsVoiceTemplate = station.AtisFormat.Notams.Template.Voice;
         ClosingStatementAutoIncludeClosingStatement = station.AtisFormat.ClosingStatement.AutoIncludeClosingStatement;
 
         PresentWeatherTypes = [];
@@ -1541,11 +1573,17 @@ public class FormattingViewModel : ReactiveViewModelBase
         if (SelectedStation.AtisFormat.ClosingStatement.AutoIncludeClosingStatement != ClosingStatementAutoIncludeClosingStatement)
             SelectedStation.AtisFormat.ClosingStatement.AutoIncludeClosingStatement = ClosingStatementAutoIncludeClosingStatement;
 
-        if(SelectedStation.AtisFormat.TransitionLevel.Template.Text != TransitionLevelTextTemplate)
+        if (SelectedStation.AtisFormat.TransitionLevel.Template.Text != TransitionLevelTextTemplate)
             SelectedStation.AtisFormat.TransitionLevel.Template.Text = TransitionLevelTextTemplate;
 
-        if(SelectedStation.AtisFormat.TransitionLevel.Template.Voice != TransitionLevelVoiceTemplate)
+        if (SelectedStation.AtisFormat.TransitionLevel.Template.Voice != TransitionLevelVoiceTemplate)
             SelectedStation.AtisFormat.TransitionLevel.Template.Voice = TransitionLevelVoiceTemplate;
+
+        if (SelectedStation.AtisFormat.Notams.Template.Text != NotamsTextTemplate)
+            SelectedStation.AtisFormat.Notams.Template.Text = NotamsTextTemplate;
+
+        if (SelectedStation.AtisFormat.Notams.Template.Voice != NotamsVoiceTemplate)
+            SelectedStation.AtisFormat.Notams.Template.Voice = NotamsVoiceTemplate;
 
         if (HasErrors)
             return false;
