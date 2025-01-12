@@ -1,3 +1,8 @@
+// <copyright file="ClientHub.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Text.Json;
 using DevServer.Hub.Dto;
 using Microsoft.AspNetCore.SignalR;
@@ -5,16 +10,24 @@ using Serilog;
 
 namespace DevServer.Hub;
 
+/// <summary>
+/// Represents a SignalR hub for client-server communication.
+/// </summary>
 public class ClientHub : Hub<IClientHub>
 {
     private static readonly object s_syncLock = new();
     private readonly ICacheService _cacheService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClientHub"/> class.
+    /// </summary>
+    /// <param name="cacheService">The cache service.</param>
     public ClientHub(ICacheService cacheService)
     {
         _cacheService = cacheService;
     }
 
+    /// <inheritdoc/>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         Log.Information(exception != null
@@ -25,10 +38,17 @@ public class ClientHub : Hub<IClientHub>
         {
             _cacheService.RemoveSubscriber(Context.ConnectionId);
         }
+
         await base.OnDisconnectedAsync(exception);
     }
 
     // Client -> Server
+
+    /// <summary>
+    /// Subscribes a client to ATIS updates.
+    /// </summary>
+    /// <param name="dto">The subscription data.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public Task SubscribeToAtis(SubscribeDto dto)
     {
         lock (s_syncLock)
@@ -51,6 +71,11 @@ public class ClientHub : Hub<IClientHub>
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Unsubscribes a client from ATIS updates.
+    /// </summary>
+    /// <param name="hubDto">The subscription data.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task PublishAtis(AtisHubDto hubDto)
     {
         var key = $"{hubDto.StationId}_{hubDto.AtisType}";
@@ -71,11 +96,4 @@ public class ClientHub : Hub<IClientHub>
 
         await Clients.Others.AtisReceived([hubDto]);
     }
-}
-
-public interface IClientHub
-{
-    Task AtisReceived(List<AtisHubDto> dto);
-    Task RemoveAtisReceived(AtisHubDto hubDto);
-    Task MetarReceived(string metar);
 }

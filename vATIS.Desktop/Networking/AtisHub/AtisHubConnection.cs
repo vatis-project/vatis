@@ -1,3 +1,8 @@
+// <copyright file="AtisHubConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,19 +17,32 @@ using Vatsim.Vatis.Networking.AtisHub.Dto;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
+/// <summary>
+/// Represents a connection to the AtisHub server. Implements <see cref="IAtisHubConnection"/>.
+/// </summary>
 public class AtisHubConnection : IAtisHubConnection
 {
     private readonly IClientAuth _clientAuth;
+    private readonly IAppConfigurationProvider _appConfigurationProvider;
     private HubConnection? _hubConnection;
     private ConnectionState _connectionState;
-    private readonly IAppConfigurationProvider _appConfigurationProvider;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisHubConnection"/> class.
+    /// </summary>
+    /// <param name="appConfigurationProvider">
+    /// The provider for application configurations.
+    /// </param>
+    /// <param name="clientAuth">
+    /// The client authentication instance.
+    /// </param>
     public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider, IClientAuth clientAuth)
     {
         _appConfigurationProvider = appConfigurationProvider;
         _clientAuth = clientAuth;
     }
 
+    /// <inheritdoc />
     public async Task Connect()
     {
         try
@@ -72,6 +90,7 @@ public class AtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc />
     public async Task Disconnect()
     {
         if (_hubConnection == null)
@@ -87,6 +106,7 @@ public class AtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc />
     public async Task PublishAtis(AtisHubDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
@@ -95,6 +115,7 @@ public class AtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("PublishAtis", dto);
     }
 
+    /// <inheritdoc />
     public async Task SubscribeToAtis(SubscribeDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
@@ -103,6 +124,7 @@ public class AtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
+    /// <inheritdoc />
     public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })

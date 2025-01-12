@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="SurfaceWindNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -6,108 +11,19 @@ using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides the surface wind information.
+/// </summary>
 public class SurfaceWindNode : BaseNode<SurfaceWind>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         Parse(metar.SurfaceWind);
     }
 
-    private void Parse(SurfaceWind? surfaceWind)
-    {
-        ArgumentNullException.ThrowIfNull(Station);
-
-        if (surfaceWind == null)
-            return;
-
-        List<string> spokenAtis = [];
-        List<string> textAtis = [];
-
-        if (surfaceWind.SpeedVariations != null)
-        {
-            // VRB10G20KT
-            if (surfaceWind.VariableDirection)
-            {
-                var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableGust.Template.Voice);
-                spokenAtis.Add(voice);
-
-                var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableGust.Template.Text);
-                textAtis.Add(text);
-            }
-            // 25010G16KT
-            else
-            {
-                var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.StandardGust.Template.Voice);
-                spokenAtis.Add(voice);
-
-                var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.StandardGust.Template.Text);
-                textAtis.Add(text);
-            }
-        }
-        // 25010KT
-        else
-        {
-            if (surfaceWind.MeanDirection != null)
-            {
-                // calm wind
-                if ((surfaceWind.MeanDirection.ActualValue == 0 && surfaceWind.MeanSpeed?.ActualValue == 0) ||
-                    surfaceWind.MeanSpeed?.ActualValue <= Station.AtisFormat.SurfaceWind.Calm.CalmWindSpeed)
-                {
-                    var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Calm.Template.Voice);
-                    spokenAtis.Add(voice);
-
-                    var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Calm.Template.Text);
-                    textAtis.Add(text);
-                }
-                else
-                {
-                    var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Standard.Template.Voice);
-                    spokenAtis.Add(voice);
-
-                    var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Standard.Template.Text);
-                    textAtis.Add(text);
-                }
-            }
-        }
-
-        // VRB10KT
-        if (surfaceWind.SpeedVariations == null && surfaceWind is { MeanSpeed: not null, VariableDirection: true })
-        {
-            var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Variable.Template.Voice);
-            spokenAtis.Add(voice);
-
-            var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Variable.Template.Text);
-            textAtis.Add(text);
-        }
-
-        // 250V360
-        if (surfaceWind.DirectionVariations != null)
-        {
-            var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableDirection.Template.Voice);
-            spokenAtis.Add(voice);
-
-            var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableDirection.Template.Text);
-            textAtis.Add(text);
-        }
-
-        VoiceAtis = string.Join(", ", spokenAtis).TrimEnd(',').TrimEnd(' ');
-        TextAtis = string.Join(" ", textAtis).TrimEnd(' ');
-    }
-
-    private string GetSpokenWindUnit(Value? unit)
-    {
-        if (unit == null)
-            return "";
-
-        return unit.ActualUnit switch
-        {
-            Value.Unit.KilometerPerHour => unit.ActualValue > 1 ? "kilometers per hour" : "kilometer per hour",
-            Value.Unit.MeterPerSecond => unit.ActualValue > 1 ? "meters per second" : "meter per second",
-            Value.Unit.Knot => unit.ActualValue > 1 ? "knots" : "knot",
-            _ => ""
-        };
-    }
-
+    /// <inheritdoc/>
     public override string ParseVoiceVariables(SurfaceWind node, string? format)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -176,6 +92,7 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         return format;
     }
 
+    /// <inheritdoc/>
     public override string ParseTextVariables(SurfaceWind node, string? format)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -244,5 +161,102 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         format = Regex.Replace(format, "{wind}", node.RawValue ?? "", RegexOptions.IgnoreCase);
 
         return format;
+    }
+
+    private void Parse(SurfaceWind? surfaceWind)
+    {
+        ArgumentNullException.ThrowIfNull(Station);
+
+        if (surfaceWind == null)
+            return;
+
+        List<string> spokenAtis = [];
+        List<string> textAtis = [];
+
+        if (surfaceWind.SpeedVariations != null)
+        {
+            // VRB10G20KT
+            if (surfaceWind.VariableDirection)
+            {
+                var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableGust.Template.Voice);
+                spokenAtis.Add(voice);
+
+                var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableGust.Template.Text);
+                textAtis.Add(text);
+            }
+
+            // 25010G16KT
+            else
+            {
+                var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.StandardGust.Template.Voice);
+                spokenAtis.Add(voice);
+
+                var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.StandardGust.Template.Text);
+                textAtis.Add(text);
+            }
+        }
+
+        // 25010KT
+        else
+        {
+            if (surfaceWind.MeanDirection != null)
+            {
+                // calm wind
+                if ((surfaceWind.MeanDirection.ActualValue == 0 && surfaceWind.MeanSpeed?.ActualValue == 0) ||
+                    surfaceWind.MeanSpeed?.ActualValue <= Station.AtisFormat.SurfaceWind.Calm.CalmWindSpeed)
+                {
+                    var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Calm.Template.Voice);
+                    spokenAtis.Add(voice);
+
+                    var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Calm.Template.Text);
+                    textAtis.Add(text);
+                }
+                else
+                {
+                    var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Standard.Template.Voice);
+                    spokenAtis.Add(voice);
+
+                    var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Standard.Template.Text);
+                    textAtis.Add(text);
+                }
+            }
+        }
+
+        // VRB10KT
+        if (surfaceWind.SpeedVariations == null && surfaceWind is { MeanSpeed: not null, VariableDirection: true })
+        {
+            var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Variable.Template.Voice);
+            spokenAtis.Add(voice);
+
+            var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.Variable.Template.Text);
+            textAtis.Add(text);
+        }
+
+        // 250V360
+        if (surfaceWind.DirectionVariations != null)
+        {
+            var voice = ParseVoiceVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableDirection.Template.Voice);
+            spokenAtis.Add(voice);
+
+            var text = ParseTextVariables(surfaceWind, Station.AtisFormat.SurfaceWind.VariableDirection.Template.Text);
+            textAtis.Add(text);
+        }
+
+        VoiceAtis = string.Join(", ", spokenAtis).TrimEnd(',').TrimEnd(' ');
+        TextAtis = string.Join(" ", textAtis).TrimEnd(' ');
+    }
+
+    private string GetSpokenWindUnit(Value? unit)
+    {
+        if (unit == null)
+            return "";
+
+        return unit.ActualUnit switch
+        {
+            Value.Unit.KilometerPerHour => unit.ActualValue > 1 ? "kilometers per hour" : "kilometer per hour",
+            Value.Unit.MeterPerSecond => unit.ActualValue > 1 ? "meters per second" : "meter per second",
+            Value.Unit.Knot => unit.ActualValue > 1 ? "knots" : "knot",
+            _ => ""
+        };
     }
 }

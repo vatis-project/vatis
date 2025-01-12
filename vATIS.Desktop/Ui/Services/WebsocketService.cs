@@ -1,3 +1,8 @@
+// <copyright file="WebsocketService.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -34,50 +39,6 @@ public class WebsocketService : IWebsocketService
         _server.ClientConnected += OnClientConnected;
         _server.ClientDisconnected += OnClientDisconnected;
         _server.MessageReceived += OnMessageReceived;
-    }
-
-    /// <summary>
-    /// Handles messages received via the websocket and fires the appropriate event handler.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The message data.</param>
-    private async void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
-    {
-        try
-        {
-            HandleRequest(e.Client, e.Data);
-        }
-        catch (Exception ex)
-        {
-            var error = new ErrorMessage
-            {
-                Value = new ErrorMessage.ErrorValue
-                {
-                    Message = ex.Message,
-                },
-            };
-            await _server.SendAsync(e.Client.Guid, JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
-        }
-    }
-
-    /// <summary>
-    /// Handles clients disconnecting from the service.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The data about the client that disconnected.</param>
-    private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
-    {
-        _sessions.TryRemove(e.Client.Guid, out _);
-    }
-
-    /// <summary>
-    /// Handles clients connecting to the service.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The data about the client that connected.</param>
-    private void OnClientConnected(object? sender, ConnectionEventArgs e)
-    {
-        _sessions.TryAdd(e.Client.Guid, e.Client);
     }
 
     /// <summary>
@@ -145,6 +106,50 @@ public class WebsocketService : IWebsocketService
         {
             await SendAsync(JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
+    }
+
+    /// <summary>
+    /// Handles messages received via the websocket and fires the appropriate event handler.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The message data.</param>
+    private async void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
+    {
+        try
+        {
+            HandleRequest(e.Client, e.Data);
+        }
+        catch (Exception ex)
+        {
+            var error = new ErrorMessage
+            {
+                Value = new ErrorMessage.ErrorValue
+                {
+                    Message = ex.Message,
+                },
+            };
+            await _server.SendAsync(e.Client.Guid, JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
+        }
+    }
+
+    /// <summary>
+    /// Handles clients disconnecting from the service.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The data about the client that disconnected.</param>
+    private void OnClientDisconnected(object? sender, DisconnectionEventArgs e)
+    {
+        _sessions.TryRemove(e.Client.Guid, out _);
+    }
+
+    /// <summary>
+    /// Handles clients connecting to the service.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The data about the client that connected.</param>
+    private void OnClientConnected(object? sender, ConnectionEventArgs e)
+    {
+        _sessions.TryAdd(e.Client.Guid, e.Client);
     }
 
     /// <summary>

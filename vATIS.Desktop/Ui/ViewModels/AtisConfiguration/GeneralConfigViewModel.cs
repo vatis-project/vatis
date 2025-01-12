@@ -1,3 +1,8 @@
+// <copyright file="GeneralConfigViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -12,44 +17,91 @@ using Vatsim.Vatis.TextToSpeech;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
+/// <summary>
+/// Represents the general configuration view model for ATIS configurations.
+/// Inherits from <see cref="ReactiveViewModelBase"/>.
+/// </summary>
 public class GeneralConfigViewModel : ReactiveViewModelBase
 {
+    private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
-    private readonly HashSet<string> _initializedProperties = [];
+    private bool _hasUnsavedChanges;
+    private int _selectedTabIndex;
+    private AtisStation? _selectedStation;
+    private string _profileSerialNumber = string.Empty;
+    private string? _frequency;
+    private AtisType _atisType = AtisType.Combined;
+    private char _codeRangeLow = 'A';
+    private char _codeRangeHigh = 'Z';
+    private bool _useTextToSpeech;
+    private string? _textToSpeechVoice;
+    private bool _useDecimalTerminology;
+    private string? _idsEndpoint;
+    private ObservableCollection<VoiceMetaData>? _availableVoices;
+    private bool _showDuplicateAtisTypeError;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GeneralConfigViewModel"/> class.
+    /// </summary>
+    /// <param name="sessionManager">The session manager responsible for managing current session data.</param>
+    /// <param name="profileRepository">The profile repository for accessing and managing profile data.</param>
+    public GeneralConfigViewModel(ISessionManager sessionManager, IProfileRepository profileRepository)
+    {
+        _sessionManager = sessionManager;
+        _profileRepository = profileRepository;
+
+        AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+
+        ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
+            ? $"Profile Serial: {_sessionManager.CurrentProfile.UpdateSerial}"
+            : string.Empty;
+    }
+
+    /// <summary>
+    /// Gets the command that is triggered when the ATIS station changes.
+    /// </summary>
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
 
-    #region Reactive Properties
-    private bool _hasUnsavedChanges;
+     /// <summary>
+    /// Gets a value indicating whether there are unsaved changes.
+    /// </summary>
     public bool HasUnsavedChanges
     {
         get => _hasUnsavedChanges;
         private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
     }
 
-    private int _selectedTabIndex;
+    /// <summary>
+    /// Gets the selected tab index.
+    /// </summary>
     public int SelectedTabIndex
     {
         get => _selectedTabIndex;
         private set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
     }
 
-    private AtisStation? _selectedStation;
-    private AtisStation? SelectedStation
+    /// <summary>
+    /// Gets or sets the selected ATIS station.
+    /// </summary>
+    public AtisStation? SelectedStation
     {
         get => _selectedStation;
         set => this.RaiseAndSetIfChanged(ref _selectedStation, value);
     }
 
-    private string _profileSerialNumber = "";
+    /// <summary>
+    /// Gets or sets the profile serial number.
+    /// </summary>
     public string ProfileSerialNumber
     {
         get => _profileSerialNumber;
         set => this.RaiseAndSetIfChanged(ref _profileSerialNumber, value);
     }
 
-    private string? _frequency;
+    /// <summary>
+    /// Gets or sets the frequency.
+    /// </summary>
     public string? Frequency
     {
         get => _frequency;
@@ -63,7 +115,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private AtisType _atisType = AtisType.Combined;
+    /// <summary>
+    /// Gets or sets the ATIS type.
+    /// </summary>
     public AtisType AtisType
     {
         get => _atisType;
@@ -77,7 +131,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private char _codeRangeLow = 'A';
+    /// <summary>
+    /// Gets or sets the low range of the code.
+    /// </summary>
     public char CodeRangeLow
     {
         get => _codeRangeLow;
@@ -91,7 +147,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private char _codeRangeHigh = 'Z';
+    /// <summary>
+    /// Gets or sets the high range of the code.
+    /// </summary>
     public char CodeRangeHigh
     {
         get => _codeRangeHigh;
@@ -105,7 +163,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private bool _useTextToSpeech;
+    /// <summary>
+    /// Gets or sets a value indicating whether to use text-to-speech.
+    /// </summary>
     public bool UseTextToSpeech
     {
         get => _useTextToSpeech;
@@ -119,13 +179,19 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private string? _textToSpeechVoice;
+    /// <summary>
+    /// Gets or sets the text-to-speech voice.
+    /// </summary>
     public string? TextToSpeechVoice
     {
         get => _textToSpeechVoice;
         set
         {
-            if (_textToSpeechVoice == value || string.IsNullOrEmpty(value)) return;
+            if (_textToSpeechVoice == value || string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
             this.RaiseAndSetIfChanged(ref _textToSpeechVoice, value);
             if (!_initializedProperties.Add(nameof(TextToSpeechVoice)))
             {
@@ -134,7 +200,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private bool _useDecimalTerminology;
+    /// <summary>
+    /// Gets or sets a value indicating whether to use decimal terminology.
+    /// </summary>
     public bool UseDecimalTerminology
     {
         get => _useDecimalTerminology;
@@ -148,7 +216,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private string? _idsEndpoint;
+    /// <summary>
+    /// Gets or sets the IDS endpoint.
+    /// </summary>
     public string? IdsEndpoint
     {
         get => _idsEndpoint;
@@ -162,54 +232,27 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
     }
 
-    private ObservableCollection<VoiceMetaData>? _availableVoices;
+    /// <summary>
+    /// Gets or sets the available voices.
+    /// </summary>
     public ObservableCollection<VoiceMetaData>? AvailableVoices
     {
         get => _availableVoices;
         set => this.RaiseAndSetIfChanged(ref _availableVoices, value);
     }
 
-    private bool _showDuplicateAtisTypeError;
+    /// <summary>
+    /// Gets or sets a value indicating whether to show duplicate ATIS type error.
+    /// </summary>
     public bool ShowDuplicateAtisTypeError
     {
         get => _showDuplicateAtisTypeError;
         set => this.RaiseAndSetIfChanged(ref _showDuplicateAtisTypeError, value);
     }
-    #endregion
 
-    public GeneralConfigViewModel(ISessionManager sessionManager, IProfileRepository profileRepository)
-    {
-        _sessionManager = sessionManager;
-        _profileRepository = profileRepository;
-
-        AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
-
-        ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
-            ? $"Profile Serial: {_sessionManager.CurrentProfile.UpdateSerial}"
-            : string.Empty;
-    }
-
-    private void HandleUpdateProperties(AtisStation? station)
-    {
-        if (station == null)
-            return;
-
-        _initializedProperties.Clear();
-
-        SelectedTabIndex = -1;
-        SelectedStation = station;
-        Frequency = station.Frequency > 0 ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US")) : "";
-        AtisType = station.AtisType;
-        CodeRangeLow = station.CodeRange.Low;
-        CodeRangeHigh = station.CodeRange.High;
-        UseDecimalTerminology = station.UseDecimalTerminology;
-        IdsEndpoint = station.IdsEndpoint;
-        UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
-        TextToSpeechVoice = station.AtisVoice.Voice;
-
-        HasUnsavedChanges = false;
-    }
-
+    /// <summary>
+    /// Resets the state of the <see cref="GeneralConfigViewModel"/> instance to its default configuration.
+    /// </summary>
     public void Reset()
     {
         Frequency = null;
@@ -222,28 +265,39 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         HasUnsavedChanges = false;
     }
 
+    /// <summary>
+    /// Applies the general configuration settings for the current session and validates the input data.
+    /// </summary>
+    /// <returns>
+    /// A boolean value indicating whether the configuration was successfully applied.
+    /// </returns>
     public bool ApplyConfig()
     {
         if (SelectedStation == null)
+        {
             return true;
+        }
 
         ClearAllErrors();
         ShowDuplicateAtisTypeError = false;
 
-        if (decimal.TryParse(Frequency, CultureInfo.InvariantCulture, out var frequency))
+        if (decimal.TryParse(Frequency, CultureInfo.InvariantCulture, out var parsedFrequency))
         {
-            frequency = frequency * 1000 * 1000;
-            if (frequency is < 118000000 or > 137000000)
+            parsedFrequency = parsedFrequency * 1000 * 1000;
+            if (parsedFrequency is < 118000000 or > 137000000)
             {
                 SelectedTabIndex = 0;
-                RaiseError(nameof(Frequency),
+                RaiseError(
+                    nameof(Frequency),
                     "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
             }
 
-            if (frequency is >= 0 and <= uint.MaxValue)
+            if (parsedFrequency is >= 0 and <= uint.MaxValue)
             {
-                if (frequency != SelectedStation.Frequency)
-                    SelectedStation.Frequency = (uint)frequency;
+                if (parsedFrequency != SelectedStation.Frequency)
+                {
+                    SelectedStation.Frequency = (uint)parsedFrequency;
+                }
             }
         }
         else
@@ -254,9 +308,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
 
         if (SelectedStation.AtisType != AtisType)
         {
-            if (_sessionManager.CurrentProfile?.Stations != null && _sessionManager.CurrentProfile.Stations.Any(x =>
-                    x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
-                    x.AtisType == AtisType))
+            if (_sessionManager.CurrentProfile?.Stations != null &&
+                _sessionManager.CurrentProfile.Stations.Any(
+                    x =>
+                        x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
+                        x.AtisType == AtisType))
             {
                 ShowDuplicateAtisTypeError = true;
             }
@@ -280,13 +336,19 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         var codeRange = new CodeRangeMeta(CodeRangeLow, CodeRangeHigh);
 
         if (SelectedStation.CodeRange != codeRange)
+        {
             SelectedStation.CodeRange = codeRange;
+        }
 
         if (SelectedStation.UseDecimalTerminology != UseDecimalTerminology)
+        {
             SelectedStation.UseDecimalTerminology = UseDecimalTerminology;
+        }
 
         if (SelectedStation.IdsEndpoint != IdsEndpoint)
-            SelectedStation.IdsEndpoint = IdsEndpoint ?? "";
+        {
+            SelectedStation.IdsEndpoint = IdsEndpoint ?? string.Empty;
+        }
 
         if (SelectedStation.AtisVoice.UseTextToSpeech != UseTextToSpeech)
         {
@@ -295,15 +357,46 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         }
 
         if (SelectedStation.AtisVoice.Voice != TextToSpeechVoice)
+        {
             SelectedStation.AtisVoice.Voice = TextToSpeechVoice;
+        }
 
         if (HasErrors || ShowDuplicateAtisTypeError)
+        {
             return false;
+        }
 
         if (_sessionManager.CurrentProfile != null)
+        {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+        }
 
         HasUnsavedChanges = false;
         return true;
+    }
+
+    private void HandleUpdateProperties(AtisStation? station)
+    {
+        if (station == null)
+        {
+            return;
+        }
+
+        _initializedProperties.Clear();
+
+        SelectedTabIndex = -1;
+        SelectedStation = station;
+        Frequency = station.Frequency > 0
+            ? (station.Frequency / 1000000.0).ToString("000.000", CultureInfo.GetCultureInfo("en-US"))
+            : string.Empty;
+        AtisType = station.AtisType;
+        CodeRangeLow = station.CodeRange.Low;
+        CodeRangeHigh = station.CodeRange.High;
+        UseDecimalTerminology = station.UseDecimalTerminology;
+        IdsEndpoint = station.IdsEndpoint;
+        UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
+        TextToSpeechVoice = station.AtisVoice.Voice;
+
+        HasUnsavedChanges = false;
     }
 }

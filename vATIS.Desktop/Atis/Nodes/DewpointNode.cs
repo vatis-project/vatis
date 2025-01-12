@@ -1,30 +1,27 @@
-﻿using System;
+﻿// <copyright file="DewpointNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides the dewpoint temperature.
+/// </summary>
 public class DewpointNode : BaseNode<Value>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         Parse(metar.DewPointTemperature);
     }
 
-    private void Parse(Value? node)
-    {
-        ArgumentNullException.ThrowIfNull(Station);
-
-        if (node == null)
-        {
-            VoiceAtis = "Dewpoint missing";
-            return;
-        }
-
-        VoiceAtis = ParseVoiceVariables(node, Station.AtisFormat.Dewpoint.Template.Voice);
-        TextAtis = ParseTextVariables(node, Station.AtisFormat.Dewpoint.Template.Text);
-    }
-
+    /// <inheritdoc/>
     public override string ParseTextVariables(Value value, string? format)
     {
         if (format == null)
@@ -59,7 +56,8 @@ public class DewpointNode : BaseNode<Value>
         string formattedValue;
         string formatString = new string('0', digitCount); // Create a format string like "00", "000", etc.
 
-        if (value.ActualValue < 0 && !suppressM) // Only prefix "M" if negative and not suppressed
+        // Only prefix "M" if negative and not suppressed
+        if (value.ActualValue < 0 && !suppressM)
         {
             formattedValue = $"M{Math.Abs(value.ActualValue).ToString(formatString)}";
         }
@@ -74,6 +72,7 @@ public class DewpointNode : BaseNode<Value>
         return format;
     }
 
+    /// <inheritdoc/>
     public override string ParseVoiceVariables(Value node, string? format)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -90,5 +89,19 @@ public class DewpointNode : BaseNode<Value>
                 (Station.AtisFormat.Dewpoint.UsePlusPrefix ? "plus " : "") + Math.Abs((int)node.ActualValue)
                     .ToString(Station.AtisFormat.Dewpoint.SpeakLeadingZero ? "00" : "").ToSerialFormat(),
                 RegexOptions.IgnoreCase);
+    }
+
+    private void Parse(Value? node)
+    {
+        ArgumentNullException.ThrowIfNull(Station);
+
+        if (node == null)
+        {
+            VoiceAtis = "Dewpoint missing";
+            return;
+        }
+
+        VoiceAtis = ParseVoiceVariables(node, Station.AtisFormat.Dewpoint.Template.Voice);
+        TextAtis = ParseTextVariables(node, Station.AtisFormat.Dewpoint.Template.Text);
     }
 }

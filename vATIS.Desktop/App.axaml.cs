@@ -1,3 +1,8 @@
+// <copyright file="App.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,14 +36,19 @@ using Vatsim.Vatis.Voice.Audio;
 
 namespace Vatsim.Vatis;
 
+/// <summary>
+/// The main application class.
+/// </summary>
 public class App : Application
 {
-    private ServiceProvider? _serviceProvider;
-    private StartupWindow? _startupWindow;
     private const string SingleInstanceId = "{93C4C697-85B2-42B4-936F-E07AB2C53B82}";
-    private readonly string _appDataPath =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "org.vatsim.vatis");
+    private readonly string _appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "org.vatsim.vatis");
+    private Container.ServiceProvider? _serviceProvider;
+    private StartupWindow? _startupWindow;
 
+    /// <summary>
+    /// Initializes the application.
+    /// </summary>
     public override void Initialize()
     {
         if (!Debugger.IsAttached)
@@ -68,24 +78,7 @@ public class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)
-    {
-        try
-        {
-            Log.Error(ex.Exception, "UIThread_UnhandledException");
-            if (SentrySdk.IsEnabled)
-            {
-                SentrySdk.CaptureException(ex.Exception);
-            }
-
-            ShowErrorAsync(ex.Exception.Message);
-        }
-        finally
-        {
-            ex.Handled = true;
-        }
-    }
-
+    /// <inheritdoc/>
     public override async void OnFrameworkInitializationCompleted()
     {
         try
@@ -109,13 +102,14 @@ public class App : Application
 
                 var arguments = ParseArguments(desktop.Args ?? []);
 
-                _serviceProvider = new ServiceProvider();
+                _serviceProvider = new Container.ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
 
                 if (OperatingSystem.IsMacOS() && AppContext.BaseDirectory.StartsWith("/Volumes"))
                 {
-                    ShowErrorAsync("vATIS cannot be launched from a DMG volume. " +
-                              "Please move vATIS to the Applications folder.", fatal: true);
+                    ShowErrorAsync(
+                        "vATIS cannot be launched from a DMG volume. Please move vATIS to the Applications folder.",
+                        fatal: true);
                     return;
                 }
 
@@ -213,6 +207,128 @@ public class App : Application
         }
     }
 
+    private static void SetupLogging(bool debugMode)
+    {
+        var logPath = Path.Combine(PathProvider.LogsFolderPath, "Log.txt");
+        var config = new LoggerConfiguration().WriteTo.File(
+            logPath,
+            retainedFileCountLimit: 7,
+            rollingInterval: RollingInterval.Day);
+        if (debugMode)
+        {
+            config = config.WriteTo.Trace().MinimumLevel.Debug();
+        }
+
+        Log.Logger = config.CreateLogger();
+    }
+
+    private static void Shutdown()
+    {
+        if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            Dispatcher.UIThread.Invoke(() => desktop.Shutdown());
+        }
+    }
+
+    private static async void ShowErrorAsync(string error, bool fatal = false)
+    {
+        try
+        {
+            if (!Dispatcher.UIThread.CheckAccess())
+            {
+                Dispatcher.UIThread.Invoke(() => ShowErrorAsync(error, fatal));
+                return;
+            }
+
+            if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            {
+                var owner = lifetime.Windows.FirstOrDefault(x => x is { IsActive: true, IsVisible: true });
+                if (owner != null)
+                {
+                    await MessageBox.ShowDialog(
+                        owner,
+                        "An error has occured. Please refer to the log file for details.\n\n" + error,
+                        "Error",
+                        MessageBoxButton.Ok,
+                        MessageBoxIcon.Error);
+
+                    if (fatal)
+                    {
+                        Shutdown();
+                    }
+                }
+                else
+                {
+                    await MessageBox.Show(
+                        "An error has occured. Please refer to the log file for details.\n\n" + error,
+                        "Error",
+                        MessageBoxButton.Ok,
+                        MessageBoxIcon.Error);
+                    Shutdown();
+                }
+            }
+            else
+            {
+                await MessageBox.Show(
+                    "An error has occured. Please refer to the log file for details.\n\n" + error,
+                    "Error",
+                    MessageBoxButton.Ok,
+                    MessageBoxIcon.Error);
+                Shutdown();
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Fatal(e, "Fatal error during ShowError.");
+        }
+    }
+
+    private static Dictionary<string, string> ParseArguments(string[] args)
+    {
+        var parsedArgs = new Dictionary<string, string>();
+
+        for (var i = 0; i < args.Length; i++)
+        {
+            // Check if the argument starts with a flag (e.g., --uri, --profile)
+            if (args[i].StartsWith("--"))
+            {
+                var flag = args[i];
+
+                if (i + 1 < args.Length && !args[i + 1].StartsWith("--"))
+                {
+                    // Only store one value per flag (the last one encountered)
+                    parsedArgs[flag] = args[i + 1];
+                    i++; // Skip the next argument as it's the value for this flag
+                }
+                else
+                {
+                    // If no value follows the flag, store an empty string
+                    parsedArgs[flag] = string.Empty;
+                }
+            }
+        }
+
+        return parsedArgs;
+    }
+
+    private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)
+    {
+        try
+        {
+            Log.Error(ex.Exception, "UIThread_UnhandledException");
+            if (SentrySdk.IsEnabled)
+            {
+                SentrySdk.CaptureException(ex.Exception);
+            }
+
+            ShowErrorAsync(ex.Exception.Message);
+        }
+        finally
+        {
+            ex.Handled = true;
+        }
+    }
+
     private async Task CheckForProfileUpdatesAsync()
     {
         if (_serviceProvider != null)
@@ -273,70 +389,6 @@ public class App : Application
         ShowErrorAsync(ex.Exception.Message);
     }
 
-    private static void SetupLogging(bool debugMode)
-    {
-        var logPath = Path.Combine(PathProvider.LogsFolderPath, "Log.txt");
-        var config = new LoggerConfiguration().WriteTo.File(logPath, retainedFileCountLimit: 7,
-            rollingInterval: RollingInterval.Day);
-        if (debugMode)
-        {
-            config = config.WriteTo.Trace().MinimumLevel.Debug();
-        }
-        Log.Logger = config.CreateLogger();
-    }
-
-    private static void Shutdown()
-    {
-        if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            Dispatcher.UIThread.Invoke(() => desktop.Shutdown());
-        }
-    }
-
-    private static async void ShowErrorAsync(string error, bool fatal = false)
-    {
-        try
-        {
-            if (!Dispatcher.UIThread.CheckAccess())
-            {
-                Dispatcher.UIThread.Invoke(() => ShowErrorAsync(error, fatal));
-                return;
-            }
-
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-            {
-                var owner = lifetime.Windows.FirstOrDefault(x => x is { IsActive: true, IsVisible: true });
-                if (owner != null)
-                {
-                    await MessageBox.ShowDialog(owner,
-                        "An error has occured. Please refer to the log file for details.\n\n" + error, "Error",
-                        MessageBoxButton.Ok, MessageBoxIcon.Error);
-
-                    if (fatal)
-                    {
-                        Shutdown();
-                    }
-                }
-                else
-                {
-                    await MessageBox.Show("An error has occured. Please refer to the log file for details.\n\n" + error,
-                        "Error", MessageBoxButton.Ok, MessageBoxIcon.Error);
-                    Shutdown();
-                }
-            }
-            else
-            {
-                await MessageBox.Show("An error has occured. Please refer to the log file for details.\n\n" + error,
-                    "Error", MessageBoxButton.Ok, MessageBoxIcon.Error);
-                Shutdown();
-            }
-        }
-        catch (Exception e)
-        {
-            Log.Fatal(e, "Fatal error during ShowError.");
-        }
-    }
-
     private void HandleError(Exception ex, string context, bool fatal)
     {
         _startupWindow?.Close();
@@ -347,33 +399,5 @@ public class App : Application
         }
 
         ShowErrorAsync(ex.Message, fatal);
-    }
-
-    private static Dictionary<string, string> ParseArguments(string[] args)
-    {
-        var parsedArgs = new Dictionary<string, string>();
-
-        for (var i = 0; i < args.Length; i++)
-        {
-            // Check if the argument starts with a flag (e.g., --uri, --profile)
-            if (args[i].StartsWith("--"))
-            {
-                var flag = args[i];
-
-                if (i + 1 < args.Length && !args[i + 1].StartsWith("--"))
-                {
-                    // Only store one value per flag (the last one encountered)
-                    parsedArgs[flag] = args[i + 1];
-                    i++; // Skip the next argument as it's the value for this flag
-                }
-                else
-                {
-                    // If no value follows the flag, store an empty string
-                    parsedArgs[flag] = string.Empty;
-                }
-            }
-        }
-
-        return parsedArgs;
     }
 }

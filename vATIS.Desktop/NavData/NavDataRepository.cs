@@ -1,29 +1,45 @@
-﻿using ReactiveUI;
-using Serilog;
+﻿// <copyright file="NavDataRepository.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ReactiveUI;
+using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.NavData;
+
+/// <summary>
+/// Provides functionality to manage and retrieve navigation data, such as airports and navaids.
+/// </summary>
 public class NavDataRepository : INavDataRepository
 {
-    private List<Airport> _airports = [];
-    private List<Navaid> _navaids = [];
     private readonly IDownloader _downloader;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
 
+    private List<Airport> _airports = [];
+    private List<Navaid> _navaids = [];
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NavDataRepository"/> class.
+    /// </summary>
+    /// <param name="downloader">An instance of <see cref="IDownloader"/> used for downloading data.</param>
+    /// <param name="appConfigurationProvider">An instance of <see cref="IAppConfigurationProvider"/> used for accessing application configurations.</param>
     public NavDataRepository(IDownloader downloader, IAppConfigurationProvider appConfigurationProvider)
     {
         _downloader = downloader;
         _appConfigurationProvider = appConfigurationProvider;
     }
 
+    /// <inheritdoc />
     public async Task CheckForUpdates()
     {
         try
@@ -56,27 +72,22 @@ public class NavDataRepository : INavDataRepository
         }
     }
 
-    private async Task DownloadNavData(AvailableNavData availableNavData)
+    /// <inheritdoc />
+    public async Task Initialize()
     {
-        if (!string.IsNullOrEmpty(availableNavData.AirportDataUrl))
-        {
-            Log.Information($"Downloading airport navdata from {availableNavData.AirportDataUrl}");
-            await _downloader.DownloadFileAsync(availableNavData.AirportDataUrl, PathProvider.AirportsFilePath, new Progress<int>(percent =>
-            {
-                MessageBus.Current.SendMessage(new StartupStatusChanged($"Downloading airport navdata: {percent}%"));
-            }));
-        }
+        await Task.WhenAll(LoadNavaidDatabase(), LoadAirportDatabase());
+    }
 
-        if (!string.IsNullOrEmpty(availableNavData.NavaidDataUrl))
-        {
-            Log.Information($"Downloading navaid navdata from {availableNavData.NavaidDataUrl}");
-            await _downloader.DownloadFileAsync(availableNavData.NavaidDataUrl, PathProvider.NavaidsFilePath, new Progress<int>(percent =>
-            {
-                MessageBus.Current.SendMessage(new StartupStatusChanged($"Downloading navaid navdata: {percent}%"));
-            }));
-        }
+    /// <inheritdoc />
+    public Airport? GetAirport(string id)
+    {
+        return _airports.FirstOrDefault(x => x.Id == id);
+    }
 
-        await File.WriteAllTextAsync(PathProvider.NavDataSerialFilePath, JsonSerializer.Serialize(availableNavData.NavDataSerial, SourceGenerationContext.NewDefault.String));
+    /// <inheritdoc />
+    public Navaid? GetNavaid(string id)
+    {
+        return _navaids.FirstOrDefault(x => x.Id == id);
     }
 
     private static async Task<string> GetLocalNavDataSerial()
@@ -86,12 +97,36 @@ public class NavDataRepository : INavDataRepository
             return "";
         }
 
-        return JsonSerializer.Deserialize(await File.ReadAllTextAsync(PathProvider.NavDataSerialFilePath), SourceGenerationContext.NewDefault.String) ?? "";
+        return JsonSerializer.Deserialize(await File.ReadAllTextAsync(PathProvider.NavDataSerialFilePath),
+            SourceGenerationContext.NewDefault.String) ?? "";
     }
 
-    public async Task Initialize()
+    private async Task DownloadNavData(AvailableNavData availableNavData)
     {
-        await Task.WhenAll(LoadNavaidDatabase(), LoadAirportDatabase());
+        if (!string.IsNullOrEmpty(availableNavData.AirportDataUrl))
+        {
+            Log.Information($"Downloading airport navdata from {availableNavData.AirportDataUrl}");
+            await _downloader.DownloadFileAsync(availableNavData.AirportDataUrl, PathProvider.AirportsFilePath,
+                new Progress<int>(percent =>
+                {
+                    MessageBus.Current.SendMessage(
+                        new StartupStatusChanged($"Downloading airport navdata: {percent}%"));
+                }));
+        }
+
+        if (!string.IsNullOrEmpty(availableNavData.NavaidDataUrl))
+        {
+            Log.Information($"Downloading navaid navdata from {availableNavData.NavaidDataUrl}");
+            await _downloader.DownloadFileAsync(availableNavData.NavaidDataUrl, PathProvider.NavaidsFilePath,
+                new Progress<int>(percent =>
+                {
+                    MessageBus.Current.SendMessage(
+                        new StartupStatusChanged($"Downloading navaid navdata: {percent}%"));
+                }));
+        }
+
+        await File.WriteAllTextAsync(PathProvider.NavDataSerialFilePath,
+            JsonSerializer.Serialize(availableNavData.NavDataSerial, SourceGenerationContext.NewDefault.String));
     }
 
     private async Task LoadAirportDatabase()
@@ -111,15 +146,5 @@ public class NavDataRepository : INavDataRepository
             using StreamReader reader = new(source);
             return JsonSerializer.Deserialize(reader.ReadToEnd(), SourceGenerationContext.NewDefault.ListNavaid);
         }) ?? [];
-    }
-
-    public Airport? GetAirport(string id)
-    {
-        return _airports.FirstOrDefault(x => x.Id == id);
-    }
-
-    public Navaid? GetNavaid(string id)
-    {
-        return _navaids.FirstOrDefault(x => x.Id == id);
     }
 }

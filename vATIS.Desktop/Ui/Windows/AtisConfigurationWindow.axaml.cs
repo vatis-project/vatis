@@ -1,3 +1,8 @@
+// <copyright file="AtisConfigurationWindow.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -11,11 +16,19 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
 
-public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationWindowViewModel>, ICloseable, IDialogOwner
+/// <summary>
+/// Represents the ATIS configuration window.
+/// </summary>
+public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationWindowViewModel>, ICloseable,
+    IDialogOwner
 {
     private int _currentStationIndex;
     private bool _suppressSelectionChanged;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisConfigurationWindow"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model to be used as the data context for this window.</param>
     public AtisConfigurationWindow(AtisConfigurationWindowViewModel viewModel)
     {
         InitializeComponent();
@@ -30,14 +43,17 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         });
     }
 
-    private void OnClosed(object? sender, EventArgs e)
-    {
-        ViewModel?.Dispose();
-    }
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisConfigurationWindow"/> class.
+    /// </summary>
     public AtisConfigurationWindow()
     {
         InitializeComponent();
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     private async void Stations_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)

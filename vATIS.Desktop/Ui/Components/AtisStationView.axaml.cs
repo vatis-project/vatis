@@ -1,3 +1,8 @@
+// <copyright file="AtisStationView.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Reactive.Linq;
 using Avalonia.Input;
@@ -14,11 +19,18 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Components;
 
+/// <summary>
+/// Represents a view for the ATIS station, providing user interaction and data display for the associated
+/// <see cref="AtisStationViewModel"/>.
+/// </summary>
 public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 {
     private bool _airportConditionsInitialized;
     private bool _notamsInitialized;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisStationView"/> class.
+    /// </summary>
     public AtisStationView()
     {
         InitializeComponent();
@@ -29,6 +41,34 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         AtisLetter.PointerPressed += AtisLetterOnPointerPressed;
 
         Loaded += OnLoaded;
+    }
+
+    /// <inheritdoc />
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        ViewModel.WhenAnyValue(x => x.IsAtisLetterInputMode).Subscribe(mode =>
+        {
+            if (mode)
+            {
+                TypeAtisLetter.Text = "";
+                TypeAtisLetter.Focus();
+                TypeAtisLetter.SelectAll();
+            }
+        });
+
+        if (ViewModel != null)
+        {
+            AirportConditions.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyAirportConditions);
+            NotamFreeText.TextArea.ReadOnlySectionProvider =
+                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyNotams);
+            AirportConditions.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyAirportConditions));
+            NotamFreeText.TextArea.TextView.LineTransformers.Add(
+                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
+        }
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -50,7 +90,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
                 }
             }
         };
-        
+
         AirportConditions.Options.AllowScrollBelowDocument = false;
         AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
         {
@@ -81,6 +121,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             {
                 ViewModel.IsAtisLetterInputMode = true;
             }
+
             // If the shift key wasn't held down during a double tap it is likely
             // the user is just tapping/clicking really fast to advance the letter
             // so treat it like a single tap and increment.
@@ -165,42 +206,17 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
                 {
                     return;
                 }
+
                 if (letter < ViewModel.CodeRange.Low)
                 {
                     return;
                 }
+
                 ViewModel.AtisLetter = letter;
             }
         }
     }
 
-    protected override void OnDataContextChanged(EventArgs e)
-    {
-        base.OnDataContextChanged(e);
-
-        ViewModel.WhenAnyValue(x => x.IsAtisLetterInputMode).Subscribe(mode =>
-        {
-            if (mode)
-            {
-                TypeAtisLetter.Text = "";
-                TypeAtisLetter.Focus();
-                TypeAtisLetter.SelectAll();
-            }
-        });
-
-        if (ViewModel != null)
-        {
-            AirportConditions.TextArea.ReadOnlySectionProvider =
-                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyAirportConditions);
-            NotamFreeText.TextArea.ReadOnlySectionProvider =
-                new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyNotams);
-            AirportConditions.TextArea.TextView.LineTransformers.Add(
-                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyAirportConditions));
-            NotamFreeText.TextArea.TextView.LineTransformers.Add(
-                new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
-        }
-    }
-    
     private void AirportConditions_OnTextChanged(object? sender, EventArgs e)
     {
         if (ViewModel?.SelectedAtisPreset == null)
@@ -232,8 +248,8 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
         _notamsInitialized = true;
     }
-    
-    class ReadOnlySegmentTransformer : DocumentColorizingTransformer
+
+    private class ReadOnlySegmentTransformer : DocumentColorizingTransformer
     {
         private readonly TextSegmentCollection<TextSegment> _readOnlySegments;
 

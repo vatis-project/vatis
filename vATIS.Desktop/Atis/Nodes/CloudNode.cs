@@ -1,16 +1,67 @@
-﻿using System;
+﻿// <copyright file="CloudNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides cloud information.
+/// </summary>
 public class CloudNode : BaseNode<CloudLayer>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         Parse(metar.Clouds, metar.Ceiling);
+    }
+
+    /// <inheritdoc/>
+    public override string ParseTextVariables(CloudLayer value, string? format)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public override string ParseVoiceVariables(CloudLayer node, string? format)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static string TypeToString(CloudLayer.CloudType type)
+    {
+        return type switch
+        {
+            CloudLayer.CloudType.Cumulonimbus => "CB",
+            CloudLayer.CloudType.ToweringCumulus => "TCU",
+            CloudLayer.CloudType.CannotMeasure => "///",
+            CloudLayer.CloudType.None => "",
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, @"Unknown CloudType")
+        };
+    }
+
+    private static string AmountToString(CloudLayer.CloudAmount amount)
+    {
+        return amount switch
+        {
+            CloudLayer.CloudAmount.None => "",
+            CloudLayer.CloudAmount.Few => "FEW",
+            CloudLayer.CloudAmount.Broken => "BKN",
+            CloudLayer.CloudAmount.Scattered => "SCT",
+            CloudLayer.CloudAmount.Overcast => "OVC",
+            CloudLayer.CloudAmount.VerticalVisibility => "VV",
+            CloudLayer.CloudAmount.NoSignificantClouds => "NSC",
+            CloudLayer.CloudAmount.NoCloudsDetected => "NCD",
+            CloudLayer.CloudAmount.Clear => "CLR",
+            CloudLayer.CloudAmount.SkyClear => "SKC",
+            _ => throw new ArgumentOutOfRangeException(nameof(amount), amount, @"Unknown CloudAmount")
+        };
     }
 
     private void Parse(List<CloudLayer> cloudLayers, CloudLayer? ceiling)
@@ -80,6 +131,7 @@ public class CloudNode : BaseNode<CloudLayer>
                         {
                             minDigits = specifiedDigits;
                         }
+
                         return height.ToString(new string('0', minDigits));
                     },
                     RegexOptions.IgnoreCase
@@ -130,45 +182,5 @@ public class CloudNode : BaseNode<CloudLayer>
         }
 
         return "";
-    }
-
-    private static string TypeToString(CloudLayer.CloudType type)
-    {
-        return type switch
-        {
-            CloudLayer.CloudType.Cumulonimbus => "CB",
-            CloudLayer.CloudType.ToweringCumulus => "TCU",
-            CloudLayer.CloudType.CannotMeasure => "///",
-            CloudLayer.CloudType.None => "",
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, @"Unknown CloudType")
-        };
-    }
-
-    private static string AmountToString(CloudLayer.CloudAmount amount)
-    {
-        return amount switch
-        {
-            CloudLayer.CloudAmount.None => "",
-            CloudLayer.CloudAmount.Few => "FEW",
-            CloudLayer.CloudAmount.Broken => "BKN",
-            CloudLayer.CloudAmount.Scattered => "SCT",
-            CloudLayer.CloudAmount.Overcast => "OVC",
-            CloudLayer.CloudAmount.VerticalVisibility => "VV",
-            CloudLayer.CloudAmount.NoSignificantClouds => "NSC",
-            CloudLayer.CloudAmount.NoCloudsDetected => "NCD",
-            CloudLayer.CloudAmount.Clear => "CLR",
-            CloudLayer.CloudAmount.SkyClear => "SKC",
-            _ => throw new ArgumentOutOfRangeException(nameof(amount), amount, @"Unknown CloudAmount")
-        };
-    }
-
-    public override string ParseTextVariables(CloudLayer value, string? format)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ParseVoiceVariables(CloudLayer node, string? format)
-    {
-        throw new NotImplementedException();
     }
 }

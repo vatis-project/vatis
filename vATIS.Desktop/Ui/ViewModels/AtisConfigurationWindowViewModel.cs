@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="AtisConfigurationWindowViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -31,9 +36,11 @@ using Vatsim.Vatis.Voice.Audio;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
+/// <summary>
+/// Represents the view model for the ATIS configuration window.
+/// </summary>
 public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly CompositeDisposable _disposables = new();
     private readonly IAppConfig _appConfig;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
@@ -41,59 +48,24 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     private readonly IViewModelFactory _viewModelFactory;
     private readonly ITextToSpeechService _textToSpeechService;
     private readonly IProfileRepository _profileRepository;
+    private readonly CompositeDisposable _disposables = [];
+    private readonly SourceList<AtisStation> _atisStationSource = new();
+    private bool _hasUnsavedChanges;
+    private bool _showOverlay;
+    private int _selectedTabControlTabIndex;
+    private AtisStation? _selectedAtisStation;
     private IDialogOwner? _dialogOwner;
 
-    public GeneralConfigViewModel? GeneralConfigViewModel { get; private set; }
-    public PresetsViewModel? PresetsViewModel { get;  private set;}
-    public FormattingViewModel? FormattingViewModel { get; private set; }
-    public ContractionsViewModel? ContractionsViewModel { get; private set; }
-    public SandboxViewModel? SandboxViewModel { get; private set; }
-
-    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
-    public ReactiveCommand<AtisStation, Unit> SelectedAtisStationChanged { get;  }
-    public ReactiveCommand<ICloseable, Unit> SaveAndCloseCommand { get;  }
-    public ReactiveCommand<Unit, Unit> ApplyChangesCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> CancelChangesCommand { get;  }
-    public ReactiveCommand<Unit, Unit> NewAtisStationDialogCommand { get;  }
-    public ReactiveCommand<Unit, Unit> ExportAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> DeleteAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> RenameAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> CopyAtisCommand { get;  }
-    public ReactiveCommand<Unit, Unit> ImportAtisStationCommand { get;  }
-
-    #region Reactive UI Properties
-    private readonly SourceList<AtisStation> _atisStationSource = new();
-    public ReadOnlyObservableCollection<AtisStation> AtisStations { get; set; }
-
-    private bool _hasUnsavedChanges;
-    public bool HasUnsavedChanges
-    {
-        get => _hasUnsavedChanges;
-        private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
-    }
-
-    private bool _showOverlay;
-    public bool ShowOverlay
-    {
-        get => _showOverlay;
-        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
-    }
-
-    private int _selectedTabControlTabIndex;
-    public int SelectedTabControlTabIndex
-    {
-        get => _selectedTabControlTabIndex;
-        set => this.RaiseAndSetIfChanged(ref _selectedTabControlTabIndex, value);
-    }
-
-    private AtisStation? _selectedAtisStation;
-    public AtisStation? SelectedAtisStation
-    {
-        get => _selectedAtisStation;
-        set => this.RaiseAndSetIfChanged(ref _selectedAtisStation, value);
-    }
-    #endregion
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisConfigurationWindowViewModel"/> class.
+    /// </summary>
+    /// <param name="appConfig">The application configuration data.</param>
+    /// <param name="sessionManager">The session manager instance.</param>
+    /// <param name="windowFactory">The factory used to create application windows.</param>
+    /// <param name="viewModelFactory">The factory used to create view models.</param>
+    /// <param name="textToSpeechService">The text-to-speech service for the application.</param>
+    /// <param name="navDataRepository">The navigation data repository.</param>
+    /// <param name="profileRepository">The profile repository for managing user settings and profiles.</param>
     public AtisConfigurationWindowViewModel(IAppConfig appConfig,
         ISessionManager sessionManager,
         IWindowFactory windowFactory,
@@ -156,11 +128,170 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                 .Ascending(i => i.Identifier)
                 .ThenBy(i => i.AtisType))
             .Bind(out var sortedStations)
-            .Subscribe(_ =>
-            {
-                AtisStations = sortedStations;
-            });
+            .Subscribe(_ => { AtisStations = sortedStations; });
         AtisStations = sortedStations;
+    }
+
+    /// <summary>
+    /// Gets the instance of <see cref="GeneralConfigViewModel"/> used for general configuration settings in the ATIS configuration window.
+    /// </summary>
+    public GeneralConfigViewModel? GeneralConfigViewModel { get; private set; }
+
+    /// <summary>
+    /// Gets the instance of <see cref="PresetsViewModel"/> used to manage presets in the ATIS configuration window.
+    /// </summary>
+    public PresetsViewModel? PresetsViewModel { get; private set; }
+
+    /// <summary>
+    /// Gets the instance of <see cref="FormattingViewModel"/> used for managing ATIS message formatting settings in the ATIS configuration window.
+    /// </summary>
+    public FormattingViewModel? FormattingViewModel { get; private set; }
+
+    /// <summary>
+    /// Gets the instance of <see cref="ContractionsViewModel"/> used for managing contraction-related settings
+    /// in the ATIS configuration window.
+    /// </summary>
+    public ContractionsViewModel? ContractionsViewModel { get; private set; }
+
+    /// <summary>
+    /// Gets the instance of <see cref="SandboxViewModel"/> used for managing and applying
+    /// sandbox-specific configurations in the ATIS configuration window.
+    /// </summary>
+    public SandboxViewModel? SandboxViewModel { get; private set; }
+
+    /// <summary>
+    /// Gets the command that handles the logic to close a window that implements the <see cref="ICloseable"/> interface.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
+
+    /// <summary>
+    /// Gets the command that executes functionality when the selected ATIS station changes.
+    /// </summary>
+    public ReactiveCommand<AtisStation, Unit> SelectedAtisStationChanged { get; }
+
+    /// <summary>
+    /// Gets the command responsible for saving changes and closing the associated window.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> SaveAndCloseCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to apply changes made in the ATIS configuration window.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ApplyChangesCommand { get; }
+
+    /// <summary>
+    /// Gets the reactive command used to cancel unsaved changes and close the window.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> CancelChangesCommand { get; }
+
+    /// <summary>
+    /// Gets the command that opens a dialog for creating a new ATIS station.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> NewAtisStationDialogCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to export the selected ATIS station configuration.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ExportAtisCommand { get; }
+
+    /// <summary>
+    /// Gets the command that deletes the selected ATIS station.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> DeleteAtisCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to rename an ATIS station.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RenameAtisCommand { get; }
+
+    /// <summary>
+    /// Gets the command responsible for copying an ATIS station in the ATIS configuration.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> CopyAtisCommand { get; }
+
+    /// <summary>
+    /// Gets the command that handles importing an ATIS station.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ImportAtisStationCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the collection of <see cref="AtisStation"/> objects used to represent ATIS stations in the configuration window.
+    /// </summary>
+    public ReadOnlyObservableCollection<AtisStation> AtisStations { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether there are unsaved changes in the current configuration of <see cref="AtisConfigurationWindowViewModel"/>.
+    /// </summary>
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the dialog overlay should be displayed in the ATIS configuration window.
+    /// </summary>
+    public bool ShowOverlay
+    {
+        get => _showOverlay;
+        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the index of the selected tab in the TabControl within the ATIS configuration window.
+    /// </summary>
+    public int SelectedTabControlTabIndex
+    {
+        get => _selectedTabControlTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _selectedTabControlTabIndex, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the currently selected instance of <see cref="AtisStation"/> in the ATIS configuration window.
+    /// </summary>
+    public AtisStation? SelectedAtisStation
+    {
+        get => _selectedAtisStation;
+        set => this.RaiseAndSetIfChanged(ref _selectedAtisStation, value);
+    }
+
+    /// <summary>
+    /// Initializes the configuration window view model with the specified dialog owner.
+    /// </summary>
+    /// <param name="dialogOwner">The dialog owner interface instance used for dialog interactions.</param>
+    public void Initialize(IDialogOwner dialogOwner)
+    {
+        _dialogOwner = dialogOwner;
+
+        GeneralConfigViewModel = _viewModelFactory.CreateGeneralConfigViewModel();
+        GeneralConfigViewModel.AvailableVoices =
+            new ObservableCollection<VoiceMetaData>(_textToSpeechService.VoiceList);
+        GeneralConfigViewModel.WhenAnyValue(x => x.SelectedTabIndex).Subscribe(idx =>
+        {
+            SelectedTabControlTabIndex = idx;
+        });
+        GeneralConfigViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val => { HasUnsavedChanges = val; });
+
+        PresetsViewModel = _viewModelFactory.CreatePresetsViewModel();
+        PresetsViewModel.DialogOwner = _dialogOwner;
+        PresetsViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val => { HasUnsavedChanges = val; });
+
+        FormattingViewModel = _viewModelFactory.CreateFormattingViewModel();
+        FormattingViewModel.DialogOwner = _dialogOwner;
+        FormattingViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val => { HasUnsavedChanges = val; });
+
+        ContractionsViewModel = _viewModelFactory.CreateContractionsViewModel();
+        ContractionsViewModel.SetDialogOwner(_dialogOwner);
+
+        SandboxViewModel = _viewModelFactory.CreateSandboxViewModel();
+        SandboxViewModel.DialogOwner = _dialogOwner;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _disposables.Dispose();
     }
 
     private async Task HandleCloseWindow(ICloseable? window)
@@ -186,42 +317,6 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         {
             window?.Close();
         }
-    }
-
-    public void Initialize(IDialogOwner dialogOwner)
-    {
-        _dialogOwner = dialogOwner;
-
-        GeneralConfigViewModel = _viewModelFactory.CreateGeneralConfigViewModel();
-        GeneralConfigViewModel.AvailableVoices = new ObservableCollection<VoiceMetaData>(_textToSpeechService.VoiceList);
-        GeneralConfigViewModel.WhenAnyValue(x => x.SelectedTabIndex).Subscribe(idx =>
-        {
-            SelectedTabControlTabIndex = idx;
-        });
-        GeneralConfigViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val =>
-        {
-            HasUnsavedChanges = val;
-        });
-
-        PresetsViewModel = _viewModelFactory.CreatePresetsViewModel();
-        PresetsViewModel.DialogOwner = _dialogOwner;
-        PresetsViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val =>
-        {
-            HasUnsavedChanges = val;
-        });
-
-        FormattingViewModel = _viewModelFactory.CreateFormattingViewModel();
-        FormattingViewModel.DialogOwner = _dialogOwner;
-        FormattingViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val =>
-        {
-            HasUnsavedChanges = val;
-        });
-
-        ContractionsViewModel = _viewModelFactory.CreateContractionsViewModel();
-        ContractionsViewModel.SetDialogOwner(_dialogOwner);
-
-        SandboxViewModel = _viewModelFactory.CreateSandboxViewModel();
-        SandboxViewModel.DialogOwner = _dialogOwner;
     }
 
     private async Task HandleCancelChanges(ICloseable window)
@@ -257,7 +352,9 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         if (_dialogOwner == null)
             return;
 
-        if (await MessageBox.ShowDialog((Window)_dialogOwner, $"Are you sure you want to delete the selected ATIS Station? This action will also delete all associated ATIS presets.\r\n\r\n{SelectedAtisStation}", "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+        if (await MessageBox.ShowDialog((Window)_dialogOwner,
+                $"Are you sure you want to delete the selected ATIS Station? This action will also delete all associated ATIS presets.\r\n\r\n{SelectedAtisStation}",
+                "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
         {
             if (_sessionManager.CurrentProfile?.Stations == null)
                 return;
@@ -269,6 +366,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             SelectedAtisStation = null;
             ResetFields();
         }
+
         ClearAllErrors();
     }
 
@@ -322,11 +420,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
                         if (context.HasErrors) return;
 
-                        if (_atisStationSource.Items.Any(x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
+                        if (_atisStationSource.Items.Any(x =>
+                                x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
                         {
                             context.RaiseError("Duplicate", "");
 
-                            if (await MessageBox.ShowDialog(dialog, $"{context.AirportIdentifier} ({context.AtisType}) already exists.", "Error", MessageBoxButton.Ok, MessageBoxIcon.Information) == MessageBoxResult.Ok)
+                            if (await MessageBox.ShowDialog(dialog,
+                                    $"{context.AirportIdentifier} ({context.AtisType}) already exists.", "Error",
+                                    MessageBoxButton.Ok, MessageBoxIcon.Information) == MessageBoxResult.Ok)
                             {
                                 return;
                             }
@@ -452,6 +553,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                     }
                 };
             }
+
             await dialog.ShowDialog((Window)_dialogOwner);
         }
     }
@@ -465,15 +567,18 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             return;
 
         var filters = new List<FilePickerFileType> { new("ATIS Station (*.station)") { Patterns = ["*.station"] } };
-        var file = await FilePickerExtensions.SaveFileAsync("Export ATIS Station", filters, $"{SelectedAtisStation.Name} ({SelectedAtisStation.AtisType})");
+        var file = await FilePickerExtensions.SaveFileAsync("Export ATIS Station", filters,
+            $"{SelectedAtisStation.Name} ({SelectedAtisStation.AtisType})");
 
         if (file == null)
             return;
 
         SelectedAtisStation.Id = null!;
 
-        await File.WriteAllTextAsync(file.Path.LocalPath, JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation));
-        await MessageBox.ShowDialog((Window)_dialogOwner, "ATIS Station successfully exported.", "Success", MessageBoxButton.Ok, MessageBoxIcon.Information);
+        await File.WriteAllTextAsync(file.Path.LocalPath,
+            JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation));
+        await MessageBox.ShowDialog((Window)_dialogOwner, "ATIS Station successfully exported.", "Success",
+            MessageBoxButton.Ok, MessageBoxIcon.Information);
     }
 
     private async Task HandleNewAtisStationDialog()
@@ -524,21 +629,26 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
                         if (context.HasErrors) return;
 
-                        if (_atisStationSource.Items.Any(x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
+                        if (_atisStationSource.Items.Any(x =>
+                                x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType))
                         {
                             if (!isDuplicateAcknowledged)
                             {
                                 context.RaiseError("Duplicate", "");
                             }
 
-                            if (await MessageBox.ShowDialog(dialog, $"{context.AirportIdentifier} ({context.AtisType}) already exists. Would you like to overwrite it?", "Error", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                            if (await MessageBox.ShowDialog(dialog,
+                                    $"{context.AirportIdentifier} ({context.AtisType}) already exists. Would you like to overwrite it?",
+                                    "Error", MessageBoxButton.YesNo, MessageBoxIcon.Information) ==
+                                MessageBoxResult.Yes)
                             {
                                 isDuplicateAcknowledged = true;
 
                                 context.ClearErrors("Duplicate");
                                 context.OkButtonCommand.Execute(dialog).Subscribe();
 
-                                _sessionManager.CurrentProfile?.Stations?.RemoveAll(x => x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType);
+                                _sessionManager.CurrentProfile?.Stations?.RemoveAll(x =>
+                                    x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType);
                                 _appConfig.SaveConfig();
                             }
                             else
@@ -585,6 +695,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                 {
                     MessageBus.Current.SendMessage(new AtisStationUpdated(SelectedAtisStation.Id));
                 }
+
                 window?.Close();
             }
         }
@@ -617,11 +728,5 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         GeneralConfigViewModel?.Reset();
         SelectedTabControlTabIndex = 0;
         HasUnsavedChanges = false;
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        _disposables.Dispose();
     }
 }

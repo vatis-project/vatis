@@ -1,8 +1,12 @@
+// <copyright file="AtisMessage.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather.Decoder.Entity;
-using static Vatsim.Vatis.Weather.Decoder.Entity.Value;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
@@ -86,6 +90,9 @@ public class AtisMessage
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Altimeter { get; set; }
 
+        /// <summary>
+        /// Gets or sets the pressure value.
+        /// </summary>
         [JsonPropertyName("pressure")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Value? Pressure { get; set; }

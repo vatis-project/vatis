@@ -1,7 +1,13 @@
+// <copyright file="MockAtisHubConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +22,9 @@ using Vatsim.Vatis.Weather.Decoder;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
 
+/// <summary>
+/// A mock implementation of the <see cref="MockAtisHubConnection"/> class used for connecting to and interacting with the ATIS Hub.
+/// </summary>
 public class MockAtisHubConnection : IAtisHubConnection
 {
     private readonly IDownloader _downloader;
@@ -23,12 +32,18 @@ public class MockAtisHubConnection : IAtisHubConnection
     private HubConnection? _hubConnection;
     private ConnectionState _hubConnectionState;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MockAtisHubConnection"/> class.
+    /// </summary>
+    /// <param name="downloader">An instance of <see cref="IDownloader"/> to handle download operations.</param>
+    /// <param name="appConfigurationProvider">An instance of <see cref="IAppConfigurationProvider"/> to provide application configuration settings.</param>
     public MockAtisHubConnection(IDownloader downloader, IAppConfigurationProvider appConfigurationProvider)
     {
         _downloader = downloader;
         _appConfigurationProvider = appConfigurationProvider;
     }
 
+    /// <inheritdoc />
     public async Task Connect()
     {
         try
@@ -84,21 +99,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         }
     }
 
-    private void SetConnectionState(ConnectionState connectionState)
-    {
-        _hubConnectionState = connectionState;
-        MessageBus.Current.SendMessage(new ConnectionStateChanged(_hubConnectionState));
-        switch (_hubConnectionState)
-        {
-            case ConnectionState.Connected:
-                MessageBus.Current.SendMessage(new HubConnected());
-                break;
-            case ConnectionState.Disconnected:
-                MessageBus.Current.SendMessage(new HubDisconnected());
-                break;
-        }
-    }
-
+    /// <inheritdoc />
     public async Task Disconnect()
     {
         if (_hubConnection == null)
@@ -114,6 +115,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         }
     }
 
+    /// <inheritdoc />
     public async Task PublishAtis(AtisHubDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
@@ -122,6 +124,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("PublishAtis", dto);
     }
 
+    /// <inheritdoc />
     public async Task SubscribeToAtis(SubscribeDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
@@ -130,6 +133,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
     }
 
+    /// <inheritdoc />
     public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
     {
         if (string.IsNullOrEmpty(dto.Id))
@@ -188,6 +192,21 @@ public class MockAtisHubConnection : IAtisHubConnection
         }
 
         return null;
+    }
+
+    private void SetConnectionState(ConnectionState connectionState)
+    {
+        _hubConnectionState = connectionState;
+        MessageBus.Current.SendMessage(new ConnectionStateChanged(_hubConnectionState));
+        switch (_hubConnectionState)
+        {
+            case ConnectionState.Connected:
+                MessageBus.Current.SendMessage(new HubConnected());
+                break;
+            case ConnectionState.Disconnected:
+                MessageBus.Current.SendMessage(new HubDisconnected());
+                break;
+        }
     }
 
     private Task OnHubConnectionClosed(Exception? exception)

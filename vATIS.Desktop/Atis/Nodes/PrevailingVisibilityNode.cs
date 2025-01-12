@@ -1,28 +1,28 @@
-﻿using System;
+﻿// <copyright file="PrevailingVisibilityNode.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
+
+/// <summary>
+/// Represents an ATIS node that provides the prevailing visibility.
+/// </summary>
 public class PrevailingVisibilityNode : BaseNode<Visibility>
 {
+    /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
         Parse(metar.Visibility);
     }
 
-    private void Parse(Visibility? node)
-    {
-        ArgumentNullException.ThrowIfNull(Station);
-
-        if (node == null)
-            return;
-
-        VoiceAtis = ParseVoiceVariables(node, Station.AtisFormat.Visibility.Template.Voice);
-        TextAtis = ParseTextVariables(node, Station.AtisFormat.Visibility.Template.Text);
-    }
-
+    /// <inheritdoc/>
     public override string ParseTextVariables(Visibility value, string? format)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -43,10 +43,11 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (value.RawValue != null)
             return Regex.Replace(format, "{visibility}", value.RawValue, RegexOptions.IgnoreCase);
-        
+
         return "";
     }
 
+    /// <inheritdoc/>
     public override string ParseVoiceVariables(Visibility node, string? format)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -168,5 +169,16 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
             return Regex.Replace(format, "{visibility}", string.Join(", ", parsedValue), RegexOptions.IgnoreCase);
         }
+    }
+
+    private void Parse(Visibility? node)
+    {
+        ArgumentNullException.ThrowIfNull(Station);
+
+        if (node == null)
+            return;
+
+        VoiceAtis = ParseVoiceVariables(node, Station.AtisFormat.Visibility.Template.Voice);
+        TextAtis = ParseTextVariables(node, Station.AtisFormat.Visibility.Template.Text);
     }
 }

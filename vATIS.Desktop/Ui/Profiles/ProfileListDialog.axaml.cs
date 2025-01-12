@@ -1,3 +1,8 @@
+// <copyright file="ProfileListDialog.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -10,8 +15,15 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Profiles;
 
+/// <summary>
+/// Represents a dialog window for displaying and managing a list of profiles.
+/// </summary>
 public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, IDialogOwner
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfileListDialog"/> class.
+    /// </summary>
+    /// <param name="viewModel">The ViewModel for this dialog.</param>
     public ProfileListDialog(ProfileListViewModel viewModel)
     {
         InitializeComponent();
@@ -19,6 +31,42 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         Loaded += ProfileListDialog_Loaded;
         Closed += OnClosed;
         Closing += OnClosing;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfileListDialog"/> class.
+    /// </summary>
+    public ProfileListDialog()
+    {
+        InitializeComponent();
+    }
+
+    /// <summary>
+    /// Invoked when the dialog is opened.
+    /// </summary>
+    /// <param name="e">An <see cref="EventArgs"/> instance containing the event data.</param>
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        if (DataContext is ProfileListViewModel model)
+        {
+            model.SetDialogOwner(this);
+        }
+    }
+
+    /// <summary>
+    /// Handles the logic that occurs when the <see cref="ProfileListDialog"/> is loaded.
+    /// </summary>
+    /// <param name="e">The event data associated with the loaded event.</param>
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        PositionChanged += OnPositionChanged;
+        if (DataContext is ProfileListViewModel model)
+        {
+            model.RestorePosition(this);
+        }
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -53,31 +101,6 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             BeginMoveDrag(e);
-        }
-    }
-
-    public ProfileListDialog()
-    {
-        InitializeComponent();
-    }
-    
-    protected override void OnOpened(EventArgs e)
-    {
-        base.OnOpened(e);
-        if (DataContext is ProfileListViewModel model)
-        {
-            model.SetDialogOwner(this);
-        }
-    }
-
-    protected override void OnLoaded(RoutedEventArgs e)
-    {
-        base.OnLoaded(e);
-
-        PositionChanged += OnPositionChanged;
-        if (DataContext is ProfileListViewModel model)
-        {
-            model.RestorePosition(this);
         }
     }
 
