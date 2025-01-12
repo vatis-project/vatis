@@ -668,30 +668,30 @@
 							<TextBlock Text="Voice:" VerticalAlignment="Center"/>
 							<controls:TemplateVariableTextBox Text="{Binding AltimeterVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
 						</StackPanel>
-						<StackPanel Orientation="Horizontal" Spacing="10">
+						<WrapPanel Orientation="Horizontal">
 							<Button
-								Theme="{StaticResource DarkVariable}"
+								Theme="{StaticResource DarkVariable}" Margin="0,0,8,0"
 								ToolTip.Tip="The altimeter value from the METAR (e.g. 2992 or 1013)"
 								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 								CommandParameter="{Binding $self.Content}">
 								{altimeter}
 							</Button>
 							<Button
-								Theme="{StaticResource DarkVariable}"
+								Theme="{StaticResource DarkVariable}" Margin="0,0,8,0"
 								ToolTip.Tip="Encodes the altimeter into numeric word form (e.g. TWO NINER NINER TWO)"
 								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 								CommandParameter="{Binding $self.Content}">
 								{altimeter|text}
 							</Button>
 							<Button
-								Theme="{StaticResource DarkVariable}"
+								Theme="{StaticResource DarkVariable}" Margin="0,0,8,0"
 								ToolTip.Tip="Converts the altimeter value to inHg (inches mercury) and includes the decimal point (e.g. text: 29.92, voice: TWO NINER POINT NINER TWO)"
 								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 								CommandParameter="{Binding $self.Content}">
 								{altimeter|inhg}
 							</Button>
 							<Button
-								Theme="{StaticResource DarkVariable}"
+								Theme="{StaticResource DarkVariable}" Margin="0,0,8,0"
 								ToolTip.Tip="Converts the altimeter value to hPa (hectopascal)"
 								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 								CommandParameter="{Binding $self.Content}">
@@ -699,13 +699,13 @@
 							</Button>
 							<Button
 								IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}"
-								Theme="{StaticResource DarkVariable}"
-								ToolTip.Tip="Aerodrome atmospheric pressure: replace ELEVATION_FT with the field elevation in feet."
+								Theme="{StaticResource DarkVariable}" Margin="0,8,0,0"
+								ToolTip.Tip="Aerodrome atmospheric pressure&#x0a;&#x0a;Replace ELEVATION_FT with the field elevation in feet."
 								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 								CommandParameter="{Binding $self.Content}">
-								{qfe|ELEVATION_FT}
+								{qfe|ELEVATION__FT}
 							</Button>
-						</StackPanel>
+						</WrapPanel>
 					</StackPanel>
 				</groupBox:GroupBoxControl>
 			</StackPanel>
