@@ -15,21 +15,22 @@ using Vatsim.Vatis.Weather.Decoder.Exception;
 namespace Vatsim.Vatis.Weather.Decoder;
 
 /// <summary>
-/// Metar Decoder
+/// Provides functionality to decode METAR (Meteorological Aerodrome Reports) strings into structured objects.
 /// </summary>
 public class MetarDecoder
 {
+    /// <summary>
+    /// The key used to access the primary decoding result in a <see cref="Dictionary{TKey, TValue}"/>
+    /// returned by the decoding process within the <see cref="MetarDecoder"/> class.
+    /// </summary>
     public const string ResultKey = "Result";
-    public const string RemainingMetarKey = "RemainingMetar";
-    private const string ExceptionKey = "Exception";
 
     /// <summary>
-    /// Metar Decoder
+    /// Represents the key used to access the remaining, unprocessed portion of the METAR data
+    /// during the decoding process in the <see cref="MetarDecoder"/> class.
     /// </summary>
-    public MetarDecoder()
-    {
-
-    }
+    public const string RemainingMetarKey = "RemainingMetar";
+    private const string ExceptionKey = "Exception";
 
     private static readonly ReadOnlyCollection<MetarChunkDecoder> s_decoderChain = new((List<MetarChunkDecoder>)
     [
@@ -52,9 +53,16 @@ public class MetarDecoder
     private bool _globalStrictParsing;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="MetarDecoder"/> class.
+    /// </summary>
+    public MetarDecoder()
+    {
+    }
+
+    /// <summary>
     /// Set global parsing mode (strict/not strict) for the whole object.
     /// </summary>
-    /// <param name="isStrict"></param>
+    /// <param name="isStrict">Whether strict parsing mode is enabled.</param>
     public void SetStrictParsing(bool isStrict)
     {
         _globalStrictParsing = isStrict;
@@ -64,7 +72,8 @@ public class MetarDecoder
     /// Decode a full metar string into a complete metar object
     /// while using global strict option.
     /// </summary>
-    /// <param name="rawMetar">Metar String</param>
+    /// <param name="rawMetar">The raw METAR string.</param>
+    /// <returns>A decoded METAR object.</returns>
     public DecodedMetar Parse(string rawMetar)
     {
         return ParseWithMode(rawMetar, _globalStrictParsing);
@@ -75,8 +84,8 @@ public class MetarDecoder
     /// with strict option, meaning decoding will stop as soon as
     /// a non-compliance is detected.
     /// </summary>
-    /// <param name="rawMetar"></param>
-    /// <returns></returns>
+    /// <param name="rawMetar">The raw METAR string.</param>
+    /// <returns>A decoded METAR object.</returns>
     public DecodedMetar ParseStrict(string rawMetar)
     {
         return ParseWithMode(rawMetar, true);
@@ -87,8 +96,8 @@ public class MetarDecoder
     /// ith strict option disabled, meaning that decoding will
     /// continue even if metar is not compliant.
     /// </summary>
-    /// <param name="rawMetar"></param>
-    /// <returns></returns>
+    /// <param name="rawMetar">The raw METAR string.</param>
+    /// <returns>A decoded METAR object.</returns>
     public DecodedMetar ParseNotStrict(string rawMetar)
     {
         return ParseWithMode(rawMetar);
@@ -97,9 +106,9 @@ public class MetarDecoder
     /// <summary>
     /// Decode a full metar string into a complete metar object.
     /// </summary>
-    /// <param name="rawMetar">Metar String</param>
-    /// <param name="isStrict">false</param>
-    /// <returns></returns>
+    /// <param name="rawMetar">The raw METAR string.</param>
+    /// <param name="isStrict">Whether to parse in strict mode.</param>
+    /// <returns>A decoded METAR object.</returns>
     private static DecodedMetar ParseWithMode(string rawMetar, bool isStrict = false)
     {
         // prepare decoding inputs/outputs: (upper case, trim,
@@ -144,6 +153,7 @@ public class MetarDecoder
             {
                 // log error in decoded metar
                 decodedMetar.AddDecodingException(metarChunkDecoderException);
+
                 // abort decoding if strict mode is activated, continue otherwise
                 if (isStrict)
                 {
@@ -155,7 +165,7 @@ public class MetarDecoder
             }
 
             // hook for report status decoder, abort if nil, but decoded metar is valid though
-            if (chunkDecoder is ReportStatusChunkDecoder && (decodedMetar.Status == "NIL"))
+            if (chunkDecoder is ReportStatusChunkDecoder && decodedMetar.Status == "NIL")
             {
                 break;
             }

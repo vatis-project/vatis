@@ -19,8 +19,10 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
     /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
-        if (metar.RecentWeather != null) 
+        if (metar.RecentWeather != null)
+        {
             Parse(metar.RecentWeather);
+        }
     }
 
     /// <inheritdoc/>

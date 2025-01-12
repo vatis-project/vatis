@@ -3,61 +3,107 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using ReactiveUI;
 using System;
 using System.Reactive;
+using ReactiveUI;
 using Vatsim.Vatis.Ui.Dialogs;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
+/// <summary>
+/// Represents a view model for a user input dialog, providing functionalities for user input handling and dialog control.
+/// </summary>
 public class UserInputDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    public event EventHandler<DialogResult>? DialogResultChanged;
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
-    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
-
     private string _title = "";
-    public string Title
-    {
-        get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
-    }
-
     private string _prompt = "";
-    public string Prompt
-    {
-        get => _prompt;
-        set => this.RaiseAndSetIfChanged(ref _prompt, value);
-    }
-
     private string? _userValue;
-    public string? UserValue
-    {
-        get => _userValue;
-        set => this.RaiseAndSetIfChanged(ref _userValue, value);
-    }
-
     private bool _forceUppercase;
-    public bool ForceUppercase
-    {
-        get => _forceUppercase;
-        set => this.RaiseAndSetIfChanged(ref _forceUppercase, value);
-    }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserInputDialogViewModel"/> class.
+    /// </summary>
     public UserInputDialogViewModel()
     {
         CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCloseButton);
         OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButton);
     }
 
+    /// <summary>
+    /// Occurs when the dialog result changes, indicating a user action such as confirming or canceling the dialog.
+    /// </summary>
+    public event EventHandler<DialogResult>? DialogResultChanged;
+
+    /// <summary>
+    /// Gets the command that is executed when the Cancel button is clicked.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
+
+    /// <summary>
+    /// Gets the command that is executed when the OK button is clicked.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the title of the dialog.
+    /// </summary>
+    public string Title
+    {
+        get => _title;
+        set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text displayed as a prompt in the input dialog.
+    /// </summary>
+    public string Prompt
+    {
+        get => _prompt;
+        set => this.RaiseAndSetIfChanged(ref _prompt, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the value entered by the user in the input dialog.
+    /// </summary>
+    public string? UserValue
+    {
+        get => _userValue;
+        set => this.RaiseAndSetIfChanged(ref _userValue, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether user input should be automatically converted to uppercase.
+    /// </summary>
+    public bool ForceUppercase
+    {
+        get => _forceUppercase;
+        set => this.RaiseAndSetIfChanged(ref _forceUppercase, value);
+    }
+
+    /// <summary>
+    /// Sets an error message for the specified property.
+    /// </summary>
+    /// <param name="error">The error message to be displayed for the property.</param>
     public void SetError(string error)
     {
         RaiseError(nameof(UserValue), error);
     }
 
+    /// <summary>
+    /// Clears the current error associated with the property "UserValue".
+    /// </summary>
     public void ClearError()
     {
         ClearErrors(nameof(UserValue));
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        DialogResultChanged = null;
+        CancelButtonCommand.Dispose();
+        OkButtonCommand.Dispose();
     }
 
     private void HandleOkButton(ICloseable window)
@@ -73,13 +119,5 @@ public class UserInputDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         DialogResultChanged?.Invoke(this, DialogResult.Cancel);
         window.Close();
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        DialogResultChanged = null;
-        CancelButtonCommand.Dispose();
-        OkButtonCommand.Dispose();
     }
 }

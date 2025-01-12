@@ -12,6 +12,14 @@ using Vatsim.Vatis.Weather.Decoder.Exception;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Provides functionality to decode a specific chunk of a METAR related to visibility information.
+/// </summary>
+/// <remarks>
+/// Decodes visibility information from METAR reports, including CAVOK indications, visibility distance,
+/// and other relevant visibility-related data. This class extends <see cref="MetarChunkDecoder"/> to provide
+/// specialized decoding functionalities for visibility-related chunks in METAR weather data.
+/// </remarks>
 public sealed class VisibilityChunkDecoder : MetarChunkDecoder
 {
     private const string CavokParameterName = "Cavok";
@@ -22,11 +30,14 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
     private const string MinimumVisibilityRegexPattern = "( ([0-9]{4})(N|NE|E|SE|S|SW|W|NW)?)?"; // optional
     private const string NoInfoRegexPattern = "////";
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
-        return $"^({CavokRegexPattern}|{VisibilityRegexPattern}{MinimumVisibilityRegexPattern}|{UsVisibilityRegexPattern}|{NoInfoRegexPattern})( )";
+        return
+            $"^({CavokRegexPattern}|{VisibilityRegexPattern}{MinimumVisibilityRegexPattern}|{UsVisibilityRegexPattern}|{NoInfoRegexPattern})( )";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
         var consumed = Consume(remainingMetar);
@@ -37,11 +48,13 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
         // handle the case where nothing has been found
         if (found.Count <= 1)
         {
-            throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+            throw new MetarChunkDecoderException(
+                remainingMetar,
+                newRemainingMetar,
                 MetarChunkDecoderException.Messages.ForVisibilityInformationBadFormat);
         }
 
-        Visibility visibility = new Visibility();
+        var visibility = new Visibility();
         bool cavok;
         if (found[1].Value == CavokRegexPattern)
         {
@@ -58,10 +71,10 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
         else
         {
             cavok = false;
-            
+
             visibility.RawValue = found[1].Value;
             visibility.IsCavok = cavok;
-            
+
             if (!string.IsNullOrEmpty(found[2].Value))
             {
                 // icao visibility
@@ -71,6 +84,7 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
                     visibility.MinimumVisibility = new Value(Convert.ToDouble(found[5].Value), Value.Unit.Meter);
                     visibility.MinimumVisibilityDirection = found[6].Value;
                 }
+
                 visibility.IsNdv = !string.IsNullOrEmpty(found[3].Value);
             }
             else
@@ -81,6 +95,7 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
                 {
                     visibilityValue += Convert.ToInt32(found[7].Value);
                 }
+
                 if (!string.IsNullOrEmpty(found[9].Value) && !string.IsNullOrEmpty(found[10].Value))
                 {
                     var fractionTop = Convert.ToInt32(found[9].Value);

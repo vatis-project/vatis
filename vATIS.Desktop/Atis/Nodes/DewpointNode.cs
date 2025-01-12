@@ -56,7 +56,8 @@ public class DewpointNode : BaseNode<Value>
         string formattedValue;
         string formatString = new string('0', digitCount); // Create a format string like "00", "000", etc.
 
-        if (value.ActualValue < 0 && !suppressM) // Only prefix "M" if negative and not suppressed
+        // Only prefix "M" if negative and not suppressed
+        if (value.ActualValue < 0 && !suppressM)
         {
             formattedValue = $"M{Math.Abs(value.ActualValue).ToString(formatString)}";
         }

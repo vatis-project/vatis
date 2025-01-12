@@ -29,9 +29,13 @@ using Vatsim.Vatis.Ui.Services;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
+/// <summary>
+/// Represents the view model for the main application window, providing properties,
+/// commands, and methods for managing the UI and application behavior.
+/// </summary>
 public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly CompositeDisposable _disposables = new();
+    private readonly CompositeDisposable _disposables = [];
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly IViewModelFactory _viewModelFactory;
@@ -40,40 +44,19 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     private readonly IWebsocketService _websocketService;
     private readonly SourceList<AtisStationViewModel> _atisStationSource = new();
     private string? _beforeStationSortSelectedStationId;
-
-    public Window? Owner { get; set; }
-    public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
-    private ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
-
-    public ReactiveCommand<Unit, Unit> GetDigitalAtisLetterCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenSettingsDialogCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenProfileConfigurationWindowCommand { get; }
-    public ReactiveCommand<Unit, Unit> EndClientSessionCommand { get; }
-    public ReactiveCommand<Unit, Unit> InvokeCompactViewCommand { get; }
-
-    #region Reactive Properties
     private int _selectedTabIndex;
-    public int SelectedTabIndex
-    {
-        get => _selectedTabIndex;
-        set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
-    }
-
     private string _currentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
-    public string CurrentTime
-    {
-        get => _currentTime;
-        set => this.RaiseAndSetIfChanged(ref _currentTime, value);
-    }
-
     private bool _showOverlay;
-    public bool ShowOverlay
-    {
-        get => _showOverlay;
-        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
-    }
-    #endregion
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainWindowViewModel"/> class.
+    /// </summary>
+    /// <param name="sessionManager">The session manager for managing user sessions.</param>
+    /// <param name="windowFactory">The factory responsible for creating windows.</param>
+    /// <param name="viewModelFactory">The factory responsible for creating view models.</param>
+    /// <param name="windowLocationService">The service responsible for managing window locations.</param>
+    /// <param name="atisHubConnection">The connection to the ATIS hub for fetching station data.</param>
+    /// <param name="websocketService">The service responsible for managing WebSocket communication.</param>
     public MainWindowViewModel(ISessionManager sessionManager, IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory, IWindowLocationService windowLocationService,
         IAtisHubConnection atisHubConnection, IWebsocketService websocketService)
@@ -137,13 +120,11 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
-            .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+            .Filter(x =>
+                x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
             .Sort(SortExpressionComparer<AtisStationViewModel>.Ascending(i => i.Identifier ?? string.Empty))
             .Bind(out var connectedStations)
-            .Subscribe(_ =>
-            {
-                CompactWindowStations = connectedStations;
-            });
+            .Subscribe(_ => { CompactWindowStations = connectedStations; });
 
         CompactWindowStations = connectedStations;
 
@@ -202,29 +183,138 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         timer.Start();
     }
 
-    private async Task HandleGetDigitalAtisLetter()
+    /// <summary>
+    /// Gets or sets the owner window of the view model.
+    /// </summary>
+    public Window? Owner { get; set; }
+
+    /// <summary>
+    /// Gets or sets the collection of ATIS station view models to display in the tab control.
+    /// </summary>
+    public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
+
+    /// <summary>
+    /// Gets or sets the filtered collection of ATIS stations displayed in the compact window.
+    /// </summary>
+    public ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
+
+    /// <summary>
+    /// Gets the command that fetches the latest real-world D-ATIS letter.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> GetDigitalAtisLetterCommand { get; }
+
+    /// <summary>
+    /// Gets the command to open the settings dialog.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenSettingsDialogCommand { get; }
+
+    /// <summary>
+    /// Gets the command to open the profile configuration window.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenProfileConfigurationWindowCommand { get; }
+
+    /// <summary>
+    /// Gets the command to end the current client session.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> EndClientSessionCommand { get; }
+
+    /// <summary>
+    /// Gets the command to invoke the compact view mode.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> InvokeCompactViewCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the index of the currently selected tab in the tab control.
+    /// </summary>
+    public int SelectedTabIndex
     {
-        // This should never happen... but then again, I've been wrong before
-        if (SelectedTabIndex < 0 || SelectedTabIndex >= AtisStations.Count)
-            return;
-
-        var selectedStation = AtisStations[SelectedTabIndex];
-
-        if (string.IsNullOrEmpty(selectedStation.Identifier))
-            return;
-
-        var requestDto = new DigitalAtisRequestDto
-        {
-            Id = selectedStation.Identifier,
-            AtisType = selectedStation.AtisType
-        };
-        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-        if (atisLetter != null)
-        {
-            selectedStation.SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
-        }
+        get => _selectedTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
     }
 
+    /// <summary>
+    /// Gets or sets the current time in a formatted string.
+    /// </summary>
+    public string CurrentTime
+    {
+        get => _currentTime;
+        set => this.RaiseAndSetIfChanged(ref _currentTime, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the overlay is displayed on the main application window.
+    /// </summary>
+    public bool ShowOverlay
+    {
+        get => _showOverlay;
+        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
+    }
+
+    /// <summary>
+    /// Updates the stored position of the specified window using the window location service.
+    /// </summary>
+    /// <param name="window">The window whose position is to be updated. If null, no update is performed.</param>
+    public void UpdatePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        _windowLocationService.Update(window);
+    }
+
+    /// <summary>
+    /// Restores the position of the specified window using the window location service.
+    /// </summary>
+    /// <param name="window">The window whose position is to be restored. If null, the method performs no action.</param>
+    public void RestorePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        _windowLocationService.Restore(window);
+    }
+
+    /// <summary>
+    /// Starts the WebSocket connection using the underlying WebSocket service.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task StartWebsocket()
+    {
+        await _websocketService.StartAsync();
+    }
+
+    /// <summary>
+    /// Stops the WebSocket connection asynchronously.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task StopWebsocket()
+    {
+        await _websocketService.StopAsync();
+    }
+
+    /// <summary>
+    /// Connects to the ATIS hub using the provided hub connection.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation of connecting to the ATIS hub.</returns>
+    public async Task ConnectToHub()
+    {
+        await _atisHubConnection.Connect();
+    }
+
+    /// <summary>
+    /// Disconnects from the ATIS hub connection.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation of disconnecting from the hub.</returns>
+    public async Task DisconnectFromHub()
+    {
+        await _atisHubConnection.Disconnect();
+    }
+
+    /// <summary>
+    /// Populates the ATIS stations collection by creating and adding <see cref="AtisStationViewModel"/> instances
+    /// based on stations defined in the current profile.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task PopulateAtisStations()
     {
         if (_sessionManager.CurrentProfile?.Stations == null)
@@ -249,6 +339,35 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                         MessageBoxButton.Ok, MessageBoxIcon.Error);
                 }
             }
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _disposables.Dispose();
+    }
+
+    private async Task HandleGetDigitalAtisLetter()
+    {
+        // This should never happen... but then again, I've been wrong before
+        if (SelectedTabIndex < 0 || SelectedTabIndex >= AtisStations.Count)
+            return;
+
+        var selectedStation = AtisStations[SelectedTabIndex];
+
+        if (string.IsNullOrEmpty(selectedStation.Identifier))
+            return;
+
+        var requestDto = new DigitalAtisRequestDto
+        {
+            Id = selectedStation.Identifier, AtisType = selectedStation.AtisType
+        };
+        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+        if (atisLetter != null)
+        {
+            selectedStation.SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
         }
     }
 
@@ -313,47 +432,5 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
             _sessionManager.EndSession();
         }
-    }
-
-    public void UpdatePosition(Window? window)
-    {
-        if (window == null)
-            return;
-
-        _windowLocationService.Update(window);
-    }
-
-    public void RestorePosition(Window? window)
-    {
-        if (window == null)
-            return;
-
-        _windowLocationService.Restore(window);
-    }
-
-    public async Task StartWebsocket()
-    {
-        await _websocketService.StartAsync();
-    }
-
-    public async Task StopWebsocket()
-    {
-        await _websocketService.StopAsync();
-    }
-
-    public async Task ConnectToHub()
-    {
-        await _atisHubConnection.Connect();
-    }
-
-    public async Task DisconnectFromHub()
-    {
-        await _atisHubConnection.Disconnect();
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        _disposables.Dispose();
     }
 }

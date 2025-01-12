@@ -10,15 +10,23 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Represents a decoder for recent weather information in a METAR report.
+/// This class is responsible for parsing and interpreting recent weather-related
+/// information based on specified decoding logic.
+/// </summary>
 public sealed class RecentWeatherChunkDecoder : MetarChunkDecoder
 {
     private const string RecentWeatherParameterName = "RecentWeather";
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
-        return $"^RE({PresentWeatherChunkDecoder.CaracRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?()? ";
+        return
+            $"^RE({PresentWeatherChunkDecoder.CaracRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?({PresentWeatherChunkDecoder.TypeRegexPattern})?()? ";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
         var consumed = Consume(remainingMetar);
@@ -31,7 +39,7 @@ public sealed class RecentWeatherChunkDecoder : MetarChunkDecoder
             // retrieve found params
             var weather = new WeatherPhenomenon
             {
-                Characteristics = found[1].Value
+                Characteristics = found[1].Value,
             };
             for (var k = 2; k <= 4; ++k)
             {
@@ -40,6 +48,7 @@ public sealed class RecentWeatherChunkDecoder : MetarChunkDecoder
                     weather.AddType(found[k].Value);
                 }
             }
+
             result.Add(RecentWeatherParameterName, weather);
         }
 

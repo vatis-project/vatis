@@ -9,51 +9,52 @@ using System.Collections.ObjectModel;
 
 namespace Vatsim.Vatis.Weather.Decoder.Entity;
 
+/// <summary>
+/// Represents the weather conditions, including precipitation, obscurations, and vicinities.
+/// </summary>
 public sealed class PresentWeather
 {
-    private readonly List<int> _precipitations = [];
-
-    /// <summary>
-    /// Precipitations phenomenon
-    /// </summary>
-    public ReadOnlyCollection<int> Precipitations => new(_precipitations);
-
     private readonly List<int> _obscurations = [];
-
-    /// <summary>
-    /// Obscurations phenomenon
-    /// </summary>
-    public ReadOnlyCollection<int> Obscurations => new(_obscurations);
-
+    private readonly List<int> _precipitations = [];
     private readonly List<int> _vicinities = [];
 
     /// <summary>
-    /// Obscurations phenomenon
+    /// Gets precipitations phenomenon.
+    /// </summary>
+    public ReadOnlyCollection<int> Precipitations => new(_precipitations);
+
+    /// <summary>
+    /// Gets obscurations phenomenon.
+    /// </summary>
+    public ReadOnlyCollection<int> Obscurations => new(_obscurations);
+
+    /// <summary>
+    /// Gets vicinities phenomenon.
     /// </summary>
     public ReadOnlyCollection<int> Vicinities => new(_vicinities);
 
     /// <summary>
-    /// AddPrecipitation
+    /// Add Precipitation.
     /// </summary>
-    /// <param name="precipitation">precipitation</param>
+    /// <param name="precipitation">The precipitation to be added.</param>
     public void AddPrecipitation(int precipitation)
     {
         _precipitations.Add(precipitation);
     }
 
     /// <summary>
-    /// AddObscuration
+    /// Add Obscuration.
     /// </summary>
-    /// <param name="obscurationPhenomenon">obscurationPhenomenon</param>
+    /// <param name="obscurationPhenomenon">The obscuration phenomenon to be added.</param>
     public void AddObscuration(int obscurationPhenomenon)
     {
         _obscurations.Add(obscurationPhenomenon);
     }
 
     /// <summary>
-    /// AddVicinity
+    /// Add Vicinity.
     /// </summary>
-    /// <param name="vicinity">vicinity</param>
+    /// <param name="vicinity">The vicinity to be added.</param>
     public void AddVicinity(int vicinity)
     {
         _vicinities.Add(vicinity);

@@ -9,11 +9,17 @@ using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 namespace Vatsim.Vatis.Ui.AtisConfiguration;
 
+/// <summary>
+/// Represents a view for the sandbox section used within the ATIS configuration UI.
+/// </summary>
 public partial class SandboxView : UserControl
 {
     private bool _airportConditionsInitialized;
     private bool _notamsInitialized;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SandboxView"/> class.
+    /// </summary>
     public SandboxView()
     {
         InitializeComponent();

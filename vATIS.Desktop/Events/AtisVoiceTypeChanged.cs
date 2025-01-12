@@ -5,7 +5,6 @@
 
 namespace Vatsim.Vatis.Events;
 
-
 /// <summary>
 /// Represents an event that is raised when the voice type of ATIS station is changed.
 /// </summary>

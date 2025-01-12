@@ -287,6 +287,23 @@ public class SandboxViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceResponse, value);
     }
 
+    /// <summary>
+    /// Applies sandbox configuration by verifying the state of unsaved data and stopping sandbox playback if required.
+    /// </summary>
+    /// <returns>
+    /// Returns <c>true</c> if the configuration is applied successfully; <c>false</c> if there are unsaved airport conditions or NOTAMs.
+    /// </returns>
+    public bool ApplyConfig()
+    {
+        if (HasUnsavedNotams || HasUnsavedAirportConditions)
+            return false;
+
+        IsSandboxPlaybackActive = false;
+        NativeAudio.StopBufferPlayback();
+
+        return true;
+    }
+
     private void HandleAtisStationChanged(AtisStation? station)
     {
         if (station == null)
@@ -304,23 +321,6 @@ public class SandboxViewModel : ReactiveViewModelBase
         SandboxSpokenTextAtis = "";
         IsSandboxPlaybackActive = false;
         NativeAudio.StopBufferPlayback();
-    }
-
-    /// <summary>
-    /// Applies sandbox configuration by verifying the state of unsaved data and stopping sandbox playback if required.
-    /// </summary>
-    /// <returns>
-    /// Returns <c>true</c> if the configuration is applied successfully; <c>false</c> if there are unsaved airport conditions or NOTAMs.
-    /// </returns>
-    public bool ApplyConfig()
-    {
-        if (HasUnsavedNotams || HasUnsavedAirportConditions)
-            return false;
-
-        IsSandboxPlaybackActive = false;
-        NativeAudio.StopBufferPlayback();
-
-        return true;
     }
 
     private async Task HandlePlaySandboxAtis(CancellationToken token)
@@ -527,7 +527,6 @@ public class SandboxViewModel : ReactiveViewModelBase
 
         await dlg.ShowDialog(lifetime.MainWindow);
     }
-
 
     private void HandleSelectedPresetChanged()
     {

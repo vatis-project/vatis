@@ -4,4 +4,8 @@
 // </copyright>
 
 namespace Vatsim.Vatis.Ui;
+
+/// <summary>
+/// Represents a contract for an owner of a dialog implementation.
+/// </summary>
 public interface IDialogOwner;

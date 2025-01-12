@@ -240,7 +240,7 @@ public class App : Application
                 return;
             }
 
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
             {
                 var owner = lifetime.Windows.FirstOrDefault(x => x is { IsActive: true, IsVisible: true });
                 if (owner != null)

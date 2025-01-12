@@ -3,7 +3,6 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,6 +18,7 @@ using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using DynamicData;
 using DynamicData.Binding;
+using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
@@ -32,15 +32,19 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
+using Vatsim.Vatis.Ui.Services;
+using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder.Entity;
-using Vatsim.Vatis.Ui.Services;
-using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
+
+/// <summary>
+/// Represents a ViewModel for managing ATIS station information and operations.
+/// </summary>
 public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IAppConfig _appConfig;
@@ -53,187 +57,72 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly IAtisHubConnection _atisHubConnection;
     private readonly IWebsocketService _websocketService;
     private readonly ISessionManager _sessionManager;
-    private CancellationTokenSource _cancellationToken;
     private readonly Airport _atisStationAirport;
+    private CancellationTokenSource _cancellationToken;
     private AtisPreset? _previousAtisPreset;
+    private DecodedMetar? _decodedMetar;
     private IDisposable? _publishAtisTimer;
     private bool _isPublishAtisTriggeredInitially;
-    private DecodedMetar? _decodedMetar;
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
-
-    public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
-    public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
-
-    #region Reactive Properties
     private string? _id;
-    public string? Id
-    {
-        get => _id;
-        private set => this.RaiseAndSetIfChanged(ref _id, value);
-    }
-
     private string? _identifier;
-    public string? Identifier
-    {
-        get => _identifier;
-        set => this.RaiseAndSetIfChanged(ref _identifier, value);
-    }
-
     private string? _tabText;
-    public string? TabText
-    {
-        get => _tabText;
-        set => this.RaiseAndSetIfChanged(ref _tabText, value);
-    }
-
     private char _atisLetter;
-    public char AtisLetter
-    {
-        get => _atisLetter;
-        set => this.RaiseAndSetIfChanged(ref _atisLetter, value);
-    }
-
-    public CodeRangeMeta CodeRange => _atisStation.CodeRange;
-
     private bool _isAtisLetterInputMode;
-    public bool IsAtisLetterInputMode
-    {
-        get => _isAtisLetterInputMode;
-        set => this.RaiseAndSetIfChanged(ref _isAtisLetterInputMode, value);
-    }
-
-    private string? _metar;
-    public string? Metar
-    {
-        get => _metar;
-        set => this.RaiseAndSetIfChanged(ref _metar, value);
-    }
-
+    private string? _metarString;
     private string? _wind;
-    public string? Wind
-    {
-        get => _wind;
-        set => this.RaiseAndSetIfChanged(ref _wind, value);
-    }
-
     private string? _altimeter;
-    public string? Altimeter
-    {
-        get => _altimeter;
-        set => this.RaiseAndSetIfChanged(ref _altimeter, value);
-    }
-
     private bool _isNewAtis;
-    public bool IsNewAtis
-    {
-        get => _isNewAtis;
-        set => this.RaiseAndSetIfChanged(ref _isNewAtis, value);
-    }
-
     private string _atisTypeLabel = "";
-    public string AtisTypeLabel
-    {
-        get => _atisTypeLabel;
-        set => this.RaiseAndSetIfChanged(ref _atisTypeLabel, value);
-    }
-
     private bool _isCombinedAtis;
-    public bool IsCombinedAtis
-    {
-        get => _isCombinedAtis;
-        private set => this.RaiseAndSetIfChanged(ref _isCombinedAtis, value);
-    }
-
     private ObservableCollection<AtisPreset> _atisPresetList = [];
-    public ObservableCollection<AtisPreset> AtisPresetList
-    {
-        get => _atisPresetList;
-        set => this.RaiseAndSetIfChanged(ref _atisPresetList, value);
-    }
-
     private AtisPreset? _selectedAtisPreset;
-    public AtisPreset? SelectedAtisPreset
-    {
-        get => _selectedAtisPreset;
-        private set => this.RaiseAndSetIfChanged(ref _selectedAtisPreset, value);
-    }
-
     private string? _errorMessage;
-    public string? ErrorMessage
-    {
-        get => _errorMessage;
-        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
-    }
-
-    private string? AirportConditionsFreeText => AirportConditionsTextDocument?.Text;
-
     private TextDocument? _airportConditionsTextDocument = new();
-    public TextDocument? AirportConditionsTextDocument
-    {
-        get => _airportConditionsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
-    }
-
-    private string? NotamsFreeText => _notamsTextDocument?.Text;
-
     private TextDocument? _notamsTextDocument = new();
-    public TextDocument? NotamsTextDocument
-    {
-        get => _notamsTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _notamsTextDocument, value);
-    }
-
     private bool _useTexToSpeech;
-    private bool UseTexToSpeech
-    {
-        get => _useTexToSpeech;
-        set => this.RaiseAndSetIfChanged(ref _useTexToSpeech, value);
-    }
-
     private NetworkConnectionStatus _networkConnectionStatus = NetworkConnectionStatus.Disconnected;
-    public NetworkConnectionStatus NetworkConnectionStatus
-    {
-        get => _networkConnectionStatus;
-        set => this.RaiseAndSetIfChanged(ref _networkConnectionStatus, value);
-    }
-
     private List<ICompletionData> _contractionCompletionData = [];
-    public List<ICompletionData> ContractionCompletionData
-    {
-        get => _contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
-    }
-
     private bool _hasUnsavedAirportConditions;
-    public bool HasUnsavedAirportConditions
-    {
-        get => _hasUnsavedAirportConditions;
-        set => this.RaiseAndSetIfChanged(ref _hasUnsavedAirportConditions, value);
-    }
-
     private bool _hasUnsavedNotams;
-    public bool HasUnsavedNotams
-    {
-        get => _hasUnsavedNotams;
-        set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
-    }
 
-    public AtisType AtisType => _atisStation.AtisType;
-    #endregion
-
-    public ReactiveCommand<Unit, Unit> DecrementAtisLetterCommand { get; }
-    public ReactiveCommand<Unit, Unit> AcknowledgeOrIncrementAtisLetterCommand { get; }
-    public ReactiveCommand<Unit, Unit> AcknowledgeAtisUpdateCommand { get; }
-    public ReactiveCommand<Unit, Unit> NetworkConnectCommand { get; }
-    public ReactiveCommand<Unit, Unit> VoiceRecordAtisCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenStaticAirportConditionsDialogCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
-    public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveAirportConditionsText { get; }
-    public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
-    public ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisStationViewModel"/> class.
+    /// </summary>
+    /// <param name="station">
+    /// The ATIS station instance associated with this view model.
+    /// </param>
+    /// <param name="connectionFactory">
+    /// The network connection factory used to manage network connections.
+    /// </param>
+    /// <param name="appConfig">
+    /// The application configuration used for accessing app settings.
+    /// </param>
+    /// <param name="voiceServerConnection">
+    /// The voice server connection instance for handling voice communication.
+    /// </param>
+    /// <param name="atisBuilder">
+    /// The ATIS builder used to construct ATIS messages.
+    /// </param>
+    /// <param name="windowFactory">
+    /// The window factory used for creating application windows.
+    /// </param>
+    /// <param name="navDataRepository">
+    /// The navigation data repository providing access to navigation data.
+    /// </param>
+    /// <param name="hubConnection">
+    /// The ATIS hub connection for interacting with the central hub.
+    /// </param>
+    /// <param name="sessionManager">
+    /// The session manager handling active user sessions.
+    /// </param>
+    /// <param name="profileRepository">
+    /// The profile repository for accessing user profiles.
+    /// </param>
+    /// <param name="websocketService">
+    /// The websocket service for handling websocket communications.
+    /// </param>
     public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
         IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
         INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
@@ -380,6 +269,319 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(HandleNetworkStatusChanged);
     }
 
+     /// <summary>
+    /// Gets or sets the collection of read-only airport condition text segments.
+    /// </summary>
+    public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the collection of read-only NOTAM text segments.
+    /// </summary>
+    public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
+
+    /// <summary>
+    /// Gets the command to decrement the ATIS letter.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> DecrementAtisLetterCommand { get; }
+
+    /// <summary>
+    /// Gets the command to acknowledge or increment the ATIS letter.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> AcknowledgeOrIncrementAtisLetterCommand { get; }
+
+    /// <summary>
+    /// Gets the command to acknowledge an ATIS update.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> AcknowledgeAtisUpdateCommand { get; }
+
+    /// <summary>
+    /// Gets the command for initiating a network connection.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> NetworkConnectCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to initiate voice recording for ATIS.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> VoiceRecordAtisCommand { get; }
+
+    /// <summary>
+    /// Gets the command to open the static airport conditions dialog.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenStaticAirportConditionsDialogCommand { get; }
+
+    /// <summary>
+    /// Gets the command for opening the static NOTAMs dialog.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
+
+    /// <summary>
+    /// Gets the command executed when the selected ATIS preset changes.
+    /// </summary>
+    public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
+
+    /// <summary>
+    /// Gets the command to save the airport condition free-form text.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SaveAirportConditionsText { get; }
+
+    /// <summary>
+    /// Gets the command to save NOTAMs free-form text.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
+
+    /// <summary>
+    /// Gets the command that sets the ATIS letter. Used with fetching real-world D-ATIS letter.
+    /// </summary>
+    public ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
+
+    /// <summary>
+    /// Gets the unique identifier for the ATIS station.
+    /// </summary>
+    public string? Id
+    {
+        get => _id;
+        private set => this.RaiseAndSetIfChanged(ref _id, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the identifier associated with the ATIS station.
+    /// </summary>
+    public string? Identifier
+    {
+        get => _identifier;
+        set => this.RaiseAndSetIfChanged(ref _identifier, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text displayed on the tab for the ATIS station.
+    /// </summary>
+    public string? TabText
+    {
+        get => _tabText;
+        set => this.RaiseAndSetIfChanged(ref _tabText, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the ATIS letter associated with the station.
+    /// </summary>
+    public char AtisLetter
+    {
+        get => _atisLetter;
+        set => this.RaiseAndSetIfChanged(ref _atisLetter, value);
+    }
+
+    /// <summary>
+    /// Gets the range of valid ATIS code letters associated with the ATIS station.
+    /// </summary>
+    public CodeRangeMeta CodeRange => _atisStation.CodeRange;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the ATIS letter input mode is active.
+    /// </summary>
+    public bool IsAtisLetterInputMode
+    {
+        get => _isAtisLetterInputMode;
+        set => this.RaiseAndSetIfChanged(ref _isAtisLetterInputMode, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the METAR string for the ATIS station.
+    /// </summary>
+    public string? Metar
+    {
+        get => _metarString;
+        set => this.RaiseAndSetIfChanged(ref _metarString, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the wind information associated with the ATIS station.
+    /// </summary>
+    public string? Wind
+    {
+        get => _wind;
+        set => this.RaiseAndSetIfChanged(ref _wind, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the altimeter value as a string representation.
+    /// </summary>
+    public string? Altimeter
+    {
+        get => _altimeter;
+        set => this.RaiseAndSetIfChanged(ref _altimeter, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the ATIS is new.
+    /// </summary>
+    public bool IsNewAtis
+    {
+        get => _isNewAtis;
+        set => this.RaiseAndSetIfChanged(ref _isNewAtis, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the ATIS type label.
+    /// </summary>
+    public string AtisTypeLabel
+    {
+        get => _atisTypeLabel;
+        set => this.RaiseAndSetIfChanged(ref _atisTypeLabel, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the ATIS station type is "Combined".
+    /// </summary>
+    public bool IsCombinedAtis
+    {
+        get => _isCombinedAtis;
+        private set => this.RaiseAndSetIfChanged(ref _isCombinedAtis, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of ATIS presets.
+    /// </summary>
+    public ObservableCollection<AtisPreset> AtisPresetList
+    {
+        get => _atisPresetList;
+        set => this.RaiseAndSetIfChanged(ref _atisPresetList, value);
+    }
+
+    /// <summary>
+    /// Gets the currently selected ATIS preset.
+    /// </summary>
+    public AtisPreset? SelectedAtisPreset
+    {
+        get => _selectedAtisPreset;
+        private set => this.RaiseAndSetIfChanged(ref _selectedAtisPreset, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the error message associated with the current operation or state.
+    /// </summary>
+    public string? ErrorMessage
+    {
+        get => _errorMessage;
+        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
+    }
+
+    /// <summary>
+    /// Gets the free text representation of the airport conditions.
+    /// </summary>
+    public string? AirportConditionsFreeText => AirportConditionsTextDocument?.Text;
+
+    /// <summary>
+    /// Gets or sets the text document containing airport conditions.
+    /// </summary>
+    public TextDocument? AirportConditionsTextDocument
+    {
+        get => _airportConditionsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
+    }
+
+    /// <summary>
+    /// Gets the free-text representation of the NOTAMs from the text document.
+    /// </summary>
+    public string? NotamsFreeText => _notamsTextDocument?.Text;
+
+    /// <summary>
+    /// Gets or sets the NOTAMs text document for editing operations.
+    /// </summary>
+    public TextDocument? NotamsTextDocument
+    {
+        get => _notamsTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _notamsTextDocument, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether text-to-speech functionality is enabled.
+    /// </summary>
+    public bool UseTexToSpeech
+    {
+        get => _useTexToSpeech;
+        set => this.RaiseAndSetIfChanged(ref _useTexToSpeech, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the network connection status of the ATIS station.
+    /// </summary>
+    public NetworkConnectionStatus NetworkConnectionStatus
+    {
+        get => _networkConnectionStatus;
+        set => this.RaiseAndSetIfChanged(ref _networkConnectionStatus, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of contraction completion data utilized for auto-completion.
+    /// </summary>
+    public List<ICompletionData> ContractionCompletionData
+    {
+        get => _contractionCompletionData;
+        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether there are unsaved changes to the airport conditions.
+    /// </summary>
+    public bool HasUnsavedAirportConditions
+    {
+        get => _hasUnsavedAirportConditions;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedAirportConditions, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether there are unsaved changes to the NOTAMs.
+    /// </summary>
+    public bool HasUnsavedNotams
+    {
+        get => _hasUnsavedNotams;
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating the ATIS type.
+    /// </summary>
+    public AtisType AtisType => _atisStation.AtisType;
+
+    /// <summary>
+    /// Disconnects the current network connection and updates the network connection status
+    /// to <see cref="NetworkConnectionStatus.Disconnected"/>.
+    /// </summary>
+    public void Disconnect()
+    {
+        _networkConnection?.Disconnect();
+        NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _websocketService.GetAtisReceived -= OnGetAtisReceived;
+        _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
+
+        if (_networkConnection != null)
+        {
+            _networkConnection.NetworkConnectionFailed -= OnNetworkConnectionFailed;
+            _networkConnection.NetworkErrorReceived -= OnNetworkErrorReceived;
+            _networkConnection.NetworkConnected -= OnNetworkConnected;
+            _networkConnection.NetworkDisconnected -= OnNetworkDisconnected;
+            _networkConnection.ChangeServerReceived -= OnChangeServerReceived;
+            _networkConnection.MetarResponseReceived -= OnMetarResponseReceived;
+            _networkConnection.KillRequestReceived -= OnKillRequestedReceived;
+        }
+
+        DecrementAtisLetterCommand.Dispose();
+        AcknowledgeOrIncrementAtisLetterCommand.Dispose();
+        AcknowledgeAtisUpdateCommand.Dispose();
+        NetworkConnectCommand.Dispose();
+        VoiceRecordAtisCommand.Dispose();
+        OpenStaticAirportConditionsDialogCommand.Dispose();
+        OpenStaticNotamsDialogCommand.Dispose();
+        SelectedPresetChangedCommand.Dispose();
+        SaveAirportConditionsText.Dispose();
+        SaveNotamsText.Dispose();
+    }
+
     private void HandleSetAtisLetter(char letter)
     {
         if (letter < _atisStation.CodeRange.Low || letter > _atisStation.CodeRange.High)
@@ -461,6 +663,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     item.Ordinal = ++idx;
                     _atisStation.NotamDefinitions.Add(item);
                 }
+
                 if (_sessionManager.CurrentProfile != null)
                     _profileRepository.Save(_sessionManager.CurrentProfile);
             };
@@ -511,6 +714,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     item.Ordinal = ++idx;
                     _atisStation.AirportConditionDefinitions.Add(item);
                 }
+
                 if (_sessionManager.CurrentProfile != null)
                     _profileRepository.Save(_sessionManager.CurrentProfile);
             };
@@ -630,6 +834,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                         break;
                     }
+
                 case NetworkConnectionStatus.Disconnected:
                     {
                         try
@@ -649,6 +854,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                         break;
                     }
+
                 case NetworkConnectionStatus.Connecting:
                 case NetworkConnectionStatus.Observer:
                     break;
@@ -803,6 +1009,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 {
                     NativeAudio.EmitSound(SoundType.Notification);
                 }
+
                 AcknowledgeOrIncrementAtisLetterCommand.Execute().Subscribe();
                 IsNewAtis = true;
             }
@@ -1174,7 +1381,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 {
                     Dispatcher.UIThread.Post(() => { ErrorMessage = ex.Message; });
                 }
-
             }, _cancellationToken.Token);
         }
         catch (OperationCanceledException)
@@ -1254,39 +1460,5 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         AtisLetter--;
         if (AtisLetter < _atisStation.CodeRange.Low)
             AtisLetter = _atisStation.CodeRange.High;
-    }
-
-    public void Disconnect()
-    {
-        _networkConnection?.Disconnect();
-        NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
-    }
-
-    public void Dispose()
-    {
-        _websocketService.GetAtisReceived -= OnGetAtisReceived;
-        _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
-
-        if (_networkConnection != null)
-        {
-            _networkConnection.NetworkConnectionFailed -= OnNetworkConnectionFailed;
-            _networkConnection.NetworkErrorReceived -= OnNetworkErrorReceived;
-            _networkConnection.NetworkConnected -= OnNetworkConnected;
-            _networkConnection.NetworkDisconnected -= OnNetworkDisconnected;
-            _networkConnection.ChangeServerReceived -= OnChangeServerReceived;
-            _networkConnection.MetarResponseReceived -= OnMetarResponseReceived;
-            _networkConnection.KillRequestReceived -= OnKillRequestedReceived;
-        }
-
-        DecrementAtisLetterCommand.Dispose();
-        AcknowledgeOrIncrementAtisLetterCommand.Dispose();
-        AcknowledgeAtisUpdateCommand.Dispose();
-        NetworkConnectCommand.Dispose();
-        VoiceRecordAtisCommand.Dispose();
-        OpenStaticAirportConditionsDialogCommand.Dispose();
-        OpenStaticNotamsDialogCommand.Dispose();
-        SelectedPresetChangedCommand.Dispose();
-        SaveAirportConditionsText.Dispose();
-        SaveNotamsText.Dispose();
     }
 }

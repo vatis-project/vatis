@@ -11,6 +11,15 @@ using Vatsim.Vatis.Weather.Decoder.Exception;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Represents a decoder for the surface wind portion of a METAR weather report.
+/// This class is responsible for parsing and extracting surface wind details from
+/// a given METAR string.
+/// </summary>
+/// <remarks>
+/// Surface wind information includes details such as direction, speed, unit, and any variations.
+/// This class uses regex patterns to identify and process the surface wind section in the METAR.
+/// </remarks>
 public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
 {
     private const string SurfaceWindParameterName = "SurfaceWind";
@@ -20,13 +29,16 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
     private const string UnitRegexPattern = "(KT|MPS|KPH)";
     private const string DirectionVariationsRegexPattern = "( ([0-9]{3})V([0-9]{3}))?"; // optional
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
         return
             $"^{DirectionRegexPattern}{SpeedRegexPattern}{SpeedVariationsRegexPattern}{UnitRegexPattern}{DirectionVariationsRegexPattern}( )";
-        //last group capture is here to ensure that array will always have the same size if there is a match
+
+        // last group capture is here to ensure that array will always have the same size if there is a match
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
         var consumed = Consume(remainingMetar);
@@ -37,24 +49,28 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
         // handle the case where nothing has been found
         if (found.Count <= 1)
         {
-            throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+            throw new MetarChunkDecoderException(
+                remainingMetar,
+                newRemainingMetar,
                 MetarChunkDecoderException.Messages.SurfaceWindInformationBadFormat);
         }
 
         // handle the case where nothing is observed
         if (found[1].Value == "///" && found[2].Value == "//")
         {
-            throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+            throw new MetarChunkDecoderException(
+                remainingMetar,
+                newRemainingMetar,
                 MetarChunkDecoderException.Messages.NoSurfaceWindInformationMeasured);
         }
 
         // get unit used
-        Value.Unit speedUnit = found[5].Value switch
+        var speedUnit = found[5].Value switch
         {
             "KT" => Value.Unit.Knot,
             "KPH" => Value.Unit.KilometerPerHour,
             "MPS" => Value.Unit.MeterPerSecond,
-            _ => Value.Unit.None
+            _ => Value.Unit.None,
         };
 
         // retrieve and validate found params
@@ -62,7 +78,7 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
         {
             // mean speed
             MeanSpeed = new Value(Value.ToInt(found[2].Value)!.Value, speedUnit),
-            RawValue = found[0].Value
+            RawValue = found[0].Value,
         };
 
         // mean direction
@@ -77,7 +93,9 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
 
             if (meanDirection.ActualValue is < 0 or > 360)
             {
-                throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+                throw new MetarChunkDecoderException(
+                    remainingMetar,
+                    newRemainingMetar,
                     MetarChunkDecoderException.Messages.InvalidWindDirectionInterval);
             }
 
@@ -94,10 +112,12 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
                                                           || maximumDirectionVariation.ActualValue < 0 ||
                                                           maximumDirectionVariation.ActualValue > 360)
             {
-                throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
+                throw new MetarChunkDecoderException(
+                    remainingMetar,
+                    newRemainingMetar,
                     MetarChunkDecoderException.Messages.InvalidWindDirectionVariationsInterval);
             }
-            
+
             surfaceWind.SetDirectionVariations(minimumDirectionVariation, maximumDirectionVariation);
         }
 
@@ -108,7 +128,7 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
         }
 
         surfaceWind.SpeedUnit = speedUnit;
-        
+
         // retrieve found params
         result.Add(SurfaceWindParameterName, surfaceWind);
 

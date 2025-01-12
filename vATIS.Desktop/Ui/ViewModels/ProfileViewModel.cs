@@ -8,25 +8,39 @@ using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
+/// <summary>
+/// Represents the view model for an ATIS profile.
+/// </summary>
 public class ProfileViewModel : ReactiveViewModelBase
 {
-    private Profile _profile = null!;
-    public Profile Profile
+    private Profile? _profile;
+    private string _name = "";
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfileViewModel"/> class.
+    /// </summary>
+    /// <param name="profile">The associated <see cref="Profile"/>.</param>
+    public ProfileViewModel(Profile profile)
+    {
+        Profile = profile;
+        Name = profile.Name;
+    }
+
+    /// <summary>
+    /// Gets the profile for the user.
+    /// </summary>
+    public Profile? Profile
     {
         get => _profile;
         private set => this.RaiseAndSetIfChanged(ref _profile, value);
     }
 
-    private string _name = "";
+    /// <summary>
+    /// Gets or sets the name associated with the profile.
+    /// </summary>
     public string Name
     {
         get => _name;
         set => this.RaiseAndSetIfChanged(ref _name, value);
-    }
-
-    public ProfileViewModel(Profile profile)
-    {
-        Profile = profile;
-        Name = profile.Name;
     }
 }
