@@ -7,7 +7,7 @@
         mc:Ignorable="d"
 		x:Name="Window"
         x:Class="Vatsim.Vatis.Ui.Windows.CompactWindow"
-		Width="315"
+		Width="335"
         MinHeight="100"
         SizeToContent="Height"
         Background="Transparent"
