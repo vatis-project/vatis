@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.6
+### Added
+- Added a profile file update serial number to the ATIS configuration window.
+- Added the ability to customize voice and text templates for the NOTAM section.
+- Added support for fetching real-world digital ATIS (D-AITS) letters using the CTRL + D keyboard shortcut.
+- Added symbols for temperature and dewpoint range (e.g., +/−) in the ATIS text template.
+- Added formatting options for temperature and dewpoint template variables.
+- Added ceiling and prevailing visibility data to websocket clients.
+- Added support for IDS validation tokens.
+### Changed
+- Changed ATIS hub security to require an authentication token for connection.
+- Changed the "keep on top" setting to be saved separately for the main and compact windows.
+- Changed the display of selected Airport Conditions and NOTAMs in the main user interface for better clarity.
+- Changed how text and voice ATIS messages are generated to improve response times and reduce websocket message delays.
+### Fixed
+- Fixed issues with the observation time in text and voice template variables.
+- Fixed missing ATIS letter in the FSD ATIS query response.
+- Fixed UI spacing around the altimeter formatting variable buttons for better alignment.
+- Fixed the layout of wind data in the compact window to properly handle long wind strings.
+- Fixed a potential issue with AFV token expiration by adding a semaphore to prevent concurrent token refresh calls.
+
 ## v4.1.0-beta.5
 ### Added
 - Added web interface to development server to allow manipulating METARs for testing.
