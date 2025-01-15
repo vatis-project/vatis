@@ -6,6 +6,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(NativeAudio)
 
+set(NATIVE_DLL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/../vATIS.Desktop/Voice/Audio/Native" CACHE PATH "Path to copy built library")
+
 if(APPLE)
     # Disable runtime linking to prevent issues with backends that are not actually implemented
     add_definitions(-DMA_NO_RUNTIME_LINKING)
@@ -57,10 +59,10 @@ if(APPLE)
     # Copy the built dylib to the Native folder, creating a subfolder for macOS
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/macos"
+            "${NATIVE_DLL_OUTPUT_DIR}/macos"
         COMMAND ${CMAKE_COMMAND} -E copy
             "$<TARGET_FILE:${PROJECT_NAME}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/macos/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+            "${NATIVE_DLL_OUTPUT_DIR}/macos/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
     )
 endif()
 
@@ -73,10 +75,10 @@ if(WIN32)
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/win"
+            "${NATIVE_DLL_OUTPUT_DIR}/win"
         COMMAND ${CMAKE_COMMAND} -E copy
             "$<TARGET_FILE:${PROJECT_NAME}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/win/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+            "${NATIVE_DLL_OUTPUT_DIR}/win/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
     )
 endif()
 
@@ -90,9 +92,9 @@ if(UNIX AND NOT APPLE)
     
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/lin"
+            "${NATIVE_DLL_OUTPUT_DIR}/lin"
         COMMAND ${CMAKE_COMMAND} -E copy
             "$<TARGET_FILE:${PROJECT_NAME}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/../../vATIS.Desktop/Voice/Audio/Native/lin/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+            "${NATIVE_DLL_OUTPUT_DIR}/lin/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
     )
 endif()
