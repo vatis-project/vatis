@@ -79,6 +79,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         NotamFreeText.Options.AllowScrollBelowDocument = false;
         NotamFreeText.TextArea.Caret.PositionChanged += (_, _) =>
         {
+            if (ViewModel?.ReadOnlyNotams == null)
+                return;
+
             foreach (var segment in ViewModel.ReadOnlyNotams)
             {
                 // If caret is within or at the start of a read-only segment
@@ -94,6 +97,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         AirportConditions.Options.AllowScrollBelowDocument = false;
         AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
         {
+            if (ViewModel?.ReadOnlyAirportConditions == null)
+                return;
+
             foreach (var segment in ViewModel.ReadOnlyAirportConditions)
             {
                 // If caret is within or at the start of a read-only segment
