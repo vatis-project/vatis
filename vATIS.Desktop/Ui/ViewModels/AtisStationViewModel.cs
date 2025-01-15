@@ -59,6 +59,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly IWebsocketService _websocketService;
     private readonly ISessionManager _sessionManager;
     private readonly Airport _atisStationAirport;
+    private readonly MetarDecoder _metarDecoder = new();
     private CancellationTokenSource _cancellationToken;
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
@@ -236,7 +237,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 if (!string.IsNullOrEmpty(sync.Dto.Metar))
                 {
-                    _decodedMetar = new MetarDecoder().Parse(sync.Dto.Metar);
+                    _decodedMetar = _metarDecoder.Parse(sync.Dto.Metar);
                 }
 
                 Dispatcher.UIThread.Post(() =>
