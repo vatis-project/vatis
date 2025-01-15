@@ -24,6 +24,7 @@ public class VoiceServerConnection : IVoiceServerConnection
     private const string VoiceServerUrl = "https://voice1.vatsim.net";
 
     private readonly IDownloader _downloader;
+    private readonly SemaphoreSlim _tokenRefreshLock = new(1, 1);
     private string? _userId;
     private string? _userPassword;
     private string? _jwtToken;
@@ -133,9 +134,29 @@ public class VoiceServerConnection : IVoiceServerConnection
         ArgumentException.ThrowIfNullOrEmpty(_userId, "UserID");
         ArgumentException.ThrowIfNullOrEmpty(_userPassword, "User Password");
 
-        if (DateTime.UtcNow > _expiryLocalUtc.AddMinutes(-5))
+        // Check if the token is nearing expiry or already expired
+        if (IsTokenExpired())
         {
-            await Connect(_userId, _userPassword);
+            // Use a semaphore to ensure only one thread refreshes the token at a time
+            await _tokenRefreshLock.WaitAsync();
+            try
+            {
+                // Double-check inside the lock to avoid race conditions
+                if (IsTokenExpired())
+                {
+                    await Connect(_userId, _userPassword);
+                }
+            }
+            finally
+            {
+                // Release the semaphore to allow other threads to proceed
+                _tokenRefreshLock.Release();
+            }
         }
+    }
+
+    private bool IsTokenExpired()
+    {
+        return DateTime.UtcNow > _expiryLocalUtc.AddMinutes(-5);
     }
 }
