@@ -1,3 +1,8 @@
+// <copyright file="App.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,16 +36,19 @@ using Vatsim.Vatis.Voice.Audio;
 
 namespace Vatsim.Vatis;
 
+/// <summary>
+/// The main application class.
+/// </summary>
 public class App : Application
 {
-    private const string SINGLE_INSTANCE_ID = "{93C4C697-85B2-42B4-936F-E07AB2C53B82}";
-    private ServiceProvider? mServiceProvider;
-    private StartupWindow? mStartupWindow;
-    private static Mutex? _singleInstanceMutex;
+    private const string SingleInstanceId = "{93C4C697-85B2-42B4-936F-E07AB2C53B82}";
+    private readonly string _appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "org.vatsim.vatis");
+    private Container.ServiceProvider? _serviceProvider;
+    private StartupWindow? _startupWindow;
 
-    private readonly string mAppDataPath =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "org.vatsim.vatis");
-
+    /// <summary>
+    /// Initializes the application.
+    /// </summary>
     public override void Initialize()
     {
         if (!Debugger.IsAttached)
@@ -50,7 +58,7 @@ public class App : Application
                 options.Dsn = "https://0df6303309d591db70c9848473373990@o477107.ingest.us.sentry.io/4508223788548096";
                 options.AutoSessionTracking = true;
                 options.TracesSampleRate = 1.0;
-                options.CacheDirectoryPath = mAppDataPath;
+                options.CacheDirectoryPath = _appDataPath;
             });
         }
 
@@ -65,40 +73,23 @@ public class App : Application
                 SentrySdk.CaptureException(ex);
             }
 
-            ShowError(ex.Message);
+            ShowErrorAsync(ex.Message);
         });
         AvaloniaXamlLoader.Load(this);
     }
 
-    private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)
-    {
-        try
-        {
-            Log.Error(ex.Exception, "UIThread_UnhandledException");
-            if (SentrySdk.IsEnabled)
-            {
-                SentrySdk.CaptureException(ex.Exception);
-            }
-
-            ShowError(ex.Exception.Message);
-        }
-        finally
-        {
-            ex.Handled = true;
-        }
-    }
-
+    /// <inheritdoc/>
     public override async void OnFrameworkInitializationCompleted()
     {
         try
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                if (!Directory.Exists(mAppDataPath))
+                if (!Directory.Exists(_appDataPath))
                 {
                     try
                     {
-                        Directory.CreateDirectory(mAppDataPath);
+                        Directory.CreateDirectory(_appDataPath);
                     }
                     catch (Exception ex)
                     {
@@ -107,17 +98,18 @@ public class App : Application
                     }
                 }
 
-                PathProvider.SetAppDataPath(mAppDataPath);
-                
+                PathProvider.SetAppDataPath(_appDataPath);
+
                 var arguments = ParseArguments(desktop.Args ?? []);
 
-                mServiceProvider = new ServiceProvider();
+                _serviceProvider = new Container.ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
 
                 if (OperatingSystem.IsMacOS() && AppContext.BaseDirectory.StartsWith("/Volumes"))
                 {
-                    ShowError("vATIS cannot be launched from a DMG volume. " +
-                              "Please move vATIS to the Applications folder.", fatal: true);
+                    ShowErrorAsync(
+                        "vATIS cannot be launched from a DMG volume. Please move vATIS to the Applications folder.",
+                        fatal: true);
                     return;
                 }
 
@@ -125,7 +117,7 @@ public class App : Application
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                 Log.Information($"vATIS version {informationalVersion} starting up");
 
-                var appConfig = mServiceProvider.GetService<IAppConfig>();
+                var appConfig = _serviceProvider.GetService<IAppConfig>();
                 try
                 {
                     appConfig.LoadConfig();
@@ -136,22 +128,23 @@ public class App : Application
                 }
 
                 TopMostViewModel.Instance.Initialize(appConfig);
+                CompactWindowTopMostViewModel.Instance.Initialize(appConfig);
 
-                mStartupWindow = mServiceProvider.GetService<StartupWindow>();
-                desktop.MainWindow = mStartupWindow;
-                mStartupWindow.Show();
-                mStartupWindow.Activate();
+                _startupWindow = _serviceProvider.GetService<StartupWindow>();
+                desktop.MainWindow = _startupWindow;
+                _startupWindow.Show();
+                _startupWindow.Activate();
 
-                _singleInstanceMutex = new Mutex(true, SINGLE_INSTANCE_ID, out var createdNew);
+                _ = new Mutex(true, SingleInstanceId, out var createdNew);
                 if (!createdNew)
                 {
                     Shutdown();
                     return;
                 }
-                
+
                 try
                 {
-                    await mServiceProvider.GetService<IAppConfigurationProvider>().Initialize();
+                    await _serviceProvider.GetService<IAppConfigurationProvider>().Initialize();
                 }
                 catch (Exception ex)
                 {
@@ -162,7 +155,7 @@ public class App : Application
                 try
                 {
                     Log.Information("Checking for new client version...");
-                    if (await mServiceProvider.GetService<IClientUpdater>().Run())
+                    if (await _serviceProvider.GetService<IClientUpdater>().Run())
                     {
                         SentrySdk.Close();
                         await Log.CloseAndFlushAsync();
@@ -182,13 +175,13 @@ public class App : Application
                     Log.Error(ex, "Error running client updater.");
                 }
 
-                await CheckForProfileUpdates();
-                await UpdateNavData();
-                await UpdateAvailableVoices();
+                await CheckForProfileUpdatesAsync();
+                await UpdateNavDataAsync();
+                await UpdateAvailableVoicesAsync();
 
-                mStartupWindow.Close();
+                _startupWindow.Close();
 
-                var sessionManager = mServiceProvider.GetService<ISessionManager>();
+                var sessionManager = _serviceProvider.GetService<ISessionManager>();
                 if (arguments.TryGetValue("--profile", out var profileId))
                 {
                     Log.Information($"Launching vATIS with --profile {profileId}");
@@ -198,7 +191,7 @@ public class App : Application
                 {
                     sessionManager.Run();
                 }
-                
+
                 NativeAudio.Initialize();
 
                 base.OnFrameworkInitializationCompleted();
@@ -214,75 +207,18 @@ public class App : Application
         }
     }
 
-    private async Task CheckForProfileUpdates()
-    {
-        if (mServiceProvider != null)
-        {
-            try
-            {
-                Log.Information("Checking for profile updates...");
-                await mServiceProvider.GetService<IProfileRepository>().CheckForProfileUpdates();
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error checking for profile updates", false);
-            }
-        }
-    }
-
-    private async Task UpdateAvailableVoices()
-    {
-        if (mServiceProvider != null)
-        {
-            MessageBus.Current.SendMessage(new StartupStatusChanged("Updating available voices..."));
-            await mServiceProvider.GetService<ITextToSpeechService>().Initialize();
-        }
-    }
-
-    private async Task UpdateNavData()
-    {
-        MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for navdata updates..."));
-        if (mServiceProvider != null)
-        {
-            await mServiceProvider.GetService<INavDataRepository>().CheckForUpdates();
-            await mServiceProvider.GetService<INavDataRepository>().Initialize();
-        }
-    }
-
-    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
-    {
-        if (e.ExceptionObject is Exception ex)
-        {
-            Log.Error(ex, "OnUnhandledException");
-            if (SentrySdk.IsEnabled)
-            {
-                SentrySdk.CaptureException(ex);
-            }
-
-            ShowError(ex.Message);
-        }
-    }
-
-    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs ex)
-    {
-        Log.Error(ex.Exception, "OnUnobservedTaskException");
-        if (SentrySdk.IsEnabled)
-        {
-            SentrySdk.CaptureException(ex.Exception);
-        }
-
-        ShowError(ex.Exception.Message);
-    }
-
     private static void SetupLogging(bool debugMode)
     {
         var logPath = Path.Combine(PathProvider.LogsFolderPath, "Log.txt");
-        var config = new LoggerConfiguration().WriteTo.File(logPath, retainedFileCountLimit: 7,
+        var config = new LoggerConfiguration().WriteTo.File(
+            logPath,
+            retainedFileCountLimit: 7,
             rollingInterval: RollingInterval.Day);
         if (debugMode)
         {
             config = config.WriteTo.Trace().MinimumLevel.Debug();
         }
+
         Log.Logger = config.CreateLogger();
     }
 
@@ -294,39 +230,50 @@ public class App : Application
         }
     }
 
-    private static async void ShowError(string error, bool fatal = false)
+    private static async void ShowErrorAsync(string error, bool fatal = false)
     {
         try
         {
             if (!Dispatcher.UIThread.CheckAccess())
             {
-                Dispatcher.UIThread.Invoke(() => ShowError(error, fatal));
+                Dispatcher.UIThread.Invoke(() => ShowErrorAsync(error, fatal));
                 return;
             }
 
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
             {
                 var owner = lifetime.Windows.FirstOrDefault(x => x is { IsActive: true, IsVisible: true });
                 if (owner != null)
                 {
-                    await MessageBox.ShowDialog(owner,
-                        "An error has occured. Please refer to the log file for details.\n\n" + error, "Error",
-                        MessageBoxButton.Ok, MessageBoxIcon.Error);
+                    await MessageBox.ShowDialog(
+                        owner,
+                        "An error has occured. Please refer to the log file for details.\n\n" + error,
+                        "Error",
+                        MessageBoxButton.Ok,
+                        MessageBoxIcon.Error);
 
                     if (fatal)
+                    {
                         Shutdown();
+                    }
                 }
                 else
                 {
-                    await MessageBox.Show("An error has occured. Please refer to the log file for details.\n\n" + error,
-                        "Error", MessageBoxButton.Ok, MessageBoxIcon.Error);
+                    await MessageBox.Show(
+                        "An error has occured. Please refer to the log file for details.\n\n" + error,
+                        "Error",
+                        MessageBoxButton.Ok,
+                        MessageBoxIcon.Error);
                     Shutdown();
                 }
             }
             else
             {
-                await MessageBox.Show("An error has occured. Please refer to the log file for details.\n\n" + error,
-                    "Error", MessageBoxButton.Ok, MessageBoxIcon.Error);
+                await MessageBox.Show(
+                    "An error has occured. Please refer to the log file for details.\n\n" + error,
+                    "Error",
+                    MessageBoxButton.Ok,
+                    MessageBoxIcon.Error);
                 Shutdown();
             }
         }
@@ -336,28 +283,16 @@ public class App : Application
         }
     }
 
-    private void HandleError(Exception ex, string context, bool fatal)
-    {
-        mStartupWindow?.Close();
-        Log.Error(ex, context);
-        if (SentrySdk.IsEnabled)
-        {
-            SentrySdk.CaptureException(ex);
-        }
-
-        ShowError(ex.Message, fatal);
-    }
-    
     private static Dictionary<string, string> ParseArguments(string[] args)
     {
         var parsedArgs = new Dictionary<string, string>();
 
-        for (int i = 0; i < args.Length; i++)
+        for (var i = 0; i < args.Length; i++)
         {
             // Check if the argument starts with a flag (e.g., --uri, --profile)
             if (args[i].StartsWith("--"))
             {
-                string flag = args[i];
+                var flag = args[i];
 
                 if (i + 1 < args.Length && !args[i + 1].StartsWith("--"))
                 {
@@ -374,5 +309,95 @@ public class App : Application
         }
 
         return parsedArgs;
+    }
+
+    private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)
+    {
+        try
+        {
+            Log.Error(ex.Exception, "UIThread_UnhandledException");
+            if (SentrySdk.IsEnabled)
+            {
+                SentrySdk.CaptureException(ex.Exception);
+            }
+
+            ShowErrorAsync(ex.Exception.Message);
+        }
+        finally
+        {
+            ex.Handled = true;
+        }
+    }
+
+    private async Task CheckForProfileUpdatesAsync()
+    {
+        if (_serviceProvider != null)
+        {
+            try
+            {
+                Log.Information("Checking for profile updates...");
+                await _serviceProvider.GetService<IProfileRepository>().CheckForProfileUpdates();
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex, "Error checking for profile updates", false);
+            }
+        }
+    }
+
+    private async Task UpdateAvailableVoicesAsync()
+    {
+        if (_serviceProvider != null)
+        {
+            MessageBus.Current.SendMessage(new StartupStatusChanged("Updating available voices..."));
+            await _serviceProvider.GetService<ITextToSpeechService>().Initialize();
+        }
+    }
+
+    private async Task UpdateNavDataAsync()
+    {
+        MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for navdata updates..."));
+        if (_serviceProvider != null)
+        {
+            await _serviceProvider.GetService<INavDataRepository>().CheckForUpdates();
+            await _serviceProvider.GetService<INavDataRepository>().Initialize();
+        }
+    }
+
+    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception ex)
+        {
+            Log.Error(ex, "OnUnhandledException");
+            if (SentrySdk.IsEnabled)
+            {
+                SentrySdk.CaptureException(ex);
+            }
+
+            ShowErrorAsync(ex.Message);
+        }
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs ex)
+    {
+        Log.Error(ex.Exception, "OnUnobservedTaskException");
+        if (SentrySdk.IsEnabled)
+        {
+            SentrySdk.CaptureException(ex.Exception);
+        }
+
+        ShowErrorAsync(ex.Exception.Message);
+    }
+
+    private void HandleError(Exception ex, string context, bool fatal)
+    {
+        _startupWindow?.Close();
+        Log.Error(ex, context);
+        if (SentrySdk.IsEnabled)
+        {
+            SentrySdk.CaptureException(ex);
+        }
+
+        ShowErrorAsync(ex.Message, fatal);
     }
 }

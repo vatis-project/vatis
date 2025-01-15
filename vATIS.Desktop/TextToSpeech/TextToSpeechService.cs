@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="TextToSpeechService.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,28 +18,37 @@ using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.TextToSpeech;
 
+/// <inheritdoc />
 public class TextToSpeechService : ITextToSpeechService
 {
-    private readonly IDownloader mDownloader;
-    private readonly IAuthTokenManager mAuthTokenManager;
-    private readonly IAppConfigurationProvider mAppConfigurationProvider;
+    private readonly IDownloader _downloader;
+    private readonly IAuthTokenManager _authTokenManager;
+    private readonly IAppConfigurationProvider _appConfigurationProvider;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TextToSpeechService"/> class.
+    /// </summary>
+    /// <param name="downloader">The downloader instance used for downloading required resources.</param>
+    /// <param name="authTokenManager">The authentication token manager for managing authentication tokens.</param>
+    /// <param name="appConfigurationProvider">The application configuration provider for accessing configuration settings.</param>
     public TextToSpeechService(IDownloader downloader, IAuthTokenManager authTokenManager,
         IAppConfigurationProvider appConfigurationProvider)
     {
-        mDownloader = downloader;
-        mAuthTokenManager = authTokenManager;
-        mAppConfigurationProvider = appConfigurationProvider;
+        _downloader = downloader;
+        _authTokenManager = authTokenManager;
+        _appConfigurationProvider = appConfigurationProvider;
         VoiceList = [];
     }
 
+    /// <inheritdoc/>
     public List<VoiceMetaData> VoiceList { get; private set; }
 
+    /// <inheritdoc />
     public async Task Initialize()
     {
         try
         {
-            var response = await mDownloader.DownloadStringAsync(mAppConfigurationProvider.VoiceListUrl);
+            var response = await _downloader.DownloadStringAsync(_appConfigurationProvider.VoiceListUrl);
             {
                 var voices = JsonSerializer.Deserialize(response, SourceGenerationContext.NewDefault.ListVoiceMetaData);
                 if (voices != null)
@@ -49,9 +63,10 @@ public class TextToSpeechService : ITextToSpeechService
         }
     }
 
+    /// <inheritdoc />
     public async Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken)
     {
-        var authToken = await mAuthTokenManager.GetAuthToken();
+        var authToken = await _authTokenManager.GetAuthToken();
 
         try
         {
@@ -63,7 +78,7 @@ public class TextToSpeechService : ITextToSpeechService
             };
 
             var jsonDto = JsonSerializer.Serialize(dto, SourceGenerationContext.NewDefault.TextToSpeechRequestDto);
-            var response = await mDownloader.PostJsonDownloadAsync(mAppConfigurationProvider.TextToSpeechUrl, jsonDto,
+            var response = await _downloader.PostJsonDownloadAsync(_appConfigurationProvider.TextToSpeechUrl, jsonDto,
                 cancellationToken);
             {
                 using var stream = new MemoryStream();

@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="ClientUpdater.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -8,11 +13,19 @@ using Velopack;
 
 namespace Vatsim.Vatis.Updates;
 
+/// <summary>
+/// Provides functionality for updating the client application.
+/// </summary>
 public class ClientUpdater : IClientUpdater
 {
-    private readonly UpdateManager mUpdateManager;
-    private UpdateInfo? mUpdateInfo;
+    private readonly UpdateManager _updateManager;
+    private UpdateInfo? _updateInfo;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClientUpdater"/> class.
+    /// </summary>
+    /// <param name="appConfigurationProvider">The application configuration provider.</param>
+    /// <exception cref="PlatformNotSupportedException">Thrown when the current platform is not supported.</exception>
     public ClientUpdater(IAppConfigurationProvider appConfigurationProvider)
     {
         var versionUrl = appConfigurationProvider.VersionUrl;
@@ -32,13 +45,14 @@ public class ClientUpdater : IClientUpdater
         {
             throw new PlatformNotSupportedException();
         }
-        
-        mUpdateManager = new UpdateManager(versionUrl, new UpdateOptions
+
+        _updateManager = new UpdateManager(versionUrl, new UpdateOptions
         {
             AllowVersionDowngrade = true
         });
     }
 
+    /// <inheritdoc />
     public async Task<bool> Run()
     {
         MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new client version..."));
@@ -46,12 +60,12 @@ public class ClientUpdater : IClientUpdater
         if (Debugger.IsAttached)
             return false;
 
-        if (!mUpdateManager.IsInstalled) return false;
-        mUpdateInfo = await mUpdateManager.CheckForUpdatesAsync();
+        if (!_updateManager.IsInstalled) return false;
+        _updateInfo = await _updateManager.CheckForUpdatesAsync();
 
-        if (mUpdateInfo == null) return false;
-        await mUpdateManager.DownloadUpdatesAsync(mUpdateInfo, ReportProgress);
-        await mUpdateManager.WaitExitThenApplyUpdatesAsync(mUpdateInfo, silent: true);
+        if (_updateInfo == null) return false;
+        await _updateManager.DownloadUpdatesAsync(_updateInfo, ReportProgress);
+        await _updateManager.WaitExitThenApplyUpdatesAsync(_updateInfo, silent: true);
 
         return true;
     }

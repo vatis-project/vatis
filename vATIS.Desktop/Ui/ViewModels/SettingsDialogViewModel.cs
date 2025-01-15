@@ -1,72 +1,48 @@
-﻿using ReactiveUI;
+﻿// <copyright file="SettingsDialogViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
+using ReactiveUI;
 using Vatsim.Network;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Ui.Common;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
+
+/// <summary>
+/// Represents the view model for the settings dialog, managing user settings and interaction logic.
+/// </summary>
 public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly IAppConfig mAppConfig;
+    private readonly IAppConfig _appConfig;
+    private string? _name;
+    private string? _userId;
+    private string? _password;
+    private string? _selectedNetworkRating;
+    private ObservableCollection<ComboBoxItemMeta>? _networkRatings;
+    private bool _suppressNotificationSound;
 
-    public ReactiveCommand<ICloseable, Unit> SaveSettingsCommand { get; }
-
-    private string? mName;
-    public string? Name
-    {
-        get => mName;
-        set => this.RaiseAndSetIfChanged(ref mName, value);
-    }
-
-    private string? mUserId;
-    public string? UserId
-    {
-        get => mUserId;
-        set => this.RaiseAndSetIfChanged(ref mUserId, value);
-    }
-
-    private string? mPassword;
-    public string? Password
-    {
-        get => mPassword;
-        set => this.RaiseAndSetIfChanged(ref mPassword, value);
-    }
-
-    private string? mSelectedNetworkRating;
-    public string? SelectedNetworkRating
-    {
-        get => mSelectedNetworkRating;
-        set => this.RaiseAndSetIfChanged(ref mSelectedNetworkRating, value);
-    }
-
-    private ObservableCollection<ComboBoxItemMeta>? mNetworkRatings;
-    public ObservableCollection<ComboBoxItemMeta>? NetworkRatings
-    {
-        get => mNetworkRatings;
-        set => this.RaiseAndSetIfChanged(ref mNetworkRatings, value);
-    }
-
-    private bool mSuppressNotificationSound;
-    public bool SuppressNotificationSound
-    {
-        get => mSuppressNotificationSound;
-        set => this.RaiseAndSetIfChanged(ref mSuppressNotificationSound, value);
-    }
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SettingsDialogViewModel"/> class.
+    /// </summary>
+    /// <param name="appConfig">The application configuration interface providing settings for the view model.</param>
     public SettingsDialogViewModel(IAppConfig appConfig)
     {
-        mAppConfig = appConfig;
+        _appConfig = appConfig;
 
-        Name = mAppConfig.Name;
-        UserId = mAppConfig.UserId;
-        Password = mAppConfig.PasswordDecrypted;
-        SuppressNotificationSound = mAppConfig.SuppressNotificationSound;
-        SelectedNetworkRating = mAppConfig.NetworkRating.ToString();
+        Name = _appConfig.Name;
+        UserId = _appConfig.UserId;
+        Password = _appConfig.PasswordDecrypted;
+        SuppressNotificationSound = _appConfig.SuppressNotificationSound;
+        SelectedNetworkRating = _appConfig.NetworkRating.ToString();
 
-        NetworkRatings = [
+        NetworkRatings =
+        [
             new ComboBoxItemMeta("Observer", "OBS"),
             new ComboBoxItemMeta("Student 1", "S1"),
             new ComboBoxItemMeta("Student 2", "S2"),
@@ -84,28 +60,88 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         SaveSettingsCommand = ReactiveCommand.Create<ICloseable>(SaveSettings);
     }
 
-    private void SaveSettings(ICloseable window)
+    /// <summary>
+    /// Gets the command used to save the user settings and close the associated dialog.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> SaveSettingsCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the name associated with the current user configuration.
+    /// </summary>
+    public string? Name
     {
-        mAppConfig.Name = Name ?? "";
-        mAppConfig.UserId = UserId?.Trim() ?? "";
-        mAppConfig.PasswordDecrypted = Password?.Trim() ?? "";
-        mAppConfig.SuppressNotificationSound = SuppressNotificationSound;
-
-        if (Enum.TryParse(SelectedNetworkRating, out NetworkRating selectedNetworkRating))
-        {
-            mAppConfig.NetworkRating = selectedNetworkRating;
-        }
-
-        mAppConfig.SaveConfig();
-        
-        MessageBus.Current.SendMessage(new GeneralSettingsUpdated());
-
-        window.Close();
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
     }
 
+    /// <summary>
+    /// Gets or sets the user ID.
+    /// </summary>
+    public string? UserId
+    {
+        get => _userId;
+        set => this.RaiseAndSetIfChanged(ref _userId, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the decrypted password associated with the settings dialog.
+    /// </summary>
+    public string? Password
+    {
+        get => _password;
+        set => this.RaiseAndSetIfChanged(ref _password, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the currently selected network rating in the settings dialog.
+    /// </summary>
+    public string? SelectedNetworkRating
+    {
+        get => _selectedNetworkRating;
+        set => this.RaiseAndSetIfChanged(ref _selectedNetworkRating, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of network ratings available for selection.
+    /// </summary>
+    public ObservableCollection<ComboBoxItemMeta>? NetworkRatings
+    {
+        get => _networkRatings;
+        set => this.RaiseAndSetIfChanged(ref _networkRatings, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether notification sounds should be suppressed.
+    /// </summary>
+    public bool SuppressNotificationSound
+    {
+        get => _suppressNotificationSound;
+        set => this.RaiseAndSetIfChanged(ref _suppressNotificationSound, value);
+    }
+
+    /// <inheritdoc />
     public void Dispose()
     {
         GC.SuppressFinalize(this);
         SaveSettingsCommand.Dispose();
+    }
+
+    private void SaveSettings(ICloseable window)
+    {
+        _appConfig.Name = Name ?? "";
+        _appConfig.UserId = UserId?.Trim() ?? "";
+        _appConfig.PasswordDecrypted = Password?.Trim() ?? "";
+        _appConfig.SuppressNotificationSound = SuppressNotificationSound;
+
+        if (Enum.TryParse(SelectedNetworkRating, out NetworkRating selectedNetworkRating))
+        {
+            _appConfig.NetworkRating = selectedNetworkRating;
+        }
+
+        _appConfig.SaveConfig();
+
+        MessageBus.Current.SendMessage(new GeneralSettingsUpdated());
+
+        window.Close();
     }
 }

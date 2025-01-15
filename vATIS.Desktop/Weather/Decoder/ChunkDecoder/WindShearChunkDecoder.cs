@@ -1,10 +1,21 @@
-﻿using System.Collections.Generic;
+﻿// <copyright file="WindShearChunkDecoder.cs" company="Afonso Dutra Nogueira Filho">
+// Copyright (c) Afonso Dutra Nogueira Filho. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// https://github.com/afonsoft/metar-decoder
+// </copyright>
+
+using System.Collections.Generic;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Weather.Decoder.Exception;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Represents a decoder for wind shear information in METAR strings.
+/// This decoder processes data regarding wind shear for all runways or specific runways
+/// and extracts the relevant details into a structured format.
+/// </summary>
 public sealed class WindShearChunkDecoder : MetarChunkDecoder
 {
     private const string WindshearAllRunwaysParameterName = "WindshearAllRunways";
@@ -12,11 +23,13 @@ public sealed class WindShearChunkDecoder : MetarChunkDecoder
 
     private const string RunwayRegexPattern = "WS R(WY)?([0-9]{2}[LCR]?)";
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
         return $"^(WS ALL RWY|({RunwayRegexPattern})( {RunwayRegexPattern})?( {RunwayRegexPattern})?)( )";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
         var consumed = Consume(remainingMetar);
@@ -46,12 +59,16 @@ public sealed class WindShearChunkDecoder : MetarChunkDecoder
                     {
                         var runway = found[k + 2].Value;
                         var qfuAsInt = Value.ToInt(runway);
+
                         // check runway qfu validity
                         if (qfuAsInt > 36 || qfuAsInt < 1)
                         {
-                            throw new MetarChunkDecoderException(remainingMetar, newRemainingMetar,
-                                MetarChunkDecoderException.Messages.INVALID_RUNWAY_QFU_RUNWA_VISUAL_RANGE_INFORMATION);
+                            throw new MetarChunkDecoderException(
+                                remainingMetar,
+                                newRemainingMetar,
+                                MetarChunkDecoderException.Messages.InvalidRunwayQfuRunwaVisualRangeInformation);
                         }
+
                         runways.Add(runway);
                     }
                 }

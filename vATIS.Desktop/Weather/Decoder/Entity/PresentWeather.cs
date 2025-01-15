@@ -1,55 +1,62 @@
-﻿using System.Collections.Generic;
+﻿// <copyright file="PresentWeather.cs" company="Afonso Dutra Nogueira Filho">
+// Copyright (c) Afonso Dutra Nogueira Filho. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// https://github.com/afonsoft/metar-decoder
+// </copyright>
+
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace Vatsim.Vatis.Weather.Decoder.Entity;
 
+/// <summary>
+/// Represents the weather conditions, including precipitation, obscurations, and vicinities.
+/// </summary>
 public sealed class PresentWeather
 {
-    private readonly List<int> mPrecipitations = [];
+    private readonly List<int> _obscurations = [];
+    private readonly List<int> _precipitations = [];
+    private readonly List<int> _vicinities = [];
 
     /// <summary>
-    /// Precipitations phenomenon
+    /// Gets precipitations phenomenon.
     /// </summary>
-    public ReadOnlyCollection<int> Precipitations => new(mPrecipitations);
-
-    private readonly List<int> mObscurations = [];
+    public ReadOnlyCollection<int> Precipitations => new(_precipitations);
 
     /// <summary>
-    /// Obscurations phenomenon
+    /// Gets obscurations phenomenon.
     /// </summary>
-    public ReadOnlyCollection<int> Obscurations => new(mObscurations);
-
-    private readonly List<int> mVicinities = [];
+    public ReadOnlyCollection<int> Obscurations => new(_obscurations);
 
     /// <summary>
-    /// Obscurations phenomenon
+    /// Gets vicinities phenomenon.
     /// </summary>
-    public ReadOnlyCollection<int> Vicinities => new(mVicinities);
+    public ReadOnlyCollection<int> Vicinities => new(_vicinities);
 
     /// <summary>
-    /// AddPrecipitation
+    /// Add Precipitation.
     /// </summary>
-    /// <param name="precipitation">precipitation</param>
+    /// <param name="precipitation">The precipitation to be added.</param>
     public void AddPrecipitation(int precipitation)
     {
-        mPrecipitations.Add(precipitation);
+        _precipitations.Add(precipitation);
     }
 
     /// <summary>
-    /// AddObscuration
+    /// Add Obscuration.
     /// </summary>
-    /// <param name="obscurationPhenomenon">obscurationPhenomenon</param>
+    /// <param name="obscurationPhenomenon">The obscuration phenomenon to be added.</param>
     public void AddObscuration(int obscurationPhenomenon)
     {
-        mObscurations.Add(obscurationPhenomenon);
+        _obscurations.Add(obscurationPhenomenon);
     }
 
     /// <summary>
-    /// AddVicinity
+    /// Add Vicinity.
     /// </summary>
-    /// <param name="vicinity">vicinity</param>
+    /// <param name="vicinity">The vicinity to be added.</param>
     public void AddVicinity(int vicinity)
     {
-        mVicinities.Add(vicinity);
+        _vicinities.Add(vicinity);
     }
 }

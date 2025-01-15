@@ -1,4 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿// <copyright file="SessionManager.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
@@ -11,64 +16,77 @@ using Vatsim.Vatis.Ui.Windows;
 
 namespace Vatsim.Vatis.Sessions;
 
+/// <inheritdoc />
 public class SessionManager : ISessionManager
 {
-    private MainWindow? mMainWindow;
-    private ProfileListDialog? mProfileListDialog;
-    private readonly IWindowFactory mWindowFactory;
-    private readonly IProfileRepository mProfileRepository;
+    private readonly IWindowFactory _windowFactory;
+    private readonly IProfileRepository _profileRepository;
+    private MainWindow? _mainWindow;
+    private ProfileListDialog? _profileListDialog;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SessionManager"/> class.
+    /// </summary>
+    /// <param name="windowFactory">The window factory to create UI windows.</param>
+    /// <param name="profileRepository">The profile repository to manage profiles.</param>
     public SessionManager(IWindowFactory windowFactory, IProfileRepository profileRepository)
     {
-        mWindowFactory = windowFactory;
-        mProfileRepository = profileRepository;
+        _windowFactory = windowFactory;
+        _profileRepository = profileRepository;
     }
 
+    /// <inheritdoc/>
     public int MaxConnectionCount => 4;
+
+    /// <inheritdoc/>
     public int CurrentConnectionCount { get; set; }
 
+    /// <inheritdoc/>
+    public Profile? CurrentProfile { get; private set; }
+
+    /// <inheritdoc/>
     public void Run()
     {
         ShowProfileListDialog();
     }
 
-    public Profile? CurrentProfile { get; private set; }
-
-    private void ShowProfileListDialog()
-    {
-        mProfileListDialog = mWindowFactory.CreateProfileListDialog();
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            desktop.MainWindow = mProfileListDialog;
-        }
-
-        mProfileListDialog.Show();
-    }
-
+    /// <inheritdoc />
     public async Task StartSession(string profileId)
     {
-        var profile = (await mProfileRepository.LoadAll()).Find(p => p.Id == profileId);
+        var profile = (await _profileRepository.LoadAll()).Find(p => p.Id == profileId);
         if (profile == null)
             return;
-        
-        mProfileListDialog?.Close();
+
+        _profileListDialog?.Close();
         CurrentProfile = profile;
         CurrentConnectionCount = 0;
-        mMainWindow = mWindowFactory.CreateMainWindow();
+        _mainWindow = _windowFactory.CreateMainWindow();
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = mMainWindow;
+            desktop.MainWindow = _mainWindow;
         }
 
-        mMainWindow.Show();
+        _mainWindow.Show();
     }
 
+    /// <inheritdoc />
     public void EndSession()
     {
         MessageBus.Current.SendMessage(new SessionEnded());
         CurrentProfile = null;
         CurrentConnectionCount = 0;
-        mMainWindow?.Close();
+        _mainWindow?.Close();
         ShowProfileListDialog();
+    }
+
+    private void ShowProfileListDialog()
+    {
+        _profileListDialog = _windowFactory.CreateProfileListDialog();
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow = _profileListDialog;
+        }
+
+        _profileListDialog.Show();
     }
 }

@@ -1,26 +1,54 @@
-﻿using System;
+﻿// <copyright file="Clouds.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Profiles.Converter;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 
+/// <summary>
+/// Represents the clouds component of the ATIS format.
+/// </summary>
 public class Clouds : BaseFormat
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Clouds"/> class.
+    /// </summary>
     public Clouds()
     {
-        Template = new()
+        Template = new Template
         {
             Text = "{clouds}",
-            Voice = "{clouds}"
+            Voice = "{clouds}",
         };
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to identify the ceiling layer.
+    /// </summary>
     public bool IdentifyCeilingLayer { get; set; } = true;
-    public bool ConvertToMetric { get; set; }
-    public bool IsAltitudeInHundreds { get; set; }
-    public UndeterminedLayer UndeterminedLayerAltitude { get; set; } = new UndeterminedLayer("undetermined", "undetermined");
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to convert cloud heights to metric units.
+    /// </summary>
+    public bool ConvertToMetric { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the altitude is in hundreds.
+    /// </summary>
+    public bool IsAltitudeInHundreds { get; set; }
+
+    /// <summary>
+    /// Gets or sets the undetermined layer altitude.
+    /// </summary>
+    public UndeterminedLayer UndeterminedLayerAltitude { get; set; } = new("undetermined", "undetermined");
+
+    /// <summary>
+    /// Gets or sets the dictionary of cloud types.
+    /// </summary>
     [JsonConverter(typeof(CloudTypeConverter))]
     public Dictionary<string, CloudType> Types { get; set; } = new()
     {
@@ -35,39 +63,21 @@ public class Clouds : BaseFormat
         { "SKC", new CloudType("SKC", "sky clear") },
     };
 
+    /// <summary>
+    /// Gets or sets the dictionary of convective cloud types.
+    /// </summary>
     public Dictionary<string, string> ConvectiveTypes { get; set; } = new()
     {
         { "CB", "cumulonimbus" },
-        { "TCU", "towering cumulus" }
+        { "TCU", "towering cumulus" },
     };
 
-    public Clouds Clone() => (Clouds)MemberwiseClone();
-}
-
-public class UndeterminedLayer
-{
-    public string Text { get; set; }
-    public string Voice { get; set; }
-    public UndeterminedLayer(string text, string voice)
+    /// <summary>
+    /// Creates a new instance of <see cref="Clouds"/> that is a copy of the current instance.
+    /// </summary>
+    /// <returns>A new <see cref="Clouds"/> instance that is a copy of this instance.</returns>
+    public Clouds Clone()
     {
-        Text = text;
-        Voice = voice;
-    }
-}
-
-public class CloudType
-{
-    public string Text { get; set; }
-    public string Voice { get; set; }
-
-    [JsonPropertyName("$type")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Obsolete("Do not use")]
-    public string? Type => default;
-
-    public CloudType(string text, string voice)
-    {
-        Text = text;
-        Voice = voice;
+        return (Clouds)MemberwiseClone();
     }
 }

@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="Program.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Threading;
 using Avalonia;
 using Avalonia.ReactiveUI;
@@ -7,11 +12,15 @@ using Velopack;
 
 namespace Vatsim.Vatis;
 
+/// <summary>
+/// The main entry point for the application.
+/// </summary>
 internal static class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
+    /// <summary>
+    /// Main entry point for the application.
+    /// </summary>
+    /// <param name="args">The command line arguments.</param>
     [STAThread]
     public static void Main(string[] args)
     {

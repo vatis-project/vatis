@@ -1,3 +1,8 @@
+// <copyright file="TextEditorCompletionBehavior.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using Avalonia;
@@ -9,20 +14,30 @@ using AvaloniaEdit.Utils;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
+/// <summary>
+/// Defines a behavior that adds code completion functionality to an associated <see cref="TextEditor"/> control.
+/// </summary>
 public class TextEditorCompletionBehavior : Behavior<TextEditor>
 {
-    private TextEditor mTextEditor = null!;
-    private CompletionWindow? mCompletionWindow;
-
+    /// <summary>
+    /// Gets or sets the list of completion data entries used for populating the code completion suggestions in the associated <see cref="TextEditor"/> control.
+    /// </summary>
     public static readonly StyledProperty<List<ICompletionData>> CompletionDataProperty =
         AvaloniaProperty.Register<TextEditorCompletionBehavior, List<ICompletionData>>(nameof(CompletionData));
 
+    private CompletionWindow? _completionWindow;
+    private TextEditor? _textEditor;
+
+    /// <summary>
+    /// Gets or sets the list of completion data entries used for populating the code completion suggestions in the associated <see cref="TextEditor"/> control.
+    /// </summary>
     public List<ICompletionData> CompletionData
     {
         get => GetValue(CompletionDataProperty);
         set => SetValue(CompletionDataProperty, value);
     }
-    
+
+    /// <inheritdoc/>
     protected override void OnAttached()
     {
         base.OnAttached();
@@ -31,18 +46,20 @@ public class TextEditorCompletionBehavior : Behavior<TextEditor>
         {
             throw new NullReferenceException("AssociatedObject is null");
         }
-        
-        mTextEditor = editor;
-        mTextEditor.TextArea.TextEntered += TextAreaOnTextEntered;
-        mTextEditor.Options.CompletionAcceptAction = CompletionAcceptAction.DoubleTapped;
+
+        _textEditor = editor;
+        _textEditor.TextArea.TextEntered += TextAreaOnTextEntered;
+        _textEditor.Options.CompletionAcceptAction = CompletionAcceptAction.DoubleTapped;
     }
 
     private void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)
     {
         if (string.IsNullOrEmpty(e.Text))
+        {
             return;
+        }
 
-        if (mCompletionWindow == null && !string.IsNullOrWhiteSpace(e.Text) && !char.IsNumber(e.Text[0]))
+        if (_completionWindow == null && !string.IsNullOrWhiteSpace(e.Text) && !char.IsNumber(e.Text[0]))
         {
             if (e.Text == "@")
             {
@@ -52,20 +69,22 @@ public class TextEditorCompletionBehavior : Behavior<TextEditor>
                 }
             }
         }
-        else if (mCompletionWindow != null && !char.IsLetterOrDigit(e.Text[0]))
+        else if (_completionWindow != null && !char.IsLetterOrDigit(e.Text[0]))
         {
-            mCompletionWindow.CompletionList.RequestInsertion(e);
+            _completionWindow.CompletionList.RequestInsertion(e);
         }
     }
 
     private void ShowCompletion()
     {
-        if (mCompletionWindow != null)
+        if (_completionWindow != null)
+        {
             return;
-        
-        mCompletionWindow = new CompletionWindow(mTextEditor.TextArea);
-        mCompletionWindow.CompletionList.CompletionData.AddRange(CompletionData);
-        mCompletionWindow.Show();
-        mCompletionWindow.Closed += (_, _) => mCompletionWindow = null;
+        }
+
+        _completionWindow = new CompletionWindow(_textEditor?.TextArea);
+        _completionWindow.CompletionList.CompletionData.AddRange(CompletionData);
+        _completionWindow.Show();
+        _completionWindow.Closed += (_, _) => _completionWindow = null;
     }
 }

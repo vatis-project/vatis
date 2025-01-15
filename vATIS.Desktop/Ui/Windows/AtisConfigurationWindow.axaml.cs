@@ -1,3 +1,8 @@
+// <copyright file="AtisConfigurationWindow.axaml.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -11,11 +16,19 @@ using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
 
-public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationWindowViewModel>, ICloseable, IDialogOwner
+/// <summary>
+/// Represents the ATIS configuration window.
+/// </summary>
+public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationWindowViewModel>, ICloseable,
+    IDialogOwner
 {
-    private int mCurrentStationIndex;
-    private bool mSuppressSelectionChanged;
+    private int _currentStationIndex;
+    private bool _suppressSelectionChanged;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisConfigurationWindow"/> class.
+    /// </summary>
+    /// <param name="viewModel">The view model to be used as the data context for this window.</param>
     public AtisConfigurationWindow(AtisConfigurationWindowViewModel viewModel)
     {
         InitializeComponent();
@@ -30,14 +43,17 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         });
     }
 
-    private void OnClosed(object? sender, EventArgs e)
-    {
-        ViewModel?.Dispose();
-    }
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AtisConfigurationWindow"/> class.
+    /// </summary>
     public AtisConfigurationWindow()
     {
         InitializeComponent();
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 
     private async void Stations_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -46,14 +62,14 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         {
             if (Stations.SelectedIndex < 0)
                 return;
-            
-            if (mSuppressSelectionChanged) 
+
+            if (_suppressSelectionChanged)
                 return;
-            
-            if (ViewModel is not { } model) 
+
+            if (ViewModel is not { } model)
                 return;
-            
-            if (model.HasUnsavedChanges && Stations.SelectedIndex != mCurrentStationIndex)
+
+            if (model.HasUnsavedChanges && Stations.SelectedIndex != _currentStationIndex)
             {
                 var result = await MessageBox.ShowDialog(this,
                     "You have unsaved changes. Are you sure you want to discard them?",
@@ -63,9 +79,9 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
 
                 if (result == MessageBoxResult.No)
                 {
-                    mSuppressSelectionChanged = true;
-                    Stations.SelectedIndex = mCurrentStationIndex;
-                    mSuppressSelectionChanged = false;
+                    _suppressSelectionChanged = true;
+                    Stations.SelectedIndex = _currentStationIndex;
+                    _suppressSelectionChanged = false;
 
                     e.Handled = true;
                     return;
@@ -75,7 +91,7 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
             if (e.AddedItems.Count > 0 && e.AddedItems[0] is AtisStation station)
             {
                 await model.SelectedAtisStationChanged.Execute(station);
-                mCurrentStationIndex = Stations.SelectedIndex;
+                _currentStationIndex = Stations.SelectedIndex;
             }
         }
         catch (Exception ex)

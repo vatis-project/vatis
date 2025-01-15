@@ -47,10 +47,10 @@
 			<!--Airport Conditions/Notams-->
 			<Grid Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" Margin="0,5,0,0" ColumnDefinitions="2*,10,2*" RowDefinitions="Auto,*">
 				<!--Airport Conditions-->
-				<StackPanel Orientation="Horizontal" Spacing="5">
-					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:AtisStationViewModel}">AIRPORT CONDITIONS</Button>
-					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveAirportConditionsText, DataType=vm:AtisStationViewModel}">*SAVE CHANGES*</Button>
-				</StackPanel>
+				<Grid ColumnDefinitions="1*,Auto">
+					<Button Grid.Column="0" Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:AtisStationViewModel}">AIRPORT CONDITIONS</Button>
+					<Button Grid.Column="1" Theme="{StaticResource HyperlinkButtonSave}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5"  IsVisible="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveAirportConditionsText, DataType=vm:AtisStationViewModel}">★SAVE CHANGES★</Button>
+				</Grid>
 				<editor:TextEditor Name="AirportConditions" Grid.Row="1" Grid.Column="0" Document="{Binding AirportConditionsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="AirportConditions_OnTextChanged">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
@@ -58,10 +58,10 @@
 					</Interaction.Behaviors>
 				</editor:TextEditor>
 				<!--Notams-->
-				<StackPanel Orientation="Horizontal" Spacing="5" Grid.Row="0" Grid.Column="2">
-					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:AtisStationViewModel}">NOTAMS</Button>
-					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveNotamsText, DataType=vm:AtisStationViewModel}">*SAVE CHANGES*</Button>
-				</StackPanel>
+				<Grid ColumnDefinitions="1*,Auto" Grid.Column="2" Grid.Row="0">
+					<Button Grid.Column="0" Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:AtisStationViewModel}">NOTAMS</Button>
+					<Button Grid.Column="1" Theme="{StaticResource HyperlinkButtonSave}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5"  HorizontalAlignment="Right" IsVisible="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveNotamsText, DataType=vm:AtisStationViewModel}">★SAVE CHANGES★</Button>
+				</Grid>
 				<editor:TextEditor Name="NotamFreeText" Grid.Row="1" Grid.Column="2" Document="{Binding NotamsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="NotamFreeText_OnTextChanged">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>

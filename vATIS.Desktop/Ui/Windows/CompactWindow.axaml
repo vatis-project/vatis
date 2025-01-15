@@ -7,14 +7,14 @@
         mc:Ignorable="d"
 		x:Name="Window"
         x:Class="Vatsim.Vatis.Ui.Windows.CompactWindow"
-		Width="315"
+		Width="335"
         MinHeight="100"
         SizeToContent="Height"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
 		SystemDecorations="None"
         WindowStartupLocation="CenterScreen"
-        Topmost="{Binding IsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}"
+        Topmost="{Binding IsTopMost, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
 		Title="vATIS">
 	<Border CornerRadius="5"
 		BorderBrush="Black"
@@ -30,7 +30,7 @@
 							   FontSize="24"
 							   FontFamily="{StaticResource Monospace}"
 							   Text="{Binding CurrentTime, DataType=vm:CompactWindowViewModel, FallbackValue=0000/00}" />
-					<ToggleButton Theme="{StaticResource PinButton}" Margin="0,8" Command="{Binding ToggleIsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, DataType=vm:TopMostViewModel, Mode=OneWay, Source={x:Static vm:TopMostViewModel.Instance}}" />
+					<ToggleButton Theme="{StaticResource PinButton}" Margin="0,8" Command="{Binding ToggleIsTopMost, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, DataType=vm:CompactWindowTopMostViewModel, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" />
 					<Button Theme="{StaticResource CompactViewButton}" Margin="8,8" Command="{Binding InvokeMainWindowCommand, DataType=vm:CompactWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
 				</StackPanel>
 			</Border>

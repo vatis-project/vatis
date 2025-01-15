@@ -1,3 +1,8 @@
+// <copyright file="MockNetworkConnection.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -7,23 +12,23 @@ using Vatsim.Vatis.Weather;
 
 namespace Vatsim.Vatis.Networking;
 
+/// <summary>
+/// Represents a mock implementation of a VATSIM network connection for testing purposes.
+/// </summary>
 public class MockNetworkConnection : INetworkConnection
 {
-    private readonly IMetarRepository mMetarRepository;
-    private string? mPreviousMetar;
-    
-    public event EventHandler? NetworkConnected = delegate { };
-    public event EventHandler? NetworkDisconnected = delegate { };
-    public event EventHandler? NetworkConnectionFailed = delegate { };
-    public event EventHandler<MetarResponseReceived>? MetarResponseReceived = delegate { };
-    public event EventHandler<NetworkErrorReceived>? NetworkErrorReceived = delegate { };
-    public event EventHandler<KillRequestReceived>? KillRequestReceived = delegate { };
-    public event EventHandler<ClientEventArgs<string>>? ChangeServerReceived = delegate { };
+    private readonly IMetarRepository _metarRepository;
+    private string? _previousMetar;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MockNetworkConnection"/> class.
+    /// </summary>
+    /// <param name="station">The ATIS station associated with this connection.</param>
+    /// <param name="metarRepository">The METAR repository used for retrieving METAR information.</param>
     public MockNetworkConnection(AtisStation station, IMetarRepository metarRepository)
     {
-        mMetarRepository = metarRepository;
-        
+        _metarRepository = metarRepository;
+
         Station = station;
         Callsign = station.AtisType switch
         {
@@ -37,12 +42,12 @@ public class MockNetworkConnection : INetworkConnection
         {
             if (evt.Metar.Icao == station.Identifier)
             {
-                var isNewMetar = !string.IsNullOrEmpty(mPreviousMetar) &&
-                                 evt.Metar.RawMetar?.Trim() != mPreviousMetar?.Trim();
-                if (mPreviousMetar != evt.Metar.RawMetar)
+                var isNewMetar = !string.IsNullOrEmpty(_previousMetar) &&
+                                 evt.Metar.RawMetar?.Trim() != _previousMetar?.Trim();
+                if (_previousMetar != evt.Metar.RawMetar)
                 {
                     MetarResponseReceived?.Invoke(this, new MetarResponseReceived(evt.Metar, isNewMetar));
-                    mPreviousMetar = evt.Metar.RawMetar;
+                    _previousMetar = evt.Metar.RawMetar;
                 }
             }
         });
@@ -50,31 +55,62 @@ public class MockNetworkConnection : INetworkConnection
         MessageBus.Current.Listen<SessionEnded>().Subscribe(_ => { Disconnect(); });
     }
 
+    /// <inheritdoc />
+    public event EventHandler? NetworkConnected = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler? NetworkDisconnected = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler? NetworkConnectionFailed = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<MetarResponseReceived>? MetarResponseReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<NetworkErrorReceived>? NetworkErrorReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<KillRequestReceived>? KillRequestReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<ClientEventArgs<string>>? ChangeServerReceived = (_, _) => { };
+
+    /// <inheritdoc />
     public string Callsign { get; }
+
+    /// <inheritdoc />
     public bool IsConnected { get; private set; }
+
+    /// <summary>
+    /// Gets the ATIS station associated with the network connection.
+    /// </summary>
     public AtisStation Station { get; }
 
+    /// <inheritdoc />
     public Task Connect(string? serverAddress)
     {
-        mMetarRepository.GetMetar(Station.Identifier, monitor: true);
-        
+        _metarRepository.GetMetar(Station.Identifier, monitor: true);
+
         NetworkConnected?.Invoke(this, EventArgs.Empty);
         IsConnected = true;
 
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public void Disconnect()
     {
         if (!string.IsNullOrEmpty(Station.Identifier))
-            mMetarRepository.RemoveMetar(Station.Identifier);
+            _metarRepository.RemoveMetar(Station.Identifier);
 
         NetworkDisconnected?.Invoke(this, EventArgs.Empty);
         IsConnected = false;
 
-        mPreviousMetar = null;
+        _previousMetar = null;
     }
 
+    /// <inheritdoc />
     public void SendSubscriberNotification(char atisLetter)
     {
         // ignore

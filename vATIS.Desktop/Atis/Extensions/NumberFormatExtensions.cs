@@ -1,17 +1,25 @@
-﻿using System;
+﻿// <copyright file="NumberFormatExtensions.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Vatsim.Vatis.Atis.Extensions;
 
+/// <summary>
+/// Provides extension methods for numeric values to convert them into various textual and formatted representations.
+/// </summary>
 public static class NumberFormatExtensions
 {
     /// <summary>
-    /// Converts the number to group form for added clarity
+    /// Converts the value into a group form.
     /// </summary>
-    /// <param name="value">The value to convert</param>
-    /// <returns>Returns the number in group word form. For example: 10,500 would yield "ten thousand five hundred"</returns>
+    /// <param name="value">The number to convert.</param>
+    /// <returns>The value in group form. For example, 10,500 would yield "ten thousand five hundred".</returns>
     public static string ToGroupForm(this IConvertible value)
     {
         var number = Convert.ToInt32(value);
@@ -24,7 +32,7 @@ public static class NumberFormatExtensions
                 return "minus " + Math.Abs(number).ToGroupForm();
         }
 
-        var words = "";
+        var words = string.Empty;
 
         if (number / 1000000 > 0)
         {
@@ -46,24 +54,32 @@ public static class NumberFormatExtensions
 
         if (number > 0)
         {
-            if (words != "")
+            if (words != string.Empty)
+            {
                 words += "and ";
+            }
 
             var unitsMap = new[]
             {
                 "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven",
-                "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"
+                "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen",
             };
             var tensMap = new[]
-                { "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
+            {
+                "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
+            };
 
             if (number < 20)
+            {
                 words += unitsMap[number];
+            }
             else
             {
                 words += tensMap[number / 10];
                 if (number % 10 > 0)
+                {
                     words += "-" + unitsMap[number % 10];
+                }
             }
         }
 
@@ -71,10 +87,10 @@ public static class NumberFormatExtensions
     }
 
     /// <summary>
-    /// Converts the numebr into a word string.
+    /// Converts the value into a word string.
     /// </summary>
-    /// <param name="number">The number to convert</param>
-    /// <returns>Returns the numebr in word string format. For example, 10,500 would yield "one zero thousand five hundred"</returns>
+    /// <param name="value">The number to convert.</param>
+    /// <returns>The value in word string format. For example, 10,500 would yield "one zero thousand five hundred".</returns>
     public static string ToWordString(this IConvertible value)
     {
         var number = Convert.ToInt32(value);
@@ -84,12 +100,16 @@ public static class NumberFormatExtensions
         number = Math.Abs(number);
 
         if (number == 0)
+        {
             return "zero";
+        }
 
         if (isNegative)
-            return "minus " + Math.Abs(number).ToWordString();
+        {
+            return "minus " + number.ToWordString();
+        }
 
-        string words = "";
+        var words = string.Empty;
 
         if (number / 1000000 > 0)
         {
@@ -114,17 +134,24 @@ public static class NumberFormatExtensions
             var unitsMap = new[]
             {
                 "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "niner", "one zero", "one one",
-                "one two", "one three", "one four", "one five", "one six", "one seven", "one eight", "one niner"
+                "one two", "one three", "one four", "one five", "one six", "one seven", "one eight", "one niner",
             };
-            var tensMap = new[] { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "niner" };
+            var tensMap = new[]
+            {
+                "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "niner",
+            };
 
             if (number < 20)
+            {
                 words += unitsMap[number];
+            }
             else
             {
                 words += tensMap[number / 10];
                 if (number % 10 >= 0)
+                {
                     words += " " + unitsMap[number % 10];
+                }
             }
         }
 
@@ -132,15 +159,17 @@ public static class NumberFormatExtensions
     }
 
     /// <summary>
-    /// Formats a number into serial format
+    /// Formats a number into serial format.
     /// </summary>
     /// <param name="number">The number to format.</param>
     /// <param name="useDecimalTerminology">Whether to use "decimal" vs "point" terminology.</param>
-    /// <returns>Returns the number formatted in serial format. For example, 1500 would yield "one five zero zero".</returns>
+    /// <returns>Returns the number formatted in serial format. For example, 1530 would yield "one five three zero".</returns>
     public static string? ToSerialFormat(this string? number, bool useDecimalTerminology = false)
     {
         if (string.IsNullOrEmpty(number) || !Regex.IsMatch(number, @"^-?[0-9]+(\.[0-9]+)?$"))
+        {
             return number;
+        }
 
         var group = new List<string>();
         var isNegative = number.StartsWith('-');
@@ -162,9 +191,9 @@ public static class NumberFormatExtensions
     }
 
     /// <summary>
-    /// Converts a number into serial format
+    /// Converts a number into serial format.
     /// </summary>
-    /// <param name="number">The number to format</param>
+    /// <param name="value">The number to format.</param>
     /// <param name="leadingZero">Whether to prefix number with leading zero if less than 10.</param>
     /// <returns>Returns the number in serial format.</returns>
     public static string ToSerialFormat(this IConvertible value, bool leadingZero = false)
@@ -174,17 +203,67 @@ public static class NumberFormatExtensions
         List<string> temp = [];
 
         if (number < 10 && leadingZero)
+        {
             temp.Add("zero");
+        }
 
         foreach (var x in Math.Abs(number).ToString().Select(q => new string(q, 1)).ToArray())
         {
             temp.Add(int.Parse(x).ToWordString());
         }
 
-        return $"{(number < 0 ? "minus " : "")}{string.Join(" ", temp)}";
+        return $"{(number < 0 ? "minus " : string.Empty)}{string.Join(" ", temp)}";
     }
 
-    public static int NormalizeHeading(this IConvertible value)
+    /// <summary>
+    /// Applies magnetic variation to a heading.
+    /// </summary>
+    /// <param name="value">The heading to apply magnetic variation to.</param>
+    /// <param name="enabled">Whether magnetic variation is enabled.</param>
+    /// <param name="magVar">The magnetic variation to apply.</param>
+    /// <returns>The heading with magnetic variation applied.</returns>
+    public static int ApplyMagVar(this IConvertible value, bool enabled, int? magVar = null)
+    {
+        var degrees = Convert.ToInt32(value);
+
+        if (!enabled)
+        {
+            return degrees;
+        }
+
+        if (magVar == null)
+        {
+            return degrees;
+        }
+
+        if (degrees == 0)
+        {
+            return degrees;
+        }
+
+        if (magVar > 0)
+        {
+            degrees += magVar.Value;
+        }
+        else
+        {
+            degrees -= Math.Abs(magVar.Value);
+        }
+
+        return degrees.NormalizeHeading();
+    }
+
+    /// <summary>
+    /// Converts a decimal frequency to a formatted string.
+    /// </summary>
+    /// <param name="value">The frequency to format.</param>
+    /// <returns>The formatted frequency string.</returns>
+    public static int ToFsdFrequencyFormat(this decimal value)
+    {
+        return (int)((value - 100m) * 1000m);
+    }
+
+    private static int NormalizeHeading(this IConvertible value)
     {
         var heading = Convert.ToInt32(value);
 
@@ -199,35 +278,5 @@ public static class NumberFormatExtensions
         }
 
         return heading;
-    }
-
-    public static int ApplyMagVar(this IConvertible value, bool enabled, int? magVar = null)
-    {
-        var degrees = Convert.ToInt32(value);
-        
-        if(!enabled)
-            return degrees;
-
-        if (magVar == null)
-            return degrees;
-
-        if (degrees == 0)
-            return degrees;
-
-        if (magVar > 0)
-        {
-            degrees += magVar.Value;
-        }
-        else
-        {
-            degrees -= Math.Abs(magVar.Value);
-        }
-
-        return degrees.NormalizeHeading();
-    }
-
-    public static int ToFsdFrequencyFormat(this decimal value)
-    {
-        return (int)((value - 100m) * 1000m);
     }
 }

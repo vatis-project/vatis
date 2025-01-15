@@ -1,20 +1,36 @@
-﻿using System.Collections.Generic;
+﻿// <copyright file="TemperatureChunkDecoder.cs" company="Afonso Dutra Nogueira Filho">
+// Copyright (c) Afonso Dutra Nogueira Filho. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// https://github.com/afonsoft/metar-decoder
+// </copyright>
+
+using System.Collections.Generic;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 
+/// <summary>
+/// Responsible for decoding the temperature-related information from a METAR string.
+/// </summary>
+/// <remarks>
+/// This class parses the air temperature and dew point temperature reported in METAR data
+/// by matching specific temperature-related patterns. It extends the functionality of the
+/// <see cref="MetarChunkDecoder"/> class.
+/// </remarks>
 public sealed class TemperatureChunkDecoder : MetarChunkDecoder
 {
     private const string AirTemperatureParameterName = "AirTemperature";
     private const string DewPointTemperatureParameterName = "DewPointTemperature";
     private const string TempRegexPattern = "(M?[0-9]{2})";
 
+    /// <inheritdoc/>
     public override string GetRegex()
     {
         return $"^{TempRegexPattern}?/{TempRegexPattern}?( )";
     }
 
+    /// <inheritdoc/>
     public override Dictionary<string, object> Parse(string remainingMetar, bool withCavok = false)
     {
         var consumed = Consume(remainingMetar);

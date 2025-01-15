@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="MessageBoxViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+using System;
 using System.ComponentModel;
 using System.Reactive;
 using Avalonia.Controls;
@@ -7,102 +12,166 @@ using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
+/// <summary>
+/// Provides a view model for configuring and managing a message box UI.
+/// </summary>
 public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
 {
-    public Window? Owner { get; set; }
-    
-    public ReactiveCommand<ICloseable, Unit> YesButtonCommand { get; private set; }
-    public ReactiveCommand<ICloseable, Unit> NoButtonCommand { get; private set; }
-    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; private set; }
-    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; private set; }
+    private readonly MessageBoxButton _button;
+    private readonly MessageBoxIcon _icon;
+    private MessageBoxResult _result;
+    private string _caption = "vATIS";
+    private string? _message;
+    private bool _isOkVisible;
+    private bool _isYesVisible;
+    private bool _isNoVisible;
+    private bool _isCancelVisible;
+    private string? _iconPath;
 
-
-    private string mCaption = "vATIS";
-    public string Caption
-    {
-        get => mCaption;
-        set => this.RaiseAndSetIfChanged(ref mCaption, value);
-    }
-
-    private string? mMessage;
-    public string? Message
-    {
-        get => mMessage;
-        set => this.RaiseAndSetIfChanged(ref mMessage, value);
-    }
-
-    private readonly MessageBoxButton mButton;
-    public MessageBoxButton Button
-    {
-        get => mButton;
-        init
-        {
-            mButton = value;
-            SetButtons();
-            this.RaiseAndSetIfChanged(ref mButton, value);
-        }
-    }
-
-    private readonly MessageBoxIcon mIcon;
-    public MessageBoxIcon Icon
-    {
-        get => mIcon;
-        init
-        {
-            mIcon = value;
-            SetIcon();
-            this.RaiseAndSetIfChanged(ref mIcon, value);
-        }
-    }
-
-    private MessageBoxResult mResult;
-    public MessageBoxResult Result
-    {
-        get => mResult;
-        private set => this.RaiseAndSetIfChanged(ref mResult, value);
-    }
-
-    private bool mIsOkVisible;
-    public bool IsOkVisible
-    {
-        get => mIsOkVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsOkVisible, value);
-    }
-
-    private bool mIsYesVisible;
-    public bool IsYesVisible
-    {
-        get => mIsYesVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsYesVisible, value);
-    }
-
-    private bool mIsNoVisible;
-    public bool IsNoVisible
-    {
-        get => mIsNoVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsNoVisible, value);
-    }
-
-    private bool mIsCancelVisible;
-    public bool IsCancelVisible
-    {
-        get => mIsCancelVisible;
-        set => this.RaiseAndSetIfChanged(ref mIsCancelVisible, value);
-    }
-
-    private string? mIconPath;
-    public string? IconPath
-    {
-        get => mIconPath;
-        set => this.RaiseAndSetIfChanged(ref mIconPath, value);
-    }
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MessageBoxViewModel"/> class.
+    /// </summary>
     public MessageBoxViewModel()
     {
         YesButtonCommand = ReactiveCommand.Create<ICloseable>(HandleYesButtonCommand);
         NoButtonCommand = ReactiveCommand.Create<ICloseable>(HandleNoButtonCommand);
         OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButtonCommand);
         CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCancelButtonCommand);
+    }
+
+    /// <summary>
+    /// Gets the owner window for the message box.
+    /// </summary>
+    public Window? Owner { get; init; }
+
+    /// <summary>
+    /// Gets the command executed when the "Yes" button is clicked.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> YesButtonCommand { get; }
+
+    /// <summary>
+    /// Gets the command that is executed when the "No" button is clicked in the message box.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> NoButtonCommand { get; }
+
+    /// <summary>
+    /// Gets the command bound to the "OK" button, which handles the logic for when the "OK" button is clicked.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> OkButtonCommand { get; }
+
+    /// <summary>
+    /// Gets the command that is executed when the Cancel button is clicked.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> CancelButtonCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the caption text for the message box.
+    /// </summary>
+    public string Caption
+    {
+        get => _caption;
+        set => this.RaiseAndSetIfChanged(ref _caption, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the message content displayed in the message box.
+    /// </summary>
+    public string? Message
+    {
+        get => _message;
+        set => this.RaiseAndSetIfChanged(ref _message, value);
+    }
+
+    /// <summary>
+    /// Gets the button configuration for the message box.
+    /// </summary>
+    public MessageBoxButton Button
+    {
+        get => _button;
+        init
+        {
+            _button = value;
+            SetButtons();
+            this.RaiseAndSetIfChanged(ref _button, value);
+        }
+    }
+
+    /// <summary>
+    /// Gets the icon to display on the message box window.
+    /// </summary>
+    public MessageBoxIcon Icon
+    {
+        get => _icon;
+        init
+        {
+            _icon = value;
+            SetIcon();
+            this.RaiseAndSetIfChanged(ref _icon, value);
+        }
+    }
+
+    /// <summary>
+    /// Gets the result of the message box interaction.
+    /// </summary>
+    public MessageBoxResult Result
+    {
+        get => _result;
+        private set => this.RaiseAndSetIfChanged(ref _result, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the "OK" button is visible in the message box.
+    /// </summary>
+    public bool IsOkVisible
+    {
+        get => _isOkVisible;
+        set => this.RaiseAndSetIfChanged(ref _isOkVisible, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the "Yes" button is visible in the message box UI.
+    /// </summary>
+    public bool IsYesVisible
+    {
+        get => _isYesVisible;
+        set => this.RaiseAndSetIfChanged(ref _isYesVisible, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the "No" button is visible in the message box.
+    /// </summary>
+    public bool IsNoVisible
+    {
+        get => _isNoVisible;
+        set => this.RaiseAndSetIfChanged(ref _isNoVisible, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the Cancel button is visible.
+    /// </summary>
+    public bool IsCancelVisible
+    {
+        get => _isCancelVisible;
+        set => this.RaiseAndSetIfChanged(ref _isCancelVisible, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the file path to the icon displayed in the message box.
+    /// </summary>
+    public string? IconPath
+    {
+        get => _iconPath;
+        set => this.RaiseAndSetIfChanged(ref _iconPath, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        YesButtonCommand.Dispose();
+        NoButtonCommand.Dispose();
+        OkButtonCommand.Dispose();
+        CancelButtonCommand.Dispose();
     }
 
     private void HandleYesButtonCommand(ICloseable window)
@@ -176,14 +245,5 @@ public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
             default:
                 throw new InvalidEnumArgumentException(nameof(Button));
         }
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        YesButtonCommand.Dispose();
-        NoButtonCommand.Dispose();
-        OkButtonCommand.Dispose();
-        CancelButtonCommand.Dispose();
     }
 }

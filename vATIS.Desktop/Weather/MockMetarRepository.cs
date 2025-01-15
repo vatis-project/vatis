@@ -1,3 +1,8 @@
+// <copyright file="MockMetarRepository.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Net;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -7,24 +12,32 @@ using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Weather;
 
+/// <summary>
+/// Provides a mock implementation of the <see cref="IMetarRepository"/> interface, intended for testing purposes.
+/// </summary>
 public class MockMetarRepository : IMetarRepository
 {
-    private readonly IDownloader mDownloader;
-    private readonly Decoder.MetarDecoder mMetarDecoder;
-    private static readonly string LocalMetarServiceUrl = $"http://{IPAddress.Loopback.ToString()}:5500/metar?id=";
+    private readonly IDownloader _downloader;
+    private readonly Decoder.MetarDecoder _metarDecoder;
+    private readonly string _localMetarServiceUrl = $"http://{IPAddress.Loopback}:5500/metar?id=";
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MockMetarRepository"/> class.
+    /// </summary>
+    /// <param name="downloader">The implementation of <see cref="IDownloader"/> used to handle downloading operations.</param>
     public MockMetarRepository(IDownloader downloader)
     {
-        mDownloader = downloader;
-        mMetarDecoder = new Decoder.MetarDecoder();
+        _downloader = downloader;
+        _metarDecoder = new Decoder.MetarDecoder();
     }
 
+    /// <inheritdoc />
     public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
     {
-        var metar = await mDownloader.DownloadStringAsync(LocalMetarServiceUrl + station);
+        var metar = await _downloader.DownloadStringAsync(_localMetarServiceUrl + station);
         if (!string.IsNullOrEmpty(metar))
         {
-            var decodedMetar = mMetarDecoder.ParseNotStrict(metar);
+            var decodedMetar = _metarDecoder.ParseNotStrict(metar);
             MessageBus.Current.SendMessage(new MetarReceived(decodedMetar));
             return decodedMetar;
         }
@@ -32,6 +45,7 @@ public class MockMetarRepository : IMetarRepository
         return null;
     }
 
+    /// <inheritdoc />
     public void RemoveMetar(string station)
     {
         // Ignore

@@ -1,7 +1,12 @@
+// <copyright file="AtisMessage.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
-using static Vatsim.Vatis.Weather.Decoder.Entity.Value;
+using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
@@ -85,14 +90,12 @@ public class AtisMessage
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Altimeter { get; set; }
 
-        [JsonPropertyName("pressureUnit")]
-        [JsonConverter(typeof(JsonStringEnumConverter<Unit>))]
+        /// <summary>
+        /// Gets or sets the pressure value.
+        /// </summary>
+        [JsonPropertyName("pressure")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public Unit? PressureUnit { get; set; }
-
-        [JsonPropertyName("pressureValue")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public double? PressureValue { get; set; }
+        public Value? Pressure { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the ATIS message is new.
@@ -100,5 +103,20 @@ public class AtisMessage
         [JsonPropertyName("isNewAtis")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public bool? IsNewAtis { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the current ceiling at the station. If there is no ceiling
+        /// then no value is sent.
+        /// </summary>
+        [JsonPropertyName("ceiling")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Value? Ceiling { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the current visibility at the station.
+        /// </summary>
+        [JsonPropertyName("prevailingVisibility")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Value? PrevailingVisibility { get; set; }
     }
 }

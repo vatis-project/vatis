@@ -1,3 +1,8 @@
+// <copyright file="VoiceRecordAtisDialogViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,157 +24,61 @@ using Vatsim.Vatis.Voice.Audio;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
+/// <summary>
+/// Provides functionality and state management for the Voice Record ATIS dialog.
+/// </summary>
 public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly CompositeDisposable mDisposables = new();
-    private readonly IWindowLocationService mWindowLocationService;
-    private readonly Stopwatch mRecordingStopwatch;
-    private readonly System.Timers.Timer mElapsedTimeUpdateTimer;
-    private readonly System.Timers.Timer mMaxRecordingDurationTimer;
-    
-    #region Reactive Properties
+    private readonly CompositeDisposable _disposables = new();
+    private readonly IWindowLocationService _windowLocationService;
+    private readonly Stopwatch _recordingStopwatch;
+    private readonly System.Timers.Timer _elapsedTimeUpdateTimer;
+    private readonly System.Timers.Timer _maxRecordingDurationTimer;
+    private bool _showOverlay;
+    private byte[] _audioBuffer = [];
+    private string? _atisScript;
+    private bool _isPlaybackEnabled;
+    private bool _isPlaybackActive;
+    private bool _isRecordingActive;
+    private bool _isRecordingEnabled;
+    private bool _deviceSelectionEnabled = true;
+    private ObservableCollection<string> _captureDevices = [];
+    private ObservableCollection<string> _playbackDevices = [];
+    private string? _selectedCaptureDevice;
+    private string? _selectedPlaybackDevice;
+    private string? _elapsedRecordingTime = "00:00:00";
+    private TimeSpan _elapsedTime;
 
-    private bool mShowOverlay;
-    public bool ShowOverlay
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VoiceRecordAtisDialogViewModel"/> class.
+    /// </summary>
+    /// <param name="appConfig">The application configuration.</param>
+    /// <param name="windowLocationService">The service to manage window location.</param>
+    public VoiceRecordAtisDialogViewModel(IAppConfig appConfig, IWindowLocationService windowLocationService)
     {
-        get => mShowOverlay;
-        set => this.RaiseAndSetIfChanged(ref mShowOverlay, value);
-    }
-    
-    private byte[] mAudioBuffer = [];
-    public byte[] AudioBuffer
-    {
-        get => mAudioBuffer;
-        private set => this.RaiseAndSetIfChanged(ref mAudioBuffer, value);
-    }
-
-    private string? mAtisScript;
-    public string? AtisScript
-    {
-        get => mAtisScript;
-        set => this.RaiseAndSetIfChanged(ref mAtisScript, value);
-    }
-
-    private bool mIsPlaybackEnabled;
-    public bool IsPlaybackEnabled
-    {
-        get => mIsPlaybackEnabled;
-        set => this.RaiseAndSetIfChanged(ref mIsPlaybackEnabled, value);
-    }
-
-    private bool mIsPlaybackActive;
-    public bool IsPlaybackActive
-    {
-        get => mIsPlaybackActive;
-        set
+        _windowLocationService = windowLocationService;
+        _recordingStopwatch = new Stopwatch();
+        _elapsedTimeUpdateTimer = new System.Timers.Timer();
+        _elapsedTimeUpdateTimer.Interval = 50;
+        _elapsedTimeUpdateTimer.Elapsed += (_, _) =>
         {
-            this.RaiseAndSetIfChanged(ref mIsPlaybackActive, value);
-            UpdateDeviceSelectionEnabled();
-        }
-    }
-
-    private bool mIsRecordingActive;
-    private bool IsRecordingActive
-    {
-        get => mIsRecordingActive;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref mIsRecordingActive, value);
-            UpdateDeviceSelectionEnabled();
-        }
-    }
-
-    private bool mIsRecordingEnabled;
-    public bool IsRecordingEnabled
-    {
-        get => mIsRecordingEnabled;
-        set => this.RaiseAndSetIfChanged(ref mIsRecordingEnabled, value);
-    }
-
-    private bool mDeviceSelectionEnabled = true;
-    public bool DeviceSelectionEnabled
-    {
-        get => mDeviceSelectionEnabled;
-        set => this.RaiseAndSetIfChanged(ref mDeviceSelectionEnabled, value);
-    }
-
-    private ObservableCollection<string> mCaptureDevices = [];
-    public ObservableCollection<string> CaptureDevices
-    {
-        get => mCaptureDevices;
-        set => this.RaiseAndSetIfChanged(ref mCaptureDevices, value);
-    }
-
-    private ObservableCollection<string> mPlaybackDevices = [];
-    public ObservableCollection<string> PlaybackDevices
-    {
-        get => mPlaybackDevices;
-        set => this.RaiseAndSetIfChanged(ref mPlaybackDevices, value);
-    }
-
-    private string? mSelectedCaptureDevice;
-    public string? SelectedCaptureDevice
-    {
-        get => mSelectedCaptureDevice;
-        set => this.RaiseAndSetIfChanged(ref mSelectedCaptureDevice, value);
-    }
-    
-    private string? mSelectedPlaybackDevice;
-    public string? SelectedPlaybackDevice
-    {
-        get => mSelectedPlaybackDevice;
-        set => this.RaiseAndSetIfChanged(ref mSelectedPlaybackDevice, value);
-    }
-
-    private string? mElapsedRecordingTime = "00:00:00";
-    public string? ElapsedRecordingTime
-    {
-        get => mElapsedRecordingTime;
-        set => this.RaiseAndSetIfChanged(ref mElapsedRecordingTime, value);
-    }
-
-    private TimeSpan mElapsedTime;
-    private TimeSpan ElapsedTime
-    {
-        get => mElapsedTime;
-        set => this.RaiseAndSetIfChanged(ref mElapsedTime, value);
-    }
-
-    #endregion
-
-    public ReactiveCommand<ICloseable, Unit> CancelCommand { get; private set; }
-    public ReactiveCommand<ICloseable, Unit> SaveCommand { get; private set; }
-    public ReactiveCommand<Unit, Unit> StartRecordingCommand { get; private set; }
-    public ReactiveCommand<Unit, Unit> StopRecordingCommand { get; private set; }
-    public ReactiveCommand<Unit, Unit> ListenCommand { get; private set; }
-    public Window? DialogOwner { get; set; }
-
-    public VoiceRecordAtisDialogViewModel(
-        IAppConfig appConfig,
-        IWindowLocationService windowLocationService)
-    {
-        mWindowLocationService = windowLocationService;
-        mRecordingStopwatch = new Stopwatch();
-        mElapsedTimeUpdateTimer = new System.Timers.Timer();
-        mElapsedTimeUpdateTimer.Interval = 50;
-        mElapsedTimeUpdateTimer.Elapsed += (_, _) =>
-        {
-            ElapsedRecordingTime = mRecordingStopwatch.Elapsed.ToString(@"hh\:mm\:ss");
-            ElapsedTime = mRecordingStopwatch.Elapsed;
+            ElapsedRecordingTime = _recordingStopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+            ElapsedTime = _recordingStopwatch.Elapsed;
         };
 
-        mMaxRecordingDurationTimer = new System.Timers.Timer();
-        mMaxRecordingDurationTimer.Interval = 180000; // 3 minutes
-        mMaxRecordingDurationTimer.AutoReset = false;
-        mMaxRecordingDurationTimer.Elapsed += (sender, args) =>
+        _maxRecordingDurationTimer = new System.Timers.Timer();
+        _maxRecordingDurationTimer.Interval = 180000; // 3 minutes
+        _maxRecordingDurationTimer.AutoReset = false;
+        _maxRecordingDurationTimer.Elapsed += (sender, args) =>
         {
             Dispatcher.UIThread.Post(() =>
             {
                 HandleStopRecordingCommand();
 
                 ArgumentNullException.ThrowIfNull(DialogOwner);
-                
-                _ = MessageBox.ShowDialog(DialogOwner, "Maximum ATIS recording duration reached (3 minutes). Recording stopped.",
+
+                _ = MessageBox.ShowDialog(DialogOwner,
+                    "Maximum ATIS recording duration reached (3 minutes). Recording stopped.",
                     "Warning", MessageBoxButton.Ok, MessageBoxIcon.Information);
             });
         };
@@ -181,26 +90,27 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
                 (buffer, elapsed) => buffer.Length > 0 && elapsed >= TimeSpan.FromSeconds(5)));
         CancelCommand = ReactiveCommand.Create<ICloseable>(HandleCancelCommand);
         StartRecordingCommand = ReactiveCommand.Create(HandleStartRecordingCommand, this.WhenAnyValue(
-                x => x.SelectedCaptureDevice, 
-                x => x.SelectedPlaybackDevice,
-                x => x.IsPlaybackActive,
-                x => x.IsRecordingActive,
-                (capture, playback, playbackActive, recordingActive) => 
-                    !string.IsNullOrEmpty(capture) && !string.IsNullOrEmpty(playback) && !playbackActive && !recordingActive));
+            x => x.SelectedCaptureDevice,
+            x => x.SelectedPlaybackDevice,
+            x => x.IsPlaybackActive,
+            x => x.IsRecordingActive,
+            (capture, playback, playbackActive, recordingActive) =>
+                !string.IsNullOrEmpty(capture) && !string.IsNullOrEmpty(playback) && !playbackActive &&
+                !recordingActive));
         StopRecordingCommand = ReactiveCommand.Create(HandleStopRecordingCommand, this.WhenAnyValue(
-            x => x.IsPlaybackActive, 
+            x => x.IsPlaybackActive,
             x => x.IsRecordingActive,
             (playbackActive, recordingActive) => !playbackActive && recordingActive));
         ListenCommand = ReactiveCommand.Create(HandleListenCommand, this.WhenAnyValue(
             x => x.IsRecordingActive,
             x => x.AudioBuffer,
             (recordingActive, audioBuffer) => !recordingActive && audioBuffer.Length > 0));
-        
-        mDisposables.Add(CancelCommand);
-        mDisposables.Add(SaveCommand);
-        mDisposables.Add(StartRecordingCommand);
-        mDisposables.Add(StopRecordingCommand);
-        mDisposables.Add(ListenCommand);
+
+        _disposables.Add(CancelCommand);
+        _disposables.Add(SaveCommand);
+        _disposables.Add(StartRecordingCommand);
+        _disposables.Add(StopRecordingCommand);
+        _disposables.Add(ListenCommand);
 
         NativeAudio.GetCaptureDevices((idPtr, namePtr, _) =>
         {
@@ -268,11 +178,225 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the overlay should be displayed in the UI.
+    /// </summary>
+    public bool ShowOverlay
+    {
+        get => _showOverlay;
+        set => this.RaiseAndSetIfChanged(ref _showOverlay, value);
+    }
+
+    /// <summary>
+    /// Gets the audio data buffer for the voice recording.
+    /// </summary>
+    public byte[] AudioBuffer
+    {
+        get => _audioBuffer;
+        private set => this.RaiseAndSetIfChanged(ref _audioBuffer, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the ATIS script text.
+    /// </summary>
+    public string? AtisScript
+    {
+        get => _atisScript;
+        set => this.RaiseAndSetIfChanged(ref _atisScript, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether playback functionality is enabled.
+    /// </summary>
+    public bool IsPlaybackEnabled
+    {
+        get => _isPlaybackEnabled;
+        set => this.RaiseAndSetIfChanged(ref _isPlaybackEnabled, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether playback is currently active.
+    /// </summary>
+    public bool IsPlaybackActive
+    {
+        get => _isPlaybackActive;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isPlaybackActive, value);
+            UpdateDeviceSelectionEnabled();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether a recording session is currently active.
+    /// </summary>
+    public bool IsRecordingActive
+    {
+        get => _isRecordingActive;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isRecordingActive, value);
+            UpdateDeviceSelectionEnabled();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether recording is enabled based on the selected capture and playback devices.
+    /// </summary>
+    public bool IsRecordingEnabled
+    {
+        get => _isRecordingEnabled;
+        set => this.RaiseAndSetIfChanged(ref _isRecordingEnabled, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether device selection is enabled.
+    /// </summary>
+    public bool DeviceSelectionEnabled
+    {
+        get => _deviceSelectionEnabled;
+        set => this.RaiseAndSetIfChanged(ref _deviceSelectionEnabled, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of available audio capture devices.
+    /// </summary>
+    public ObservableCollection<string> CaptureDevices
+    {
+        get => _captureDevices;
+        set => this.RaiseAndSetIfChanged(ref _captureDevices, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of available playback devices for selection.
+    /// </summary>
+    public ObservableCollection<string> PlaybackDevices
+    {
+        get => _playbackDevices;
+        set => this.RaiseAndSetIfChanged(ref _playbackDevices, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the name of the currently selected audio capture device.
+    /// </summary>
+    public string? SelectedCaptureDevice
+    {
+        get => _selectedCaptureDevice;
+        set => this.RaiseAndSetIfChanged(ref _selectedCaptureDevice, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the name of the currently selected playback device.
+    /// </summary>
+    public string? SelectedPlaybackDevice
+    {
+        get => _selectedPlaybackDevice;
+        set => this.RaiseAndSetIfChanged(ref _selectedPlaybackDevice, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the elapsed recording time as a formatted string in "hh:mm:ss" format.
+    /// </summary>
+    public string? ElapsedRecordingTime
+    {
+        get => _elapsedRecordingTime;
+        set => this.RaiseAndSetIfChanged(ref _elapsedRecordingTime, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the total elapsed time associated with the voice recording process.
+    /// </summary>
+    public TimeSpan ElapsedTime
+    {
+        get => _elapsedTime;
+        set => this.RaiseAndSetIfChanged(ref _elapsedTime, value);
+    }
+
+    /// <summary>
+    /// Gets the command that is executed to cancel the current operation and close the dialog.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> CancelCommand { get; }
+
+    /// <summary>
+    /// Gets the command that is executed to save the recording and close the current dialog.
+    /// </summary>
+    public ReactiveCommand<ICloseable, Unit> SaveCommand { get; }
+
+    /// <summary>
+    /// Gets the command that is executed to initiate the recording process.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> StartRecordingCommand { get; }
+
+    /// <summary>
+    /// Gets the command that is executed to stop the recording process.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> StopRecordingCommand { get; }
+
+    /// <summary>
+    /// Gets the command that is executed to play back the recorded audio for listening.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ListenCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the owner of the dialog window.
+    /// </summary>
+    public Window? DialogOwner { get; set; }
+
+    /// <summary>
+    /// Updates the position of the specified window using the window location service.
+    /// </summary>
+    /// <param name="window">The window whose position needs to be updated. Ignored if null.</param>
+    public void UpdatePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        _windowLocationService.Update(window);
+    }
+
+    /// <summary>
+    /// Restores the position of the specified window to its previously saved state.
+    /// </summary>
+    /// <param name="window">The window whose position is to be restored. Ignored if null.</param>
+    public void RestorePosition(Window? window)
+    {
+        if (window == null)
+            return;
+
+        _windowLocationService.Restore(window);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _disposables.Dispose();
+    }
+
+    private static byte[] CombineAudioBuffers(List<byte[]> audioBuffers)
+    {
+        // Calculate the total length of the resulting byte array
+        var totalLength = audioBuffers.Sum(byteArray => byteArray.Length);
+
+        // Create a new byte array to hold the combined data
+        var result = new byte[totalLength];
+        var currentIndex = 0;
+
+        // Copy each byte array into the result array
+        foreach (var byteArray in audioBuffers)
+        {
+            Buffer.BlockCopy(byteArray, 0, result, currentIndex, byteArray.Length);
+            currentIndex += byteArray.Length;
+        }
+
+        return result;
+    }
+
     private void HandleSaveCommand(ICloseable window)
     {
         if (NativeAudio.StopPlayback())
         {
-            window.Close(true);   
+            window.Close(true);
         }
     }
 
@@ -280,7 +404,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         if (SelectedCaptureDevice == null)
             return;
-        
+
         if (NativeAudio.StartRecording(SelectedCaptureDevice))
         {
             AudioBuffer = [];
@@ -289,9 +413,9 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
             IsPlaybackEnabled = false;
 
             ElapsedRecordingTime = "00:00:00";
-            mElapsedTimeUpdateTimer.Start();
-            mRecordingStopwatch.Start();
-            mMaxRecordingDurationTimer.Start();
+            _elapsedTimeUpdateTimer.Start();
+            _recordingStopwatch.Start();
+            _maxRecordingDurationTimer.Start();
         }
     }
 
@@ -302,7 +426,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         {
             if (data == IntPtr.Zero)
                 return;
-            
+
             var buffer = new byte[dataSize];
             Marshal.Copy(data, buffer, 0, dataSize);
             temp.Add(buffer);
@@ -311,10 +435,10 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         IsRecordingEnabled = true;
         IsRecordingActive = false;
         IsPlaybackEnabled = true;
-        
-        mRecordingStopwatch.Reset();
-        mElapsedTimeUpdateTimer.Stop();
-        mMaxRecordingDurationTimer.Stop();
+
+        _recordingStopwatch.Reset();
+        _elapsedTimeUpdateTimer.Stop();
+        _maxRecordingDurationTimer.Stop();
     }
 
     private void HandleListenCommand()
@@ -344,53 +468,12 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         if (NativeAudio.StopPlayback())
         {
-            window.Close(false);   
+            window.Close(false);
         }
     }
-    
+
     private void UpdateDeviceSelectionEnabled()
     {
         DeviceSelectionEnabled = !IsPlaybackActive && !IsRecordingActive;
-    }
-    
-    private static byte[] CombineAudioBuffers(List<byte[]> audioBuffers)
-    {
-        // Calculate the total length of the resulting byte array
-        var totalLength = audioBuffers.Sum(byteArray => byteArray.Length);
-
-        // Create a new byte array to hold the combined data
-        var result = new byte[totalLength];
-        var currentIndex = 0;
-
-        // Copy each byte array into the result array
-        foreach (var byteArray in audioBuffers)
-        {
-            Buffer.BlockCopy(byteArray, 0, result, currentIndex, byteArray.Length);
-            currentIndex += byteArray.Length;
-        }
-
-        return result;
-    }
-
-    public void UpdatePosition(Window? window)
-    {
-        if (window == null)
-            return;
-
-        mWindowLocationService.Update(window);
-    }
-
-    public void RestorePosition(Window? window)
-    {
-        if (window == null)
-            return;
-
-        mWindowLocationService.Restore(window);
-    }
-
-    public void Dispose()
-    {
-       GC.SuppressFinalize(this);
-       mDisposables.Dispose();
     }
 }
