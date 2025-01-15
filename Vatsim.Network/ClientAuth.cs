@@ -18,4 +18,9 @@ public class ClientAuth : IClientAuth
     }
 
     public ushort ClientId => throw new NotImplementedException();
+
+    public string IdsValidationKey()
+    {
+        throw new NotImplementedException();
+    }
 }
