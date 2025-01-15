@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added a profile file update serial number to the ATIS configuration window.
 - Added the ability to customize voice and text templates for the NOTAM section.
-- Added support for fetching real-world digital ATIS (D-AITS) letters using the CTRL + D keyboard shortcut.
+- Added support for fetching real-world digital ATIS (D-ATIS) letters using the CTRL + D keyboard shortcut.
 - Added symbols for temperature and dewpoint range (e.g., +/−) in the ATIS text template.
 - Added formatting options for temperature and dewpoint template variables.
 - Added ceiling and prevailing visibility data to websocket clients.
