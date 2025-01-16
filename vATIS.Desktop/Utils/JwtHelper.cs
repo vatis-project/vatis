@@ -41,6 +41,9 @@ public static class JwtHelper
             NotBefore = DateTime.UtcNow,
             Expires = DateTime.UtcNow.Add(TimeSpan.FromMinutes(5)),
             SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256)
+            {
+                CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+            }
         });
     }
 }
