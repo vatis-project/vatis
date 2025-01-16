@@ -360,6 +360,9 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         if (string.IsNullOrEmpty(selectedStation.Identifier))
             return;
 
+        if (selectedStation.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            return;
+
         var requestDto = new DigitalAtisRequestDto
         {
             Id = selectedStation.Identifier, AtisType = selectedStation.AtisType
