@@ -103,12 +103,12 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
 
     private static int CalculateQfe(double qnh, double elevationFeet)
     {
-        // Pressure lapse rate: approximately 1 hPa per 30 feet
-        const double pressureLapseRateFeet = 30.0;
+        // Pressure lapse rate: approximately 1 hPa per 27.3 feet
+        const double pressureLapseRateFeet = 27.3;
 
         // Calculate the QFE
         var qfe = qnh - (elevationFeet / pressureLapseRateFeet);
-        return (int)qfe;
+        return (int)Math.Ceiling(qfe);
     }
 
     private async Task Parse(Pressure? pressure)
