@@ -37,6 +37,7 @@ using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
+using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using WatsonWebsocket;
 
@@ -58,6 +59,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly IWebsocketService _websocketService;
     private readonly ISessionManager _sessionManager;
     private readonly Airport _atisStationAirport;
+    private readonly MetarDecoder _metarDecoder = new();
     private CancellationTokenSource _cancellationToken;
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
@@ -233,6 +235,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 sync.Dto.AtisType == station.AtisType &&
                 NetworkConnectionStatus != NetworkConnectionStatus.Connected)
             {
+                if (!string.IsNullOrEmpty(sync.Dto.Metar))
+                {
+                    _decodedMetar = _metarDecoder.Parse(sync.Dto.Metar);
+                }
+
                 Dispatcher.UIThread.Post(() =>
                 {
                     AtisLetter = sync.Dto.AtisLetter;
