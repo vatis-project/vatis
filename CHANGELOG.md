@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.7
+### Fixed
+- Resolved an issue causing a disposed object exception during IDS updates.
+- Fixed missing visibility and altimeter properties in websocket messages.
+- Fixed an issue that allowed changing ATIS letter for observed stations when requesting real-world D-ATIS letter.
+
 ## v4.1.0-beta.6
 ### Added
 - Added a profile file update serial number to the ATIS configuration window.
