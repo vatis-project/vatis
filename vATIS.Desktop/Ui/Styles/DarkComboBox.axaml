@@ -13,7 +13,7 @@
 	<Style Selector="ComboBox.Dark">
 
 		<Setter Property="HorizontalAlignment" Value="Stretch"/>
-		<Setter Property="MaxDropDownHeight" Value="150" />
+		<Setter Property="MaxDropDownHeight" Value="140" />
 		<Setter Property="Foreground" Value="#C0C0C0" />
 		<Setter Property="Background" Value="#1E1E1E" />
 		<Setter Property="BorderBrush" Value="#646464" />
