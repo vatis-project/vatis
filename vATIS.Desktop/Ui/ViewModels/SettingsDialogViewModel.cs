@@ -26,6 +26,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     private string? _selectedNetworkRating;
     private ObservableCollection<ComboBoxItemMeta>? _networkRatings;
     private bool _suppressNotificationSound;
+    private bool _autoFetchAtisLetter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsDialogViewModel"/> class.
@@ -40,6 +41,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         Password = _appConfig.PasswordDecrypted;
         SuppressNotificationSound = _appConfig.SuppressNotificationSound;
         SelectedNetworkRating = _appConfig.NetworkRating.ToString();
+        AutoFetchAtisLetter = _appConfig.AutoFetchAtisLetter;
 
         NetworkRatings =
         [
@@ -119,6 +121,15 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _suppressNotificationSound, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to automatically fetch real-world ATIS letter.
+    /// </summary>
+    public bool AutoFetchAtisLetter
+    {
+        get => _autoFetchAtisLetter;
+        set => this.RaiseAndSetIfChanged(ref _autoFetchAtisLetter, value);
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -132,6 +143,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         _appConfig.UserId = UserId?.Trim() ?? "";
         _appConfig.PasswordDecrypted = Password?.Trim() ?? "";
         _appConfig.SuppressNotificationSound = SuppressNotificationSound;
+        _appConfig.AutoFetchAtisLetter = AutoFetchAtisLetter;
 
         if (Enum.TryParse(SelectedNetworkRating, out NetworkRating selectedNetworkRating))
         {

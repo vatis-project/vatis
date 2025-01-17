@@ -88,6 +88,11 @@ public interface IAppConfig
     WindowPosition? VoiceRecordAtisDialogWindowPosition { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to auto-fetch the ATIS letter.
+    /// </summary>
+    bool AutoFetchAtisLetter { get; set; }
+
+    /// <summary>
     /// Loads the configuration settings for the application.
     /// </summary>
     void LoadConfig();

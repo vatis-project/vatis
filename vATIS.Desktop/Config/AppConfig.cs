@@ -59,6 +59,9 @@ public class AppConfig : IAppConfig
     public string? PlaybackDevice { get; set; }
 
     /// <inheritdoc />
+    public bool AutoFetchAtisLetter { get; set; }
+
+    /// <inheritdoc />
     [JsonIgnore]
     public string PasswordDecrypted
     {
@@ -97,6 +100,7 @@ public class AppConfig : IAppConfig
             VoiceRecordAtisDialogWindowPosition = config.VoiceRecordAtisDialogWindowPosition;
             MicrophoneDevice = config.MicrophoneDevice;
             PlaybackDevice = config.PlaybackDevice;
+            AutoFetchAtisLetter = config.AutoFetchAtisLetter;
         }
 
         SaveConfig();

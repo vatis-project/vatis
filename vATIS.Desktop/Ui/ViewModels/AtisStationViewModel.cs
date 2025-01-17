@@ -968,7 +968,31 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnNetworkConnected(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(() => NetworkConnectionStatus = NetworkConnectionStatus.Connected);
+        Dispatcher.UIThread.Post(async void () =>
+        {
+            try
+            {
+                // Fetch the real-world ATIS letter if the user has enabled this option.
+                if (_appConfig.AutoFetchAtisLetter)
+                {
+                    if (!string.IsNullOrEmpty(Identifier))
+                    {
+                        var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
+                        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+                        if (atisLetter != null)
+                        {
+                            SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
+                        }
+                    }
+                }
+
+                NetworkConnectionStatus = NetworkConnectionStatus.Connected;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "OnNetworkConnected failed.");
+            }
+        });
     }
 
     private void OnNetworkDisconnected(object? sender, EventArgs e)
