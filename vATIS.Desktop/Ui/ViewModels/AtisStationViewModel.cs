@@ -972,21 +972,28 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             await Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                // Fetch the real-world ATIS letter if the user has enabled this option.
-                if (_appConfig.AutoFetchAtisLetter)
+                try
                 {
-                    if (!string.IsNullOrEmpty(Identifier))
+                    // Fetch the real-world ATIS letter if the user has enabled this option.
+                    if (_appConfig.AutoFetchAtisLetter)
                     {
-                        var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
-                        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-                        if (atisLetter != null)
+                        if (!string.IsNullOrEmpty(Identifier))
                         {
-                            SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
+                            var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
+                            var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+                            if (atisLetter != null)
+                            {
+                                SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
+                            }
                         }
                     }
-                }
 
-                NetworkConnectionStatus = NetworkConnectionStatus.Connected;
+                    NetworkConnectionStatus = NetworkConnectionStatus.Connected;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Unhandled exception in OnNetworkConnected async lambda.");
+                }
             });
         }
         catch (Exception ex)
