@@ -63,8 +63,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private CancellationTokenSource _cancellationToken;
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
-    private IDisposable? _publishAtisTimer;
-    private bool _isPublishAtisTriggeredInitially;
+    private Timer? _publishAtisTimer;
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
     private string? _id;
@@ -577,6 +576,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             _networkConnection.KillRequestReceived -= OnKillRequestedReceived;
         }
 
+        _publishAtisTimer?.Dispose();
+        _publishAtisTimer = null;
+
         DecrementAtisLetterCommand.Dispose();
         AcknowledgeOrIncrementAtisLetterCommand.Dispose();
         AcknowledgeAtisUpdateCommand.Dispose();
@@ -850,9 +852,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                                 Math.Max(_sessionManager.CurrentConnectionCount - 1, 0);
                             await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
                             _voiceServerConnection?.Disconnect();
+
+                            // Dispose of the ATIS publish timer to stop further publishing.
                             _publishAtisTimer?.Dispose();
                             _publishAtisTimer = null;
-                            _isPublishAtisTriggeredInitially = false;
                         }
                         catch (Exception ex)
                         {
@@ -1131,20 +1134,40 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private async Task PublishAtisToHub()
     {
-        await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
-            AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
+        // Publish ATIS immediately
+        await PublishAtis();
 
-        // Setup timer to re-publish ATIS every 3 minutes to keep it active in the hub cache
-        if (!_isPublishAtisTriggeredInitially)
+        // Dispose of the existing timer to start a new one.
+        _publishAtisTimer?.Dispose();
+        _publishAtisTimer = null;
+
+        // Set up a new timer to re-publish ATIS every 3 minutes.
+        // The Timer callback uses an async void method to handle exceptions explicitly.
+        _publishAtisTimer = new Timer(PublishAtisTimerCallback, null, TimeSpan.FromMinutes(3), TimeSpan.FromMinutes(3));
+    }
+
+    private async void PublishAtisTimerCallback(object? state)
+    {
+        try
         {
-            _isPublishAtisTriggeredInitially = true;
+            await PublishAtis();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to publish ATIS to hub");
+        }
+    }
 
-            // ReSharper disable once AsyncVoidLambda
-            _publishAtisTimer = Observable.Interval(TimeSpan.FromMinutes(3)).Subscribe(async _ =>
-            {
-                await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
-                    AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
-            });
+    private async Task PublishAtis()
+    {
+        try
+        {
+            await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
+                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to publish ATIS to hub");
         }
     }
 
