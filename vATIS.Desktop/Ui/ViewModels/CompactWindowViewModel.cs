@@ -9,7 +9,6 @@ using System.Reactive;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using ReactiveUI;
 using Vatsim.Vatis.Ui.Services;
 
@@ -21,7 +20,6 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IWindowLocationService _windowLocationService;
-    private string _currentTime = DateTime.UtcNow.ToString("HH:mm/ss");
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
 
     /// <summary>
@@ -32,13 +30,6 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         _windowLocationService = windowLocationService;
 
-        DispatcherTimer timer = new()
-        {
-            Interval = TimeSpan.FromMilliseconds(500)
-        };
-        timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss");
-        timer.Start();
-
         InvokeMainWindowCommand = ReactiveCommand.Create<ICloseable>(InvokeMainWindow);
     }
 
@@ -46,15 +37,6 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     /// Gets the command used to invoke the main window logic.
     /// </summary>
     public ReactiveCommand<ICloseable, Unit> InvokeMainWindowCommand { get; }
-
-    /// <summary>
-    /// Gets or sets the current time in coordinated universal time (UTC) formatted as "HH:mm/ss".
-    /// </summary>
-    public string CurrentTime
-    {
-        get => _currentTime;
-        set => this.RaiseAndSetIfChanged(ref _currentTime, value);
-    }
 
     /// <summary>
     /// Gets or sets the collection of ATIS station view models displayed in the compact window.
