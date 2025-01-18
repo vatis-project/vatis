@@ -86,8 +86,7 @@ public class App : Application
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                s_singleInstanceMutex = new Mutex(true, SingleInstanceId, out var createdNew);
-                if (!createdNew)
+                if (IsAlreadyRunning())
                 {
                     Shutdown();
                     return;
@@ -206,6 +205,17 @@ public class App : Application
         {
             HandleError(ex, "Unhandled Exception", true);
         }
+    }
+
+    private static bool IsAlreadyRunning()
+    {
+        s_singleInstanceMutex = new Mutex(true, SingleInstanceId, out var createdNew);
+        if (createdNew)
+        {
+            s_singleInstanceMutex.ReleaseMutex();
+        }
+
+        return !createdNew;
     }
 
     private static void SetupLogging(bool debugMode)
