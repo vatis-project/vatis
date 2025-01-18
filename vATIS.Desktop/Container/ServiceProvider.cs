@@ -26,7 +26,6 @@ using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 using Vatsim.Vatis.Ui.Windows;
 using Vatsim.Vatis.Updates;
-using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Weather;
 
 namespace Vatsim.Vatis.Container;
@@ -49,11 +48,11 @@ namespace Vatsim.Vatis.Container;
 [Singleton(typeof(IWebsocketService), typeof(WebsocketService))]
 [Singleton(typeof(IClientAuth), typeof(ClientAuth))]
 [Singleton<IMetarRepository>(Factory = nameof(CreateMetarRepository))]
-[Singleton<IVoiceServerConnection>(Factory = nameof(CreateVoiceServerConnection))]
 [Singleton<IAtisHubConnection>(Factory = nameof(CreateAtisHubConnection))]
 [Transient(typeof(IWindowFactory), Factory = nameof(WindowFactory))]
 [Transient(typeof(IViewModelFactory), Factory = nameof(ViewModelFactory))]
 [Transient(typeof(INetworkConnectionFactory), Factory = nameof(NetworkConnectionFactory))]
+[Transient(typeof(IVoiceServerConnectionFactory), Factory = nameof(VoiceServerConnectionFactory))]
 
 // Views
 [Transient(typeof(MainWindow))]
@@ -126,6 +125,12 @@ internal sealed partial class ServiceProvider
     /// <returns>A new instance of the <see cref="NetworkConnectionFactory"/> class.</returns>
     public INetworkConnectionFactory NetworkConnectionFactory() => new NetworkConnectionFactory(this);
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VoiceServerConnectionFactory"/> class.
+    /// </summary>
+    /// <returns>A new instance of the <see cref="VoiceServerConnectionFactory"/> class.</returns>
+    public IVoiceServerConnectionFactory VoiceServerConnectionFactory() => new VoiceServerConnectionFactory(this);
+
     private IMetarRepository CreateMetarRepository()
     {
         if (IsDevelopmentEnvironment())
@@ -144,15 +149,5 @@ internal sealed partial class ServiceProvider
         }
 
         return new AtisHubConnection(GetService<IAppConfigurationProvider>(), GetService<IClientAuth>());
-    }
-
-    private IVoiceServerConnection CreateVoiceServerConnection()
-    {
-        if (IsDevelopmentEnvironment())
-        {
-            return new MockVoiceServerConnection();
-        }
-
-        return new VoiceServerConnection(GetService<IDownloader>());
     }
 }

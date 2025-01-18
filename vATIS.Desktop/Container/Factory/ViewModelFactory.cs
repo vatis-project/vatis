@@ -7,7 +7,6 @@ using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
-using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
@@ -16,7 +15,6 @@ using Vatsim.Vatis.Ui;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
-using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Weather;
 
 namespace Vatsim.Vatis.Container.Factory;
@@ -47,8 +45,8 @@ internal class ViewModelFactory : IViewModelFactory
         return new AtisStationViewModel(
             station,
             _provider.GetService<INetworkConnectionFactory>(),
+            _provider.GetService<IVoiceServerConnectionFactory>(),
             _provider.GetService<IAppConfig>(),
-            _provider.GetService<IVoiceServerConnection>(),
             _provider.GetService<IAtisBuilder>(),
             _provider.GetService<IWindowFactory>(),
             _provider.GetService<INavDataRepository>(),
