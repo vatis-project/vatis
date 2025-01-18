@@ -127,6 +127,6 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         if (weather.IntensityProximity == "VC")
             result.Add(Station.AtisFormat.PresentWeather.Vicinity);
 
-        return string.Join(" ", result);
+        return string.Join("", result);
     }
 }
