@@ -41,7 +41,15 @@ public class ProfileRepository : IProfileRepository
             {
                 if (string.IsNullOrEmpty(localProfile.UpdateUrl)) continue;
 
-                var cacheBusterUpdateUrl = localProfile.UpdateUrl + $"?ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                // Append a cache buster to the update URL to ensure we don't get a cached response.
+                var baseUri = new Uri(localProfile.UpdateUrl);
+
+                // If the query string is empty, we need to add a "?" to the URL. Otherwise, we need to add an "&".
+                var queryChar = baseUri.Query.Length == 0 ? "?" : "&";
+
+                // Append the current Unix timestamp to the query string.
+                var cacheBusterUpdateUrl = $"{localProfile.UpdateUrl}{queryChar}ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+
                 var response = await _downloader.GetAsync(cacheBusterUpdateUrl);
                 if (response.IsSuccessStatusCode)
                 {
