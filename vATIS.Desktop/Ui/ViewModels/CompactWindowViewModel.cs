@@ -21,6 +21,7 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IWindowLocationService _windowLocationService;
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
+    private bool _isControlsVisible;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CompactWindowViewModel"/> class.
@@ -45,6 +46,16 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _stations;
         set => this.RaiseAndSetIfChanged(ref _stations, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the window controls (pin and restore) buttons are visible.
+    /// Only visible on mouse hover.
+    /// </summary>
+    public bool IsControlsVisible
+    {
+        get => _isControlsVisible;
+        set => this.RaiseAndSetIfChanged(ref _isControlsVisible, value);
     }
 
     /// <summary>

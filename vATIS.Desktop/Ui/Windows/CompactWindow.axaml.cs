@@ -55,7 +55,7 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
-        if (e.Source is Border or TextBlock && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (e.Source is not Button && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             BeginMoveDrag(e);
         }
@@ -66,6 +66,22 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
         if (DataContext is CompactWindowViewModel model)
         {
             model.UpdatePosition(this);
+        }
+    }
+
+    private void OnPointerEntered(object? sender, PointerEventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.IsControlsVisible = true;
+        }
+    }
+
+    private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.IsControlsVisible = false;
         }
     }
 }
