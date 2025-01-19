@@ -237,7 +237,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 if (!string.IsNullOrEmpty(sync.Dto.Metar))
                 {
-                    _decodedMetar = _metarDecoder.Parse(sync.Dto.Metar);
+                    _decodedMetar = _metarDecoder.ParseNotStrict(sync.Dto.Metar);
                 }
 
                 Dispatcher.UIThread.Post(() =>
