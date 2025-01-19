@@ -41,7 +41,8 @@ public class ProfileRepository : IProfileRepository
             {
                 if (string.IsNullOrEmpty(localProfile.UpdateUrl)) continue;
 
-                var response = await _downloader.GetAsync(localProfile.UpdateUrl);
+                var cacheBusterUpdateUrl = localProfile.UpdateUrl + $"?ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                var response = await _downloader.GetAsync(cacheBusterUpdateUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var remoteProfileJson = await response.Content.ReadAsStringAsync();
