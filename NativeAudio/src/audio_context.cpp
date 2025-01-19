@@ -448,7 +448,7 @@ void AudioContext::EmitSound(SoundType soundType)
 
 void AudioContext::AddSilence(std::vector<uint8_t>& buffer, size_t sampleRate, size_t durationInSeconds)
 {
-    size_t numSamples = sampleRate * durationInSeconds;
+    size_t numSamples = sampleRate * durationInSeconds * sizeof(int16_t);
     buffer.resize(buffer.size() + numSamples);
     std::memset(buffer.data() + buffer.size() - numSamples, 0, numSamples);
 }
