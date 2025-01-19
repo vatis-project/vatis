@@ -209,7 +209,7 @@ public class App : Application
 
     private static bool IsAlreadyRunning()
     {
-        s_singleInstanceMutex = new Mutex(true, SingleInstanceId, out var createdNew);
+        s_singleInstanceMutex = new Mutex(true, @"Global\" + SingleInstanceId, out var createdNew);
         if (createdNew)
         {
             s_singleInstanceMutex.ReleaseMutex();
