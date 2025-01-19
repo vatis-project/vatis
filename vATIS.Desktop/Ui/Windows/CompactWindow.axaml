@@ -37,7 +37,7 @@
                                 <Grid ColumnDefinitions="65,10,60,10,Auto,15,Auto">
                                     <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" />
                                     <TextBlock Grid.Column="2" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium">
-                                        <Run Text="{Binding AtisLetter, DataType=vm:AtisStationViewModel}" Foreground="Aqua" /><Run Text="/" Foreground="White" /><Run Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" />
+                                        <Run Text="{Binding AtisLetter, DataType=vm:AtisStationViewModel}" Foreground="Aqua" /> <Run Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" />
                                     </TextBlock>
                                     <TextBlock Grid.Column="4" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}" Foreground="White"/>
                                     <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Wind, DataType=vm:AtisStationViewModel}" Foreground="White"/>
