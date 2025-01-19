@@ -307,6 +307,8 @@ bool AudioContext::StartPlayback(const std::string deviceName)
 		deviceConfig.playback.format = ma_format_s16;
 		deviceConfig.playback.channels = 1;
 		deviceConfig.sampleRate = sampleRateHz;
+		deviceConfig.periodSizeInFrames = frameSizeSamples;
+		deviceConfig.playback.shareMode = ma_share_mode_shared;
 		deviceConfig.dataCallback = PlaybackCallback;
 		deviceConfig.pUserData = this;
 
