@@ -987,9 +987,40 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         NativeAudio.EmitSound(SoundType.Error);
     }
 
-    private void OnNetworkConnected(object? sender, EventArgs e)
+    private async void OnNetworkConnected(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(() => NetworkConnectionStatus = NetworkConnectionStatus.Connected);
+        try
+        {
+            await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                try
+                {
+                    // Fetch the real-world ATIS letter if the user has enabled this option.
+                    if (_appConfig.AutoFetchAtisLetter)
+                    {
+                        if (!string.IsNullOrEmpty(Identifier))
+                        {
+                            var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
+                            var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+                            if (atisLetter != null)
+                            {
+                                SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
+                            }
+                        }
+                    }
+
+                    NetworkConnectionStatus = NetworkConnectionStatus.Connected;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Unhandled exception in OnNetworkConnected async lambda.");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Unhandled exception in OnNetworkConnected.");
+        }
     }
 
     private void OnNetworkDisconnected(object? sender, EventArgs e)

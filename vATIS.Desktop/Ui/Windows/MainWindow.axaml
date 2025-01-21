@@ -17,9 +17,6 @@
         Title="vATIS"
 		Icon="/Assets/MainIcon.ico"
 		Topmost="{Binding IsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}">
-	<Window.KeyBindings>
-		<KeyBinding Gesture="Ctrl+D" Command="{Binding GetDigitalAtisLetterCommand, DataType=vm:MainWindowViewModel}"/>
-	</Window.KeyBindings>
 	<Border CornerRadius="5"
 			BorderBrush="Black"
 			BorderThickness="1"

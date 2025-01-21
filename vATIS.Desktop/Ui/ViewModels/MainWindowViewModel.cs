@@ -22,7 +22,6 @@ using ReactiveUI;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
-using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
@@ -72,13 +71,11 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
-        GetDigitalAtisLetterCommand = ReactiveCommand.CreateFromTask(HandleGetDigitalAtisLetter);
 
         _disposables.Add(OpenSettingsDialogCommand);
         _disposables.Add(OpenProfileConfigurationWindowCommand);
         _disposables.Add(EndClientSessionCommand);
         _disposables.Add(InvokeCompactViewCommand);
-        _disposables.Add(GetDigitalAtisLetterCommand);
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
@@ -197,11 +194,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     /// Gets or sets the filtered collection of ATIS stations displayed in the compact window.
     /// </summary>
     public ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
-
-    /// <summary>
-    /// Gets the command that fetches the latest real-world D-ATIS letter.
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> GetDigitalAtisLetterCommand { get; }
 
     /// <summary>
     /// Gets the command to open the settings dialog.
@@ -347,31 +339,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         GC.SuppressFinalize(this);
         _disposables.Dispose();
-    }
-
-    private async Task HandleGetDigitalAtisLetter()
-    {
-        // This should never happen... but then again, I've been wrong before
-        if (SelectedTabIndex < 0 || SelectedTabIndex >= AtisStations.Count)
-            return;
-
-        var selectedStation = AtisStations[SelectedTabIndex];
-
-        if (string.IsNullOrEmpty(selectedStation.Identifier))
-            return;
-
-        if (selectedStation.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
-            return;
-
-        var requestDto = new DigitalAtisRequestDto
-        {
-            Id = selectedStation.Identifier, AtisType = selectedStation.AtisType
-        };
-        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-        if (atisLetter != null)
-        {
-            selectedStation.SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
-        }
     }
 
     private async Task OpenProfileConfigurationWindow()
