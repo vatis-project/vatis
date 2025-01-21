@@ -3,9 +3,10 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
 
-namespace Vatsim.Vatis.Networking;
+namespace Vatsim.Vatis.Container.Factory;
 
 /// <summary>
 /// Defines a factory for creating network connections.

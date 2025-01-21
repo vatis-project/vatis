@@ -22,6 +22,7 @@ using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
+using Vatsim.Vatis.Container.Factory;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
@@ -99,11 +100,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="connectionFactory">
     /// The network connection factory used to manage network connections.
     /// </param>
+    /// <param name="voiceServerConnectionFactory">
+    /// The voice server connection factory used to manage voice server connections.
+    /// </param>
     /// <param name="appConfig">
     /// The application configuration used for accessing app settings.
-    /// </param>
-    /// <param name="voiceServerConnection">
-    /// The voice server connection instance for handling voice communication.
     /// </param>
     /// <param name="atisBuilder">
     /// The ATIS builder used to construct ATIS messages.
@@ -126,10 +127,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="websocketService">
     /// The websocket service for handling websocket communications.
     /// </param>
-    public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory, IAppConfig appConfig,
-        IVoiceServerConnection voiceServerConnection, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
-        INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
-        IProfileRepository profileRepository, IWebsocketService websocketService)
+    public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory,
+        IVoiceServerConnectionFactory voiceServerConnectionFactory, IAppConfig appConfig, IAtisBuilder atisBuilder,
+        IWindowFactory windowFactory, INavDataRepository navDataRepository, IAtisHubConnection hubConnection,
+        ISessionManager sessionManager, IProfileRepository profileRepository, IWebsocketService websocketService)
     {
         Id = station.Id;
         Identifier = station.Identifier;
@@ -206,7 +207,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _networkConnection.ChangeServerReceived += OnChangeServerReceived;
         _networkConnection.MetarResponseReceived += OnMetarResponseReceived;
         _networkConnection.KillRequestReceived += OnKillRequestedReceived;
-        _voiceServerConnection = voiceServerConnection;
+        _voiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
         UseTexToSpeech = !_atisStation.AtisVoice.UseTextToSpeech;
         MessageBus.Current.Listen<AtisVoiceTypeChanged>().Subscribe(evt =>
@@ -279,7 +280,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.NetworkConnectionStatus).Skip(1).Subscribe(HandleNetworkStatusChanged);
     }
 
-     /// <summary>
+    /// <summary>
     /// Gets or sets the collection of read-only airport condition text segments.
     /// </summary>
     public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
