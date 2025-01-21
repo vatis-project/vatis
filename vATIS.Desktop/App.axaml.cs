@@ -42,6 +42,7 @@ namespace Vatsim.Vatis;
 public class App : Application
 {
     private const string SingleInstanceId = "{93C4C697-85B2-42B4-936F-E07AB2C53B82}";
+    private static Mutex? s_singleInstanceMutex;
     private readonly string _appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "org.vatsim.vatis");
     private Container.ServiceProvider? _serviceProvider;
     private StartupWindow? _startupWindow;
@@ -85,6 +86,12 @@ public class App : Application
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                if (IsAlreadyRunning())
+                {
+                    Shutdown();
+                    return;
+                }
+
                 if (!Directory.Exists(_appDataPath))
                 {
                     try
@@ -134,13 +141,6 @@ public class App : Application
                 desktop.MainWindow = _startupWindow;
                 _startupWindow.Show();
                 _startupWindow.Activate();
-
-                _ = new Mutex(true, SingleInstanceId, out var createdNew);
-                if (!createdNew)
-                {
-                    Shutdown();
-                    return;
-                }
 
                 try
                 {
@@ -207,6 +207,17 @@ public class App : Application
         }
     }
 
+    private static bool IsAlreadyRunning()
+    {
+        s_singleInstanceMutex = new Mutex(true, @"Global\" + SingleInstanceId, out var createdNew);
+        if (createdNew)
+        {
+            s_singleInstanceMutex.ReleaseMutex();
+        }
+
+        return !createdNew;
+    }
+
     private static void SetupLogging(bool debugMode)
     {
         var logPath = Path.Combine(PathProvider.LogsFolderPath, "Log.txt");
@@ -224,7 +235,16 @@ public class App : Application
 
     private static void Shutdown()
     {
-        if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            return;
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            desktop.Shutdown();
+        }
+        else
         {
             Dispatcher.UIThread.Invoke(() => desktop.Shutdown());
         }
