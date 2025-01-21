@@ -156,6 +156,24 @@ public class AtisBuilder : IAtisBuilder
         });
     }
 
+    private static string RemoveTextParsingCharacters(string text)
+    {
+        text = Regex.Replace(text, @"\+([A-Z0-9]{3,4})", "$1"); // remove airports and navaid identifiers prefix
+        text = Regex.Replace(text, @"\s+(?=[.,?!])", ""); // remove extra spaces before punctuation
+        text = Regex.Replace(text, @"\s+", " ");
+        text = Regex.Replace(text, @"(?<=\*)(-?[\,0-9]+)", "$1");
+        text = Regex.Replace(text, @"(?<=\#)(-?[\,0-9]+)", "$1");
+        text = Regex.Replace(text, @"\{(-?[\,0-9]+)\}", "$1");
+        text = Regex.Replace(text, @"(?<=\+)([A-Z]{3})", "$1");
+        text = Regex.Replace(text, @"(?<=\+)([A-Z]{4})", "$1");
+        text = Regex.Replace(text, @"\*", "");
+
+        // strip caret from runway parsing
+        text = Regex.Replace(text, @"(?<![\w\d])\^((?:0?[1-9]|[1-2][0-9]|3[0-6])(?:[LRC]?))(?![\w\d])", "$1");
+
+        return text;
+    }
+
     private async Task<(string? SpokenText, byte[]? AudioBytes)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
         char currentAtisLetter, List<AtisVariable> variables, CancellationToken cancellationToken,
         bool sandboxRequest = false)
@@ -309,19 +327,6 @@ public class AtisBuilder : IAtisBuilder
             template = Regex.Replace(template, @"\[PRESSURE_(\w{4})\]", "", RegexOptions.IgnoreCase);
         }
 
-        template = Regex.Replace(template, @"\+([A-Z0-9]{3,4})", "$1"); // remove airports and navaid identifiers prefix
-        template = Regex.Replace(template, @"\s+(?=[.,?!])", ""); // remove extra spaces before punctuation
-        template = Regex.Replace(template, @"\s+", " ");
-        template = Regex.Replace(template, @"(?<=\*)(-?[\,0-9]+)", "$1");
-        template = Regex.Replace(template, @"(?<=\#)(-?[\,0-9]+)", "$1");
-        template = Regex.Replace(template, @"\{(-?[\,0-9]+)\}", "$1");
-        template = Regex.Replace(template, @"(?<=\+)([A-Z]{3})", "$1");
-        template = Regex.Replace(template, @"(?<=\+)([A-Z]{4})", "$1");
-        template = Regex.Replace(template, @"\*", "");
-
-        // strip caret from runway parsing
-        template = Regex.Replace(template, @"(?<![\w\d])\^((?:0?[1-9]|[1-2][0-9]|3[0-6])(?:[LRC]?))(?![\w\d])", "$1");
-
         if (!preset.HasClosingVariable && station.AtisFormat.ClosingStatement.AutoIncludeClosingStatement)
         {
             var closingTemplate = station.AtisFormat.ClosingStatement.Template.Text ?? "";
@@ -383,6 +388,9 @@ public class AtisBuilder : IAtisBuilder
         var airportConditionsText = ReplaceContractionVariable(airportConditions, station, voiceVariable: false);
         var airportConditionsVoice = ReplaceContractionVariable(airportConditions, station, voiceVariable: true);
 
+        // remove text parsing characters
+        airportConditionsText = RemoveTextParsingCharacters(airportConditionsText);
+
         var notams = "";
         var notamsText = "";
         var notamsVoice = "";
@@ -419,6 +427,9 @@ public class AtisBuilder : IAtisBuilder
 
                 // replace contraction variables
                 notamsText = ReplaceContractionVariable(notamsText, station, voiceVariable: false);
+
+                // remove text parsing characters
+                notamsText = RemoveTextParsingCharacters(notamsText);
             }
 
             if (template.Voice != null)
