@@ -203,7 +203,8 @@ bool AudioContext::StartRecording(const std::string deviceName)
 		deviceConfig.capture.pDeviceID = &deviceId;
 		deviceConfig.capture.format = ma_format_s16;
 		deviceConfig.capture.channels = 1;
-		deviceConfig.sampleRate = 44100;
+		deviceConfig.sampleRate = sampleRateHz;
+		deviceConfig.periodSizeInFrames = frameSizeSamples;
 		deviceConfig.dataCallback = MicrophoneCallback;
 		deviceConfig.pUserData = this;
 
@@ -254,17 +255,19 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
         std::memcpy(audioBuffer.data(), buffer, bufferSize);
 
         // Add silence to the end of playback
-        AddSilence(audioBuffer, 44100, 3);
+        AddSilence(audioBuffer, sampleRateHz, 3);
     }
 
     if (!bufferPlaybackInitialized) {
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
-        deviceConfig.playback.pDeviceID = nullptr;
-        deviceConfig.playback.format = ma_format_s16;
-        deviceConfig.playback.channels = 1;
-        deviceConfig.sampleRate = 44100;
-        deviceConfig.dataCallback = PlaybackCallback;
-        deviceConfig.pUserData = this;
+		deviceConfig.playback.pDeviceID = nullptr;
+		deviceConfig.playback.format = ma_format_s16;
+		deviceConfig.playback.channels = 1;
+		deviceConfig.sampleRate = sampleRateHz;
+		deviceConfig.periodSizeInFrames = frameSizeSamples;
+		deviceConfig.playback.shareMode = ma_share_mode_shared;
+		deviceConfig.dataCallback = PlaybackCallback;
+		deviceConfig.pUserData = this;
 
         if (ma_device_init(&context, &deviceConfig, &bufferPlaybackDevice) != MA_SUCCESS) {
             ma_device_uninit(&bufferPlaybackDevice);
@@ -303,7 +306,9 @@ bool AudioContext::StartPlayback(const std::string deviceName)
 		deviceConfig.playback.pDeviceID = &deviceId;
 		deviceConfig.playback.format = ma_format_s16;
 		deviceConfig.playback.channels = 1;
-		deviceConfig.sampleRate = 44100;
+		deviceConfig.sampleRate = sampleRateHz;
+		deviceConfig.periodSizeInFrames = frameSizeSamples;
+		deviceConfig.playback.shareMode = ma_share_mode_shared;
 		deviceConfig.dataCallback = PlaybackCallback;
 		deviceConfig.pUserData = this;
 
@@ -443,7 +448,7 @@ void AudioContext::EmitSound(SoundType soundType)
 
 void AudioContext::AddSilence(std::vector<uint8_t>& buffer, size_t sampleRate, size_t durationInSeconds)
 {
-    size_t numSamples = sampleRate * durationInSeconds;
+    size_t numSamples = sampleRate * durationInSeconds * sizeof(int16_t);
     buffer.resize(buffer.size() + numSamples);
     std::memset(buffer.data() + buffer.size() - numSamples, 0, numSamples);
 }

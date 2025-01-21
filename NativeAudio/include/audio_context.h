@@ -51,6 +51,10 @@ public:
 
 	void EmitSound(SoundType sound);
 
+	const int frameLengthMs = 20;
+	const int sampleRateHz = 48000;
+	const int frameSizeSamples = (sampleRateHz * frameLengthMs / 1000);
+
 private:
 	std::string playbackDeviceName;
 	std::string captureDeviceName;
