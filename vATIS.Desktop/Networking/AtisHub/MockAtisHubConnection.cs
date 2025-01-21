@@ -28,6 +28,7 @@ public class MockAtisHubConnection : IAtisHubConnection
 {
     private readonly IDownloader _downloader;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
+    private readonly MetarDecoder _metarDecoder;
     private HubConnection? _hubConnection;
     private ConnectionState _hubConnectionState;
 
@@ -40,6 +41,7 @@ public class MockAtisHubConnection : IAtisHubConnection
     {
         _downloader = downloader;
         _appConfigurationProvider = appConfigurationProvider;
+        _metarDecoder = new MetarDecoder();
     }
 
     /// <inheritdoc />
@@ -75,8 +77,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             {
                 try
                 {
-                    var decoder = new MetarDecoder();
-                    var metar = decoder.ParseStrict(message);
+                    var metar = _metarDecoder.ParseNotStrict(message);
                     MessageBus.Current.SendMessage(new MetarReceived(metar));
                 }
                 catch (Exception ex)
