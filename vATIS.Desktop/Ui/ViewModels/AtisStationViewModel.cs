@@ -73,6 +73,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private char _atisLetter;
     private bool _isAtisLetterInputMode;
     private string? _metarString;
+    private string? _observationTime;
     private string? _wind;
     private string? _altimeter;
     private bool _isNewAtis;
@@ -246,6 +247,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     Wind = sync.Dto.Wind;
                     Altimeter = sync.Dto.Altimeter;
                     Metar = sync.Dto.Metar;
+                    ObservationTime = _decodedMetar?.Time.Replace(":", "");
                     NetworkConnectionStatus = NetworkConnectionStatus.Observer;
                 });
             }
@@ -262,6 +264,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     Wind = null;
                     Altimeter = null;
                     Metar = null;
+                    ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
                 });
             }
@@ -392,6 +395,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the observation time of the METAR.
+    /// </summary>
+    public string? ObservationTime
+    {
+        get => _observationTime;
+        set => this.RaiseAndSetIfChanged(ref _observationTime, value);
+    }
+
+    /// <summary>
     /// Gets or sets the METAR string for the ATIS station.
     /// </summary>
     public string? Metar
@@ -406,7 +418,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public string? Wind
     {
         get => _wind;
-        set => this.RaiseAndSetIfChanged(ref _wind, value);
+        set => this.RaiseAndSetIfChanged(ref _wind, value?.Trim());
     }
 
     /// <summary>
@@ -415,7 +427,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public string? Altimeter
     {
         get => _altimeter;
-        set => this.RaiseAndSetIfChanged(ref _altimeter, value);
+        set => this.RaiseAndSetIfChanged(ref _altimeter, value?.Trim());
     }
 
     /// <summary>
@@ -742,6 +754,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             Wind = null;
             Altimeter = null;
             Metar = null;
+            ObservationTime = null;
             ErrorMessage = string.IsNullOrEmpty(e.Reason)
                 ? $"Forcefully disconnected from network."
                 : $"Forcefully disconnected from network: {e.Reason}";
@@ -811,6 +824,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
+                ObservationTime = null;
                 ErrorMessage = e.Message;
             });
         }
@@ -876,6 +890,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
+                ObservationTime = null;
                 ErrorMessage = e.Message;
             });
         }
@@ -943,6 +958,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
+                ObservationTime = null;
                 ErrorMessage = e.Message;
             });
         }
@@ -955,6 +971,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
             Metar = null;
             Wind = null;
+            ObservationTime = null;
             Altimeter = null;
         });
         NativeAudio.EmitSound(SoundType.Error);
@@ -984,6 +1001,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
             Metar = null;
             Wind = null;
+            ObservationTime = null;
             Altimeter = null;
             IsNewAtis = false;
         });
@@ -1033,6 +1051,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
                     : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
                 Wind = e.Metar.SurfaceWind?.RawValue;
+                ObservationTime = e.Metar.Time.Replace(":", "");
                 propertyUpdates.SetResult();
             });
 
@@ -1100,6 +1119,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
+                ObservationTime = null;
                 ErrorMessage = ex.Message;
             });
         }
@@ -1214,6 +1234,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
+                ObservationTime = null;
                 ErrorMessage = e.Message;
             });
         }
@@ -1401,6 +1422,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
+                ObservationTime = null;
                 ErrorMessage = e.Message;
             });
         }

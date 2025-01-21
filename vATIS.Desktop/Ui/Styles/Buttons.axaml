@@ -27,9 +27,9 @@
 			</StackPanel>
 		</Border>
 	</Design.PreviewWith>
-	
+
 	<SolidColorBrush x:Key="ButtonBorder" Color="#f0f6fc" Opacity="0.2" />
-	
+
 	<ControlTheme x:Key="DarkDropDownButton" TargetType="DropDownButton">
 		<Setter Property="HorizontalAlignment" Value="Left" />
 		<Setter Property="VerticalAlignment" Value="Center" />
@@ -52,26 +52,26 @@
 		</Setter>
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Border x:Name="RootBorder" 
-				        Background="{TemplateBinding Background}" 
+				<Border x:Name="RootBorder"
+				        Background="{TemplateBinding Background}"
 				        BorderBrush="{TemplateBinding BorderBrush}"
-				        BorderThickness="{TemplateBinding BorderThickness}" 
+				        BorderThickness="{TemplateBinding BorderThickness}"
 				        CornerRadius="{TemplateBinding CornerRadius}"
 				        ClipToBounds="True">
 					<Grid x:Name="InnerGrid" ColumnDefinitions="*,Auto">
-						<ContentPresenter x:Name="PART_ContentPresenter" 
-						                  Grid.Column="0" 
-						                  Content="{TemplateBinding Content}" 
+						<ContentPresenter x:Name="PART_ContentPresenter"
+						                  Grid.Column="0"
+						                  Content="{TemplateBinding Content}"
 						                  ContentTemplate="{TemplateBinding ContentTemplate}"
-						                  Padding="{TemplateBinding Padding}" 
-						                  RecognizesAccessKey="True" 
+						                  Padding="{TemplateBinding Padding}"
+						                  RecognizesAccessKey="True"
 						                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
 						                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 						<PathIcon x:Name="DropDownGlyph"
-						          Grid.Column="1" 
+						          Grid.Column="1"
 						          UseLayoutRounding="False"
-						          IsHitTestVisible="False" 
-						          Height="12" 
+						          IsHitTestVisible="False"
+						          Height="12"
 						          Width="12"
 						          Margin="0,0,10,0"
 						          Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z"
@@ -94,7 +94,7 @@
 		<Style Selector="^:pressed /template/ PathIcon#DropDownGlyph">
 			<Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
 		</Style>
-		
+
 		<Style Selector="^:flyout-open /template/ Border#RootBorder">
 			<Setter Property="Background" Value="#141414" />
 			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
@@ -110,7 +110,7 @@
 			<Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
 		</Style>
 	</ControlTheme>
-	
+
 	<ControlTheme x:Key="HyperlinkButton" TargetType="Button">
 		<Setter Property="Template">
 			<ControlTemplate>
@@ -127,7 +127,7 @@
 		<Setter Property="Background" Value="Transparent"/>
 		<Setter Property="BorderThickness" Value="0"/>
 	</ControlTheme>
-	
+
 	<ControlTheme x:Key="HyperlinkButtonSave" TargetType="Button">
 		<Setter Property="Template">
 			<ControlTemplate>
@@ -201,7 +201,7 @@
 			<Setter Property="BorderBrush" Value="#dcdcdc"/>
 		</Style>
 	</ControlTheme>
-	
+
 	<ControlTheme x:Key="Dark" TargetType="Button">
 		<Setter Property="HorizontalContentAlignment" Value="Center"/>
 		<Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -321,7 +321,7 @@
 		<Setter Property="FontFamily" Value="{StaticResource Monospace}"/>
 		<Setter Property="Focusable" Value="False"/>
 	</ControlTheme>
-	
+
 	<ControlTheme x:Key="MinimizeButton" BasedOn="{StaticResource Dark}" TargetType="Button">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
@@ -340,7 +340,7 @@
 			</Template>
 		</Setter>
 	</ControlTheme>
-	
+
 	<ControlTheme x:Key="CloseButton" BasedOn="{StaticResource Dark}" TargetType="Button">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
@@ -381,7 +381,31 @@
 			<Setter Property="BorderBrush" Value="#dc6d62"/>
 		</Style>
 	</ControlTheme>
-	
+
+    <ControlTheme x:Key="PinButtonSmall" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Height" Value="19"/>
+        <Setter Property="MinHeight" Value="19"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Content">
+            <Template>
+                <Viewbox UseLayoutRounding="True">
+                    <Path x:Name="Glyph"
+                          Stretch="UniformToFill"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          FlowDirection="LeftToRight"
+                          Fill="White"
+                          Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z"/>
+                </Viewbox>
+            </Template>
+        </Setter>
+        <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#C0392B"/>
+            <Setter Property="BorderBrush" Value="#C0392B"/>
+        </Style>
+    </ControlTheme>
+
 	<ControlTheme x:Key="PinButton" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
@@ -405,7 +429,7 @@
 			<Setter Property="BorderBrush" Value="#C0392B"/>
 		</Style>
 	</ControlTheme>
-	
+
 	<ControlTheme x:Key="CompactViewButton" BasedOn="{StaticResource Dark}" TargetType="Button">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
@@ -424,4 +448,23 @@
 			</Template>
 		</Setter>
 	</ControlTheme>
+
+    <ControlTheme x:Key="CompactViewButtonSmall" BasedOn="{StaticResource Dark}" TargetType="Button">
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Height" Value="19"/>
+        <Setter Property="MinHeight" Value="19"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Content">
+            <Template>
+                <Viewbox UseLayoutRounding="True">
+                    <Path x:Name="Glyph"
+                          Stretch="UniformToFill"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Fill="White"
+                          Data="M 5.7474 345.3495 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -64.2463 0 l 156.7472 -156.7458 l -0.0007 64.2456 c 0 1.9898 0.7898 3.8969 2.197 5.304 c 1.4064 1.4064 3.3135 2.1963 5.304 2.197 l 20.0012 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 125.7483 128.8554 C 125.7483 126.8656 124.9578 124.9578 123.5514 123.5514 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 L 1.7508 121.3551 c -1.9891 0.0007 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.304 l 0.0007 20.0005 c 0 2.0704 0.84 3.9457 2.197 5.3026 c 1.3569 1.3569 3.2322 2.197 5.304 2.197 l 64.247 -0.0007 l -156.7472 156.7458 l 0.0007 -64.2456 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -20.0012 0 c -1.9884 0 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.3026 l 0 116.4944 c 0.0007 2.0711 0.84 3.9471 2.197 5.304 c 1.3569 1.3569 3.2329 2.1963 5.304 2.197 l 116.4958 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 5.7474 345.3495 z"/>
+                </Viewbox>
+            </Template>
+        </Setter>
+    </ControlTheme>
 </ResourceDictionary>
