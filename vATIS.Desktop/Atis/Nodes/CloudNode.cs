@@ -176,7 +176,9 @@ public class CloudNode : BaseNode<CloudLayer>
                     ? Station.AtisFormat.Clouds.ConvectiveTypes.GetValueOrDefault(TypeToString(layer.Type), "")
                     : "", RegexOptions.IgnoreCase);
 
-            return Station.AtisFormat.Clouds.IdentifyCeilingLayer && layer == ceiling
+            return Station.AtisFormat.Clouds.IdentifyCeilingLayer &&
+                   layer.Amount != CloudLayer.CloudAmount.VerticalVisibility &&
+                   layer == ceiling
                 ? "ceiling " + template.Trim().ToUpperInvariant()
                 : template.Trim().ToUpperInvariant();
         }
