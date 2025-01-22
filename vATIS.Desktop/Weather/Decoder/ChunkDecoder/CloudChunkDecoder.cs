@@ -117,7 +117,7 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
     }
 
     /// <summary>
-    /// Calculates the ceiling by finding the lowest broken or overcast cloud layer.
+    /// Calculates the ceiling by finding the lowest broken, overcast, or vertical visibility cloud layer.
     /// </summary>
     /// <param name="layers">The list of cloud layers to analyze.</param>
     /// <returns>The lowest broken, overcast, or vertical visibility cloud layer with height > 0, or null if no such layer exists.</returns>
