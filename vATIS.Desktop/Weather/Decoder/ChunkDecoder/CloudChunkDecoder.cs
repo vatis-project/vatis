@@ -116,14 +116,21 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
         return GetResults(newRemainingMetar, result);
     }
 
+    /// <summary>
+    /// Calculates the ceiling by finding the lowest broken or overcast cloud layer.
+    /// </summary>
+    /// <param name="layers">The list of cloud layers to analyze.</param>
+    /// <returns>The lowest broken, overcast, or vertical visibility cloud layer with height > 0, or null if no such layer exists.</returns>
     private static CloudLayer? CalculateCeiling(List<CloudLayer> layers)
     {
         var ceiling = layers
-            .Where(n => n.BaseHeight != null &&
-                    n.BaseHeight.ActualValue > 0 &&
-                    (n.Amount == CloudLayer.CloudAmount.Overcast ||
-                     n.Amount == CloudLayer.CloudAmount.Broken))
-            .OrderBy(n => n.BaseHeight?.ActualValue)
+            .Where(layer =>
+                    layer.BaseHeight != null &&
+                    layer.BaseHeight.ActualValue > 0 &&
+                    (layer.Amount == CloudLayer.CloudAmount.VerticalVisibility ||
+                     layer.Amount == CloudLayer.CloudAmount.Overcast ||
+                     layer.Amount == CloudLayer.CloudAmount.Broken))
+            .OrderBy(layer => layer.BaseHeight?.ActualValue)
             .FirstOrDefault();
 
         return ceiling;
