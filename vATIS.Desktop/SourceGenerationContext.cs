@@ -13,6 +13,7 @@ using Vatsim.Vatis.Config;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
+using Vatsim.Vatis.Profiles.AtisFormat;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.TextToSpeech;
@@ -49,6 +50,7 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(Dictionary<string, CloudType>))]
 [JsonSerializable(typeof(Profile))]
 [JsonSerializable(typeof(ContractionMeta))]
+[JsonSerializable(typeof(Template))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(JsonObject))]
 [JsonSerializable(typeof(AtisStation))]

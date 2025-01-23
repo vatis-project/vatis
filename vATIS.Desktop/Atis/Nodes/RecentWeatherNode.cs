@@ -76,13 +76,13 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         switch (weather.IntensityProximity)
         {
             case "-":
-                result.Add(Station.AtisFormat.PresentWeather.LightIntensity);
+                result.Add(Station.AtisFormat.PresentWeather.LightIntensity.Voice ?? "");
                 break;
             case "+":
-                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity);
+                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity.Voice ?? "");
                 break;
             default:
-                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity);
+                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity.Voice ?? "");
                 break;
         }
 
@@ -92,7 +92,7 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Spoken));
 
         if (weather.IntensityProximity == "VC")
-            result.Add(Station.AtisFormat.PresentWeather.Vicinity);
+            result.Add(Station.AtisFormat.PresentWeather.Vicinity.Voice ?? "");
 
         return string.Join(" ", result);
     }
@@ -109,13 +109,13 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         switch (weather.IntensityProximity)
         {
             case "-":
-                result.Add(Station.AtisFormat.PresentWeather.LightIntensity);
+                result.Add(Station.AtisFormat.PresentWeather.LightIntensity.Text ?? "");
                 break;
             case "+":
-                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity);
+                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity.Text ?? "");
                 break;
             default:
-                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity);
+                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity.Text ?? "");
                 break;
         }
 
@@ -125,7 +125,7 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
         result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Text));
 
         if (weather.IntensityProximity == "VC")
-            result.Add(Station.AtisFormat.PresentWeather.Vicinity);
+            result.Add(Station.AtisFormat.PresentWeather.Vicinity.Text ?? "");
 
         return string.Join("", result);
     }

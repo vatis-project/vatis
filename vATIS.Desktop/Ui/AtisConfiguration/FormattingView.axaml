@@ -476,16 +476,46 @@
 						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Intensity/Proximity Descriptors">
-						<Grid ColumnDefinitions="125,10,*" RowDefinitions="*,5,*,5,*,5,*">
-							<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" ToolTip.Tip="Spoken text for light intensity (-)">Light Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherLightIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="0" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" ToolTip.Tip="Spoken text for moderate intensity">Moderate Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherModerateIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="2" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" ToolTip.Tip="Spoken text for heavy intensity (+)">Heavy Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherHeavyIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="4" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" ToolTip.Tip="Spoken text for vicinity proximity designator (VC)">Vicinity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherVicinity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="6" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-						</Grid>
+                        <DockPanel LastChildFill="True">
+                            <Grid ColumnDefinitions="170,*,*" Margin="0,0,0,10" DockPanel.Dock="Top">
+                                <TextBlock Grid.Column="1" FontSize="16" FontWeight="Medium" VerticalAlignment="Center" HorizontalAlignment="Center" ToolTip.Tip="The text displayed in the text ATIS">Text</TextBlock>
+                                <TextBlock Grid.Column="2" FontSize="16" FontWeight="Medium" VerticalAlignment="Center" HorizontalAlignment="Center" ToolTip.Tip="The text spoken in the voice ATIS">Spoken</TextBlock>
+                            </Grid>
+                            <StackPanel Orientation="Vertical" Spacing="15" DockPanel.Dock="Bottom">
+                                <!-- Light Intensity -->
+                                <Grid ColumnDefinitions="170,*">
+                                    <TextBlock Grid.Column="0" FontSize="16" FontWeight="Medium" VerticalAlignment="Center">Light Intensity (-):</TextBlock>
+                                    <Grid Grid.Column="1" ColumnDefinitions="*,10,*" VerticalAlignment="Center">
+                                        <TextBox Grid.Column="0" Text="{Binding PresentWeatherLightIntensityText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                        <TextBox Grid.Column="2" Text="{Binding PresentWeatherLightIntensityVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                    </Grid>
+                                </Grid>
+                                <!-- Moderate Intensity -->
+                                <Grid ColumnDefinitions="170,*">
+                                    <TextBlock Grid.Column="0" FontSize="16" FontWeight="Medium" VerticalAlignment="Center">Moderate Intensity:</TextBlock>
+                                    <Grid Grid.Column="1" ColumnDefinitions="*,10,*" VerticalAlignment="Center">
+                                        <TextBox Grid.Column="0" Text="{Binding PresentWeatherModerateIntensityText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                        <TextBox Grid.Column="2" Text="{Binding PresentWeatherModerateIntensityVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                    </Grid>
+                                </Grid>
+                                <!-- Heavy Intensity -->
+                                <Grid ColumnDefinitions="170,*">
+                                    <TextBlock Grid.Column="0" FontSize="16" FontWeight="Medium" VerticalAlignment="Center">Heavy Intensity (+):</TextBlock>
+                                    <Grid Grid.Column="1" ColumnDefinitions="*,10,*" VerticalAlignment="Center">
+                                        <TextBox Grid.Column="0" Text="{Binding PresentWeatherHeavyIntensityText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                        <TextBox Grid.Column="2" Text="{Binding PresentWeatherHeavyIntensityVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                    </Grid>
+                                </Grid>
+                                <!-- In Vicinity -->
+                                <Grid ColumnDefinitions="170,*">
+                                    <TextBlock Grid.Column="0" FontSize="16" FontWeight="Medium" VerticalAlignment="Center">Vicinity (VC):</TextBlock>
+                                    <Grid Grid.Column="1" ColumnDefinitions="*,10,*" VerticalAlignment="Center">
+                                        <TextBox Grid.Column="0" Text="{Binding PresentWeatherVicinityText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                        <TextBox Grid.Column="2" Text="{Binding PresentWeatherVicinityVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                                    </Grid>
+                                </Grid>
+                            </StackPanel>
+                        </DockPanel>
 					</TabItem>
 					<TabItem Header="Weather Descriptors">
 						<StackPanel Orientation="Vertical" Spacing="10">

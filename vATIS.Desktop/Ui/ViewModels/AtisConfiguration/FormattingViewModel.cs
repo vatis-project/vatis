@@ -87,10 +87,14 @@ public class FormattingViewModel : ReactiveViewModelBase
     private string? _visibilityUnlimitedVisibilityText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
-    private string? _presentWeatherLightIntensity;
-    private string? _presentWeatherModerateIntensity;
-    private string? _presentWeatherHeavyIntensity;
-    private string? _presentWeatherVicinity;
+    private string? _presentWeatherLightIntensityText;
+    private string? _presentWeatherLightIntensityVoice;
+    private string? _presentWeatherModerateIntensityText;
+    private string? _presentWeatherModerateIntensityVoice;
+    private string? _presentWeatherHeavyIntensityText;
+    private string? _presentWeatherHeavyIntensityVoice;
+    private string? _presentWeatherVicinityText;
+    private string? _presentWeatherVicinityVoice;
     private bool _cloudsIdentifyCeilingLayer;
     private bool _cloudsConvertToMetric;
     private string? _undeterminedLayerAltitudeText;
@@ -986,15 +990,15 @@ public class FormattingViewModel : ReactiveViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets the present weather light intensity.
+    /// Gets or sets the present weather light intensity text value.
     /// </summary>
-    public string? PresentWeatherLightIntensity
+    public string? PresentWeatherLightIntensityText
     {
-        get => _presentWeatherLightIntensity;
+        get => _presentWeatherLightIntensityText;
         set
         {
-            this.RaiseAndSetIfChanged(ref _presentWeatherLightIntensity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherLightIntensity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherLightIntensityText, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherLightIntensityText)))
             {
                 HasUnsavedChanges = true;
             }
@@ -1002,15 +1006,15 @@ public class FormattingViewModel : ReactiveViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets the present weather moderate intensity.
+    /// Gets or sets the present weather light intensity voice value.
     /// </summary>
-    public string? PresentWeatherModerateIntensity
+    public string? PresentWeatherLightIntensityVoice
     {
-        get => _presentWeatherModerateIntensity;
+        get => _presentWeatherLightIntensityVoice;
         set
         {
-            this.RaiseAndSetIfChanged(ref _presentWeatherModerateIntensity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherModerateIntensity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherLightIntensityVoice, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherLightIntensityVoice)))
             {
                 HasUnsavedChanges = true;
             }
@@ -1018,15 +1022,15 @@ public class FormattingViewModel : ReactiveViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets the present weather heavy intensity.
+    /// Gets or sets the present weather moderate intensity text value.
     /// </summary>
-    public string? PresentWeatherHeavyIntensity
+    public string? PresentWeatherModerateIntensityText
     {
-        get => _presentWeatherHeavyIntensity;
+        get => _presentWeatherModerateIntensityText;
         set
         {
-            this.RaiseAndSetIfChanged(ref _presentWeatherHeavyIntensity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherHeavyIntensity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherModerateIntensityText, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherModerateIntensityText)))
             {
                 HasUnsavedChanges = true;
             }
@@ -1034,15 +1038,79 @@ public class FormattingViewModel : ReactiveViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets the present weather vicinity.
+    /// Gets or sets the present weather moderate intensity voice value.
     /// </summary>
-    public string? PresentWeatherVicinity
+    public string? PresentWeatherModerateIntensityVoice
     {
-        get => _presentWeatherVicinity;
+        get => _presentWeatherModerateIntensityVoice;
         set
         {
-            this.RaiseAndSetIfChanged(ref _presentWeatherVicinity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherVicinity)))
+            this.RaiseAndSetIfChanged(ref _presentWeatherModerateIntensityVoice, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherModerateIntensityVoice)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather heavy intensity text value.
+    /// </summary>
+    public string? PresentWeatherHeavyIntensityText
+    {
+        get => _presentWeatherHeavyIntensityText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherHeavyIntensityText, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherHeavyIntensityText)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather heavy intensity voice value.
+    /// </summary>
+    public string? PresentWeatherHeavyIntensityVoice
+    {
+        get => _presentWeatherHeavyIntensityVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherHeavyIntensityVoice, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherHeavyIntensityVoice)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather vicinity text value.
+    /// </summary>
+    public string? PresentWeatherVicinityText
+    {
+        get => _presentWeatherVicinityText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherVicinityText, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherVicinityText)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the present weather vicinity voice value.
+    /// </summary>
+    public string? PresentWeatherVicinityVoice
+    {
+        get => _presentWeatherVicinityVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherVicinityVoice, value);
+            if (!_initializedProperties.Add(nameof(PresentWeatherVicinityVoice)))
             {
                 HasUnsavedChanges = true;
             }
@@ -1610,27 +1678,50 @@ public class FormattingViewModel : ReactiveViewModelBase
             SelectedStation.AtisFormat.Visibility.MetersCutoff = VisibilityMetersCutoff;
         }
 
-        if (SelectedStation.AtisFormat.PresentWeather.LightIntensity != PresentWeatherLightIntensity)
+        if (SelectedStation.AtisFormat.PresentWeather.LightIntensity.Text != PresentWeatherLightIntensityText)
         {
-            SelectedStation.AtisFormat.PresentWeather.LightIntensity =
-                PresentWeatherLightIntensity ?? string.Empty;
+            SelectedStation.AtisFormat.PresentWeather.LightIntensity.Text =
+                PresentWeatherLightIntensityText ?? string.Empty;
         }
 
-        if (SelectedStation.AtisFormat.PresentWeather.ModerateIntensity != PresentWeatherModerateIntensity)
+        if (SelectedStation.AtisFormat.PresentWeather.LightIntensity.Voice != PresentWeatherLightIntensityVoice)
         {
-            SelectedStation.AtisFormat.PresentWeather.ModerateIntensity =
-                PresentWeatherModerateIntensity ?? string.Empty;
+            SelectedStation.AtisFormat.PresentWeather.LightIntensity.Voice =
+                PresentWeatherLightIntensityVoice ?? string.Empty;
         }
 
-        if (SelectedStation.AtisFormat.PresentWeather.HeavyIntensity != PresentWeatherHeavyIntensity)
+        if (SelectedStation.AtisFormat.PresentWeather.ModerateIntensity.Text != PresentWeatherModerateIntensityText)
         {
-            SelectedStation.AtisFormat.PresentWeather.HeavyIntensity =
-                PresentWeatherHeavyIntensity ?? string.Empty;
+            SelectedStation.AtisFormat.PresentWeather.ModerateIntensity.Text =
+                PresentWeatherModerateIntensityText ?? string.Empty;
         }
 
-        if (SelectedStation.AtisFormat.PresentWeather.Vicinity != PresentWeatherVicinity)
+        if (SelectedStation.AtisFormat.PresentWeather.ModerateIntensity.Voice != PresentWeatherModerateIntensityVoice)
         {
-            SelectedStation.AtisFormat.PresentWeather.Vicinity = PresentWeatherVicinity ?? string.Empty;
+            SelectedStation.AtisFormat.PresentWeather.ModerateIntensity.Voice =
+                PresentWeatherModerateIntensityVoice ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.PresentWeather.HeavyIntensity.Text != PresentWeatherHeavyIntensityText)
+        {
+            SelectedStation.AtisFormat.PresentWeather.HeavyIntensity.Text =
+                PresentWeatherHeavyIntensityText ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.PresentWeather.HeavyIntensity.Voice != PresentWeatherHeavyIntensityVoice)
+        {
+            SelectedStation.AtisFormat.PresentWeather.HeavyIntensity.Voice =
+                PresentWeatherHeavyIntensityVoice ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.PresentWeather.Vicinity.Text != PresentWeatherVicinityText)
+        {
+            SelectedStation.AtisFormat.PresentWeather.Vicinity.Text = PresentWeatherVicinityText ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.PresentWeather.Vicinity.Voice != PresentWeatherVicinityVoice)
+        {
+            SelectedStation.AtisFormat.PresentWeather.Vicinity.Voice = PresentWeatherVicinityVoice ?? string.Empty;
         }
 
         if (PresentWeatherTypes != null && SelectedStation.AtisFormat.PresentWeather.PresentWeatherTypes !=
@@ -1845,10 +1936,14 @@ public class FormattingViewModel : ReactiveViewModelBase
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
-        PresentWeatherLightIntensity = station.AtisFormat.PresentWeather.LightIntensity;
-        PresentWeatherModerateIntensity = station.AtisFormat.PresentWeather.ModerateIntensity;
-        PresentWeatherHeavyIntensity = station.AtisFormat.PresentWeather.HeavyIntensity;
-        PresentWeatherVicinity = station.AtisFormat.PresentWeather.Vicinity;
+        PresentWeatherLightIntensityText = station.AtisFormat.PresentWeather.LightIntensity.Text;
+        PresentWeatherLightIntensityVoice = station.AtisFormat.PresentWeather.LightIntensity.Voice;
+        PresentWeatherModerateIntensityText = station.AtisFormat.PresentWeather.ModerateIntensity.Text;
+        PresentWeatherModerateIntensityVoice = station.AtisFormat.PresentWeather.ModerateIntensity.Voice;
+        PresentWeatherHeavyIntensityText = station.AtisFormat.PresentWeather.HeavyIntensity.Text;
+        PresentWeatherHeavyIntensityVoice = station.AtisFormat.PresentWeather.HeavyIntensity.Voice;
+        PresentWeatherVicinityText = station.AtisFormat.PresentWeather.Vicinity.Text;
+        PresentWeatherVicinityVoice = station.AtisFormat.PresentWeather.Vicinity.Voice;
         CloudsIdentifyCeilingLayer = station.AtisFormat.Clouds.IdentifyCeilingLayer;
         CloudsConvertToMetric = station.AtisFormat.Clouds.ConvertToMetric;
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;

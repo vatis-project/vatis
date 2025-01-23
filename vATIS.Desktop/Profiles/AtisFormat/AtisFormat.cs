@@ -3,7 +3,9 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Text.Json.Serialization;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
+using Vatsim.Vatis.Profiles.Converter;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat;
 

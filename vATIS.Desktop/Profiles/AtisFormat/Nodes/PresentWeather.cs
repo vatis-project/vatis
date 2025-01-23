@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Vatsim.Vatis.Profiles.Converter;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 
@@ -64,22 +65,26 @@ public class PresentWeather : BaseFormat
     /// <summary>
     /// Gets or sets the light intensity descriptor.
     /// </summary>
-    public string LightIntensity { get; set; } = "light";
+    [JsonConverter(typeof(LightIntensityDescriptorConverter))]
+    public Template LightIntensity { get; set; } = new() { Text = "-", Voice = "light" };
 
     /// <summary>
     /// Gets or sets the moderate intensity descriptor.
     /// </summary>
-    public string ModerateIntensity { get; set; } = string.Empty;
+    [JsonConverter(typeof(ModerateIntensityDescriptorConverter))]
+    public Template ModerateIntensity { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the heavy intensity descriptor.
     /// </summary>
-    public string HeavyIntensity { get; set; } = "heavy";
+    [JsonConverter(typeof(HeavyIntensityDescriptorConverter))]
+    public Template HeavyIntensity { get; set; } = new() { Text = "+", Voice = "heavy" };
 
     /// <summary>
     /// Gets or sets the vicinity descriptor.
     /// </summary>
-    public string Vicinity { get; set; } = "in vicinity";
+    [JsonConverter(typeof(VicinityDescriptorConverter))]
+    public Template Vicinity { get; set; } = new() { Text = "VC", Voice = "in vicinity" };
 
     /// <summary>
     /// Gets or sets the dictionary of present weather types.
