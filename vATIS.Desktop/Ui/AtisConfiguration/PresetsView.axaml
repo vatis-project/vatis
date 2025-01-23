@@ -167,7 +167,7 @@
                     <Button
 						Margin="0,0,5,5"
 						Theme="{StaticResource DarkVariable}"
-						ToolTip.Tip="	Inserts the text from the free-form Airport Conditions field, followed by any selected static text options"
+						ToolTip.Tip="Inserts the text from the free-form Airport Conditions field, followed by any selected static text options"
 						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
 						CommandParameter="{Binding $self.Content}">
 						[ARPT__COND]
