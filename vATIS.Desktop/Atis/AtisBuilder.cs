@@ -459,7 +459,8 @@ public class AtisBuilder : IAtisBuilder
             new("ARPT_COND", airportConditionsText, airportConditionsVoice, ["ARRDEP"]),
             new("NOTAMS", notamsText, notamsVoice),
             new("TREND", trends.TextAtis, trends.VoiceAtis),
-            new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis)
+            new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
+            new("WS", windshear.TextAtis, windshear.VoiceAtis)
         };
 
         if (!station.IsFaaAtis)

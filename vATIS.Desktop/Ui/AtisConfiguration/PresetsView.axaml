@@ -155,8 +155,16 @@
 						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
 						CommandParameter="{Binding $self.Content}">
 						[RECENT__WX]
-					</Button>					
-					<Button
+					</Button>
+                    <Button
+                        Margin="0,0,5,5"
+                        Theme="{StaticResource DarkVariable}"
+                        ToolTip.Tip="Wind Shear"
+                        Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+                        CommandParameter="{Binding $self.Content}">
+                        [WS]
+                    </Button>
+                    <Button
 						Margin="0,0,5,5"
 						Theme="{StaticResource DarkVariable}"
 						ToolTip.Tip="	Inserts the text from the free-form Airport Conditions field, followed by any selected static text options"
