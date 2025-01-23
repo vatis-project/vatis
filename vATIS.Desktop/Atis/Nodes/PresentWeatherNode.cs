@@ -123,13 +123,13 @@ public class PresentWeatherNode : BaseNode<WeatherPhenomenon>
                 break;
         }
 
+        if (weather.IntensityProximity == "VC")
+            result.Add(Station.AtisFormat.PresentWeather.Vicinity.Text ?? "");
+
         if (!string.IsNullOrEmpty(weather.Characteristics))
             result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Text);
 
         result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Text));
-
-        if (weather.IntensityProximity == "VC")
-            result.Add(Station.AtisFormat.PresentWeather.Vicinity.Text ?? "");
 
         return string.Join("", result);
     }
