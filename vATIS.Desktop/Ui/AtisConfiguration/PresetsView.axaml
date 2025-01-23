@@ -159,7 +159,7 @@
                     <Button
                         Margin="0,0,5,5"
                         Theme="{StaticResource DarkVariable}"
-                        ToolTip.Tip="Wind Shear"
+                        ToolTip.Tip="The wind shear information from the METAR"
                         Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
                         CommandParameter="{Binding $self.Content}">
                         [WS]
