@@ -1,36 +1,18 @@
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Vatsim.Vatis.Profiles.AtisFormat;
+// <copyright file="ModerateIntensityDescriptorConverter.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Vatsim.Vatis.Profiles.Converter;
 
 /// <summary>
 /// Converts legacy "moderate intensity" weather descriptor.
 /// </summary>
-public class ModerateIntensityDescriptorConverter : JsonConverter<Template>
+public class ModerateIntensityDescriptorConverter : TemplateConverterBase
 {
     /// <inheritdoc />
-    public override Template? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType == JsonTokenType.StartObject)
-            return JsonSerializer.Deserialize<Template>(ref reader, options);
-
-        if (reader.TokenType == JsonTokenType.String)
-        {
-            var legacyValue = reader.GetString();
-
-            return !string.IsNullOrEmpty(legacyValue)
-                ? new Template { Text = "", Voice = legacyValue }
-                : new Template { Text = "", Voice = "" };
-        }
-
-        throw new JsonException();
-    }
+    protected override string DefaultText => "";
 
     /// <inheritdoc />
-    public override void Write(Utf8JsonWriter writer, Template value, JsonSerializerOptions options)
-    {
-        JsonSerializer.Serialize(writer, value, SourceGenerationContext.NewDefault.Template);
-    }
+    protected override string DefaultVoice => "";
 }
