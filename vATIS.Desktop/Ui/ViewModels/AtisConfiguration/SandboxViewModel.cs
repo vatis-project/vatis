@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder;
@@ -98,6 +100,13 @@ public class SandboxViewModel : ReactiveViewModelBase
             if (evt.Id == SelectedStation?.Id)
             {
                 Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
+            }
+        });
+        MessageBus.Current.Listen<ContractionsUpdated>().Subscribe(evt =>
+        {
+            if (evt.StationId == SelectedStation?.Id)
+            {
+                LoadContractionData();
             }
         });
     }
@@ -321,6 +330,7 @@ public class SandboxViewModel : ReactiveViewModelBase
         SandboxSpokenTextAtis = "";
         IsSandboxPlaybackActive = false;
         NativeAudio.StopBufferPlayback();
+        LoadContractionData();
     }
 
     private async Task HandlePlaySandboxAtis(CancellationToken token)
@@ -545,5 +555,19 @@ public class SandboxViewModel : ReactiveViewModelBase
         var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, monitor: false,
             triggerMessageBus: false);
         SandboxMetar = metar?.RawMetar;
+    }
+
+    private void LoadContractionData()
+    {
+        if (SelectedStation == null)
+            return;
+
+        ContractionCompletionData.Clear();
+
+        foreach (var contraction in SelectedStation.Contractions.ToList())
+        {
+            if (contraction is { VariableName: not null, Voice: not null })
+                ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
+        }
     }
 }
