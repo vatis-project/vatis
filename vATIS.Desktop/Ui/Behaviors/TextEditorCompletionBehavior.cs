@@ -52,6 +52,7 @@ public class TextEditorCompletionBehavior : Behavior<TextEditor>
         _textEditor.TextArea.KeyUp += OnTextEditorKeyUp;
         _textEditor.TextArea.TextEntered += TextAreaOnTextEntered;
         _textEditor.Options.CompletionAcceptAction = CompletionAcceptAction.DoubleTapped;
+        _textEditor.Options.AllowScrollBelowDocument = false;
     }
 
     private void OnTextEditorKeyUp(object? sender, KeyEventArgs e)
