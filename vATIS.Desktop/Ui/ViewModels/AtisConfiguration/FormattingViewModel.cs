@@ -1248,7 +1248,11 @@ public class FormattingViewModel : ReactiveViewModelBase
     public bool PresentWeatherFilterAcronym
     {
         get => _presentWeatherFilterAcronym;
-        set => this.RaiseAndSetIfChanged(ref _presentWeatherFilterAcronym, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherFilterAcronym, value);
+            FilterPresentWeatherTypes();
+        }
     }
 
     /// <summary>
@@ -1257,7 +1261,11 @@ public class FormattingViewModel : ReactiveViewModelBase
     public bool PresentWeatherFilterText
     {
         get => _presentWeatherFilterText;
-        set => this.RaiseAndSetIfChanged(ref _presentWeatherFilterText, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherFilterText, value);
+            FilterPresentWeatherTypes();
+        }
     }
 
     /// <summary>
@@ -1266,7 +1274,11 @@ public class FormattingViewModel : ReactiveViewModelBase
     public bool PresentWeatherFilterSpoken
     {
         get => _presentWeatherFilterSpoken;
-        set => this.RaiseAndSetIfChanged(ref _presentWeatherFilterSpoken, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherFilterSpoken, value);
+            FilterPresentWeatherTypes();
+        }
     }
 
     /// <summary>
