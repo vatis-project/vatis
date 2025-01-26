@@ -1875,9 +1875,8 @@ public class FormattingViewModel : ReactiveViewModelBase
         if (PresentWeatherTypes != null)
         {
             FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(PresentWeatherTypes);
+            FilterPresentWeatherTypes();
         }
-
-        FilterPresentWeatherTypes();
 
         HasUnsavedChanges = false;
     }
