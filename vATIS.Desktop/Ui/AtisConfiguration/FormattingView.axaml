@@ -427,7 +427,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--Weather-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
+			<StackPanel Spacing="10" Margin="10,10,0,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
@@ -475,21 +475,21 @@
 							</StackPanel>
 						</groupBox:GroupBoxControl>
 					</TabItem>
-					<TabItem Header="Intensity/Proximity Descriptors">
-						<Grid ColumnDefinitions="125,10,*" RowDefinitions="*,5,*,5,*,5,*">
-							<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" ToolTip.Tip="Spoken text for light intensity (-)">Light Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherLightIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="0" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" ToolTip.Tip="Spoken text for moderate intensity">Moderate Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherModerateIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="2" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" ToolTip.Tip="Spoken text for heavy intensity (+)">Heavy Intensity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherHeavyIntensity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="4" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-							<TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" ToolTip.Tip="Spoken text for vicinity proximity designator (VC)">Vicinity:</TextBlock>
-							<TextBox Text="{Binding PresentWeatherVicinity, DataType=vm:FormattingViewModel}" Grid.Column="2" Grid.Row="6" MinWidth="150" Theme="{StaticResource DarkTextBox}"></TextBox>
-						</Grid>
-					</TabItem>
 					<TabItem Header="Weather Descriptors">
 						<StackPanel Orientation="Vertical" Spacing="10">
-							<DataGrid Name="WeatherDescriptors" MaxHeight="290" SelectionMode="Extended" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding PresentWeatherTypes, DataType=vm:FormattingViewModel}">
+                            <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,5,Auto">
+                                <TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="Search..." Text="{Binding PresentWeatherSearchTerm, DataType=vm:FormattingViewModel}">
+                                    <Interaction.Behaviors>
+                                        <behaviors:TextBoxUppercaseBehavior/>
+                                    </Interaction.Behaviors>
+                                </TextBox>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                                    <CheckBox IsChecked="{Binding PresentWeatherFilterAcronym, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Acronym</CheckBox>
+                                    <CheckBox IsChecked="{Binding PresentWeatherFilterText, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Text</CheckBox>
+                                    <CheckBox IsChecked="{Binding PresentWeatherFilterSpoken, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Spoken</CheckBox>
+                                </StackPanel>
+                            </Grid>
+                            <DataGrid Name="WeatherDescriptors" MaxHeight="315" SelectionMode="Extended" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding FilteredPresentWeatherTypes, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
 								</Interaction.Behaviors>
@@ -499,8 +499,8 @@
 									</Style>
 								</DataGrid.Styles>
 								<DataGrid.Columns>
-									<DataGridTextColumn Header="Acronym" Width="150" Binding="{Binding Key, DataType=models:PresentWeatherMeta}" IsReadOnly="True"/>
-									<DataGridTextColumn Header="Text" Width="1*" Binding="{Binding Text, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
+									<DataGridTextColumn Header="Acronym" Width="140" Binding="{Binding Key, DataType=models:PresentWeatherMeta}" IsReadOnly="True"/>
+									<DataGridTextColumn Header="Text" Width="140" Binding="{Binding Text, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
 									<DataGridTextColumn Header="Spoken" Width="1*" Binding="{Binding Spoken, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
 								</DataGrid.Columns>
 							</DataGrid>

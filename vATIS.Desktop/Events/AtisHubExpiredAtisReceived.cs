@@ -3,7 +3,6 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
 
 namespace Vatsim.Vatis.Events;

@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -87,10 +88,6 @@ public class FormattingViewModel : ReactiveViewModelBase
     private string? _visibilityUnlimitedVisibilityText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
-    private string? _presentWeatherLightIntensity;
-    private string? _presentWeatherModerateIntensity;
-    private string? _presentWeatherHeavyIntensity;
-    private string? _presentWeatherVicinity;
     private bool _cloudsIdentifyCeilingLayer;
     private bool _cloudsConvertToMetric;
     private string? _undeterminedLayerAltitudeText;
@@ -109,6 +106,11 @@ public class FormattingViewModel : ReactiveViewModelBase
     private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
     private List<ICompletionData> _contractionCompletionData = new();
+    private string _presentWeatherSearchTerm = string.Empty;
+    private ObservableCollection<PresentWeatherMeta>? _filteredPresentWeatherTypes;
+    private bool _presentWeatherFilterAcronym = true;
+    private bool _presentWeatherFilterText;
+    private bool _presentWeatherFilterSpoken;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FormattingViewModel"/> class.
@@ -986,70 +988,6 @@ public class FormattingViewModel : ReactiveViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets the present weather light intensity.
-    /// </summary>
-    public string? PresentWeatherLightIntensity
-    {
-        get => _presentWeatherLightIntensity;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _presentWeatherLightIntensity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherLightIntensity)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the present weather moderate intensity.
-    /// </summary>
-    public string? PresentWeatherModerateIntensity
-    {
-        get => _presentWeatherModerateIntensity;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _presentWeatherModerateIntensity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherModerateIntensity)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the present weather heavy intensity.
-    /// </summary>
-    public string? PresentWeatherHeavyIntensity
-    {
-        get => _presentWeatherHeavyIntensity;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _presentWeatherHeavyIntensity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherHeavyIntensity)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the present weather vicinity.
-    /// </summary>
-    public string? PresentWeatherVicinity
-    {
-        get => _presentWeatherVicinity;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _presentWeatherVicinity, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherVicinity)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets or sets a value indicating whether to identify ceiling layer.
     /// </summary>
     public bool CloudsIdentifyCeilingLayer
@@ -1280,6 +1218,55 @@ public class FormattingViewModel : ReactiveViewModelBase
     {
         get => _presentWeatherTypes;
         set => this.RaiseAndSetIfChanged(ref _presentWeatherTypes, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the filtered present weather types.
+    /// </summary>
+    public ObservableCollection<PresentWeatherMeta>? FilteredPresentWeatherTypes
+    {
+        get => _filteredPresentWeatherTypes;
+        set => this.RaiseAndSetIfChanged(ref _filteredPresentWeatherTypes, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the search term for filtering present weather types.
+    /// </summary>
+    public string PresentWeatherSearchTerm
+    {
+        get => _presentWeatherSearchTerm;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _presentWeatherSearchTerm, value);
+            FilterPresentWeatherTypes();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to filter present weather types by acronym.
+    /// </summary>
+    public bool PresentWeatherFilterAcronym
+    {
+        get => _presentWeatherFilterAcronym;
+        set => this.RaiseAndSetIfChanged(ref _presentWeatherFilterAcronym, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to filter present weather types by text value.
+    /// </summary>
+    public bool PresentWeatherFilterText
+    {
+        get => _presentWeatherFilterText;
+        set => this.RaiseAndSetIfChanged(ref _presentWeatherFilterText, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to filter present weather types by spoken value.
+    /// </summary>
+    public bool PresentWeatherFilterSpoken
+    {
+        get => _presentWeatherFilterSpoken;
+        set => this.RaiseAndSetIfChanged(ref _presentWeatherFilterSpoken, value);
     }
 
     /// <summary>
@@ -1610,29 +1597,6 @@ public class FormattingViewModel : ReactiveViewModelBase
             SelectedStation.AtisFormat.Visibility.MetersCutoff = VisibilityMetersCutoff;
         }
 
-        if (SelectedStation.AtisFormat.PresentWeather.LightIntensity != PresentWeatherLightIntensity)
-        {
-            SelectedStation.AtisFormat.PresentWeather.LightIntensity =
-                PresentWeatherLightIntensity ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.PresentWeather.ModerateIntensity != PresentWeatherModerateIntensity)
-        {
-            SelectedStation.AtisFormat.PresentWeather.ModerateIntensity =
-                PresentWeatherModerateIntensity ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.PresentWeather.HeavyIntensity != PresentWeatherHeavyIntensity)
-        {
-            SelectedStation.AtisFormat.PresentWeather.HeavyIntensity =
-                PresentWeatherHeavyIntensity ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.PresentWeather.Vicinity != PresentWeatherVicinity)
-        {
-            SelectedStation.AtisFormat.PresentWeather.Vicinity = PresentWeatherVicinity ?? string.Empty;
-        }
-
         if (PresentWeatherTypes != null && SelectedStation.AtisFormat.PresentWeather.PresentWeatherTypes !=
             PresentWeatherTypes.ToDictionary(
                 x => x.Key,
@@ -1845,10 +1809,6 @@ public class FormattingViewModel : ReactiveViewModelBase
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
-        PresentWeatherLightIntensity = station.AtisFormat.PresentWeather.LightIntensity;
-        PresentWeatherModerateIntensity = station.AtisFormat.PresentWeather.ModerateIntensity;
-        PresentWeatherHeavyIntensity = station.AtisFormat.PresentWeather.HeavyIntensity;
-        PresentWeatherVicinity = station.AtisFormat.PresentWeather.Vicinity;
         CloudsIdentifyCeilingLayer = station.AtisFormat.Clouds.IdentifyCeilingLayer;
         CloudsConvertToMetric = station.AtisFormat.Clouds.ConvertToMetric;
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
@@ -1899,6 +1859,13 @@ public class FormattingViewModel : ReactiveViewModelBase
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
             }
         }
+
+        if (PresentWeatherTypes != null)
+        {
+            FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(PresentWeatherTypes);
+        }
+
+        FilterPresentWeatherTypes();
 
         HasUnsavedChanges = false;
     }
@@ -2048,5 +2015,30 @@ public class FormattingViewModel : ReactiveViewModelBase
                 focusedTextEditor.Caret.Offset = focusedTextEditor.Document.Text.Length;
             }
         }
+    }
+
+    private void FilterPresentWeatherTypes()
+    {
+        if (_presentWeatherTypes == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(_presentWeatherSearchTerm))
+        {
+            FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(_presentWeatherTypes);
+            return;
+        }
+
+        // Apply filtering based on selected filters
+        var filtered = _presentWeatherTypes.Where(x =>
+        {
+            var matchesAcronym = PresentWeatherFilterAcronym && x.Key.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase);
+            var matchesText = PresentWeatherFilterText && x.Text.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase);
+            var matchesSpoken = PresentWeatherFilterSpoken && x.Spoken.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase);
+
+            // Return true if any of the selected filters match the search term
+            return matchesAcronym || matchesText || matchesSpoken;
+        });
+
+        FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(filtered);
     }
 }
