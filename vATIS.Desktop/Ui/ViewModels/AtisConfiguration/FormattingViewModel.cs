@@ -2036,7 +2036,19 @@ public class FormattingViewModel : ReactiveViewModelBase
 
         if (string.IsNullOrWhiteSpace(_presentWeatherSearchTerm))
         {
-            FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(_presentWeatherTypes);
+            if (FilteredPresentWeatherTypes == null)
+            {
+                FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(_presentWeatherTypes);
+            }
+            else
+            {
+                FilteredPresentWeatherTypes.Clear();
+                foreach (var item in _presentWeatherTypes)
+                {
+                    FilteredPresentWeatherTypes.Add(item);
+                }
+            }
+
             return;
         }
 
@@ -2051,6 +2063,17 @@ public class FormattingViewModel : ReactiveViewModelBase
             return matchesAcronym || matchesText || matchesSpoken;
         });
 
-        FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(filtered);
+        if (FilteredPresentWeatherTypes == null)
+        {
+            FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(filtered);
+        }
+        else
+        {
+            FilteredPresentWeatherTypes.Clear();
+            foreach (var item in filtered)
+            {
+                FilteredPresentWeatherTypes.Add(item);
+            }
+        }
     }
 }
