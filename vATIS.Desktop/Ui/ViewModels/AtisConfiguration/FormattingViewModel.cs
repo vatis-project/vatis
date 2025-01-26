@@ -2033,46 +2033,25 @@ public class FormattingViewModel : ReactiveViewModelBase
         if (_presentWeatherTypes == null)
             return;
 
+        var filtered = string.IsNullOrWhiteSpace(_presentWeatherSearchTerm)
+            ? _presentWeatherTypes
+            : _presentWeatherTypes.Where(MatchesSearchTerm);
+
+        FilteredPresentWeatherTypes ??= [];
+        FilteredPresentWeatherTypes.Clear();
+        foreach (var item in filtered)
+        {
+            FilteredPresentWeatherTypes.Add(item);
+        }
+    }
+
+    private bool MatchesSearchTerm(PresentWeatherMeta weather)
+    {
         if (string.IsNullOrWhiteSpace(_presentWeatherSearchTerm))
-        {
-            if (FilteredPresentWeatherTypes == null)
-            {
-                FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(_presentWeatherTypes);
-            }
-            else
-            {
-                FilteredPresentWeatherTypes.Clear();
-                foreach (var item in _presentWeatherTypes)
-                {
-                    FilteredPresentWeatherTypes.Add(item);
-                }
-            }
+            return true;
 
-            return;
-        }
-
-        // Apply filtering based on selected filters
-        var filtered = _presentWeatherTypes.Where(x =>
-        {
-            var matchesAcronym = PresentWeatherFilterAcronym && x.Key.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase);
-            var matchesText = PresentWeatherFilterText && x.Text.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase);
-            var matchesSpoken = PresentWeatherFilterSpoken && x.Spoken.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase);
-
-            // Return true if any of the selected filters match the search term
-            return matchesAcronym || matchesText || matchesSpoken;
-        });
-
-        if (FilteredPresentWeatherTypes == null)
-        {
-            FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(filtered);
-        }
-        else
-        {
-            FilteredPresentWeatherTypes.Clear();
-            foreach (var item in filtered)
-            {
-                FilteredPresentWeatherTypes.Add(item);
-            }
-        }
+        return (PresentWeatherFilterAcronym && weather.Key.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
+               (PresentWeatherFilterText && weather.Text.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
+               (PresentWeatherFilterSpoken && weather.Spoken.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase));
     }
 }
