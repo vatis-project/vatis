@@ -76,7 +76,6 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (ViewModel == null)
             return;
 
-        NotamFreeText.Options.AllowScrollBelowDocument = false;
         NotamFreeText.TextArea.Caret.PositionChanged += (_, _) =>
         {
             if (ViewModel?.ReadOnlyNotams == null)
@@ -94,7 +93,6 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             }
         };
 
-        AirportConditions.Options.AllowScrollBelowDocument = false;
         AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
         {
             if (ViewModel?.ReadOnlyAirportConditions == null)
