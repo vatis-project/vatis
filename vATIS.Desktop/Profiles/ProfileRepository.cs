@@ -116,6 +116,12 @@ public class ProfileRepository : IProfileRepository
             try
             {
                 var profile = await Load(path);
+                EnsureLatestVersion(profile, out var wasUpdated);
+                if (wasUpdated)
+                {
+                    Save(profile);
+                }
+
                 profiles.Add(profile);
             }
             catch (Exception ex)
@@ -195,5 +201,30 @@ public class ProfileRepository : IProfileRepository
             Log.Information($"Creating Profiles folder {PathProvider.ProfilesFolderPath}");
             Directory.CreateDirectory(PathProvider.ProfilesFolderPath);
         }
+    }
+
+    private void EnsureLatestVersion(Profile profile, out bool wasUpdated)
+    {
+        wasUpdated = false;
+        if (profile.Version < 2)
+        {
+            UpdateTo2(profile);
+            wasUpdated = true;
+        }
+    }
+
+    private void UpdateTo2(Profile profile)
+    {
+        Log.Information($"Updating profile {profile.Name} to version 2");
+
+        if (profile.Stations != null)
+        {
+            foreach (var station in profile.Stations)
+            {
+                station.AtisFormat.PresentWeather.EnsureDefaultWeatherTypes();
+            }
+        }
+
+        profile.Version = 2;
     }
 }

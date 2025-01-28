@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -73,26 +72,10 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
 
         var result = new List<string>();
 
-        switch (weather.IntensityProximity)
+        if (weather.RawValue != null && Station.AtisFormat.PresentWeather.PresentWeatherTypes.TryGetValue(weather.RawValue, out var value))
         {
-            case "-":
-                result.Add(Station.AtisFormat.PresentWeather.LightIntensity);
-                break;
-            case "+":
-                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity);
-                break;
-            default:
-                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity);
-                break;
+            result.Add(value.Spoken);
         }
-
-        if (!string.IsNullOrEmpty(weather.Characteristics))
-            result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Spoken);
-
-        result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Spoken));
-
-        if (weather.IntensityProximity == "VC")
-            result.Add(Station.AtisFormat.PresentWeather.Vicinity);
 
         return string.Join(" ", result);
     }
@@ -106,27 +89,11 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
 
         var result = new List<string>();
 
-        switch (weather.IntensityProximity)
+        if (weather.RawValue != null && Station.AtisFormat.PresentWeather.PresentWeatherTypes.TryGetValue(weather.RawValue, out var value))
         {
-            case "-":
-                result.Add(Station.AtisFormat.PresentWeather.LightIntensity);
-                break;
-            case "+":
-                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity);
-                break;
-            default:
-                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity);
-                break;
+            result.Add(value.Text);
         }
 
-        if (!string.IsNullOrEmpty(weather.Characteristics))
-            result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Text);
-
-        result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Text));
-
-        if (weather.IntensityProximity == "VC")
-            result.Add(Station.AtisFormat.PresentWeather.Vicinity);
-
-        return string.Join("", result);
+        return string.Join(" ", result);
     }
 }

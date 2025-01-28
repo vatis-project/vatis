@@ -11,7 +11,6 @@ using Vatsim.Network;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.NavData;
-using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Profiles.Models;

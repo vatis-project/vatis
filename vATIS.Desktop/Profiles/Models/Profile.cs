@@ -15,7 +15,10 @@ namespace Vatsim.Vatis.Profiles.Models;
 /// </summary>
 public class Profile
 {
-    private const int CurrentVersion = 1;
+    /// <summary>
+    /// The current version of the profile.
+    /// </summary>
+    public const int CurrentVersion = 2;
 
     /// <summary>
     /// Gets or sets the version of the profile.

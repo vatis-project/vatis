@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -53,16 +52,14 @@ public class PresentWeatherNode : BaseNode<WeatherPhenomenon>
         if (voiceTemplate != null)
         {
             VoiceAtis = voiceAtis.Count > 0
-                ? Regex.Replace(voiceTemplate, "{weather}", string.Join(", ", voiceAtis).Trim(',').Trim(' '),
-                    RegexOptions.IgnoreCase)
+                ? Regex.Replace(voiceTemplate, "{weather}", string.Join(", ", voiceAtis), RegexOptions.IgnoreCase)
                 : string.Empty;
         }
 
         if (textTemplate != null)
         {
             TextAtis = textAtis.Count > 0
-                ? Regex.Replace(textTemplate, "{weather}", string.Join(" ", textAtis).Trim(' '),
-                    RegexOptions.IgnoreCase)
+                ? Regex.Replace(textTemplate, "{weather}", string.Join(" ", textAtis), RegexOptions.IgnoreCase)
                 : string.Empty;
         }
     }
@@ -76,28 +73,13 @@ public class PresentWeatherNode : BaseNode<WeatherPhenomenon>
 
         var result = new List<string>();
 
-        switch (weather.IntensityProximity)
+        if (weather.RawValue != null &&
+            Station.AtisFormat.PresentWeather.PresentWeatherTypes.TryGetValue(weather.RawValue.Trim(), out var value))
         {
-            case "-":
-                result.Add(Station.AtisFormat.PresentWeather.LightIntensity);
-                break;
-            case "+":
-                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity);
-                break;
-            default:
-                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity);
-                break;
+            result.Add(value.Spoken.Trim());
         }
 
-        if (!string.IsNullOrEmpty(weather.Characteristics))
-            result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Spoken);
-
-        result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Spoken));
-
-        if (weather.IntensityProximity == "VC")
-            result.Add(Station.AtisFormat.PresentWeather.Vicinity);
-
-        return string.Join(" ", result);
+        return result.Count > 0 ? string.Join(" ", result) : string.Empty;
     }
 
     private string FormatWeatherText(WeatherPhenomenon? weather)
@@ -109,27 +91,12 @@ public class PresentWeatherNode : BaseNode<WeatherPhenomenon>
 
         var result = new List<string>();
 
-        switch (weather.IntensityProximity)
+        if (weather.RawValue != null &&
+            Station.AtisFormat.PresentWeather.PresentWeatherTypes.TryGetValue(weather.RawValue.Trim(), out var value))
         {
-            case "-":
-                result.Add(Station.AtisFormat.PresentWeather.LightIntensity);
-                break;
-            case "+":
-                result.Add(Station.AtisFormat.PresentWeather.HeavyIntensity);
-                break;
-            default:
-                result.Add(Station.AtisFormat.PresentWeather.ModerateIntensity);
-                break;
+            result.Add(value.Text.Trim());
         }
 
-        if (!string.IsNullOrEmpty(weather.Characteristics))
-            result.Add(Station.AtisFormat.PresentWeather.PresentWeatherTypes[weather.Characteristics].Text);
-
-        result.AddRange(weather.Types.Select(type => Station.AtisFormat.PresentWeather.PresentWeatherTypes[type].Text));
-
-        if (weather.IntensityProximity == "VC")
-            result.Add(Station.AtisFormat.PresentWeather.Vicinity);
-
-        return string.Join(" ", result);
+        return result.Count > 0 ? string.Join(" ", result) : string.Empty;
     }
 }
