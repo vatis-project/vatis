@@ -759,7 +759,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             Metar = null;
             ObservationTime = null;
             ErrorMessage = string.IsNullOrEmpty(e.Reason)
-                ? $"Forcefully disconnected from network."
+                ? "Forcefully disconnected from network."
                 : $"Forcefully disconnected from network: {e.Reason}";
         });
     }
@@ -939,6 +939,21 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     }
 
                     NetworkConnectionStatus = NetworkConnectionStatus.Connecting;
+
+                    // Fetch the real-world ATIS letter if the user has enabled this option.
+                    if (_appConfig.AutoFetchAtisLetter)
+                    {
+                        if (!string.IsNullOrEmpty(Identifier))
+                        {
+                            var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
+                            var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+                            if (atisLetter != null)
+                            {
+                                await SetAtisLetterCommand.Execute(atisLetter.Value);
+                            }
+                        }
+                    }
+
                     await _networkConnection.Connect();
                 }
                 catch (Exception e)
@@ -983,44 +998,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnNetworkErrorReceived(object? sender, NetworkErrorReceived e)
     {
-        ErrorMessage = e.Error;
+        Dispatcher.UIThread.Post(() =>
+        {
+            ErrorMessage = e.Error;
+        });
         NativeAudio.EmitSound(SoundType.Error);
     }
 
-    private async void OnNetworkConnected(object? sender, EventArgs e)
+    private void OnNetworkConnected(object? sender, EventArgs e)
     {
-        try
+        Dispatcher.UIThread.Post(() =>
         {
-            await Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                try
-                {
-                    // Fetch the real-world ATIS letter if the user has enabled this option.
-                    if (_appConfig.AutoFetchAtisLetter)
-                    {
-                        if (!string.IsNullOrEmpty(Identifier))
-                        {
-                            var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
-                            var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-                            if (atisLetter != null)
-                            {
-                                SetAtisLetterCommand.Execute(atisLetter.Value).Subscribe();
-                            }
-                        }
-                    }
-
-                    NetworkConnectionStatus = NetworkConnectionStatus.Connected;
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Unhandled exception in OnNetworkConnected async lambda.");
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Unhandled exception in OnNetworkConnected.");
-        }
+            NetworkConnectionStatus = NetworkConnectionStatus.Connected;
+        });
     }
 
     private void OnNetworkDisconnected(object? sender, EventArgs e)
@@ -1055,11 +1045,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (_voiceServerConnection == null || _networkConnection == null)
                 return;
 
-            if (NetworkConnectionStatus == NetworkConnectionStatus.Disconnected ||
-                NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            if (SelectedAtisPreset == null)
                 return;
 
-            if (SelectedAtisPreset == null)
+            if (NetworkConnectionStatus is NetworkConnectionStatus.Observer or NetworkConnectionStatus.Disconnected)
                 return;
 
             if (e.IsNewMetar)
