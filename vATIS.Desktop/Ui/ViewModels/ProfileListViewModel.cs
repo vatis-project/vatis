@@ -88,6 +88,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         }
 
         _profileList.Connect()
+            .AutoRefresh(p => p.Name)
             .Sort(SortExpressionComparer<ProfileViewModel>.Ascending(i => i.Name))
             .Bind(out var sortedProfiles)
             .Subscribe(_ => Profiles = sortedProfiles);
