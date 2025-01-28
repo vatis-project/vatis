@@ -353,11 +353,12 @@ public class AtisBuilder : IAtisBuilder
             _metarRepository ?? throw new InvalidOperationException());
         var trends = NodeParser.Parse<TrendNode, TrendForecast>(metar, station);
         var recentWeather = NodeParser.Parse<RecentWeatherNode, WeatherPhenomenon>(metar, station);
+        var windshear = NodeParser.Parse<WindShearNode, string>(metar, station);
 
         var completeWxStringVoice =
-            $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis}";
+            $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis} {windshear.VoiceAtis}";
         var completeWxStringAcars =
-            $"{surfaceWind.TextAtis} {visibility.TextAtis} {rvr.TextAtis} {presentWeather.TextAtis} {clouds.TextAtis} {temp.TextAtis}{(!string.IsNullOrEmpty(temp.TextAtis) || !string.IsNullOrEmpty(dew.TextAtis) ? "/" : "")}{dew.TextAtis} {pressure.TextAtis} {recentWeather.TextAtis}";
+            $"{surfaceWind.TextAtis} {visibility.TextAtis} {rvr.TextAtis} {presentWeather.TextAtis} {clouds.TextAtis} {temp.TextAtis}{(!string.IsNullOrEmpty(temp.TextAtis) || !string.IsNullOrEmpty(dew.TextAtis) ? "/" : "")}{dew.TextAtis} {pressure.TextAtis} {recentWeather.TextAtis} {windshear.TextAtis}";
 
         var airportConditions = "";
         if (!string.IsNullOrEmpty(preset.AirportConditions) || station.AirportConditionDefinitions.Any(x => x.Enabled))
@@ -458,7 +459,8 @@ public class AtisBuilder : IAtisBuilder
             new("ARPT_COND", airportConditionsText, airportConditionsVoice, ["ARRDEP"]),
             new("NOTAMS", notamsText, notamsVoice),
             new("TREND", trends.TextAtis, trends.VoiceAtis),
-            new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis)
+            new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
+            new("WS", windshear.TextAtis, windshear.VoiceAtis)
         };
 
         if (!station.IsFaaAtis)
