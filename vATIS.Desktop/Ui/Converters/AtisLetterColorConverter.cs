@@ -24,7 +24,7 @@ public class AtisLetterColorConverter : IValueConverter
             return status switch
             {
                 NetworkConnectionStatus.Connected => Brushes.Aqua,
-                NetworkConnectionStatus.Observer => Brushes.Orange,
+                NetworkConnectionStatus.Observer => Brushes.Coral,
                 _ => Brushes.Aqua
             };
         }
