@@ -110,7 +110,7 @@ public class BlinkingTextBehavior : Behavior<Control>
 
         foreach (var instance in s_instances)
         {
-            if (instance.AssociatedObject is not null)
+            if (instance.AssociatedObject is not null && instance.IsEnabled)
             {
                 if (instance.IsBlinking)
                 {

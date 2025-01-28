@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:converter="using:Vatsim.Vatis.Ui.Converters"
         mc:Ignorable="d"
         x:Name="Window"
         x:Class="Vatsim.Vatis.Ui.Windows.CompactWindow"
@@ -17,6 +18,9 @@
         Topmost="{Binding IsTopMost, DataType=vm:CompactWindowTopMostViewModel,
         Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
         Title="vATIS">
+    <Window.Resources>
+        <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
+    </Window.Resources>
     <Border CornerRadius="5"
             BorderBrush="Black"
             BorderThickness="1"
@@ -37,7 +41,7 @@
                             <Grid ColumnDefinitions="65,10,60,10,Auto,15,Auto">
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" />
                                 <TextBlock Grid.Column="2" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium">
-                                    <Run Text="{Binding AtisLetter, DataType=vm:AtisStationViewModel}" Foreground="Aqua" /> <Run Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" />
+                                    <Run Text="{Binding AtisLetter, DataType=vm:AtisStationViewModel}" Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}" /> <Run Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" />
                                 </TextBlock>
                                 <TextBlock Grid.Column="4" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}" Foreground="White"/>
                                 <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Wind, DataType=vm:AtisStationViewModel}" Foreground="White"/>
