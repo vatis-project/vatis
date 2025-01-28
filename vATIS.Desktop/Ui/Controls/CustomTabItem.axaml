@@ -3,8 +3,11 @@
 					xmlns:controls="using:Vatsim.Vatis.Ui.Controls"
 					xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
                     xmlns:converter="using:Vatsim.Vatis.Ui.Converters"
+                    xmlns:network="using:Vatsim.Vatis.Networking"
 					xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels">
 	<converter:AtisLetterVisibleConverter x:Key="AtisLetterVisibleConverter"/>
+    <converter:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+    <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
 	<ControlTheme x:Key="{x:Type controls:CustomTabItem}" TargetType="controls:CustomTabItem">
 		<Setter Property="Foreground" Value="#848484"/>
 		<Setter Property="Background" Value="#323232"/>
@@ -26,7 +29,7 @@
 										BorderThickness="1"
 										Padding="5,3"
 										CornerRadius="0">
-					<StackPanel Orientation="Horizontal">		  
+					<StackPanel Orientation="Horizontal">
 						<TextBlock Name="PART_AtisIdentifier"
 								   Foreground="{TemplateBinding Foreground}"
 								   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -36,7 +39,7 @@
 								   FontSize="{TemplateBinding FontSize}"
 								   FontWeight="{TemplateBinding FontWeight}" />
 						<TextBlock Name="PART_AtisLetter"
-								   Foreground="Aqua"
+								   Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}"
 								   FontFamily="{TemplateBinding FontFamily}"
 								   FontSize="{TemplateBinding FontSize}"
 								   FontWeight="{TemplateBinding FontWeight}"
@@ -45,7 +48,7 @@
 								   IsVisible="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterVisibleConverter}}"
 								   Margin="5 0 0 0">
 							<Interaction.Behaviors>
-								<behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}" />
+								<behaviors:BlinkingTextBehavior IsEnabled="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static network:NetworkConnectionStatus.Connected}}" IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}" />
 							</Interaction.Behaviors>
 						</TextBlock>
 					</StackPanel>
