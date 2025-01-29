@@ -18,6 +18,8 @@ namespace Vatsim.Vatis.Ui.Windows;
 /// </summary>
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
+    private bool _initialized = false;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MainWindow"/> class.
     /// </summary>
@@ -66,9 +68,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnOpened(object? sender, EventArgs e)
     {
+        if (_initialized)
+            return;
+
         ViewModel?.PopulateAtisStations();
         ViewModel?.ConnectToHub();
         ViewModel?.StartWebsocket();
+
+        _initialized = true;
     }
 
     private void OnClosed(object? sender, EventArgs e)
