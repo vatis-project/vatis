@@ -6,18 +6,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using ReactiveUI;
 using Serilog;
 using Vatsim.Network;
 using Vatsim.Network.PDU;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles.Models;
@@ -30,7 +31,7 @@ namespace Vatsim.Vatis.Networking;
 /// <summary>
 /// Represents a connection to the VATSIM network. Implements <see cref="INetworkConnection"/>.
 /// </summary>
-public class NetworkConnection : INetworkConnection
+public class NetworkConnection : INetworkConnection, IDisposable
 {
     private const string VatsimServerEndpoint = "http://fsd.vatsim.net";
     private const string ClientName = "vATIS";
@@ -50,6 +51,7 @@ public class NetworkConnection : INetworkConnection
     private readonly List<string> _clientCapabilitiesReceived = [];
     private readonly Airport? _airportData;
     private readonly int _fsdFrequency;
+    private readonly CompositeDisposable _disposables = [];
     private string? _publicIp;
     private string? _previousMetar;
     private DecodedMetar? _decodedMetar;
@@ -123,7 +125,7 @@ public class NetworkConnection : INetworkConnection
         _fsdSession.RawDataReceived += OnRawDataReceived;
         _fsdSession.RawDataSent += OnRawDataSent;
 
-        MessageBus.Current.Listen<MetarReceived>().Subscribe(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<MetarReceived>(evt =>
         {
             if (evt.Metar.Icao == station.Identifier)
             {
@@ -136,9 +138,9 @@ public class NetworkConnection : INetworkConnection
                     _decodedMetar = evt.Metar;
                 }
             }
-        });
+        }));
 
-        MessageBus.Current.Listen<SessionEnded>().Subscribe((_) => { Disconnect(); });
+        _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ => { Disconnect(); }));
     }
 
     /// <inheritdoc />
@@ -167,6 +169,13 @@ public class NetworkConnection : INetworkConnection
 
     /// <inheritdoc />
     public bool IsConnected => _fsdSession.Connected;
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     /// <inheritdoc />
     public async Task Connect(string? serverAddress = null)
@@ -363,7 +372,7 @@ public class NetworkConnection : INetworkConnection
         switch (e.Pdu.QueryType)
         {
             case ClientQueryType.PublicIp:
-                _publicIp = (e.Pdu.Payload.Count > 0) ? e.Pdu.Payload[0] : "";
+                _publicIp = e.Pdu.Payload.Count > 0 ? e.Pdu.Payload[0] : "";
                 break;
             case ClientQueryType.Capabilities:
                 if (!_clientCapabilitiesReceived.Contains(e.Pdu.From))

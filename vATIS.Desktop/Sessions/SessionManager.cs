@@ -6,8 +6,8 @@
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui;
@@ -72,7 +72,7 @@ public class SessionManager : ISessionManager
     /// <inheritdoc />
     public void EndSession()
     {
-        MessageBus.Current.SendMessage(new SessionEnded());
+        EventBus.Instance.Publish(new SessionEnded());
         CurrentProfile = null;
         CurrentConnectionCount = 0;
         _mainWindow?.Close();

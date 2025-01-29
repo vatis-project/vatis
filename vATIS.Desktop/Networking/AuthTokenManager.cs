@@ -4,12 +4,13 @@
 // </copyright>
 
 using System;
+using System.Reactive.Disposables;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.Networking;
@@ -17,11 +18,12 @@ namespace Vatsim.Vatis.Networking;
 /// <summary>
 /// Manages the authentication token for the VATSIM network.
 /// </summary>
-public class AuthTokenManager : IAuthTokenManager
+public class AuthTokenManager : IAuthTokenManager, IDisposable
 {
     private const string AuthTokenUrl = "https://auth.vatsim.net/api/fsd-jwt";
     private const double AuthTokenShelfLifeMinutes = 2.0;
 
+    private readonly CompositeDisposable _disposables = [];
     private readonly IDownloader _downloader;
     private readonly IAppConfig _appConfig;
     private DateTime _authTokenGeneratedAt;
@@ -36,7 +38,7 @@ public class AuthTokenManager : IAuthTokenManager
         _downloader = downloader;
         _appConfig = appConfig;
 
-        MessageBus.Current.Listen<GeneralSettingsUpdated>().Subscribe(_ => { AuthToken = null; });
+        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(_ => { AuthToken = null; }));
     }
 
     /// <inheritdoc />
@@ -97,5 +99,12 @@ public class AuthTokenManager : IAuthTokenManager
 
             return AuthToken;
         }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

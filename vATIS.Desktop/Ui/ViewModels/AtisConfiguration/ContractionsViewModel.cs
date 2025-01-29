@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -15,6 +16,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -24,8 +26,9 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Provides a view model for managing contractions within the ATIS configuration.
 /// </summary>
-public class ContractionsViewModel : ReactiveViewModelBase
+public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable _disposables = [];
     private readonly IAppConfig _appConfig;
     private readonly IWindowFactory _windowFactory;
     private IDialogOwner? _dialogOwner;
@@ -47,6 +50,11 @@ public class ContractionsViewModel : ReactiveViewModelBase
         CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEditEndingEventArgs>(HandleCellEditEnding);
         NewContractionCommand = ReactiveCommand.CreateFromTask(HandleNewContraction);
         DeleteContractionCommand = ReactiveCommand.CreateFromTask<ContractionMeta>(HandleDeleteContraction);
+
+        _disposables.Add(AtisStationChanged);
+        _disposables.Add(CellEditEndingCommand);
+        _disposables.Add(NewContractionCommand);
+        _disposables.Add(DeleteContractionCommand);
     }
 
     /// <summary>
@@ -101,6 +109,13 @@ public class ContractionsViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref _contractions, value);
     }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     /// <summary>
     /// Sets the dialog owner for the current instance.
     /// </summary>
@@ -140,7 +155,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
             {
                 SelectedStation.Contractions.Remove(item);
                 _appConfig.SaveConfig();
-                MessageBus.Current.SendMessage(new ContractionsUpdated(SelectedStation.Id));
+                EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
             }
         }
     }
@@ -221,7 +236,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
                             Contractions.Add(item);
                         }
 
-                        MessageBus.Current.SendMessage(new ContractionsUpdated(SelectedStation.Id));
+                        EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
                     }
                 };
                 await dialog.ShowDialog((Window)_dialogOwner);

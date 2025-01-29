@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Container.Factory;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
@@ -61,6 +63,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly ISessionManager _sessionManager;
     private readonly Airport _atisStationAirport;
     private readonly MetarDecoder _metarDecoder = new();
+    private readonly CompositeDisposable _disposables = [];
     private CancellationTokenSource _cancellationToken;
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
@@ -209,28 +212,28 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _voiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
         UseTexToSpeech = !_atisStation.AtisVoice.UseTextToSpeech;
-        MessageBus.Current.Listen<AtisVoiceTypeChanged>().Subscribe(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<AtisVoiceTypeChanged>(evt =>
         {
             if (evt.Id == _atisStation.Id)
             {
                 UseTexToSpeech = !evt.UseTextToSpeech;
             }
-        });
-        MessageBus.Current.Listen<StationPresetsChanged>().Subscribe(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
             if (evt.Id == _atisStation.Id)
             {
                 AtisPresetList = new ObservableCollection<AtisPreset>(_atisStation.Presets.OrderBy(x => x.Ordinal));
             }
-        });
-        MessageBus.Current.Listen<ContractionsUpdated>().Subscribe(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
             if (evt.StationId == _atisStation.Id)
             {
                 LoadContractionData();
             }
-        });
-        MessageBus.Current.Listen<AtisHubAtisReceived>().Subscribe(sync =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisHubAtisReceived>(sync =>
         {
             if (sync.Dto.StationId == station.Identifier &&
                 sync.Dto.AtisType == station.AtisType &&
@@ -261,8 +264,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     }
                 });
             }
-        });
-        MessageBus.Current.Listen<AtisHubExpiredAtisReceived>().Subscribe(sync =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisHubExpiredAtisReceived>(sync =>
         {
             if (sync.Dto.StationId == _atisStation.Identifier &&
                 sync.Dto.AtisType == _atisStation.AtisType &&
@@ -288,11 +291,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     }
                 });
             }
-        });
-        MessageBus.Current.Listen<HubConnected>().Subscribe(_ =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ =>
         {
             _atisHubConnection.SubscribeToAtis(new SubscribeDto(_atisStation.Identifier, _atisStation.AtisType));
-        });
+        }));
 
         this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
         this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
@@ -595,6 +598,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        _disposables.Dispose();
+
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
 
@@ -937,7 +942,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                             $"It looks like you haven't set your VATSIM user ID, password, and real name yet. Would you like to set them now?",
                             "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
                     {
-                        MessageBus.Current.SendMessage(new OpenGenerateSettingsDialog());
+                        EventBus.Instance.Publish(new OpenGenerateSettingsDialog());
                     }
                 }
 

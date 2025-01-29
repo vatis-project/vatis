@@ -3,10 +3,12 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
@@ -19,6 +21,7 @@ using AvaloniaEdit.Editing;
 using ReactiveUI;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
@@ -34,7 +37,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Provides the ViewModel for managing ATIS presets and configurations.
 /// </summary>
-public class PresetsViewModel : ReactiveViewModelBase
+public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IDownloader _downloader;
     private readonly HashSet<string> _initializedProperties = [];
@@ -42,6 +45,7 @@ public class PresetsViewModel : ReactiveViewModelBase
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
+    private readonly CompositeDisposable _disposables = [];
     private bool _hasUnsavedChanges;
     private ObservableCollection<AtisPreset>? _presets;
     private List<ICompletionData> _contractionCompletionData = new();
@@ -88,6 +92,17 @@ public class PresetsViewModel : ReactiveViewModelBase
         TestExternalGeneratorCommand = ReactiveCommand.CreateFromTask(HandleTestExternalGenerator);
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
         FetchSandboxMetarCommand = ReactiveCommand.CreateFromTask(HandleFetchSandboxMetar);
+
+        _disposables.Add(AtisStationChanged);
+        _disposables.Add(SelectedPresetChanged);
+        _disposables.Add(NewPresetCommand);
+        _disposables.Add(RenamePresetCommand);
+        _disposables.Add(CopyPresetCommand);
+        _disposables.Add(DeletePresetCommand);
+        _disposables.Add(OpenSortPresetsDialogCommand);
+        _disposables.Add(TestExternalGeneratorCommand);
+        _disposables.Add(TemplateVariableClicked);
+        _disposables.Add(FetchSandboxMetarCommand);
     }
 
     /// <summary>
@@ -320,6 +335,13 @@ public class PresetsViewModel : ReactiveViewModelBase
     {
         get => _sandboxMetar;
         set => this.RaiseAndSetIfChanged(ref _sandboxMetar, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -783,7 +805,7 @@ public class PresetsViewModel : ReactiveViewModelBase
             UseExternalAtisGenerator = false;
             AtisTemplateText = string.Empty;
             Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
-            MessageBus.Current.SendMessage(new StationPresetsChanged(SelectedStation.Id));
+            EventBus.Instance.Publish(new StationPresetsChanged(SelectedStation.Id));
             HasUnsavedChanges = false;
         }
     }

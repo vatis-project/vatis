@@ -8,11 +8,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
-using ReactiveUI;
 using Serilog;
 using Vatsim.Network;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
 
 namespace Vatsim.Vatis.Networking.AtisHub;
@@ -69,12 +69,12 @@ public class AtisHubConnection : IAtisHubConnection
             {
                 foreach (var dto in dtoList)
                 {
-                    MessageBus.Current.SendMessage(new AtisHubAtisReceived(dto));
+                    EventBus.Instance.Publish(new AtisHubAtisReceived(dto));
                 }
             });
             _hubConnection.On<AtisHubDto>("RemoveAtisReceived", (dto) =>
             {
-                MessageBus.Current.SendMessage(new AtisHubExpiredAtisReceived(dto));
+                EventBus.Instance.Publish(new AtisHubExpiredAtisReceived(dto));
             });
 
             SetConnectionState(ConnectionState.Connecting);
@@ -148,14 +148,14 @@ public class AtisHubConnection : IAtisHubConnection
     private void SetConnectionState(ConnectionState connectionState)
     {
         _connectionState = connectionState;
-        MessageBus.Current.SendMessage(new ConnectionStateChanged(_connectionState));
+        EventBus.Instance.Publish(new ConnectionStateChanged(_connectionState));
         switch (_connectionState)
         {
             case ConnectionState.Connected:
-                MessageBus.Current.SendMessage(new HubConnected());
+                EventBus.Instance.Publish(new HubConnected());
                 break;
             case ConnectionState.Disconnected:
-                MessageBus.Current.SendMessage(new HubDisconnected());
+                EventBus.Instance.Publish(new HubDisconnected());
                 break;
         }
     }

@@ -10,10 +10,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
-using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles.Models;
@@ -66,19 +66,19 @@ public class MockAtisHubConnection : IAtisHubConnection
             {
                 foreach (var dto in dtoList)
                 {
-                    MessageBus.Current.SendMessage(new AtisHubAtisReceived(dto));
+                    EventBus.Instance.Publish(new AtisHubAtisReceived(dto));
                 }
             });
             _hubConnection.On<AtisHubDto>("RemoveAtisReceived", (dto) =>
             {
-                MessageBus.Current.SendMessage(new AtisHubExpiredAtisReceived(dto));
+                EventBus.Instance.Publish(new AtisHubExpiredAtisReceived(dto));
             });
             _hubConnection.On<string>("MetarReceived", (message) =>
             {
                 try
                 {
                     var metar = _metarDecoder.ParseNotStrict(message);
-                    MessageBus.Current.SendMessage(new MetarReceived(metar));
+                    EventBus.Instance.Publish(new MetarReceived(metar));
                 }
                 catch (Exception ex)
                 {
@@ -197,14 +197,14 @@ public class MockAtisHubConnection : IAtisHubConnection
     private void SetConnectionState(ConnectionState connectionState)
     {
         _hubConnectionState = connectionState;
-        MessageBus.Current.SendMessage(new ConnectionStateChanged(_hubConnectionState));
+        EventBus.Instance.Publish(new ConnectionStateChanged(_hubConnectionState));
         switch (_hubConnectionState)
         {
             case ConnectionState.Connected:
-                MessageBus.Current.SendMessage(new HubConnected());
+                EventBus.Instance.Publish(new HubConnected());
                 break;
             case ConnectionState.Disconnected:
-                MessageBus.Current.SendMessage(new HubDisconnected());
+                EventBus.Instance.Publish(new HubDisconnected());
                 break;
         }
     }

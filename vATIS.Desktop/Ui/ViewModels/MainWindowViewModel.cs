@@ -6,6 +6,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
@@ -20,6 +21,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Sessions;
@@ -125,8 +127,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         CompactWindowStations = connectedStations;
 
-        MessageBus.Current.Listen<OpenGenerateSettingsDialog>().Subscribe(_ => OpenSettingsDialog());
-        MessageBus.Current.Listen<AtisStationAdded>().Subscribe(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<OpenGenerateSettingsDialog>(_ => OpenSettingsDialog()));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisStationAdded>(evt =>
         {
             if (_sessionManager.CurrentProfile?.Stations == null)
                 return;
@@ -138,8 +140,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 _disposables.Add(atisStationViewModel);
                 _atisStationSource.Add(atisStationViewModel);
             }
-        });
-        MessageBus.Current.Listen<AtisStationUpdated>().Subscribe(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisStationUpdated>(evt =>
         {
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
@@ -157,15 +159,19 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                     _atisStationSource.Add(atisStationViewModel);
                 }
             }
-        });
-        MessageBus.Current.Listen<AtisStationDeleted>().Subscribe(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisStationDeleted>(evt =>
         {
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
             {
                 _atisStationSource.Remove(station);
             }
-        });
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(evt =>
+        {
+            Debug.WriteLine("GeneralSettingsUpdated");
+        }));
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {

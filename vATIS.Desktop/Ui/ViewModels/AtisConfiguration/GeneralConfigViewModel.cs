@@ -3,13 +3,16 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -21,8 +24,9 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// Represents the general configuration view model for ATIS configurations.
 /// Inherits from <see cref="ReactiveViewModelBase"/>.
 /// </summary>
-public class GeneralConfigViewModel : ReactiveViewModelBase
+public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable _disposables = [];
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
@@ -52,6 +56,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         _profileRepository = profileRepository;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+
+        _disposables.Add(AtisStationChanged);
 
         ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
             ? $"Profile Serial: {_sessionManager.CurrentProfile.UpdateSerial}"
@@ -250,6 +256,13 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         set => this.RaiseAndSetIfChanged(ref _showDuplicateAtisTypeError, value);
     }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     /// <summary>
     /// Resets the state of the <see cref="GeneralConfigViewModel"/> instance to its default configuration.
     /// </summary>
@@ -353,7 +366,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         if (SelectedStation.AtisVoice.UseTextToSpeech != UseTextToSpeech)
         {
             SelectedStation.AtisVoice.UseTextToSpeech = UseTextToSpeech;
-            MessageBus.Current.SendMessage(new AtisVoiceTypeChanged(SelectedStation.Id, UseTextToSpeech));
+            EventBus.Instance.Publish(new AtisVoiceTypeChanged(SelectedStation.Id, UseTextToSpeech));
         }
 
         if (SelectedStation.AtisVoice.Voice != TextToSpeechVoice)

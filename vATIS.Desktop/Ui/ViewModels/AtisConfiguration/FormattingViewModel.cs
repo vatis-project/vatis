@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -29,8 +30,9 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Represents the view model for formatting configuration within the ATIS system.
 /// </summary>
-public class FormattingViewModel : ReactiveViewModelBase
+public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable _disposables = [];
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
@@ -135,6 +137,12 @@ public class FormattingViewModel : ReactiveViewModelBase
         AddTransitionLevelCommand = ReactiveCommand.CreateFromTask(HandleAddTransitionLevel);
         DeleteTransitionLevelCommand =
             ReactiveCommand.CreateFromTask<TransitionLevelMeta>(HandleDeleteTransitionLevel);
+
+        _disposables.Add(AtisStationChanged);
+        _disposables.Add(TemplateVariableClicked);
+        _disposables.Add(CellEditEndingCommand);
+        _disposables.Add(AddTransitionLevelCommand);
+        _disposables.Add(DeleteTransitionLevelCommand);
     }
 
     /// <summary>
@@ -1306,6 +1314,13 @@ public class FormattingViewModel : ReactiveViewModelBase
     {
         get => _contractionCompletionData;
         set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

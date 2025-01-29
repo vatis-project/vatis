@@ -6,9 +6,9 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Velopack;
 
 namespace Vatsim.Vatis.Updates;
@@ -55,7 +55,7 @@ public class ClientUpdater : IClientUpdater
     /// <inheritdoc />
     public async Task<bool> Run()
     {
-        MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new client version..."));
+        EventBus.Instance.Publish(new StartupStatusChanged("Checking for new client version..."));
 
         if (Debugger.IsAttached)
             return false;
@@ -72,6 +72,6 @@ public class ClientUpdater : IClientUpdater
 
     private static void ReportProgress(int progress)
     {
-        MessageBus.Current.SendMessage(new StartupStatusChanged($"Downloading new version: {progress}%"));
+        EventBus.Instance.Publish(new StartupStatusChanged($"Downloading new version: {progress}%"));
     }
 }
