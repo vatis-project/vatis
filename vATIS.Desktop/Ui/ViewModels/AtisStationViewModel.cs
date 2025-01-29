@@ -279,12 +279,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                     if (AirportConditionsTextDocument != null)
                     {
-                        AirportConditionsTextDocument.Text = null;
+                        AirportConditionsTextDocument.Text = "";
                     }
 
                     if (NotamsTextDocument != null)
                     {
-                        NotamsTextDocument.Text = null;
+                        NotamsTextDocument.Text = "";
                     }
                 });
             }
