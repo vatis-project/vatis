@@ -41,4 +41,14 @@ public class AtisHubDto
     /// Gets or sets the altimeter data.
     /// </summary>
     public string? Altimeter { get; set; }
+
+    /// <summary>
+    /// Gets or sets the airport conditions.
+    /// </summary>
+    public string? AirportConditions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the NOTAMs.
+    /// </summary>
+    public string? Notams { get; set; }
 }
