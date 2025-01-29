@@ -249,6 +249,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     Metar = sync.Dto.Metar;
                     ObservationTime = _decodedMetar?.Time.Replace(":", "");
                     NetworkConnectionStatus = NetworkConnectionStatus.Observer;
+
+                    if (AirportConditionsTextDocument != null)
+                    {
+                        AirportConditionsTextDocument.Text = sync.Dto.AirportConditions;
+                    }
+
+                    if (NotamsTextDocument != null)
+                    {
+                        NotamsTextDocument.Text = sync.Dto.Notams;
+                    }
                 });
             }
         });
@@ -266,6 +276,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     Metar = null;
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+
+                    if (AirportConditionsTextDocument != null)
+                    {
+                        AirportConditionsTextDocument.Text = null;
+                    }
+
+                    if (NotamsTextDocument != null)
+                    {
+                        NotamsTextDocument.Text = null;
+                    }
                 });
             }
         });
@@ -1204,7 +1224,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         try
         {
             await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
-                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim()));
+                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), AirportConditionsTextDocument?.Text,
+                NotamsTextDocument?.Text));
         }
         catch (Exception ex)
         {
