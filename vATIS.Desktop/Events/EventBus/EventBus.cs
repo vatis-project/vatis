@@ -19,6 +19,9 @@ public class EventBus : IEventBus
 {
     private readonly ConcurrentDictionary<Type, List<Route>> _routes = new();
 
+    /// <summary>
+    /// Gets the singleton instance of the event bus.
+    /// </summary>
     public static EventBus Instance { get; } = new();
 
     /// <summary>
@@ -35,29 +38,15 @@ public class EventBus : IEventBus
 
         _routes.AddOrUpdate(
             messageType,
-            _ => new List<Route> { route },
-            (_, list) => { list.Add(route); return list; }
+            _ => [route],
+            (_, list) =>
+            {
+                list.Add(route);
+                return list;
+            }
         );
 
         return new Unsubscriber(this, messageType, handler);
-    }
-
-    /// <summary>
-    /// Unsubscribes a handler from a specific message type.
-    /// </summary>
-    /// <param name="messageType">The type of message to unsubscribe from.</param>
-    /// <param name="handler">The handler to remove.</param>
-    public void Unsubscribe(Type messageType, Action<object> handler)
-    {
-        if (_routes.TryGetValue(messageType, out var handlers))
-        {
-            handlers.RemoveAll(r => r.IsMatch(handler));
-
-            if (handlers.Count == 0)
-            {
-                _routes.TryRemove(messageType, out _);
-            }
-        }
     }
 
     /// <summary>
@@ -71,12 +60,17 @@ public class EventBus : IEventBus
         var messageType = message.GetType();
         if (_routes.TryGetValue(messageType, out var handlers))
         {
-            foreach (var route in handlers.ToList())
+            var handlersCopy = handlers.ToList();
+            foreach (var route in handlersCopy)
             {
-                if (route.TryGetHandler(out var handler))
+                Action<object>? handler;
+                lock (route)
                 {
-                    InvokeHandler(handler, message);
+                    if (!route.TryGetHandler(out handler))
+                        continue;
                 }
+
+                InvokeHandler(handler, message);
             }
         }
     }
@@ -90,6 +84,19 @@ public class EventBus : IEventBus
         catch (Exception ex)
         {
             Log.Warning(ex, "Exception while invoking eventbus handler.");
+        }
+    }
+
+    private void Unsubscribe(Type messageType, Action<object> handler)
+    {
+        if (_routes.TryGetValue(messageType, out var handlers))
+        {
+            handlers.RemoveAll(r => r.IsMatch(handler));
+
+            if (handlers.Count == 0)
+            {
+                _routes.TryRemove(messageType, out _);
+            }
         }
     }
 
@@ -119,6 +126,12 @@ public class EventBus : IEventBus
         private readonly Action<object> _handler;
         private bool _disposed;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Unsubscriber"/> class.
+        /// </summary>
+        /// <param name="eventBus">The event bus to unsubscribe from.</param>
+        /// <param name="messageType">The type of message to unsubscribe from.</param>
+        /// <param name="handler">The handler to unsubscribe.</param>
         public Unsubscriber(EventBus eventBus, Type messageType, Action<object> handler)
         {
             _eventBus = eventBus;

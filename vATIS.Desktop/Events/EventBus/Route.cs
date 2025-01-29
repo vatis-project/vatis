@@ -13,10 +13,8 @@ namespace Vatsim.Vatis.Events.EventBus;
 /// </summary>
 public class Route
 {
-    /// <summary>
-    /// A weak reference to the event handler to prevent strong references from keeping it alive.
-    /// </summary>
     private readonly WeakReference<Action<object>> _weakHandler;
+    private readonly object _lock = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Route"/> class.
@@ -46,7 +44,10 @@ public class Route
     /// <returns>True if the handler is still alive, false if it has been collected.</returns>
     public bool TryGetHandler(out Action<object>? handler)
     {
-        return _weakHandler.TryGetTarget(out handler);
+        lock (_lock)
+        {
+            return _weakHandler.TryGetTarget(out handler);
+        }
     }
 
     /// <summary>
