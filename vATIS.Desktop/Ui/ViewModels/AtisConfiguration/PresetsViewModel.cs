@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -35,7 +36,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Provides the ViewModel for managing ATIS presets and configurations.
 /// </summary>
-public class PresetsViewModel : ReactiveViewModelBase
+public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IDownloader _downloader;
     private readonly HashSet<string> _initializedProperties = [];
@@ -321,6 +322,12 @@ public class PresetsViewModel : ReactiveViewModelBase
     {
         get => _sandboxMetar;
         set => this.RaiseAndSetIfChanged(ref _sandboxMetar, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

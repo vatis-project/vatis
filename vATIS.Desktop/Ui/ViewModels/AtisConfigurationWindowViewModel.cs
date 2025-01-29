@@ -286,6 +286,12 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
         SandboxViewModel = _viewModelFactory.CreateSandboxViewModel();
         SandboxViewModel.DialogOwner = _dialogOwner;
+
+        _disposables.Add(GeneralConfigViewModel);
+        _disposables.Add(PresetsViewModel);
+        _disposables.Add(FormattingViewModel);
+        _disposables.Add(ContractionsViewModel);
+        _disposables.Add(SandboxViewModel);
     }
 
     /// <inheritdoc />

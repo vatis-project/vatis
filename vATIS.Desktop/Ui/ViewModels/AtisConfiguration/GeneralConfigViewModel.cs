@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -22,7 +23,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// Represents the general configuration view model for ATIS configurations.
 /// Inherits from <see cref="ReactiveViewModelBase"/>.
 /// </summary>
-public class GeneralConfigViewModel : ReactiveViewModelBase
+public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
@@ -249,6 +250,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
     {
         get => _showDuplicateAtisTypeError;
         set => this.RaiseAndSetIfChanged(ref _showDuplicateAtisTypeError, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

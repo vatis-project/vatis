@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +63,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly ISessionManager _sessionManager;
     private readonly Airport _atisStationAirport;
     private readonly MetarDecoder _metarDecoder = new();
+    private readonly CompositeDisposable _disposables = [];
     private CancellationTokenSource _cancellationToken;
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
@@ -210,28 +212,28 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _voiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
         UseTexToSpeech = !_atisStation.AtisVoice.UseTextToSpeech;
-        EventBus.Instance.Subscribe<AtisVoiceTypeChanged>(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<AtisVoiceTypeChanged>(evt =>
         {
             if (evt.Id == _atisStation.Id)
             {
                 UseTexToSpeech = !evt.UseTextToSpeech;
             }
-        });
-        EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
             if (evt.Id == _atisStation.Id)
             {
                 AtisPresetList = new ObservableCollection<AtisPreset>(_atisStation.Presets.OrderBy(x => x.Ordinal));
             }
-        });
-        EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
             if (evt.StationId == _atisStation.Id)
             {
                 LoadContractionData();
             }
-        });
-        EventBus.Instance.Subscribe<AtisHubAtisReceived>(sync =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisHubAtisReceived>(sync =>
         {
             if (sync.Dto.StationId == station.Identifier &&
                 sync.Dto.AtisType == station.AtisType &&
@@ -262,8 +264,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     }
                 });
             }
-        });
-        EventBus.Instance.Subscribe<AtisHubExpiredAtisReceived>(sync =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisHubExpiredAtisReceived>(sync =>
         {
             if (sync.Dto.StationId == _atisStation.Identifier &&
                 sync.Dto.AtisType == _atisStation.AtisType &&
@@ -289,11 +291,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     }
                 });
             }
-        });
-        EventBus.Instance.Subscribe<HubConnected>(_ =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ =>
         {
             _atisHubConnection.SubscribeToAtis(new SubscribeDto(_atisStation.Identifier, _atisStation.AtisType));
-        });
+        }));
 
         this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
         this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
@@ -596,6 +598,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        _disposables.Dispose();
+
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
 

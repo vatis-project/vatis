@@ -6,6 +6,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
@@ -126,8 +127,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         CompactWindowStations = connectedStations;
 
-        EventBus.Instance.Subscribe<OpenGenerateSettingsDialog>(_ => OpenSettingsDialog());
-        EventBus.Instance.Subscribe<AtisStationAdded>(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<OpenGenerateSettingsDialog>(_ => OpenSettingsDialog()));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisStationAdded>(evt =>
         {
             if (_sessionManager.CurrentProfile?.Stations == null)
                 return;
@@ -139,8 +140,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 _disposables.Add(atisStationViewModel);
                 _atisStationSource.Add(atisStationViewModel);
             }
-        });
-        EventBus.Instance.Subscribe<AtisStationUpdated>(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisStationUpdated>(evt =>
         {
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
@@ -158,15 +159,19 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                     _atisStationSource.Add(atisStationViewModel);
                 }
             }
-        });
-        EventBus.Instance.Subscribe<AtisStationDeleted>(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisStationDeleted>(evt =>
         {
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
             {
                 _atisStationSource.Remove(station);
             }
-        });
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(evt =>
+        {
+            Debug.WriteLine("GeneralSettingsUpdated");
+        }));
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {

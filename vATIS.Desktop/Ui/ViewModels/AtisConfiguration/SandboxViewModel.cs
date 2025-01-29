@@ -6,8 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -33,7 +35,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Represents the view model for the sandbox environment.
 /// </summary>
-public class SandboxViewModel : ReactiveViewModelBase
+public class SandboxViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
@@ -42,6 +44,7 @@ public class SandboxViewModel : ReactiveViewModelBase
     private readonly IMetarRepository _metarRepository;
     private readonly Random _random = new();
     private readonly MetarDecoder _metarDecoder = new();
+    private readonly CompositeDisposable _disposables = [];
     private CancellationTokenSource _cancellationToken;
     private ObservableCollection<AtisPreset>? _presets;
     private AtisPreset? _selectedPreset;
@@ -96,20 +99,20 @@ public class SandboxViewModel : ReactiveViewModelBase
             (resp) => resp?.AudioBytes != null);
         PlaySandboxAtisCommand = ReactiveCommand.CreateFromTask(HandlePlaySandboxAtis, canPlaySandboxAtis);
 
-        EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
             if (evt.Id == SelectedStation?.Id)
             {
                 Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
             }
-        });
-        EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
             if (evt.StationId == SelectedStation?.Id)
             {
                 LoadContractionData();
             }
-        });
+        }));
     }
 
     /// <summary>
@@ -295,6 +298,13 @@ public class SandboxViewModel : ReactiveViewModelBase
     {
         get => _atisBuilderVoiceResponse;
         set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceResponse, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _disposables.Dispose();
     }
 
     /// <summary>

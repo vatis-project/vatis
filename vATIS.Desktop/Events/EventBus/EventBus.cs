@@ -5,47 +5,78 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 
 namespace Vatsim.Vatis.Events.EventBus;
 
 /// <summary>
-/// The event bus.
+/// A thread-safe event bus that allows subscribing, unsubscribing, and publishing events.
+/// Uses weak references to prevent memory leaks when subscribers are disposed.
 /// </summary>
 public class EventBus : IEventBus
 {
-    private readonly ConcurrentBag<Route> _routes = [];
+    private readonly ConcurrentDictionary<Type, List<Route>> _routes = new();
 
-    /// <summary>
-    /// Gets the instance of the event bus.
-    /// </summary>
     public static EventBus Instance { get; } = new();
 
-    /// <inheritdoc />
-    public void Subscribe(Type messageType, Action<object> handler)
+    /// <summary>
+    /// Subscribes a handler to a specific message type and returns an IDisposable for automatic unsubscription.
+    /// </summary>
+    /// <param name="messageType">The type of message to listen for.</param>
+    /// <param name="handler">The event handler to be invoked when the message is published.</param>
+    /// <returns>An IDisposable that unsubscribes the handler when disposed.</returns>
+    public IDisposable Subscribe(Type messageType, Action<object> handler)
     {
         CleanupRoutes();
-        _routes.Add(new Route(messageType, handler));
+
+        var route = new Route(messageType, handler);
+
+        _routes.AddOrUpdate(
+            messageType,
+            _ => new List<Route> { route },
+            (_, list) => { list.Add(route); return list; }
+        );
+
+        return new Unsubscriber(this, messageType, handler);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Unsubscribes a handler from a specific message type.
+    /// </summary>
+    /// <param name="messageType">The type of message to unsubscribe from.</param>
+    /// <param name="handler">The handler to remove.</param>
+    public void Unsubscribe(Type messageType, Action<object> handler)
+    {
+        if (_routes.TryGetValue(messageType, out var handlers))
+        {
+            handlers.RemoveAll(r => r.IsMatch(handler));
+
+            if (handlers.Count == 0)
+            {
+                _routes.TryRemove(messageType, out _);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Publishes a message to all subscribed handlers of the corresponding message type.
+    /// </summary>
+    /// <param name="message">The message instance to publish.</param>
     public void Publish(object message)
     {
         CleanupRoutes();
 
         var messageType = message.GetType();
-        foreach (var route in _routes)
+        if (_routes.TryGetValue(messageType, out var handlers))
         {
-            if (!route.MessageType.IsAssignableFrom(messageType))
+            foreach (var route in handlers.ToList())
             {
-                continue;
-            }
-
-            var handler = route.Target;
-            if (handler != null)
-            {
-                InvokeHandler(handler, message);
+                if (route.TryGetHandler(out var handler))
+                {
+                    InvokeHandler(handler, message);
+                }
             }
         }
     }
@@ -64,11 +95,44 @@ public class EventBus : IEventBus
 
     private void CleanupRoutes()
     {
-        var aliveRoutes = _routes.Where(r => r.Target != null).ToList();
-        _routes.Clear();
-        foreach (var route in aliveRoutes)
+        foreach (var key in _routes.Keys)
         {
-            _routes.Add(route);
+            if (_routes.TryGetValue(key, out var handlers))
+            {
+                handlers.RemoveAll(r => !r.IsAlive);
+
+                if (handlers.Count == 0)
+                {
+                    _routes.TryRemove(key, out _);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Disposable object that unsubscribes an event handler when disposed.
+    /// </summary>
+    private class Unsubscriber : IDisposable
+    {
+        private readonly EventBus _eventBus;
+        private readonly Type _messageType;
+        private readonly Action<object> _handler;
+        private bool _disposed;
+
+        public Unsubscriber(EventBus eventBus, Type messageType, Action<object> handler)
+        {
+            _eventBus = eventBus;
+            _messageType = messageType;
+            _handler = handler;
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _eventBus.Unsubscribe(_messageType, _handler);
+                _disposed = true;
+            }
         }
     }
 }

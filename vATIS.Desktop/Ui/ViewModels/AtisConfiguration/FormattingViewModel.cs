@@ -29,7 +29,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Represents the view model for formatting configuration within the ATIS system.
 /// </summary>
-public class FormattingViewModel : ReactiveViewModelBase
+public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
@@ -1306,6 +1306,12 @@ public class FormattingViewModel : ReactiveViewModelBase
     {
         get => _contractionCompletionData;
         set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

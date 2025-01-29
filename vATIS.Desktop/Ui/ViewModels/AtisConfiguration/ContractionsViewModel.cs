@@ -25,7 +25,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Provides a view model for managing contractions within the ATIS configuration.
 /// </summary>
-public class ContractionsViewModel : ReactiveViewModelBase
+public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly IAppConfig _appConfig;
     private readonly IWindowFactory _windowFactory;
@@ -100,6 +100,12 @@ public class ContractionsViewModel : ReactiveViewModelBase
     {
         get => _contractions;
         set => this.RaiseAndSetIfChanged(ref _contractions, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

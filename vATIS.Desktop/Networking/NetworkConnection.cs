@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,7 +31,7 @@ namespace Vatsim.Vatis.Networking;
 /// <summary>
 /// Represents a connection to the VATSIM network. Implements <see cref="INetworkConnection"/>.
 /// </summary>
-public class NetworkConnection : INetworkConnection
+public class NetworkConnection : INetworkConnection, IDisposable
 {
     private const string VatsimServerEndpoint = "http://fsd.vatsim.net";
     private const string ClientName = "vATIS";
@@ -50,6 +51,7 @@ public class NetworkConnection : INetworkConnection
     private readonly List<string> _clientCapabilitiesReceived = [];
     private readonly Airport? _airportData;
     private readonly int _fsdFrequency;
+    private readonly CompositeDisposable _disposables = [];
     private string? _publicIp;
     private string? _previousMetar;
     private DecodedMetar? _decodedMetar;
@@ -123,7 +125,7 @@ public class NetworkConnection : INetworkConnection
         _fsdSession.RawDataReceived += OnRawDataReceived;
         _fsdSession.RawDataSent += OnRawDataSent;
 
-        EventBus.Instance.Subscribe<MetarReceived>(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<MetarReceived>(evt =>
         {
             if (evt.Metar.Icao == station.Identifier)
             {
@@ -136,9 +138,9 @@ public class NetworkConnection : INetworkConnection
                     _decodedMetar = evt.Metar;
                 }
             }
-        });
+        }));
 
-        EventBus.Instance.Subscribe<SessionEnded>(_ => { Disconnect(); });
+        _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ => { Disconnect(); }));
     }
 
     /// <inheritdoc />
@@ -167,6 +169,13 @@ public class NetworkConnection : INetworkConnection
 
     /// <inheritdoc />
     public bool IsConnected => _fsdSession.Connected;
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     /// <inheritdoc />
     public async Task Connect(string? serverAddress = null)

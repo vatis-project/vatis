@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -15,8 +16,9 @@ namespace Vatsim.Vatis.Networking;
 /// <summary>
 /// Represents a mock implementation of a VATSIM network connection for testing purposes.
 /// </summary>
-public class MockNetworkConnection : INetworkConnection
+public class MockNetworkConnection : INetworkConnection, IDisposable
 {
+    private readonly CompositeDisposable _disposables = [];
     private readonly IMetarRepository _metarRepository;
     private string? _previousMetar;
 
@@ -38,7 +40,7 @@ public class MockNetworkConnection : INetworkConnection
             _ => throw new Exception("Unknown AtisType: " + station.AtisType),
         };
 
-        EventBus.Instance.Subscribe<MetarReceived>(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<MetarReceived>(evt =>
         {
             if (evt.Metar.Icao == station.Identifier)
             {
@@ -50,9 +52,9 @@ public class MockNetworkConnection : INetworkConnection
                     _previousMetar = evt.Metar.RawMetar;
                 }
             }
-        });
+        }));
 
-        EventBus.Instance.Subscribe<SessionEnded>(_ => { Disconnect(); });
+        _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ => { Disconnect(); }));
     }
 
     /// <inheritdoc />
@@ -114,5 +116,12 @@ public class MockNetworkConnection : INetworkConnection
     public void SendSubscriberNotification(char atisLetter)
     {
         // ignore
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

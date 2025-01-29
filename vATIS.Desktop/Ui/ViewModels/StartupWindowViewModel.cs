@@ -3,6 +3,8 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
+using System.Reactive.Disposables;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -12,8 +14,9 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// <summary>
 /// Represents the view model for the startup window.
 /// </summary>
-public class StartupWindowViewModel : ReactiveViewModelBase
+public class StartupWindowViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable _disposables = [];
     private string _status = "";
 
     /// <summary>
@@ -21,10 +24,10 @@ public class StartupWindowViewModel : ReactiveViewModelBase
     /// </summary>
     public StartupWindowViewModel()
     {
-        EventBus.Instance.Subscribe<StartupStatusChanged>(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<StartupStatusChanged>(evt =>
         {
             Status = evt.Status;
-        });
+        }));
     }
 
     /// <summary>
@@ -34,5 +37,12 @@ public class StartupWindowViewModel : ReactiveViewModelBase
     {
         get => _status;
         set => this.RaiseAndSetIfChanged(ref _status, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

@@ -17,7 +17,8 @@ public interface IEventBus
     /// </summary>
     /// <param name="messageType">The type of message to subscribe to.</param>
     /// <param name="handler">The handler to call when the message is published.</param>
-    void Subscribe(Type messageType, Action<object> handler);
+    /// <returns>An IDisposable that unsubscribes the handler when disposed.</returns>
+    IDisposable Subscribe(Type messageType, Action<object> handler);
 
     /// <summary>
     /// Publish a message.

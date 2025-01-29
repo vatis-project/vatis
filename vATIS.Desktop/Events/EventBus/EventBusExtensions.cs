@@ -18,8 +18,9 @@ public static class EventBusExtensions
     /// <typeparam name="T">The type of message to subscribe to.</typeparam>
     /// <param name="eventBus">The event bus.</param>
     /// <param name="handler">The handler to call when the message is published.</param>
-    public static void Subscribe<T>(this IEventBus eventBus, Action<T> handler)
+    /// <returns>An IDisposable that unsubscribes the handler when disposed.</returns>
+    public static IDisposable Subscribe<T>(this IEventBus eventBus, Action<T> handler)
     {
-        eventBus.Subscribe(typeof(T), o => handler.Invoke((T)o));
+        return eventBus.Subscribe(typeof(T), o => handler.Invoke((T)o));
     }
 }
