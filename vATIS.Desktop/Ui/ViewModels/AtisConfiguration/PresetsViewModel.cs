@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
@@ -44,6 +45,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
+    private readonly CompositeDisposable _disposables = [];
     private bool _hasUnsavedChanges;
     private ObservableCollection<AtisPreset>? _presets;
     private List<ICompletionData> _contractionCompletionData = new();
@@ -90,6 +92,17 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         TestExternalGeneratorCommand = ReactiveCommand.CreateFromTask(HandleTestExternalGenerator);
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
         FetchSandboxMetarCommand = ReactiveCommand.CreateFromTask(HandleFetchSandboxMetar);
+
+        _disposables.Add(AtisStationChanged);
+        _disposables.Add(SelectedPresetChanged);
+        _disposables.Add(NewPresetCommand);
+        _disposables.Add(RenamePresetCommand);
+        _disposables.Add(CopyPresetCommand);
+        _disposables.Add(DeletePresetCommand);
+        _disposables.Add(OpenSortPresetsDialogCommand);
+        _disposables.Add(TestExternalGeneratorCommand);
+        _disposables.Add(TemplateVariableClicked);
+        _disposables.Add(FetchSandboxMetarCommand);
     }
 
     /// <summary>
@@ -327,6 +340,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        _disposables.Dispose();
         GC.SuppressFinalize(this);
     }
 

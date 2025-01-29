@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -27,6 +28,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// </summary>
 public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable _disposables = [];
     private readonly IAppConfig _appConfig;
     private readonly IWindowFactory _windowFactory;
     private IDialogOwner? _dialogOwner;
@@ -48,6 +50,11 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEditEndingEventArgs>(HandleCellEditEnding);
         NewContractionCommand = ReactiveCommand.CreateFromTask(HandleNewContraction);
         DeleteContractionCommand = ReactiveCommand.CreateFromTask<ContractionMeta>(HandleDeleteContraction);
+
+        _disposables.Add(AtisStationChanged);
+        _disposables.Add(CellEditEndingCommand);
+        _disposables.Add(NewContractionCommand);
+        _disposables.Add(DeleteContractionCommand);
     }
 
     /// <summary>
@@ -105,6 +112,7 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        _disposables.Dispose();
         GC.SuppressFinalize(this);
     }
 

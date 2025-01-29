@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -25,6 +26,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// </summary>
 public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly CompositeDisposable _disposables = [];
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
@@ -54,6 +56,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         _profileRepository = profileRepository;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+
+        _disposables.Add(AtisStationChanged);
 
         ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
             ? $"Profile Serial: {_sessionManager.CurrentProfile.UpdateSerial}"
@@ -255,6 +259,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        _disposables.Dispose();
         GC.SuppressFinalize(this);
     }
 

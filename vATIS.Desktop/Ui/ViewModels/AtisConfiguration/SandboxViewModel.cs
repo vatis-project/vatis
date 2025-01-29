@@ -303,8 +303,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         _disposables.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
