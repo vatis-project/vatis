@@ -19,6 +19,7 @@ using AvaloniaEdit.Editing;
 using ReactiveUI;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
@@ -783,7 +784,7 @@ public class PresetsViewModel : ReactiveViewModelBase
             UseExternalAtisGenerator = false;
             AtisTemplateText = string.Empty;
             Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
-            MessageBus.Current.SendMessage(new StationPresetsChanged(SelectedStation.Id));
+            EventBus.Instance.Publish(new StationPresetsChanged(SelectedStation.Id));
             HasUnsavedChanges = false;
         }
     }

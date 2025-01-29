@@ -12,12 +12,12 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using ReactiveUI;
 using Serilog;
 using Vatsim.Network;
 using Vatsim.Network.PDU;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles.Models;
@@ -123,7 +123,7 @@ public class NetworkConnection : INetworkConnection
         _fsdSession.RawDataReceived += OnRawDataReceived;
         _fsdSession.RawDataSent += OnRawDataSent;
 
-        MessageBus.Current.Listen<MetarReceived>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<MetarReceived>(evt =>
         {
             if (evt.Metar.Icao == station.Identifier)
             {
@@ -138,7 +138,7 @@ public class NetworkConnection : INetworkConnection
             }
         });
 
-        MessageBus.Current.Listen<SessionEnded>().Subscribe((_) => { Disconnect(); });
+        EventBus.Instance.Subscribe<SessionEnded>(_ => { Disconnect(); });
     }
 
     /// <inheritdoc />
@@ -363,7 +363,7 @@ public class NetworkConnection : INetworkConnection
         switch (e.Pdu.QueryType)
         {
             case ClientQueryType.PublicIp:
-                _publicIp = (e.Pdu.Payload.Count > 0) ? e.Pdu.Payload[0] : "";
+                _publicIp = e.Pdu.Payload.Count > 0 ? e.Pdu.Payload[0] : "";
                 break;
             case ClientQueryType.Capabilities:
                 if (!_clientCapabilitiesReceived.Contains(e.Pdu.From))

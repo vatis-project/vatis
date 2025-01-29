@@ -24,6 +24,7 @@ using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Container.Factory;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
@@ -209,28 +210,28 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _voiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
         UseTexToSpeech = !_atisStation.AtisVoice.UseTextToSpeech;
-        MessageBus.Current.Listen<AtisVoiceTypeChanged>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<AtisVoiceTypeChanged>(evt =>
         {
             if (evt.Id == _atisStation.Id)
             {
                 UseTexToSpeech = !evt.UseTextToSpeech;
             }
         });
-        MessageBus.Current.Listen<StationPresetsChanged>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
             if (evt.Id == _atisStation.Id)
             {
                 AtisPresetList = new ObservableCollection<AtisPreset>(_atisStation.Presets.OrderBy(x => x.Ordinal));
             }
         });
-        MessageBus.Current.Listen<ContractionsUpdated>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
             if (evt.StationId == _atisStation.Id)
             {
                 LoadContractionData();
             }
         });
-        MessageBus.Current.Listen<AtisHubAtisReceived>().Subscribe(sync =>
+        EventBus.Instance.Subscribe<AtisHubAtisReceived>(sync =>
         {
             if (sync.Dto.StationId == station.Identifier &&
                 sync.Dto.AtisType == station.AtisType &&
@@ -262,7 +263,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 });
             }
         });
-        MessageBus.Current.Listen<AtisHubExpiredAtisReceived>().Subscribe(sync =>
+        EventBus.Instance.Subscribe<AtisHubExpiredAtisReceived>(sync =>
         {
             if (sync.Dto.StationId == _atisStation.Identifier &&
                 sync.Dto.AtisType == _atisStation.AtisType &&
@@ -289,7 +290,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 });
             }
         });
-        MessageBus.Current.Listen<HubConnected>().Subscribe(_ =>
+        EventBus.Instance.Subscribe<HubConnected>(_ =>
         {
             _atisHubConnection.SubscribeToAtis(new SubscribeDto(_atisStation.Identifier, _atisStation.AtisType));
         });
@@ -937,7 +938,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                             $"It looks like you haven't set your VATSIM user ID, password, and real name yet. Would you like to set them now?",
                             "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
                     {
-                        MessageBus.Current.SendMessage(new OpenGenerateSettingsDialog());
+                        EventBus.Instance.Publish(new OpenGenerateSettingsDialog());
                     }
                 }
 

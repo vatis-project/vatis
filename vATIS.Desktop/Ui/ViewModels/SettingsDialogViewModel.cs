@@ -10,6 +10,7 @@ using ReactiveUI;
 using Vatsim.Network;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Ui.Common;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -152,7 +153,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
 
         _appConfig.SaveConfig();
 
-        MessageBus.Current.SendMessage(new GeneralSettingsUpdated());
+        EventBus.Instance.Publish(new GeneralSettingsUpdated());
 
         window.Close();
     }

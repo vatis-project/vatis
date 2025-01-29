@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -353,7 +354,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase
         if (SelectedStation.AtisVoice.UseTextToSpeech != UseTextToSpeech)
         {
             SelectedStation.AtisVoice.UseTextToSpeech = UseTextToSpeech;
-            MessageBus.Current.SendMessage(new AtisVoiceTypeChanged(SelectedStation.Id, UseTextToSpeech));
+            EventBus.Instance.Publish(new AtisVoiceTypeChanged(SelectedStation.Id, UseTextToSpeech));
         }
 
         if (SelectedStation.AtisVoice.Voice != TextToSpeechVoice)

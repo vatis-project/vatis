@@ -8,10 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
-using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -69,7 +69,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
         var parsedMetar = _metarDecoder.ParseNotStrict(rawMetar);
         if (triggerMessageBus)
         {
-            MessageBus.Current.SendMessage(new MetarReceived(parsedMetar));
+            EventBus.Instance.Publish(new MetarReceived(parsedMetar));
         }
 
         return parsedMetar;
@@ -122,7 +122,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
         {
             var metar = _metarDecoder.ParseNotStrict(rawMetar);
             _metars[metar.Icao] = metar;
-            MessageBus.Current.SendMessage(new MetarReceived(metar));
+            EventBus.Instance.Publish(new MetarReceived(metar));
         }
         catch (Exception exception)
         {

@@ -23,6 +23,7 @@ using Sentry;
 using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles;
@@ -369,14 +370,14 @@ public class App : Application
     {
         if (_serviceProvider != null)
         {
-            MessageBus.Current.SendMessage(new StartupStatusChanged("Updating available voices..."));
+            EventBus.Instance.Publish(new StartupStatusChanged("Updating available voices..."));
             await _serviceProvider.GetService<ITextToSpeechService>().Initialize();
         }
     }
 
     private async Task UpdateNavDataAsync()
     {
-        MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for navdata updates..."));
+        EventBus.Instance.Publish(new StartupStatusChanged("Checking for navdata updates..."));
         if (_serviceProvider != null)
         {
             await _serviceProvider.GetService<INavDataRepository>().CheckForUpdates();

@@ -5,8 +5,8 @@
 
 using System;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather;
 
@@ -38,7 +38,7 @@ public class MockNetworkConnection : INetworkConnection
             _ => throw new Exception("Unknown AtisType: " + station.AtisType),
         };
 
-        MessageBus.Current.Listen<MetarReceived>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<MetarReceived>(evt =>
         {
             if (evt.Metar.Icao == station.Identifier)
             {
@@ -52,7 +52,7 @@ public class MockNetworkConnection : INetworkConnection
             }
         });
 
-        MessageBus.Current.Listen<SessionEnded>().Subscribe(_ => { Disconnect(); });
+        EventBus.Instance.Subscribe<SessionEnded>(_ => { Disconnect(); });
     }
 
     /// <inheritdoc />

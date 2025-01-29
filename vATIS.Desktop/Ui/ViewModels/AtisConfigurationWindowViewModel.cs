@@ -23,6 +23,7 @@ using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
@@ -359,7 +360,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             if (_sessionManager.CurrentProfile?.Stations == null)
                 return;
 
-            MessageBus.Current.SendMessage(new AtisStationDeleted(SelectedAtisStation.Id));
+            EventBus.Instance.Publish(new AtisStationDeleted(SelectedAtisStation.Id));
             _sessionManager.CurrentProfile.Stations.Remove(SelectedAtisStation);
             _appConfig.SaveConfig();
             _atisStationSource.Remove(SelectedAtisStation);
@@ -444,7 +445,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             _appConfig.SaveConfig();
                             _atisStationSource.Add(clone);
                             SelectedAtisStation = clone;
-                            MessageBus.Current.SendMessage(new AtisStationAdded(SelectedAtisStation.Id));
+                            EventBus.Instance.Publish(new AtisStationAdded(SelectedAtisStation.Id));
                         }
                     }
                 };
@@ -495,7 +496,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                     _sessionManager.CurrentProfile?.Stations?.Add(station);
                     _appConfig.SaveConfig();
                     _atisStationSource.Add(station);
-                    MessageBus.Current.SendMessage(new AtisStationAdded(station.Id));
+                    EventBus.Instance.Publish(new AtisStationAdded(station.Id));
                 }
             }
         }
@@ -671,7 +672,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             _atisStationSource.Add(station);
                             SelectedAtisStation = station;
 
-                            MessageBus.Current.SendMessage(new AtisStationAdded(station.Id));
+                            EventBus.Instance.Publish(new AtisStationAdded(station.Id));
                         }
                     }
                 };
@@ -693,7 +694,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             {
                 if (SelectedAtisStation != null)
                 {
-                    MessageBus.Current.SendMessage(new AtisStationUpdated(SelectedAtisStation.Id));
+                    EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
                 }
 
                 window?.Close();

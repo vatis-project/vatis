@@ -5,8 +5,8 @@
 
 using System.Net;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -38,7 +38,7 @@ public class MockMetarRepository : IMetarRepository
         if (!string.IsNullOrEmpty(metar))
         {
             var decodedMetar = _metarDecoder.ParseNotStrict(metar);
-            MessageBus.Current.SendMessage(new MetarReceived(decodedMetar));
+            EventBus.Instance.Publish(new MetarReceived(decodedMetar));
             return decodedMetar;
         }
 

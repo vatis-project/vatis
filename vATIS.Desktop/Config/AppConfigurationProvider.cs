@@ -7,9 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.Config;
@@ -60,7 +60,7 @@ public class AppConfigurationProvider : IAppConfigurationProvider
     public async Task Initialize()
     {
         Log.Information("Initializing app configuration provider");
-        MessageBus.Current.SendMessage(new StartupStatusChanged("Initializing app configuration provider..."));
+        EventBus.Instance.Publish(new StartupStatusChanged("Initializing app configuration provider..."));
         Log.Information($"Loading app configuration from {AppConfigurationUrl}");
         _appConfiguration =
             JsonSerializer.Deserialize(await _downloader.DownloadStringAsync(AppConfigurationUrl),

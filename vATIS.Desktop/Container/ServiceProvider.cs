@@ -9,6 +9,7 @@ using Vatsim.Network;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Container.Factory;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
@@ -36,6 +37,7 @@ namespace Vatsim.Vatis.Container;
 [ServiceProvider]
 [Singleton(typeof(IAppConfigurationProvider), typeof(AppConfigurationProvider))]
 [Singleton(typeof(IAppConfig), typeof(AppConfig))]
+[Singleton(typeof(IEventBus), typeof(EventBus))]
 [Singleton(typeof(IClientUpdater), typeof(ClientUpdater))]
 [Singleton(typeof(IDownloader), typeof(Downloader))]
 [Singleton(typeof(ISessionManager), typeof(SessionManager))]

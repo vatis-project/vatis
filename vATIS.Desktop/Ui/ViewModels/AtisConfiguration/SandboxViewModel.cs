@@ -19,6 +19,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -95,14 +96,14 @@ public class SandboxViewModel : ReactiveViewModelBase
             (resp) => resp?.AudioBytes != null);
         PlaySandboxAtisCommand = ReactiveCommand.CreateFromTask(HandlePlaySandboxAtis, canPlaySandboxAtis);
 
-        MessageBus.Current.Listen<StationPresetsChanged>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
             if (evt.Id == SelectedStation?.Id)
             {
                 Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
             }
         });
-        MessageBus.Current.Listen<ContractionsUpdated>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
             if (evt.StationId == SelectedStation?.Id)
             {

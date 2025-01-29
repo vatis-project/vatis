@@ -15,6 +15,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -140,7 +141,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
             {
                 SelectedStation.Contractions.Remove(item);
                 _appConfig.SaveConfig();
-                MessageBus.Current.SendMessage(new ContractionsUpdated(SelectedStation.Id));
+                EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
             }
         }
     }
@@ -221,7 +222,7 @@ public class ContractionsViewModel : ReactiveViewModelBase
                             Contractions.Add(item);
                         }
 
-                        MessageBus.Current.SendMessage(new ContractionsUpdated(SelectedStation.Id));
+                        EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
                     }
                 };
                 await dialog.ShowDialog((Window)_dialogOwner);

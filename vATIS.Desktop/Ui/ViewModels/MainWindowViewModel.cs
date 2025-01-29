@@ -20,6 +20,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Sessions;
@@ -125,8 +126,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         CompactWindowStations = connectedStations;
 
-        MessageBus.Current.Listen<OpenGenerateSettingsDialog>().Subscribe(_ => OpenSettingsDialog());
-        MessageBus.Current.Listen<AtisStationAdded>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<OpenGenerateSettingsDialog>(_ => OpenSettingsDialog());
+        EventBus.Instance.Subscribe<AtisStationAdded>(evt =>
         {
             if (_sessionManager.CurrentProfile?.Stations == null)
                 return;
@@ -139,7 +140,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 _atisStationSource.Add(atisStationViewModel);
             }
         });
-        MessageBus.Current.Listen<AtisStationUpdated>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<AtisStationUpdated>(evt =>
         {
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
@@ -158,7 +159,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 }
             }
         });
-        MessageBus.Current.Listen<AtisStationDeleted>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<AtisStationDeleted>(evt =>
         {
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)

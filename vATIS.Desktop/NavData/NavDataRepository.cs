@@ -9,10 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.NavData;
@@ -44,7 +44,7 @@ public class NavDataRepository : INavDataRepository
     {
         try
         {
-            MessageBus.Current.SendMessage(new StartupStatusChanged("Checking for new navigation data..."));
+            EventBus.Instance.Publish(new StartupStatusChanged("Checking for new navigation data..."));
             var localNavDataSerial = await GetLocalNavDataSerial();
             Log.Information($"Local NavData serial number {localNavDataSerial}");
             var response = await _downloader.DownloadStringAsync(_appConfigurationProvider.NavDataUrl);
@@ -109,8 +109,7 @@ public class NavDataRepository : INavDataRepository
             await _downloader.DownloadFileAsync(availableNavData.AirportDataUrl, PathProvider.AirportsFilePath,
                 new Progress<int>(percent =>
                 {
-                    MessageBus.Current.SendMessage(
-                        new StartupStatusChanged($"Downloading airport navdata: {percent}%"));
+                    EventBus.Instance.Publish(new StartupStatusChanged($"Downloading airport navdata: {percent}%"));
                 }));
         }
 
@@ -120,8 +119,7 @@ public class NavDataRepository : INavDataRepository
             await _downloader.DownloadFileAsync(availableNavData.NavaidDataUrl, PathProvider.NavaidsFilePath,
                 new Progress<int>(percent =>
                 {
-                    MessageBus.Current.SendMessage(
-                        new StartupStatusChanged($"Downloading navaid navdata: {percent}%"));
+                    EventBus.Instance.Publish(new StartupStatusChanged($"Downloading navaid navdata: {percent}%"));
                 }));
         }
 

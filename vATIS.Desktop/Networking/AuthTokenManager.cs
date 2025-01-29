@@ -7,9 +7,9 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
 
 namespace Vatsim.Vatis.Networking;
@@ -36,7 +36,7 @@ public class AuthTokenManager : IAuthTokenManager
         _downloader = downloader;
         _appConfig = appConfig;
 
-        MessageBus.Current.Listen<GeneralSettingsUpdated>().Subscribe(_ => { AuthToken = null; });
+        EventBus.Instance.Subscribe<GeneralSettingsUpdated>(_ => { AuthToken = null; });
     }
 
     /// <inheritdoc />

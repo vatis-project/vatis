@@ -3,9 +3,9 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using System;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.EventBus;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -21,7 +21,7 @@ public class StartupWindowViewModel : ReactiveViewModelBase
     /// </summary>
     public StartupWindowViewModel()
     {
-        MessageBus.Current.Listen<StartupStatusChanged>().Subscribe(evt =>
+        EventBus.Instance.Subscribe<StartupStatusChanged>(evt =>
         {
             Status = evt.Status;
         });
