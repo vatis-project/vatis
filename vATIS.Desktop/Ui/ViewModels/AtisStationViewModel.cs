@@ -296,6 +296,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             _atisHubConnection.SubscribeToAtis(new SubscribeDto(_atisStation.Identifier, _atisStation.AtisType));
         }));
+        _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ =>
+        {
+            _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
+            _voiceServerConnection.Disconnect();
+            _networkConnection.Disconnect();
+        }));
 
         this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
         this.WhenAnyValue(x => x.AtisLetter).Subscribe(HandleAtisLetterChanged);
