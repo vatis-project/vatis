@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.8
+### Added
+- Enabled sharing of Airport Conditions and NOTAMs text to the ATIS hub, allowing them to sync with other users.
+- Included all current weather descriptors in the ATIS formatting configuration, enhancing the customization of both text and voice ATIS outputs.
+- Added the missing wind shear element in both voice and text ATIS formats.
+- Added an option for users to automatically fetch the real-world D-ATIS letter for all eligible stations upon connection, eliminating the need for the CTRL+D gesture. This option is disabled by default; it can be enabled in the Settings dialog.
+- Added recent weather information into the default weather template string.
+### Changed
+- Reduced the size and improved the visual presentation of the compact window (mini-view) for better usability.
+- Refined the contraction search and replace logic. Contractions no longer require an @ symbol prefix. The @ symbol can still be used to trigger the contraction search, but it will be automatically removed once a contraction variable is selected from the auto-completion results.
+- Updated the ATIS letter color for observed stations to provide clearer differentiation from the user's connected ATIS stations.
+- Updated the internal event bus to mitigate potential memory leaks and enhance multi-threading safety.
+- Optimized voice server connection and token refresh logic.
+- Modified text parsing to strip characters exclusively from airport conditions and NOTAM text, leaving METAR elements intact.
+- Appended a Unix timestamp to the profile update URL to prevent caching issues.
+- Modified the ATIS sandbox to include read-only text segments for the selected definitions.
+### Fixed
+- Resolved an issue where voice ATIS would not disconnect when the app was closed.
+- Fixed the issue with the profile list failing to resort after renaming a profile.
+- Corrected the missing ceiling calculation logic.
+- Addressed a multi-threading issue that could cause the app to crash when publishing ATIS to the hub.
+- Fixed an issue that allowed multiple instances of the app to run simultaneously.
+- Fixed the problem with METAR not being parsed correctly when certain elements were missing.
+- Corrected the audio recording and playback sample rate issues.
+- Fixed lapse rate and rounding errors in the QFE calculation.
+- Addressed a bug where the dropdown menu would not extend to the full width under certain window scaling settings.
+
 ## v4.1.0-beta.7
 ### Fixed
 - Resolved an issue causing a disposed object exception during IDS updates.
