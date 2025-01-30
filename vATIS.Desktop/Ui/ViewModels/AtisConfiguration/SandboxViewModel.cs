@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -49,11 +48,13 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<AtisPreset>? _presets;
     private AtisPreset? _selectedPreset;
     private AtisStation? _selectedStation;
+    private int _notamFreeTextOffset;
+    private int _airportConditionsFreeTextOffset;
     private string? _sandboxMetar;
     private bool _hasUnsavedAirportConditions;
     private bool _hasUnsavedNotams;
-    private TextDocument _airportConditionsTextDocument = new();
-    private TextDocument _notamsTextDocument = new();
+    private TextDocument? _airportConditionsTextDocument = new();
+    private TextDocument? _notamsTextDocument = new();
     private List<ICompletionData> _contractionCompletionData = [];
     private string? _sandboxTextAtis;
     private string? _sandboxSpokenTextAtis;
@@ -98,6 +99,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             x => x.AtisBuilderVoiceResponse,
             (resp) => resp?.AudioBytes != null);
         PlaySandboxAtisCommand = ReactiveCommand.CreateFromTask(HandlePlaySandboxAtis, canPlaySandboxAtis);
+
+        ReadOnlyAirportConditions = new TextSegmentCollection<TextSegment>(AirportConditionsTextDocument);
+        ReadOnlyNotams = new TextSegmentCollection<TextSegment>(NotamsTextDocument);
 
         _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
@@ -220,40 +224,42 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the airport conditions text.
+    /// Gets the free text representation of the airport conditions.
     /// </summary>
-    public string? AirportConditionsText
-    {
-        get => _airportConditionsTextDocument.Text ?? string.Empty;
-        set => AirportConditionsTextDocument = new TextDocument(value);
-    }
+    public string? AirportConditionsFreeText => AirportConditionsTextDocument?.Text;
 
     /// <summary>
     /// Gets or sets the airport conditions text document.
     /// </summary>
-    public TextDocument AirportConditionsTextDocument
+    public TextDocument? AirportConditionsTextDocument
     {
         get => _airportConditionsTextDocument;
         set => this.RaiseAndSetIfChanged(ref _airportConditionsTextDocument, value);
     }
 
     /// <summary>
-    /// Gets or sets the NOTAMs text.
+    /// Gets the free-text representation of the NOTAMs from the text document.
     /// </summary>
-    public string? NotamText
-    {
-        get => _notamsTextDocument.Text ?? string.Empty;
-        set => NotamsTextDocument = new TextDocument(value);
-    }
+    public string? NotamsFreeText => _notamsTextDocument?.Text;
 
     /// <summary>
     /// Gets or sets the NOTAMs text document.
     /// </summary>
-    public TextDocument NotamsTextDocument
+    public TextDocument? NotamsTextDocument
     {
         get => _notamsTextDocument;
         set => this.RaiseAndSetIfChanged(ref _notamsTextDocument, value);
     }
+
+    /// <summary>
+    /// Gets or sets the collection of read-only airport condition text segments.
+    /// </summary>
+    public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the collection of read-only NOTAM text segments.
+    /// </summary>
+    public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
 
     /// <summary>
     /// Gets or sets the contraction completion data.
@@ -335,8 +341,6 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         SandboxMetar = "";
         HasUnsavedAirportConditions = false;
         HasUnsavedNotams = false;
-        AirportConditionsText = "";
-        NotamText = "";
         SandboxTextAtis = "";
         SandboxSpokenTextAtis = "";
         IsSandboxPlaybackActive = false;
@@ -391,8 +395,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             if (randomLetter is < 'A' or > 'Z')
                 randomLetter = 'A';
 
-            SelectedPreset.AirportConditions = AirportConditionsText;
-            SelectedPreset.Notams = NotamText;
+            SelectedPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
+            SelectedPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
 
             if (SandboxMetar != null)
             {
@@ -418,7 +422,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset == null)
             return;
 
-        SelectedPreset.Notams = NotamText;
+        SelectedPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -479,6 +483,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         }
 
         await dlg.ShowDialog(lifetime.MainWindow);
+
+        // Update the free-form text area after the dialog is closed
+        PopulateNotams();
     }
 
     private void HandleSaveAirportConditionsText()
@@ -486,7 +493,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset == null)
             return;
 
-        SelectedPreset.AirportConditions = AirportConditionsText;
+        SelectedPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
 
@@ -547,6 +554,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         }
 
         await dlg.ShowDialog(lifetime.MainWindow);
+
+        // Update the free-form text area after the dialog is closed
+        PopulateAirportConditions();
     }
 
     private void HandleSelectedPresetChanged()
@@ -554,8 +564,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset == null)
             return;
 
-        AirportConditionsText = SelectedPreset.AirportConditions?.ToUpperInvariant() ?? "";
-        NotamText = SelectedPreset.Notams?.ToUpperInvariant() ?? "";
+        PopulateAirportConditions();
+        PopulateNotams();
     }
 
     private async Task HandleFetchSandboxMetar()
@@ -579,6 +589,109 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         {
             if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
+        }
+    }
+
+    private void PopulateNotams()
+    {
+        if (NotamsTextDocument == null)
+            return;
+
+        if (SelectedStation == null)
+            return;
+
+        // Clear the list of read-only NOTAM text segments.
+        ReadOnlyNotams.Clear();
+
+        // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
+        var staticDefinitions = SelectedStation.NotamDefinitions
+            .Where(x => x.Enabled)
+            .OrderBy(x => x.Ordinal)
+            .ToList();
+
+        // Start with an empty document.
+        NotamsTextDocument.Text = "";
+
+        // Reset offset
+        _notamFreeTextOffset = 0;
+
+        // If static NOTAM definitions exist, insert them into the document.
+        if (staticDefinitions.Count > 0)
+        {
+            // Combine static NOTAM definitions into a single string, separated by periods.
+            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+            // Insert static NOTAM definitions at the beginning of the document.
+            NotamsTextDocument.Insert(0, staticDefinitionsString);
+
+            // Add the static NOTAM range to the read-only list to prevent modification.
+            ReadOnlyNotams.Add(new TextSegment
+            {
+                StartOffset = 0,
+                EndOffset = staticDefinitionsString.Length
+            });
+
+            // Update the starting index for the next insertion.
+            _notamFreeTextOffset = staticDefinitionsString.Length;
+        }
+
+        // Always append the free-form NOTAM text after the static definitions (if any).
+        if (!string.IsNullOrEmpty(SelectedPreset?.Notams))
+        {
+            NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedPreset?.Notams);
+        }
+    }
+
+    private void PopulateAirportConditions()
+    {
+        if (AirportConditionsTextDocument == null)
+            return;
+
+        if (SelectedStation == null)
+            return;
+
+        // Clear the list of read-only NOTAM text segments.
+        ReadOnlyAirportConditions.Clear();
+
+        // Retrieve and sort enabled static airport conditions by their ordinal value.
+        var staticDefinitions = SelectedStation.AirportConditionDefinitions
+            .Where(x => x.Enabled)
+            .OrderBy(x => x.Ordinal)
+            .ToList();
+
+        // Start with an empty document.
+        AirportConditionsTextDocument.Text = "";
+
+        // Reset offset
+        _airportConditionsFreeTextOffset = 0;
+
+        // If static airport conditions exist, insert them into the document.
+        if (staticDefinitions.Count > 0)
+        {
+            // Combine static airport conditions into a single string, separated by periods.
+            // A trailing space is added to ensure proper spacing between the static definitions
+            // and the subsequent free-form text.
+            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+            // Insert static airport conditions at the beginning of the document.
+            AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
+
+            // Add the static airport conditions to the read-only list to prevent modification.
+            ReadOnlyAirportConditions.Add(new TextSegment
+            {
+                StartOffset = 0,
+                EndOffset = staticDefinitionsString.Length
+            });
+
+            // Update the starting index for the next insertion.
+            _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
+        }
+
+        // Always append the free-form airport conditions after the static definitions (if any).
+        if (!string.IsNullOrEmpty(SelectedPreset?.AirportConditions))
+        {
+            AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
+                SelectedPreset?.AirportConditions);
         }
     }
 }
