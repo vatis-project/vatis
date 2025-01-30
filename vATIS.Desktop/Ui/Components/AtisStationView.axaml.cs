@@ -15,6 +15,7 @@ using AvaloniaEdit.Rendering;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Networking;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Components;
@@ -251,30 +252,5 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         }
 
         _notamsInitialized = true;
-    }
-
-    private class ReadOnlySegmentTransformer : DocumentColorizingTransformer
-    {
-        private readonly TextSegmentCollection<TextSegment> _readOnlySegments;
-
-        public ReadOnlySegmentTransformer(TextSegmentCollection<TextSegment> readOnlySegments)
-        {
-            _readOnlySegments = readOnlySegments;
-        }
-
-        protected override void ColorizeLine(DocumentLine line)
-        {
-            foreach (var segment in _readOnlySegments.FindOverlappingSegments(line.Offset, line.Length))
-            {
-                ChangeLinePart(
-                    Math.Max(segment.StartOffset, line.Offset),
-                    Math.Min(segment.EndOffset, line.Offset + line.Length),
-                    element =>
-                    {
-                        element.TextRunProperties.SetForegroundBrush(Brushes.Aqua);
-                    }
-                );
-            }
-        }
     }
 }
