@@ -124,7 +124,7 @@ public class AtisBuilder : IAtisBuilder
             ArgumentNullException.ThrowIfNull(_downloader);
 
             string? jwt = null;
-            if (!string.IsNullOrEmpty(_clientAuth.IdsValidationKey()) && !ServiceProvider.IsDevelopmentEnvironment())
+            if (!ServiceProvider.IsDevelopmentEnvironment() && !string.IsNullOrEmpty(_clientAuth.IdsValidationKey()))
             {
                 // Generate a signed JWT token for optional validation by the IDS server.
                 jwt = JwtHelper.GenerateJwt(_clientAuth.IdsValidationKey(), "ids-validation");
