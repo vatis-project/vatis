@@ -18,6 +18,7 @@ using Serilog;
 using Vatsim.Network;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Atis.Nodes;
+using Vatsim.Vatis.Container;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles.Models;
@@ -123,7 +124,7 @@ public class AtisBuilder : IAtisBuilder
             ArgumentNullException.ThrowIfNull(_downloader);
 
             string? jwt = null;
-            if (!string.IsNullOrEmpty(_clientAuth.IdsValidationKey()))
+            if (!string.IsNullOrEmpty(_clientAuth.IdsValidationKey()) && !ServiceProvider.IsDevelopmentEnvironment())
             {
                 // Generate a signed JWT token for optional validation by the IDS server.
                 jwt = JwtHelper.GenerateJwt(_clientAuth.IdsValidationKey(), "ids-validation");
