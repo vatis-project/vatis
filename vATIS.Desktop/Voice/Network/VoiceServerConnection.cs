@@ -97,11 +97,11 @@ public class VoiceServerConnection : IVoiceServerConnection
         if (Debugger.IsAttached)
             return;
 
+        if (_jwtToken == null)
+            return;
+
         try
         {
-            if (_jwtToken == null)
-                throw new AtisBuilderException("RemoveBot failed because the authentication token is null.");
-
             await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken);
         }
         catch (Exception ex)
