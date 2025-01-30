@@ -148,11 +148,19 @@ public class AtisBuilder : IAtisBuilder
 
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
-        return Regex.Replace(text, @"\@([\w]+(?:_[\w]+)*)", match =>
+        return Regex.Replace(text, @"\@?([\w]+(?:_[\w]+)*)", match =>
         {
             var key = match.Groups[1].Value; // Get the matched variable
             var variable = station.Contractions.Find(v => v.VariableName == key); // Find matching variable
-            return variable != null ? (voiceVariable ? variable.Voice : variable.Text) ?? "" : ""; // Replace or remove if not found
+
+            if (variable != null)
+            {
+                // Replace with the voice or text variable value if found, otherwise leave as is
+                return (voiceVariable ? variable.Voice : variable.Text) ?? match.Value;
+            }
+
+            // Return the match as is if no variable is found
+            return match.Value;
         });
     }
 
