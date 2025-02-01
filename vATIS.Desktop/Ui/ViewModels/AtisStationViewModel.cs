@@ -827,6 +827,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         await Task.Run(async () =>
                         {
                             _atisStation.TextAtis = textAtis;
+                            _atisStation.AtisLetter = AtisLetter;
 
                             await PublishAtisToHub();
                             _networkConnection.SendSubscriberNotification(AtisLetter);
@@ -1127,6 +1128,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         _cancellationToken.Token);
 
                     _atisStation.TextAtis = textAtis?.ToUpperInvariant();
+                    _atisStation.AtisLetter = AtisLetter;
 
                     await PublishAtisToWebsocket();
                     await PublishAtisToHub();
@@ -1272,6 +1274,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     _cancellationToken.Token);
 
                 _atisStation.TextAtis = textAtis?.ToUpperInvariant();
+                _atisStation.AtisLetter = AtisLetter;
 
                 await PublishAtisToHub();
                 await PublishAtisToWebsocket();
@@ -1461,6 +1464,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         _decodedMetar, _cancellationToken.Token);
 
                     _atisStation.TextAtis = textAtis?.ToUpperInvariant();
+                    _atisStation.AtisLetter = AtisLetter;
 
                     await PublishAtisToHub();
                     _networkConnection?.SendSubscriberNotification(AtisLetter);
