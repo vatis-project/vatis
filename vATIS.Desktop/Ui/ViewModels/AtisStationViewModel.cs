@@ -1234,9 +1234,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         try
         {
+            // Retrieve the values on the UI thread.
+            var airportConditions = await Dispatcher.UIThread.InvokeAsync(() => AirportConditionsTextDocument?.Text);
+            var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
+
             await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
-                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), AirportConditionsTextDocument?.Text,
-                NotamsTextDocument?.Text));
+                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions, notams));
         }
         catch (Exception ex)
         {
