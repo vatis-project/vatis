@@ -33,7 +33,7 @@ public class MockVoiceServerConnection : IVoiceServerConnection
     }
 
     /// <inheritdoc />
-    public Task RemoveBot(string callsign)
+    public Task RemoveBot(string callsign, CancellationToken? cancellationToken = null)
     {
         return Task.CompletedTask;
     }
