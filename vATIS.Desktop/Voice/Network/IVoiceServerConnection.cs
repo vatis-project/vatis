@@ -42,6 +42,7 @@ public interface IVoiceServerConnection
     /// Removes the bot associated with the specified callsign from the voice server.
     /// </summary>
     /// <param name="callsign">The callsign of the bot to be removed.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task RemoveBot(string callsign);
+    Task RemoveBot(string callsign, CancellationToken? cancellationToken = null);
 }

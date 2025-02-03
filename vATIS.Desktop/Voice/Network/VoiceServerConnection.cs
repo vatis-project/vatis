@@ -76,6 +76,9 @@ public class VoiceServerConnection : IVoiceServerConnection
             if (_jwtToken == null)
                 throw new AtisBuilderException("AddOrUpdateBot failed because the authentication token is null.");
 
+            // Remove existing bot
+            await RemoveBot(callsign, cancellationToken);
+
             var request = JsonSerializer.Serialize(dto, SourceGenerationContext.NewDefault.PutBotRequestDto);
             var response = await _downloader.PutJson(VoiceServerUrl + "/api/v1/bots/" + callsign, request, _jwtToken,
                 cancellationToken);
@@ -92,7 +95,7 @@ public class VoiceServerConnection : IVoiceServerConnection
     }
 
     /// <inheritdoc />
-    public async Task RemoveBot(string callsign)
+    public async Task RemoveBot(string callsign, CancellationToken? cancellationToken = null)
     {
         if (Debugger.IsAttached)
             return;
@@ -102,7 +105,7 @@ public class VoiceServerConnection : IVoiceServerConnection
 
         try
         {
-            await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken);
+            await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken, cancellationToken);
         }
         catch (Exception ex)
         {
