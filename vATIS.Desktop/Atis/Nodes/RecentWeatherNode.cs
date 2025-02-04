@@ -56,7 +56,7 @@ public class RecentWeatherNode : BaseNode<WeatherPhenomenon>
 
         if (textTemplate != null)
         {
-            TextAtis = !string.IsNullOrEmpty(voice)
+            TextAtis = !string.IsNullOrEmpty(text)
                 ? Regex.Replace(textTemplate, "{weather}", string.Join(" ", text).Trim(' '),
                     RegexOptions.IgnoreCase)
                 : string.Empty;

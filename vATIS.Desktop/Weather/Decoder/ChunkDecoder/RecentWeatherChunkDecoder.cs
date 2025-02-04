@@ -5,6 +5,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -37,10 +38,7 @@ public sealed class RecentWeatherChunkDecoder : MetarChunkDecoder
         if (found.Count > 1)
         {
             // retrieve found params
-            var weather = new WeatherPhenomenon
-            {
-                Characteristics = found[1].Value,
-            };
+            var weather = new WeatherPhenomenon { Characteristics = found[1].Value, };
             for (var k = 2; k <= 4; ++k)
             {
                 if (!string.IsNullOrEmpty(found[k].Value))
@@ -49,6 +47,7 @@ public sealed class RecentWeatherChunkDecoder : MetarChunkDecoder
                 }
             }
 
+            weather.RawValue = Regex.Replace(found[0].Value, @"^RE", "").Trim();
             result.Add(RecentWeatherParameterName, weather);
         }
 
