@@ -1132,7 +1132,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                     await PublishAtisToWebsocket();
                     await PublishAtisToHub();
-                    _networkConnection?.SendSubscriberNotification(AtisLetter);
+
+                    if (!e.IsNewMetar)
+                    {
+                        // Prevent duplicate subscriber notifications.
+                        // Send notification only when the initial METAR is received upon first connection.
+                        _networkConnection?.SendSubscriberNotification(AtisLetter);
+                    }
+
                     await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
 
                     var voiceAtis = await _atisBuilder.BuildVoiceAtis(_atisStation, SelectedAtisPreset, AtisLetter,
