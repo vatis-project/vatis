@@ -367,15 +367,18 @@ jobs:
           # Staple Notarization Ticket
           xcrun stapler staple "./velopack/vATIS.dmg"
           xcrun stapler validate "./velopack/vATIS.dmg"
-          
+      
+      - name: Downgrade AWS CLI
+        run: |
+          curl "https://awscli.amazonaws.com/AWSCLIV2-2.22.35.pkg" -o "AWSCLIV2.pkg"
+          sudo installer -pkg AWSCLIV2.pkg -target /
+
       - name: Upload release assets
         run: |
           aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set region auto
           aws configure set output "json"
-          aws configure set request_checksum_calculation when_required
-          aws configure set response_checksum_validation when_required
 
           # Upload release assets
           aws s3 sync ./velopack s3://vatis-releases/macos \
