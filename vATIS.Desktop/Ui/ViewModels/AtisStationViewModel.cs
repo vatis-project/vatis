@@ -1355,7 +1355,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void PopulateNotams()
     {
-        if (NotamsTextDocument == null)
+        if (NotamsTextDocument == null || SelectedAtisPreset == null)
             return;
 
         // Clear the list of read-only NOTAM text segments.
@@ -1402,7 +1402,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void PopulateAirportConditions()
     {
-        if (AirportConditionsTextDocument == null)
+        if (AirportConditionsTextDocument == null || SelectedAtisPreset == null)
             return;
 
         // Clear the list of read-only NOTAM text segments.
