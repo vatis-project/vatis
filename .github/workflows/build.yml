@@ -1,15 +1,15 @@
 name: Build
 
 on:
-  push:
-    branches:  [main]
   pull_request:
   merge_group:
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.pull_request.title, '[ci skip]') && !contains(github.event.pull_request.body, '[ci skip]')"
+    if: "!(contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.body, '[skip ci]') || 
+      contains(join(github.event.pull_request.labels.*.name, ','), 'skip ci'))"
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
