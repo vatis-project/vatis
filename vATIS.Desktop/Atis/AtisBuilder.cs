@@ -335,6 +335,8 @@ public class AtisBuilder : IAtisBuilder
             template += closingTemplate;
         }
 
+        template = RemoveTextParsingCharacters(template);
+
         return template;
     }
 
