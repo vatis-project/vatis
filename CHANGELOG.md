@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.9
+### Changed
+- Disabled text editing keyboard shortcuts in textareas to prevent unintended modifications. For example, pressing CTRL+D no longer deletes all text.
+- Enhanced voice ATIS connection logic to automatically remove an existing voice ATIS when establishing a new one.
+### Fixed
+- Fixed an issue that caused duplicate ATIS subscriber notifications.
+- Fixed a multi-threading issue that prevented the ATIS from being published to the ATIS hub.
+- Fixed an issue where the ATIS letter was not sent to the FSD server, preventing it from appearing in the data feed.
+- Fixed spacing in text ATIS for improved formatting of METAR components.
+- Fixed an issue where extraneous text parsing characters were not being removed from the text ATIS.
+
 ## v4.1.0-beta.8
 ### Added
 - Enabled sharing of Airport Conditions and NOTAMs text to the ATIS hub, allowing them to sync with other users.
