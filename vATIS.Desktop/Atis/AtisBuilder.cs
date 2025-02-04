@@ -451,6 +451,10 @@ public class AtisBuilder : IAtisBuilder
             }
         }
 
+        // Strip extra spaces from weather string.
+        completeWxStringAcars = Regex.Replace(completeWxStringAcars, @"\s+", " ");
+        completeWxStringVoice = Regex.Replace(completeWxStringVoice, @"\s+", " ");
+
         var variables = new List<AtisVariable>
         {
             new("FACILITY", airportData.Id, airportData.Name),
@@ -464,9 +468,9 @@ public class AtisBuilder : IAtisBuilder
             new("TEMP", temp.TextAtis, temp.VoiceAtis),
             new("DEW", dew.TextAtis, dew.VoiceAtis),
             new("PRESSURE", pressure.TextAtis, pressure.VoiceAtis, ["QNH"]),
-            new("WX", completeWxStringAcars, completeWxStringVoice, ["FULL_WX_STRING"]),
-            new("ARPT_COND", airportConditionsText, airportConditionsVoice, ["ARRDEP"]),
-            new("NOTAMS", notamsText, notamsVoice),
+            new("WX", completeWxStringAcars.Trim(), completeWxStringVoice.Trim(), ["FULL_WX_STRING"]),
+            new("ARPT_COND", airportConditionsText.Trim(), airportConditionsVoice.Trim(), ["ARRDEP"]),
+            new("NOTAMS", notamsText.Trim(), notamsVoice.Trim()),
             new("TREND", trends.TextAtis, trends.VoiceAtis),
             new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
             new("WS", windshear.TextAtis, windshear.VoiceAtis)
