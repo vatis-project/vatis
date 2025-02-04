@@ -836,8 +836,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                             var dto = AtisBotUtils.AddBotRequest(vm.AudioBuffer, _atisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                                _cancellationToken.Token)!;
+                            await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                                _cancellationToken.Token);
                         }).ContinueWith(t =>
                         {
                             if (t.IsFaulted)
@@ -1102,18 +1102,33 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var propertyUpdates = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() =>
             {
-                Metar = e.Metar.RawMetar?.ToUpperInvariant();
-                Altimeter = e.Metar.Pressure?.Value?.ActualUnit == Value.Unit.HectoPascal
-                    ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
-                    : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
-                Wind = e.Metar.SurfaceWind?.RawValue;
-                ObservationTime = e.Metar.Time.Replace(":", "");
-                propertyUpdates.SetResult();
+                try
+                {
+                    Metar = e.Metar.RawMetar?.ToUpperInvariant();
+                    Altimeter = e.Metar.Pressure?.Value?.ActualUnit == Value.Unit.HectoPascal
+                        ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
+                        : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
+                    Wind = e.Metar.SurfaceWind?.RawValue;
+                    ObservationTime = e.Metar.Time.Replace(":", "");
+                    propertyUpdates.SetResult();
+                }
+                catch (Exception ex)
+                {
+                    propertyUpdates.SetException(ex);
+                }
             });
 
             // Wait for the UI thread to finish updating the properties. Without this it's possible
             // to publish updated METAR information either via the hub or websocket with old data.
-            await propertyUpdates.Task;
+            try
+            {
+                await propertyUpdates.Task;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to update METAR properties.");
+                throw;
+            }
 
             if (_atisStation.AtisVoice.UseTextToSpeech)
             {
@@ -1151,13 +1166,17 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         {
                             var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto, _cancellationToken.Token)!;
+                            await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                                _cancellationToken.Token);
                         }).ContinueWith(t =>
                         {
                             if (t.IsFaulted)
                             {
-                                ErrorMessage = string.Join(",",
-                                    t.Exception.InnerExceptions.Select(exception => exception.Message));
+                                var errors = t.Exception.InnerExceptions
+                                    .Select(ex => $"{ex.GetType().Name}: {ex.Message}").ToList();
+                                ErrorMessage = string.Join(Environment.NewLine, errors);
+                                Log.Error(t.Exception, "Failed to update voice ATIS");
+
                                 _networkConnection?.Disconnect();
                                 NativeAudio.EmitSound(SoundType.Error);
                             }
@@ -1263,6 +1282,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (preset == null)
                 return;
 
+            if (_voiceServerConnection == null)
+                return;
+
             if (preset != _previousAtisPreset)
             {
                 SelectedAtisPreset = preset;
@@ -1306,8 +1328,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         {
                             var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                                _cancellationToken.Token)!;
+                            await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                                _cancellationToken.Token);
                         }, _cancellationToken.Token);
                     }
                 }
@@ -1488,7 +1510,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     {
                         var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
                             _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                        _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                        await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                             _cancellationToken.Token);
                     }
                 }
