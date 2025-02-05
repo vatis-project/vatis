@@ -23,7 +23,7 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
     /// <inheritdoc/>
     public override string GetRegex()
     {
-        return @"(TREND|NOSIG|BECMG|TEMPO)\s*(?:(FM(\d{4}))?\s*(TL(\d{4}))?\s*(AT(\d{4}))?)?\s*([\w\d\/\s]+)?=";
+        return @"TREND (BECMG|TEMPO|NOSIG)\s*(FM\d{4})?\s*(AT\d{4})?\s*(TL\d{4})?\s*(\d{4}\s*\w+)\s*(?:((?:TEMPO|BECMG|NOSIG)\s*(?:FM\d{4}|TL\d{4}|AT\d{4})?\s*(?:\s*.+)))?";
     }
 
     /// <inheritdoc/>
@@ -47,27 +47,33 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
                 },
             };
 
-            if (!string.IsNullOrEmpty(found[2].Value) && found[2].Value.StartsWith("FM"))
+            if (!string.IsNullOrEmpty(found[2].Value))
             {
-                trend.FromTime = found[3].Value;
+                trend.FromTime = found[2].Value;
             }
 
-            if (!string.IsNullOrEmpty(found[4].Value) && found[4].Value.StartsWith("TL"))
+            if (!string.IsNullOrEmpty(found[3].Value))
             {
-                trend.UntilTime = found[5].Value;
+                trend.UntilTime = found[3].Value;
             }
 
-            if (!string.IsNullOrEmpty(found[6].Value) && found[6].Value.StartsWith("AT"))
+            if (!string.IsNullOrEmpty(found[4].Value))
             {
-                trend.AtTime = found[7].Value;
+                trend.AtTime = found[4].Value;
             }
 
-            if (!string.IsNullOrEmpty(found[8].Value))
+            // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
+            if (!string.IsNullOrEmpty(found[5].Value))
             {
-                trend.Forecast = found[8].Value;
+                trend.Forecast = $"ZZZZ {found[5].Value.Trim()}";
             }
 
-            result.Add(newRemainingMetar, trend);
+            if (!string.IsNullOrEmpty(found[6].Value))
+            {
+                trend.SecondForecast = $"ZZZZ {found[6].Value.Trim()}";
+            }
+
+            result.Add("TrendForecast", trend);
         }
 
         return GetResults(newRemainingMetar, result);

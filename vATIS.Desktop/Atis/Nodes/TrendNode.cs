@@ -5,6 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
@@ -20,29 +23,96 @@ public class TrendNode : BaseNode<TrendForecast>
         if (metar.TrendForecast == null)
             return;
 
+        if (Station == null)
+            return;
+
         var tts = new List<string>();
         var acars = new List<string>();
 
-        tts.Add("TREND");
         switch (metar.TrendForecast.ChangeIndicator)
         {
             case TrendForecastType.Becoming:
-                tts.Add("BECOMING");
+                tts.Add("TREND, BECOMING");
                 acars.Add("BECMG");
                 break;
             case TrendForecastType.Temporary:
-                tts.Add("TEMPORARY");
+                tts.Add("TREND, TEMPORARY");
                 acars.Add("TEMPO");
                 break;
             case TrendForecastType.NoSignificantChanges:
-                tts.Add("NO SIGNIFICANT CHANGES");
+                tts.Add("TREND, NO SIGNIFICANT CHANGES");
                 acars.Add("NOSIG");
                 break;
         }
 
+        if (metar.TrendForecast.FromTime != null)
+        {
+            if (int.TryParse(metar.TrendForecast.FromTime, out var time))
+            {
+                tts.Add($"FROM {time.ToSerialFormat()}");
+            }
+
+            acars.Add("FM" + metar.TrendForecast.FromTime);
+        }
+
+        if (metar.TrendForecast.UntilTime != null)
+        {
+            if (int.TryParse(metar.TrendForecast.UntilTime, out var time))
+            {
+                tts.Add($"UNTIL {time.ToSerialFormat()}");
+            }
+
+            acars.Add("TL" + metar.TrendForecast.UntilTime);
+        }
+
+        if (metar.TrendForecast.AtTime != null)
+        {
+            if (int.TryParse(metar.TrendForecast.AtTime, out var time))
+            {
+                tts.Add($"AT {time.ToSerialFormat()}");
+            }
+
+            acars.Add("AT" + metar.TrendForecast.AtTime);
+        }
+
+        var decoder = new MetarDecoder();
+
         if (metar.TrendForecast.Forecast != null)
         {
-            // TODO: Implement trend forecast parsing
+            var forecast = decoder.ParseNotStrict(metar.TrendForecast.Forecast);
+
+            if (forecast.SurfaceWind != null)
+            {
+                var surfaceWind = NodeParser.Parse<SurfaceWindNode, SurfaceWind>(forecast, Station);
+                tts.Add(surfaceWind.VoiceAtis);
+                acars.Add(surfaceWind.TextAtis);
+            }
+
+            if (forecast.Visibility != null)
+            {
+                var visibility = NodeParser.Parse<PrevailingVisibilityNode, Visibility>(forecast, Station);
+                tts.Add(visibility.VoiceAtis);
+                acars.Add(visibility.TextAtis);
+            }
+
+            if (forecast.PresentWeather.Count > 0)
+            {
+                var presentWeather = NodeParser.Parse<PresentWeatherNode, WeatherPhenomenon>(forecast, Station);
+                tts.Add(presentWeather.VoiceAtis);
+                acars.Add(presentWeather.TextAtis);
+            }
+
+            if (forecast.Clouds.Count > 0)
+            {
+                var clouds = NodeParser.Parse<CloudNode, CloudLayer>(forecast, Station);
+                tts.Add(clouds.VoiceAtis);
+                acars.Add(clouds.TextAtis);
+            }
+        }
+
+        if (metar.TrendForecast.SecondForecast != null)
+        {
+            var secondForecast = decoder.ParseNotStrict(metar.TrendForecast.SecondForecast);
         }
 
         VoiceAtis = string.Join(". ", tts);

@@ -101,4 +101,9 @@ public sealed class TrendForecast
     /// This property contains the specific forecast information parsed from the METAR trend data.
     /// </remarks>
     public string? Forecast { get; set; }
+
+    /// <summary>
+    /// Gets or sets the secondary forecast.
+    /// </summary>
+    public string? SecondForecast { get; set; }
 }
