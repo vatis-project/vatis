@@ -23,7 +23,7 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
     /// <inheritdoc/>
     public override string GetRegex()
     {
-        return @"TREND (BECMG|TEMPO|NOSIG)\s*(FM\d{4})?\s*(AT\d{4})?\s*(TL\d{4})?\s*(\d{4}\s*\w+)\s*(?:((?:TEMPO|BECMG|NOSIG)\s*(?:FM\d{4}|TL\d{4}|AT\d{4})?\s*(?:\s*.+)))?";
+        return @"(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{4}))?\s*(?:FM(\d{4}))?\s*(?:TL(\d{4}))?\s*([\d\s\+\-A-Z]+?)((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{4}))?\s*(?:FM(\d{4}))?\s*(?:TL(\d{4}))?\s*(.+))?)";
     }
 
     /// <inheritdoc/>
@@ -36,7 +36,7 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
 
         if (found.Count > 1)
         {
-            var trend = new TrendForecast
+            var firstTrend = new TrendForecast
             {
                 ChangeIndicator = found[1].Value switch
                 {
@@ -49,31 +49,64 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
 
             if (!string.IsNullOrEmpty(found[2].Value))
             {
-                trend.FromTime = found[2].Value;
+                firstTrend.AtTime = found[2].Value;
             }
 
             if (!string.IsNullOrEmpty(found[3].Value))
             {
-                trend.UntilTime = found[3].Value;
+                firstTrend.FromTime = found[3].Value;
             }
 
             if (!string.IsNullOrEmpty(found[4].Value))
             {
-                trend.AtTime = found[4].Value;
+                firstTrend.UntilTime = found[4].Value;
             }
 
-            // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
             if (!string.IsNullOrEmpty(found[5].Value))
             {
-                trend.Forecast = $"ZZZZ {found[5].Value.Trim()}";
+                // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
+                firstTrend.Forecast = $"ZZZZ {found[5].Value.Trim()}";
             }
 
+            result.Add("TrendForecast", firstTrend);
+
+            // Optional second forecat
             if (!string.IsNullOrEmpty(found[6].Value))
             {
-                trend.SecondForecast = $"ZZZZ {found[6].Value.Trim()}";
-            }
+                var additionalTrend = new TrendForecast
+                {
+                    ChangeIndicator = found[7].Value switch
+                    {
+                        "NOSIG" => TrendForecastType.NoSignificantChanges,
+                        "BECMG" => TrendForecastType.Becoming,
+                        "TEMPO" => TrendForecastType.Temporary,
+                        _ => throw new ArgumentException("Invalid ChangeIndicator"),
+                    }
+                };
 
-            result.Add("TrendForecast", trend);
+                if (!string.IsNullOrEmpty(found[8].Value))
+                {
+                    additionalTrend.AtTime = found[8].Value;
+                }
+
+                if (!string.IsNullOrEmpty(found[9].Value))
+                {
+                    additionalTrend.FromTime = found[9].Value;
+                }
+
+                if (!string.IsNullOrEmpty(found[10].Value))
+                {
+                    additionalTrend.UntilTime = found[10].Value;
+                }
+
+                if (!string.IsNullOrEmpty(found[11].Value))
+                {
+                    // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
+                    additionalTrend.Forecast = $"ZZZZ {found[11].Value.Trim()}";
+                }
+
+                result.Add("TrendForecastAdditional", additionalTrend);
+            }
         }
 
         return GetResults(newRemainingMetar, result);

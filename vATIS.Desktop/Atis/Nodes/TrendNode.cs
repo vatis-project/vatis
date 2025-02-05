@@ -110,12 +110,86 @@ public class TrendNode : BaseNode<TrendForecast>
             }
         }
 
-        if (metar.TrendForecast.SecondForecast != null)
+        if (metar.TrendForecastAdditional?.Forecast != null)
         {
-            var secondForecast = decoder.ParseNotStrict(metar.TrendForecast.SecondForecast);
+            var forecast = decoder.ParseNotStrict(metar.TrendForecastAdditional.Forecast);
+
+            switch (metar.TrendForecastAdditional.ChangeIndicator)
+            {
+                case TrendForecastType.Becoming:
+                    tts.Add("BECOMING");
+                    acars.Add("BECMG");
+                    break;
+                case TrendForecastType.Temporary:
+                    tts.Add("TEMPORARY");
+                    acars.Add("TEMPO");
+                    break;
+                case TrendForecastType.NoSignificantChanges:
+                    tts.Add("NO SIGNIFICANT CHANGES");
+                    acars.Add("NOSIG");
+                    break;
+            }
+
+            if (metar.TrendForecastAdditional.FromTime != null)
+            {
+                if (int.TryParse(metar.TrendForecastAdditional.FromTime, out var time))
+                {
+                    tts.Add($"FROM {time.ToSerialFormat()}");
+                }
+
+                acars.Add("FM" + metar.TrendForecastAdditional.FromTime);
+            }
+
+            if (metar.TrendForecastAdditional.UntilTime != null)
+            {
+                if (int.TryParse(metar.TrendForecastAdditional.UntilTime, out var time))
+                {
+                    tts.Add($"UNTIL {time.ToSerialFormat()}");
+                }
+
+                acars.Add("TL" + metar.TrendForecastAdditional.UntilTime);
+            }
+
+            if (metar.TrendForecastAdditional.AtTime != null)
+            {
+                if (int.TryParse(metar.TrendForecastAdditional.AtTime, out var time))
+                {
+                    tts.Add($"AT {time.ToSerialFormat()}");
+                }
+
+                acars.Add("AT" + metar.TrendForecastAdditional.AtTime);
+            }
+
+            if (forecast.SurfaceWind != null)
+            {
+                var surfaceWind = NodeParser.Parse<SurfaceWindNode, SurfaceWind>(forecast, Station);
+                tts.Add(surfaceWind.VoiceAtis);
+                acars.Add(surfaceWind.TextAtis);
+            }
+
+            if (forecast.Visibility != null)
+            {
+                var visibility = NodeParser.Parse<PrevailingVisibilityNode, Visibility>(forecast, Station);
+                tts.Add(visibility.VoiceAtis);
+                acars.Add(visibility.TextAtis);
+            }
+
+            if (forecast.PresentWeather.Count > 0)
+            {
+                var presentWeather = NodeParser.Parse<PresentWeatherNode, WeatherPhenomenon>(forecast, Station);
+                tts.Add(presentWeather.VoiceAtis);
+                acars.Add(presentWeather.TextAtis);
+            }
+
+            if (forecast.Clouds.Count > 0)
+            {
+                var clouds = NodeParser.Parse<CloudNode, CloudLayer>(forecast, Station);
+                tts.Add(clouds.VoiceAtis);
+                acars.Add(clouds.TextAtis);
+            }
         }
 
-        VoiceAtis = string.Join(". ", tts);
+        VoiceAtis = string.Join(" ", tts);
         TextAtis = string.Join(" ", acars);
     }
 
