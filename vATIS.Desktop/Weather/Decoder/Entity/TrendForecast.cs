@@ -101,4 +101,24 @@ public sealed class TrendForecast
     /// This property contains the specific forecast information parsed from the METAR trend data.
     /// </remarks>
     public string? Forecast { get; set; }
+
+    /// <summary>
+    /// Gets or sets the surface wind information in the TREND forecast.
+    /// </summary>
+    public string? SurfaceWind { get; set; }
+
+    /// <summary>
+    /// Gets or sets the prevailing visibility information in the TREND forecast.
+    /// </summary>
+    public string? PrevailingVisibility { get; set; }
+
+    /// <summary>
+    /// Gets or sets the weather phenomenon information in the TREND forecast.
+    /// </summary>
+    public string? WeatherCodes { get; set; }
+
+    /// <summary>
+    /// Gets or sets the cloud layer information in the TREND forecast.
+    /// </summary>
+    public string? Clouds { get; set; }
 }
