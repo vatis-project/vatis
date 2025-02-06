@@ -103,22 +103,22 @@ public sealed class TrendForecast
     public string? Forecast { get; set; }
 
     /// <summary>
-    /// Gets or sets the surface wind from the TREND forecast.
+    /// Gets or sets the surface wind information in the TREND forecast.
     /// </summary>
     public string? SurfaceWind { get; set; }
 
     /// <summary>
-    /// Gets or sets the TREND prevailing visibility value.
+    /// Gets or sets the prevailing visibility information in the TREND forecast.
     /// </summary>
     public string? PrevailingVisibility { get; set; }
 
     /// <summary>
-    /// Gets or sets the recent weather value.
+    /// Gets or sets the weather phenomenon information in the TREND forecast.
     /// </summary>
     public string? WeatherCodes { get; set; }
 
     /// <summary>
-    /// Gets or sets the cloud layer values.
+    /// Gets or sets the cloud layer information in the TREND forecast.
     /// </summary>
     public string? Clouds { get; set; }
 }
