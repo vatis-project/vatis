@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -57,106 +58,67 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
 
         if (found.Count > 1)
         {
-            var firstTrend = new TrendForecast
-            {
-                ChangeIndicator = found[1].Value switch
-                {
-                    "NOSIG" => TrendForecastType.NoSignificantChanges,
-                    "BECMG" => TrendForecastType.Becoming,
-                    "TEMPO" => TrendForecastType.Temporary,
-                    _ => throw new ArgumentException("Invalid ChangeIndicator"),
-                },
-            };
-
-            if (!string.IsNullOrEmpty(found[2].Value))
-            {
-                firstTrend.AtTime = found[2].Value;
-            }
-
-            if (!string.IsNullOrEmpty(found[3].Value))
-            {
-                firstTrend.FromTime = found[3].Value;
-            }
-
-            if (!string.IsNullOrEmpty(found[4].Value))
-            {
-                firstTrend.UntilTime = found[4].Value;
-            }
-
-            if (!string.IsNullOrEmpty(found[5].Value))
-            {
-                firstTrend.SurfaceWind = found[5].Value + " ";
-            }
-
-            if (!string.IsNullOrEmpty(found[6].Value))
-            {
-                firstTrend.PrevailingVisibility = found[6].Value + " ";
-            }
-
-            if (!string.IsNullOrEmpty(found[7].Value))
-            {
-                firstTrend.WeatherCodes = found[7].Value + " ";
-            }
-
-            if (!string.IsNullOrEmpty(found[8].Value))
-            {
-                firstTrend.Clouds = found[8].Value + " ";
-            }
-
+            var firstTrend = ParseTrendForecast(found, 1);
             result.Add("TrendForecast", firstTrend);
 
             if (!string.IsNullOrEmpty(found[9].Value))
             {
-                var futureTrend = new TrendForecast
-                {
-                    ChangeIndicator = found[10].Value switch
-                    {
-                        "NOSIG" => TrendForecastType.NoSignificantChanges,
-                        "BECMG" => TrendForecastType.Becoming,
-                        "TEMPO" => TrendForecastType.Temporary,
-                        _ => throw new ArgumentException("Invalid ChangeIndicator"),
-                    },
-                };
-
-                if (!string.IsNullOrEmpty(found[11].Value))
-                {
-                    futureTrend.AtTime = found[11].Value;
-                }
-
-                if (!string.IsNullOrEmpty(found[12].Value))
-                {
-                    futureTrend.FromTime = found[12].Value;
-                }
-
-                if (!string.IsNullOrEmpty(found[13].Value))
-                {
-                    futureTrend.UntilTime = found[13].Value;
-                }
-
-                if (!string.IsNullOrEmpty(found[14].Value))
-                {
-                    futureTrend.SurfaceWind = found[14].Value + " ";
-                }
-
-                if (!string.IsNullOrEmpty(found[15].Value))
-                {
-                    futureTrend.PrevailingVisibility = found[15].Value + " ";
-                }
-
-                if (!string.IsNullOrEmpty(found[16].Value))
-                {
-                    futureTrend.WeatherCodes = found[16].Value + " ";
-                }
-
-                if (!string.IsNullOrEmpty(found[17].Value))
-                {
-                    futureTrend.Clouds = found[17].Value + " ";
-                }
-
+                var futureTrend = ParseTrendForecast(found, 10);
                 result.Add("TrendForecastFuture", futureTrend);
             }
         }
 
         return GetResults(newRemainingMetar, result);
+    }
+
+    private TrendForecast ParseTrendForecast(List<Group> found, int startIndex)
+    {
+        var trend = new TrendForecast
+        {
+            ChangeIndicator = found[startIndex].Value switch
+            {
+                "NOSIG" => TrendForecastType.NoSignificantChanges,
+                "BECMG" => TrendForecastType.Becoming,
+                "TEMPO" => TrendForecastType.Temporary,
+                _ => throw new ArgumentException("Invalid ChangeIndicator"),
+            },
+        };
+
+        if (!string.IsNullOrEmpty(found[startIndex + 1].Value))
+        {
+            trend.AtTime = found[startIndex + 1].Value;
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 2].Value))
+        {
+            trend.FromTime = found[startIndex + 2].Value;
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 3].Value))
+        {
+            trend.UntilTime = found[startIndex + 3].Value;
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 4].Value))
+        {
+            trend.SurfaceWind = found[startIndex + 4].Value + " ";
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 5].Value))
+        {
+            trend.PrevailingVisibility = found[startIndex + 5].Value + " ";
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 6].Value))
+        {
+            trend.WeatherCodes = found[startIndex + 6].Value + " ";
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 7].Value))
+        {
+            trend.Clouds = found[startIndex + 7].Value + " ";
+        }
+
+        return trend;
     }
 }

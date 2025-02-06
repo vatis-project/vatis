@@ -19,257 +19,23 @@ public class TrendNode : BaseNode<TrendForecast>
     /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
-        if (metar.TrendForecast == null)
+        if (Station == null || metar.TrendForecast == null)
             return;
 
-        if (Station == null)
-            return;
-
-        var tts = new List<string>();
-        var acars = new List<string>();
-
-        switch (metar.TrendForecast.ChangeIndicator)
-        {
-            case TrendForecastType.Becoming:
-                tts.Add("TREND, BECOMING");
-                acars.Add("BECMG");
-                break;
-            case TrendForecastType.Temporary:
-                tts.Add("TREND, TEMPORARY");
-                acars.Add("TEMPO");
-                break;
-            case TrendForecastType.NoSignificantChanges:
-                tts.Add("TREND, NO SIGNIFICANT CHANGES");
-                acars.Add("NOSIG");
-                break;
-        }
-
-        if (metar.TrendForecast.AtTime != null)
-        {
-            if (int.TryParse(metar.TrendForecast.AtTime, out var time))
-            {
-                tts.Add($"AT {time.ToSerialFormat()}.");
-            }
-
-            acars.Add("AT" + metar.TrendForecast.AtTime);
-        }
-
-        if (metar.TrendForecast.FromTime != null)
-        {
-            if (int.TryParse(metar.TrendForecast.FromTime, out var time))
-            {
-                tts.Add($"FROM {time.ToSerialFormat()}.");
-            }
-
-            acars.Add("FM" + metar.TrendForecast.FromTime);
-        }
-
-        if (metar.TrendForecast.UntilTime != null)
-        {
-            if (int.TryParse(metar.TrendForecast.UntilTime, out var time))
-            {
-                tts.Add($"UNTIL {time.ToSerialFormat()}.");
-            }
-
-            acars.Add("TL" + metar.TrendForecast.UntilTime);
-        }
+        var voiceAtis = new List<string>();
+        var textAtis = new List<string>();
 
         var decodedTrend = new DecodedMetar();
+        ProcessTrendForecast(metar.TrendForecast, decodedTrend, voiceAtis, textAtis);
 
-        if (metar.TrendForecast.SurfaceWind != null)
-        {
-            var chunkResult = new SurfaceWindChunkDecoder().Parse(metar.TrendForecast.SurfaceWind);
-            GetChunkResult(chunkResult, decodedTrend);
-        }
-
-        if (metar.TrendForecast.PrevailingVisibility != null)
-        {
-            if (metar.TrendForecast.PrevailingVisibility.Trim() == "CAVOK")
-            {
-                decodedTrend.Cavok = true;
-            }
-            else
-            {
-                var chunk = new VisibilityChunkDecoder();
-                var chunkResult = chunk.Parse(metar.TrendForecast.PrevailingVisibility);
-                GetChunkResult(chunkResult, decodedTrend);
-            }
-        }
-
-        if (metar.TrendForecast.WeatherCodes != null)
-        {
-            var chunk = new PresentWeatherChunkDecoder();
-            var chunkResult = chunk.Parse(metar.TrendForecast.WeatherCodes);
-            GetChunkResult(chunkResult, decodedTrend);
-        }
-
-        if (metar.TrendForecast.Clouds?.Length > 0)
-        {
-            var chunk = new CloudChunkDecoder();
-            var chunkResult = chunk.Parse(metar.TrendForecast.Clouds);
-            GetChunkResult(chunkResult, decodedTrend);
-        }
-
-        if (decodedTrend.SurfaceWind != null)
-        {
-            var node = NodeParser.Parse<SurfaceWindNode, SurfaceWind>(decodedTrend, Station);
-            tts.Add(node.VoiceAtis);
-            acars.Add(node.TextAtis);
-        }
-
-        if (decodedTrend.Cavok)
-        {
-            tts.Add("CAV-OK.");
-            acars.Add("CAVOK");
-        }
-        else
-        {
-            if (decodedTrend.Visibility != null)
-            {
-                var node = NodeParser.Parse<PrevailingVisibilityNode, Visibility>(decodedTrend, Station);
-                tts.Add(node.VoiceAtis);
-                acars.Add(node.TextAtis);
-            }
-        }
-
-        if (decodedTrend.PresentWeather.Count > 0)
-        {
-            var node = NodeParser.Parse<PresentWeatherNode, WeatherPhenomenon>(decodedTrend, Station);
-            tts.Add(node.VoiceAtis);
-            acars.Add(node.TextAtis);
-        }
-
-        if (decodedTrend.Clouds.Count > 0)
-        {
-            var node = NodeParser.Parse<CloudNode, CloudLayer>(decodedTrend, Station);
-            tts.Add(node.VoiceAtis);
-            acars.Add(node.TextAtis);
-        }
-
-        // Future TREND Forecast
         if (metar.TrendForecastFuture != null)
         {
             var futureDecodedTrend = new DecodedMetar();
-
-            switch (metar.TrendForecastFuture.ChangeIndicator)
-            {
-                case TrendForecastType.Becoming:
-                    tts.Add("BECOMING");
-                    acars.Add("BECMG");
-                    break;
-                case TrendForecastType.Temporary:
-                    tts.Add("TEMPORARY");
-                    acars.Add("TEMPO");
-                    break;
-                case TrendForecastType.NoSignificantChanges:
-                    tts.Add("NO SIGNIFICANT CHANGES");
-                    acars.Add("NOSIG");
-                    break;
-            }
-
-            if (metar.TrendForecastFuture.AtTime != null)
-            {
-                if (int.TryParse(metar.TrendForecastFuture.AtTime, out var time))
-                {
-                    tts.Add($"AT {time.ToSerialFormat()}.");
-                }
-
-                acars.Add("AT" + metar.TrendForecastFuture.AtTime);
-            }
-
-            if (metar.TrendForecastFuture.FromTime != null)
-            {
-                if (int.TryParse(metar.TrendForecastFuture.FromTime, out var time))
-                {
-                    tts.Add($"FROM {time.ToSerialFormat()}.");
-                }
-
-                acars.Add("FM" + metar.TrendForecastFuture.FromTime);
-            }
-
-            if (metar.TrendForecastFuture.UntilTime != null)
-            {
-                if (int.TryParse(metar.TrendForecastFuture.UntilTime, out var time))
-                {
-                    tts.Add($"UNTIL {time.ToSerialFormat()}.");
-                }
-
-                acars.Add("TL" + metar.TrendForecastFuture.UntilTime);
-            }
-
-            if (metar.TrendForecastFuture.SurfaceWind != null)
-            {
-                var chunkResult = new SurfaceWindChunkDecoder().Parse(metar.TrendForecastFuture.SurfaceWind);
-                GetChunkResult(chunkResult, futureDecodedTrend);
-            }
-
-            if (metar.TrendForecastFuture.PrevailingVisibility != null)
-            {
-                if (metar.TrendForecastFuture.PrevailingVisibility.Trim() == "CAVOK")
-                {
-                    futureDecodedTrend.Cavok = true;
-                }
-                else
-                {
-                    var chunk = new VisibilityChunkDecoder();
-                    var chunkResult = chunk.Parse(metar.TrendForecastFuture.PrevailingVisibility);
-                    GetChunkResult(chunkResult, futureDecodedTrend);
-                }
-            }
-
-            if (metar.TrendForecastFuture.WeatherCodes != null)
-            {
-                var chunk = new PresentWeatherChunkDecoder();
-                var chunkResult = chunk.Parse(metar.TrendForecastFuture.WeatherCodes);
-                GetChunkResult(chunkResult, futureDecodedTrend);
-            }
-
-            if (metar.TrendForecastFuture.Clouds?.Length > 0)
-            {
-                var chunk = new CloudChunkDecoder();
-                var chunkResult = chunk.Parse(metar.TrendForecastFuture.Clouds);
-                GetChunkResult(chunkResult, futureDecodedTrend);
-            }
-
-            if (futureDecodedTrend.SurfaceWind != null)
-            {
-                var node = NodeParser.Parse<SurfaceWindNode, SurfaceWind>(futureDecodedTrend, Station);
-                tts.Add(node.VoiceAtis);
-                acars.Add(node.TextAtis);
-            }
-
-            if (futureDecodedTrend.Cavok)
-            {
-                tts.Add("CAV-OK.");
-                acars.Add("CAVOK");
-            }
-            else
-            {
-                if (futureDecodedTrend.Visibility != null)
-                {
-                    var node = NodeParser.Parse<PrevailingVisibilityNode, Visibility>(futureDecodedTrend, Station);
-                    tts.Add(node.VoiceAtis);
-                    acars.Add(node.TextAtis);
-                }
-            }
-
-            if (futureDecodedTrend.PresentWeather.Count > 0)
-            {
-                var node = NodeParser.Parse<PresentWeatherNode, WeatherPhenomenon>(futureDecodedTrend, Station);
-                tts.Add(node.VoiceAtis);
-                acars.Add(node.TextAtis);
-            }
-
-            if (futureDecodedTrend.Clouds.Count > 0)
-            {
-                var node = NodeParser.Parse<CloudNode, CloudLayer>(futureDecodedTrend, Station);
-                tts.Add(node.VoiceAtis);
-                acars.Add(node.TextAtis);
-            }
+            ProcessTrendForecast(metar.TrendForecastFuture, futureDecodedTrend, voiceAtis, textAtis, isFuture: true);
         }
 
-        VoiceAtis = string.Join(" ", tts);
-        TextAtis = string.Join(" ", acars);
+        VoiceAtis = string.Join(" ", voiceAtis);
+        TextAtis = string.Join(" ", textAtis);
     }
 
     /// <inheritdoc/>
@@ -295,6 +61,131 @@ public class TrendNode : BaseNode<TrendForecast>
                     typeof(DecodedMetar).GetProperty(obj.Key)?.SetValue(decodedMetar, obj.Value, null);
                 }
             }
+        }
+    }
+
+    private void ProcessTrendForecast(TrendForecast? forecast, DecodedMetar decodedTrend, List<string> voiceAtis,
+        List<string> textAtis, bool isFuture = false)
+    {
+        if (forecast == null || Station == null)
+            return;
+
+        if (!isFuture)
+        {
+            voiceAtis.Add("TREND,");
+        }
+
+        switch (forecast.ChangeIndicator)
+        {
+            case TrendForecastType.Becoming:
+                voiceAtis.Add("BECOMING");
+                textAtis.Add("BECMG");
+                break;
+            case TrendForecastType.Temporary:
+                voiceAtis.Add("TEMPORARY");
+                textAtis.Add("TEMPO");
+                break;
+            case TrendForecastType.NoSignificantChanges:
+                voiceAtis.Add("NO SIGNIFICANT CHANGES");
+                textAtis.Add("NOSIG");
+                break;
+        }
+
+        if (forecast.AtTime != null)
+        {
+            if (int.TryParse(forecast.AtTime, out var time))
+            {
+                voiceAtis.Add($"AT {time.ToSerialFormat()}.");
+            }
+
+            textAtis.Add($"AT{forecast.AtTime}");
+        }
+
+        if (forecast.FromTime != null)
+        {
+            if (int.TryParse(forecast.FromTime, out var time))
+            {
+                voiceAtis.Add($"FROM {time.ToSerialFormat()}.");
+            }
+
+            textAtis.Add($"FM{forecast.FromTime}");
+        }
+
+        if (forecast.UntilTime != null)
+        {
+            if (int.TryParse(forecast.UntilTime, out var time))
+            {
+                voiceAtis.Add($"UNTIL {time.ToSerialFormat()}.");
+            }
+
+            textAtis.Add($"TL{forecast.UntilTime}");
+        }
+
+        if (forecast.SurfaceWind != null)
+        {
+            var chunkResult = new SurfaceWindChunkDecoder().Parse(forecast.SurfaceWind);
+            GetChunkResult(chunkResult, decodedTrend);
+        }
+
+        if (forecast.PrevailingVisibility != null)
+        {
+            if (forecast.PrevailingVisibility.Trim() == "CAVOK")
+            {
+                decodedTrend.Cavok = true;
+            }
+            else
+            {
+                var chunk = new VisibilityChunkDecoder();
+                var chunkResult = chunk.Parse(forecast.PrevailingVisibility);
+                GetChunkResult(chunkResult, decodedTrend);
+            }
+        }
+
+        if (forecast.WeatherCodes != null)
+        {
+            var chunk = new PresentWeatherChunkDecoder();
+            var chunkResult = chunk.Parse(forecast.WeatherCodes);
+            GetChunkResult(chunkResult, decodedTrend);
+        }
+
+        if (forecast.Clouds?.Length > 0)
+        {
+            var chunk = new CloudChunkDecoder();
+            var chunkResult = chunk.Parse(forecast.Clouds);
+            GetChunkResult(chunkResult, decodedTrend);
+        }
+
+        if (decodedTrend.SurfaceWind != null)
+        {
+            var node = NodeParser.Parse<SurfaceWindNode, SurfaceWind>(decodedTrend, Station);
+            voiceAtis.Add(node.VoiceAtis);
+            textAtis.Add(node.TextAtis);
+        }
+
+        if (decodedTrend.Cavok)
+        {
+            voiceAtis.Add("CAV-OK.");
+            textAtis.Add("CAVOK");
+        }
+        else if (decodedTrend.Visibility != null)
+        {
+            var node = NodeParser.Parse<PrevailingVisibilityNode, Visibility>(decodedTrend, Station);
+            voiceAtis.Add(node.VoiceAtis);
+            textAtis.Add(node.TextAtis);
+        }
+
+        if (decodedTrend.PresentWeather.Count > 0)
+        {
+            var node = NodeParser.Parse<PresentWeatherNode, WeatherPhenomenon>(decodedTrend, Station);
+            voiceAtis.Add(node.VoiceAtis);
+            textAtis.Add(node.TextAtis);
+        }
+
+        if (decodedTrend.Clouds.Count > 0)
+        {
+            var node = NodeParser.Parse<CloudNode, CloudLayer>(decodedTrend, Station);
+            voiceAtis.Add(node.VoiceAtis);
+            textAtis.Add(node.TextAtis);
         }
     }
 }
