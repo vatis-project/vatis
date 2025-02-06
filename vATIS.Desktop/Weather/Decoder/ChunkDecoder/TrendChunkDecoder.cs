@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -20,10 +21,32 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 /// </remarks>
 public sealed class TrendChunkDecoder : MetarChunkDecoder
 {
+    // Surface Wind
+    private const string WindDirectionRegexPattern = "(?:[0-9]{3}|VRB|///)";
+    private const string WindSpeedRegexPattern = "P?(?:[/0-9]{2,3}|//)";
+    private const string WindSpeedVariationsRegexPattern = "(?:GP?(?:[0-9]{2,3}))?";
+    private const string WindUnitRegexPattern = "(?:KT|MPS|KPH)";
+
+    // Prevailing Visibility
+    private const string VisibilityRegexPattern = "(?:[0-9]{4})?";
+
+    // Present Weather
+    private const string CaracRegexPattern = "TS|FZ|SH|BL|DR|MI|BC|PR";
+    private const string TypeRegexPattern = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|//";
+
+    // Clouds
+    private const string NoCloudRegexPattern = "(?:NSC|NCD|CLR|SKC)";
+    private const string LayerRegexPattern = "(?:VV|FEW|SCT|BKN|OVC|///)(?:[0-9]{3}|///)(?:CB|TCU|///)?";
+
     /// <inheritdoc/>
     public override string GetRegex()
     {
-        return @"(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{4}))?\s*(?:FM(\d{4}))?\s*(?:TL(\d{4}))?\s*([\d\s\+\-A-Z]+?)((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{4}))?\s*(?:FM(\d{4}))?\s*(?:TL(\d{4}))?\s*(.+))?)";
+        var windRegex = $"{WindDirectionRegexPattern}{WindSpeedRegexPattern}{WindSpeedVariationsRegexPattern}{WindUnitRegexPattern}";
+        var visibilityRegex = $"{VisibilityRegexPattern}|CAVOK";
+        var presentWeatherRegex = $@"(?:[-+]|VC)?(?:{CaracRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?";
+        var cloudRegex = $@"(?:{NoCloudRegexPattern}|(?:{LayerRegexPattern})(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?)";
+        Debug.WriteLine(cloudRegex);
+        return $@"TREND (TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*(.+))?)";
     }
 
     /// <inheritdoc/>
@@ -64,49 +87,63 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
 
             if (!string.IsNullOrEmpty(found[5].Value))
             {
-                // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
-                firstTrend.Forecast = $"ZZZZ {found[5].Value.Trim()}";
+                firstTrend.SurfaceWind = found[5].Value + " ";
+            }
+
+            if (!string.IsNullOrEmpty(found[6].Value))
+            {
+                firstTrend.PrevailingVisibility = found[6].Value + " ";
+            }
+
+            if (!string.IsNullOrEmpty(found[7].Value))
+            {
+                firstTrend.WeatherCodes = found[7].Value + " ";
+            }
+
+            if (!string.IsNullOrEmpty(found[8].Value))
+            {
+                firstTrend.Clouds = found[8].Value + " ";
             }
 
             result.Add("TrendForecast", firstTrend);
 
             // Optional second forecat
-            if (!string.IsNullOrEmpty(found[6].Value))
-            {
-                var additionalTrend = new TrendForecast
-                {
-                    ChangeIndicator = found[7].Value switch
-                    {
-                        "NOSIG" => TrendForecastType.NoSignificantChanges,
-                        "BECMG" => TrendForecastType.Becoming,
-                        "TEMPO" => TrendForecastType.Temporary,
-                        _ => throw new ArgumentException("Invalid ChangeIndicator"),
-                    }
-                };
-
-                if (!string.IsNullOrEmpty(found[8].Value))
-                {
-                    additionalTrend.AtTime = found[8].Value;
-                }
-
-                if (!string.IsNullOrEmpty(found[9].Value))
-                {
-                    additionalTrend.FromTime = found[9].Value;
-                }
-
-                if (!string.IsNullOrEmpty(found[10].Value))
-                {
-                    additionalTrend.UntilTime = found[10].Value;
-                }
-
-                if (!string.IsNullOrEmpty(found[11].Value))
-                {
-                    // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
-                    additionalTrend.Forecast = $"ZZZZ {found[11].Value.Trim()}";
-                }
-
-                result.Add("TrendForecastAdditional", additionalTrend);
-            }
+            // if (!string.IsNullOrEmpty(found[6].Value))
+            // {
+            //     var additionalTrend = new TrendForecast
+            //     {
+            //         ChangeIndicator = found[7].Value switch
+            //         {
+            //             "NOSIG" => TrendForecastType.NoSignificantChanges,
+            //             "BECMG" => TrendForecastType.Becoming,
+            //             "TEMPO" => TrendForecastType.Temporary,
+            //             _ => throw new ArgumentException("Invalid ChangeIndicator"),
+            //         }
+            //     };
+            //
+            //     if (!string.IsNullOrEmpty(found[8].Value))
+            //     {
+            //         additionalTrend.AtTime = found[8].Value;
+            //     }
+            //
+            //     if (!string.IsNullOrEmpty(found[9].Value))
+            //     {
+            //         additionalTrend.FromTime = found[9].Value;
+            //     }
+            //
+            //     if (!string.IsNullOrEmpty(found[10].Value))
+            //     {
+            //         additionalTrend.UntilTime = found[10].Value;
+            //     }
+            //
+            //     if (!string.IsNullOrEmpty(found[11].Value))
+            //     {
+            //         // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
+            //         additionalTrend.Forecast = $"ZZZZ {found[11].Value.Trim()}";
+            //     }
+            //
+            //     result.Add("TrendForecastAdditional", additionalTrend);
+            // }
         }
 
         return GetResults(newRemainingMetar, result);

@@ -23,8 +23,16 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
 {
     private const string CeilingParameterName = "Ceiling";
     private const string CloudsParameterName = "Clouds";
-    private const string NoCloudRegexPattern = "(NSC|NCD|CLR|SKC)";
-    private const string LayerRegexPattern = "(VV|FEW|SCT|BKN|OVC|///)([0-9]{3}|///)(CB|TCU|///)?";
+
+    /// <summary>
+    /// No cloud regex.
+    /// </summary>
+    public const string NoCloudRegexPattern = "(NSC|NCD|CLR|SKC)";
+
+    /// <summary>
+    /// Cloud layer regex.
+    /// </summary>
+    public const string LayerRegexPattern = "(VV|FEW|SCT|BKN|OVC|///)([0-9]{3}|///)(CB|TCU|///)?";
 
     /// <summary>
     /// Retrieves the regular expression pattern associated with the <see cref="CloudChunkDecoder"/> class.
