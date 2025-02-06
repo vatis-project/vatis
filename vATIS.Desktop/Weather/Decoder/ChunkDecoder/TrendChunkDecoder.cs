@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -45,8 +44,7 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
         var visibilityRegex = $"{VisibilityRegexPattern}|CAVOK";
         var presentWeatherRegex = $@"(?:[-+]|VC)?(?:{CaracRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?";
         var cloudRegex = $@"(?:{NoCloudRegexPattern}|(?:{LayerRegexPattern})(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?)";
-        Debug.WriteLine(cloudRegex);
-        return $@"TREND (TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*(.+))?)";
+        return $@"TREND (TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?)?)";
     }
 
     /// <inheritdoc/>
@@ -107,43 +105,56 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
 
             result.Add("TrendForecast", firstTrend);
 
-            // Optional second forecat
-            // if (!string.IsNullOrEmpty(found[6].Value))
-            // {
-            //     var additionalTrend = new TrendForecast
-            //     {
-            //         ChangeIndicator = found[7].Value switch
-            //         {
-            //             "NOSIG" => TrendForecastType.NoSignificantChanges,
-            //             "BECMG" => TrendForecastType.Becoming,
-            //             "TEMPO" => TrendForecastType.Temporary,
-            //             _ => throw new ArgumentException("Invalid ChangeIndicator"),
-            //         }
-            //     };
-            //
-            //     if (!string.IsNullOrEmpty(found[8].Value))
-            //     {
-            //         additionalTrend.AtTime = found[8].Value;
-            //     }
-            //
-            //     if (!string.IsNullOrEmpty(found[9].Value))
-            //     {
-            //         additionalTrend.FromTime = found[9].Value;
-            //     }
-            //
-            //     if (!string.IsNullOrEmpty(found[10].Value))
-            //     {
-            //         additionalTrend.UntilTime = found[10].Value;
-            //     }
-            //
-            //     if (!string.IsNullOrEmpty(found[11].Value))
-            //     {
-            //         // Prefix the forecasts with a fake airport ID for later parsing with the METAR decoder.
-            //         additionalTrend.Forecast = $"ZZZZ {found[11].Value.Trim()}";
-            //     }
-            //
-            //     result.Add("TrendForecastAdditional", additionalTrend);
-            // }
+            if (!string.IsNullOrEmpty(found[9].Value))
+            {
+                var futureTrend = new TrendForecast
+                {
+                    ChangeIndicator = found[10].Value switch
+                    {
+                        "NOSIG" => TrendForecastType.NoSignificantChanges,
+                        "BECMG" => TrendForecastType.Becoming,
+                        "TEMPO" => TrendForecastType.Temporary,
+                        _ => throw new ArgumentException("Invalid ChangeIndicator"),
+                    },
+                };
+
+                if (!string.IsNullOrEmpty(found[11].Value))
+                {
+                    futureTrend.AtTime = found[11].Value;
+                }
+
+                if (!string.IsNullOrEmpty(found[12].Value))
+                {
+                    futureTrend.FromTime = found[12].Value;
+                }
+
+                if (!string.IsNullOrEmpty(found[13].Value))
+                {
+                    futureTrend.UntilTime = found[13].Value;
+                }
+
+                if (!string.IsNullOrEmpty(found[14].Value))
+                {
+                    futureTrend.SurfaceWind = found[14].Value + " ";
+                }
+
+                if (!string.IsNullOrEmpty(found[15].Value))
+                {
+                    futureTrend.PrevailingVisibility = found[15].Value + " ";
+                }
+
+                if (!string.IsNullOrEmpty(found[16].Value))
+                {
+                    futureTrend.WeatherCodes = found[16].Value + " ";
+                }
+
+                if (!string.IsNullOrEmpty(found[17].Value))
+                {
+                    futureTrend.Clouds = found[17].Value + " ";
+                }
+
+                result.Add("TrendForecastFuture", futureTrend);
+            }
         }
 
         return GetResults(newRemainingMetar, result);

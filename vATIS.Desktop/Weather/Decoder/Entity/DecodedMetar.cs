@@ -218,7 +218,7 @@ public class DecodedMetar
     /// <summary>
     ///  Gets or sets the additional TREND forecast information.
     /// </summary>
-    public TrendForecast? TrendForecastAdditional { get; set; }
+    public TrendForecast? TrendForecastFuture { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the decoded METAR is valid, determined by the absence of decoding exceptions.
