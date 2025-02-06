@@ -1111,7 +1111,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
                         : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
                     Wind = e.Metar.SurfaceWind?.RawValue;
-                    ObservationTime = e.Metar.Time.Replace(":", "");
+                    ObservationTime = e.Metar.Time;
                     propertyUpdates.SetResult();
                 }
                 catch (Exception ex)

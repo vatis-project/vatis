@@ -64,7 +64,7 @@ public sealed class DatetimeChunkDecoder : MetarChunkDecoder
         result.Add(HourParameterName, hour);
         result.Add(MinuteParameterName, minute);
         result.Add(DayParameterName, day);
-        result.Add(TimeParameterName, $"{hour:00}:{minute:00} UTC");
+        result.Add(TimeParameterName, $"{hour:00}{minute:00}");
 
         return GetResults(newRemainingMetar, result);
     }
