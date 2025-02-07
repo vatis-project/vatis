@@ -24,6 +24,7 @@ using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
+using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
@@ -92,10 +93,17 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 .Ascending(i => i.NetworkConnectionStatus switch
                 {
                     NetworkConnectionStatus.Connected => 0,
-                    NetworkConnectionStatus.Observer => 0,
-                    _ => 1
+                    NetworkConnectionStatus.Observer => 1,
+                    _ => 2
                 })
-                .ThenBy(i => i.Identifier ?? string.Empty))
+                .ThenBy(i => i.Identifier ?? string.Empty)
+                .ThenBy(i => i.AtisType switch
+                {
+                    AtisType.Combined => 0,
+                    AtisType.Arrival => 1,
+                    AtisType.Departure => 2,
+                    _ => 3
+                }))
             .Bind(out var sortedStations)
             .Subscribe(_ =>
             {
@@ -119,9 +127,16 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
-            .Filter(x =>
-                x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
-            .Sort(SortExpressionComparer<AtisStationViewModel>.Ascending(i => i.Identifier ?? string.Empty))
+            .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+            .Sort(SortExpressionComparer<AtisStationViewModel>
+                .Ascending(i => i.Identifier ?? string.Empty)
+                .ThenBy(i => i.AtisType switch
+                {
+                    AtisType.Combined => 0,
+                    AtisType.Arrival => 1,
+                    AtisType.Departure => 2,
+                    _ => 3
+                }))
             .Bind(out var connectedStations)
             .Subscribe(_ => { CompactWindowStations = connectedStations; });
 
