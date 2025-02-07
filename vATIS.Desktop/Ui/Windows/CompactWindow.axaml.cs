@@ -4,9 +4,12 @@
 // </copyright>
 
 using System;
+using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.ReactiveUI;
 using Vatsim.Vatis.Ui.ViewModels;
 
@@ -66,6 +69,30 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
         if (DataContext is CompactWindowViewModel model)
         {
             model.UpdatePosition(this);
+        }
+
+        // Get the bounding rectangle of all screens combined
+        var totalScreenBounds = Screens.All
+            .Select(s => s.WorkingArea)
+            .Aggregate((acc, next) => acc.Union(next));
+
+        var totalLeft = totalScreenBounds.X;
+        var totalRight = totalScreenBounds.X + totalScreenBounds.Width;
+
+        var windowLeft = Position.X;
+        var windowRight = windowLeft + (int)Width;
+
+        var isRightOffScreen = windowRight > totalRight;
+        var isRightFullyVisible = windowRight <= totalRight && windowLeft >= totalLeft;
+
+        // Update alignment only if the window is partially off-screen
+        if (isRightOffScreen)
+        {
+            WindowControls.HorizontalAlignment = HorizontalAlignment.Left;
+        }
+        else if (isRightFullyVisible)
+        {
+            WindowControls.HorizontalAlignment = HorizontalAlignment.Right;
         }
     }
 
