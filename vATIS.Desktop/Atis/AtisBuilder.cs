@@ -168,7 +168,6 @@ public class AtisBuilder : IAtisBuilder
     private static string RemoveTextParsingCharacters(string text)
     {
         text = Regex.Replace(text, @"\+([A-Z0-9]{3,4})", "$1"); // remove airports and navaid identifiers prefix
-        text = Regex.Replace(text, @"\s+(?=[.,?!])", ""); // remove extra spaces before punctuation
         text = Regex.Replace(text, @"\s+", " ");
         text = Regex.Replace(text, @"(?<=\*)(-?[\,0-9]+)", "$1");
         text = Regex.Replace(text, @"(?<=\#)(-?[\,0-9]+)", "$1");
@@ -429,6 +428,9 @@ public class AtisBuilder : IAtisBuilder
             // strip extraneous punctuation
             notams = Regex.Replace(notams, @"[!?.]*([!?.])", "$1");
             notams = Regex.Replace(notams, "\\s+([.,!\":])", "$1");
+
+            // Add space to end of NOTAMs
+            notams = notams.Trim() + " ";
         }
 
         if (!string.IsNullOrEmpty(notams))
@@ -471,9 +473,9 @@ public class AtisBuilder : IAtisBuilder
             new("TEMP", temp.TextAtis, temp.VoiceAtis),
             new("DEW", dew.TextAtis, dew.VoiceAtis),
             new("PRESSURE", pressure.TextAtis, pressure.VoiceAtis, ["QNH"]),
-            new("WX", completeWxStringAcars.Trim(), completeWxStringVoice.Trim(), ["FULL_WX_STRING"]),
-            new("ARPT_COND", airportConditionsText.Trim(), airportConditionsVoice.Trim(), ["ARRDEP"]),
-            new("NOTAMS", notamsText.Trim(), notamsVoice.Trim()),
+            new("WX", completeWxStringAcars.Trim(), completeWxStringVoice, ["FULL_WX_STRING"]),
+            new("ARPT_COND", airportConditionsText, airportConditionsVoice, ["ARRDEP"]),
+            new("NOTAMS", notamsText, notamsVoice),
             new("TREND", trends.TextAtis, trends.VoiceAtis),
             new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
             new("WS", windshear.TextAtis, windshear.VoiceAtis)
