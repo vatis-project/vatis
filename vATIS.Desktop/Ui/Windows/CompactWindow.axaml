@@ -31,7 +31,7 @@
             PointerExited="OnPointerExited"
             PointerPressed="OnPointerPressed">
         <Panel ClipToBounds="True">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Spacing="3" ZIndex="1" Margin="3" IsVisible="{Binding IsControlsVisible, DataType=vm:CompactWindowViewModel}">
+            <StackPanel Name="WindowControls" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Spacing="3" ZIndex="1" Margin="3" IsVisible="{Binding IsControlsVisible, DataType=vm:CompactWindowViewModel}">
                 <ToggleButton Theme="{StaticResource PinButtonSmall}" Command="{Binding ToggleIsTopMost, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, DataType=vm:CompactWindowTopMostViewModel, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" />
                 <Button Theme="{StaticResource CompactViewButtonSmall}" Command="{Binding InvokeMainWindowCommand, DataType=vm:CompactWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
             </StackPanel>
