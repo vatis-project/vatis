@@ -14,10 +14,15 @@
 		<ApplicationIcon>Assets\MainIcon.ico</ApplicationIcon>
 		<Version>4.1.0-beta.1</Version>
 	</PropertyGroup>
-	
+
 	<PropertyGroup Condition="'$(Configuration)' != 'Debug'">
 		<PublishAot>true</PublishAot>
 	</PropertyGroup>
+
+	<ItemGroup
+		Condition="'$(Configuration)' != 'Debug' and ('$(RuntimeIdentifier)' == 'osx-x64' or '$(RuntimeIdentifier)' == 'osx-arm64')">
+		<LinkerArg Include="-mmacosx-version-min=12.0" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
@@ -35,14 +40,14 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<TargetPath>libNativeAudio.so</TargetPath>
 		</ContentWithTargetPath>
-	</ItemGroup>	
+	</ItemGroup>
 
 	<ItemGroup Condition="$([System.OperatingSystem]::IsMacOS())">
 		<ContentWithTargetPath Include=".\Voice\Audio\Native\macos\libNativeAudio.dylib">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<TargetPath>libNativeAudio.dylib</TargetPath>
 		</ContentWithTargetPath>
-	</ItemGroup>	
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="11.2.2" />
@@ -66,8 +71,8 @@
 		<PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0" />
 		<PackageReference Include="Slugify.Core" Version="4.0.1" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
 		<PackageReference Include="Velopack" Version="0.0.942" />
@@ -75,7 +80,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj" />
-	  <ProjectReference Include="..\Vatsim.Network\Vatsim.Network.csproj" />
+		<ProjectReference Include="..\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj" />
+		<ProjectReference Include="..\Vatsim.Network\Vatsim.Network.csproj" />
 	</ItemGroup>
 </Project>
