@@ -105,10 +105,10 @@ public class CloudNode : BaseNode<CloudLayer>
         {
             var template = value.Text;
 
-            if (layer.Type == CloudLayer.CloudType.CannotMeasure || layer.BaseHeight == null)
+            if (layer.BaseHeight == null)
             {
                 template = Regex.Replace(template, "{altitude}",
-                    $" {Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text} ",
+                    $"{Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text}",
                     RegexOptions.IgnoreCase);
             }
             else
@@ -156,7 +156,7 @@ public class CloudNode : BaseNode<CloudLayer>
         {
             var template = value.Voice;
 
-            if (layer.Type == CloudLayer.CloudType.CannotMeasure || layer.BaseHeight == null)
+            if (layer.BaseHeight == null)
             {
                 template = Regex.Replace(template, "{altitude}",
                     $" {Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice} ", RegexOptions.IgnoreCase);
