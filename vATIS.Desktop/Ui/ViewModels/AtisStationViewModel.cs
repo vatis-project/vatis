@@ -856,6 +856,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleVoiceRecordAtisCommand Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -887,6 +888,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         }
                         catch (Exception ex)
                         {
+                            Log.Error(ex, "Error connecting to voice server");
                             ErrorMessage = ex.Message;
                         }
 
@@ -908,6 +910,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         }
                         catch (Exception ex)
                         {
+                            Log.Error(ex, "Error disconnecting from voice server");
                             ErrorMessage = ex.Message;
                         }
 
@@ -923,6 +926,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleNetworkStatusChanged Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -992,6 +996,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception e)
                 {
+                    Log.Error(e, "HandleNetworkConnect Exception");
                     NativeAudio.EmitSound(SoundType.Error);
                     ErrorMessage = e.Message;
                     _networkConnection?.Disconnect();
@@ -1006,6 +1011,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleNetworkConnect Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -1116,6 +1122,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex, "Failed to update METAR properties.");
                     propertyUpdates.SetException(ex);
                 }
             });
@@ -1191,6 +1198,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex, "OnMetarResponseReceived Exception");
                     ErrorMessage = ex.Message;
                     _networkConnection?.Disconnect();
                     NativeAudio.EmitSound(SoundType.Error);
@@ -1199,6 +1207,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "OnMetarResponseReceived Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -1339,9 +1348,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (OperationCanceledException)
         {
+            // Ignored
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleSelectedAtisPresetChanged Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -1521,6 +1532,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex, "HandleAtisLetterChanged Exception");
                     Dispatcher.UIThread.Post(() => { ErrorMessage = ex.Message; });
                 }
             }, _cancellationToken.Token);
@@ -1531,6 +1543,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleAtisLetterChanged Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;

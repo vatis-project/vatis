@@ -20,6 +20,7 @@ using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Networking;
@@ -346,6 +347,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Error Populating ATIS Station {StationId} {Identifier}", station.Id, station.Identifier);
                 if (Owner != null)
                 {
                     await MessageBox.ShowDialog(Owner, "Error populating ATIS station: " + ex.Message, "Error",

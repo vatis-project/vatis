@@ -90,6 +90,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "AddOrUpdateBot failed for callsign {Callsign}", callsign);
             throw new AtisBuilderException("AddOrUpdateBot action failed: " + ex.Message);
         }
     }
@@ -109,6 +110,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "RemoveBot failed for callsign {Callsign}", callsign);
             throw new AtisBuilderException("RemoveBot action failed: " + ex.Message);
         }
     }
