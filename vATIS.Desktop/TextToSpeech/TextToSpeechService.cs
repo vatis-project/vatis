@@ -92,7 +92,8 @@ public class TextToSpeechService : ITextToSpeechService
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error requesting audio");
+            Log.Error(ex, "Error requesting audio for voice {Voice}",
+                VoiceList.FirstOrDefault(v => v.Name == station.AtisVoice.Voice)?.Id ?? "default");
         }
 
         return null;

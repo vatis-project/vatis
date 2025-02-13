@@ -412,10 +412,10 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "HandleRefreshSandboxAtis Exception");
-            SandboxTextAtis = "";
-            SandboxSpokenTextAtis = "";
-            throw;
+            Log.Error(ex, "Failed to refresh sandbox ATIS for station {StationId} {Identifier} with preset {PresetId}",
+                SelectedStation?.Id, SelectedStation?.Identifier, SelectedPreset?.Id);
+            SandboxTextAtis = "Error: " + ex.Message;
+            SandboxSpokenTextAtis = "Error: " + ex.Message;
         }
     }
 
