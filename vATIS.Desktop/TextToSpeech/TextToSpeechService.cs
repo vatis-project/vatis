@@ -88,6 +88,11 @@ public class TextToSpeechService : ITextToSpeechService
         }
         catch (OperationCanceledException)
         {
+            // Ignored
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error requesting audio");
         }
 
         return null;

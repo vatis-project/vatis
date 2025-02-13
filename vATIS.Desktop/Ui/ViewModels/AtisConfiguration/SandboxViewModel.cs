@@ -18,6 +18,7 @@ using AvaloniaEdit.Document;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using Serilog;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -409,8 +410,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
                 SandboxSpokenTextAtis = AtisBuilderVoiceResponse.SpokenText?.ToUpperInvariant();
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Log.Error(ex, "HandleRefreshSandboxAtis Exception");
             SandboxTextAtis = "";
             SandboxSpokenTextAtis = "";
             throw;
