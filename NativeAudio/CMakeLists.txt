@@ -14,6 +14,9 @@ if(APPLE)
 
     # Set architectures to build fat library
     set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+
+    # Set minimum macOS deployment target
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum macOS Version" FORCE)
 endif()
 
 add_definitions(-DMA_NO_JACK)
