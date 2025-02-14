@@ -94,6 +94,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private bool _cloudsConvertToMetric;
     private string? _undeterminedLayerAltitudeText;
     private string? _undeterminedLayerAltitudeVoice;
+    private string? _automaticCbDetectionText;
+    private string? _automaticCbDetectionVoice;
     private bool _cloudHeightAltitudeInHundreds;
     private bool _temperatureUsePlusPrefix;
     private bool _temperatureSpeakLeadingZero;
@@ -1060,6 +1062,38 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the "automatic CB detection" text ATIS value.
+    /// </summary>
+    public string? AutomaticCbDetectionText
+    {
+        get => _automaticCbDetectionText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _automaticCbDetectionText, value);
+            if (!_initializedProperties.Add(nameof(AutomaticCbDetectionText)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the "automatic CB detection" voice ATIS value.
+    /// </summary>
+    public string? AutomaticCbDetectionVoice
+    {
+        get => _automaticCbDetectionVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _automaticCbDetectionVoice, value);
+            if (!_initializedProperties.Add(nameof(AutomaticCbDetectionVoice)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether cloud height altitude is in hundreds.
     /// </summary>
     public bool CloudHeightAltitudeInHundreds
@@ -1662,6 +1696,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 UndeterminedLayerAltitudeVoice ?? string.Empty;
         }
 
+        if (SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Text != AutomaticCbDetectionText)
+        {
+            SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Text = AutomaticCbDetectionText;
+        }
+
+        if (SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Voice != AutomaticCbDetectionVoice)
+        {
+            SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Voice = AutomaticCbDetectionVoice;
+        }
+
         if (CloudTypes != null && SelectedStation.AtisFormat.Clouds.Types != CloudTypes.ToDictionary(
                 x => x.Acronym,
                 meta => new CloudType(meta.Text, meta.Spoken)))
@@ -1841,6 +1885,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
         UndeterminedLayerAltitudeText = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text;
         UndeterminedLayerAltitudeVoice = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice;
+        AutomaticCbDetectionText = station.AtisFormat.Clouds.AutomaticCbDetection.Text;
+        AutomaticCbDetectionVoice = station.AtisFormat.Clouds.AutomaticCbDetection.Voice;
         TemperatureUsePlusPrefix = station.AtisFormat.Temperature.UsePlusPrefix;
         TemperatureSpeakLeadingZero = station.AtisFormat.Temperature.SpeakLeadingZero;
         DewpointUsePlusPrefix = station.AtisFormat.Dewpoint.UsePlusPrefix;

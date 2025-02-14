@@ -47,6 +47,11 @@ public class Clouds : BaseFormat
     public UndeterminedLayer UndeterminedLayerAltitude { get; set; } = new("undetermined", "undetermined");
 
     /// <summary>
+    /// Gets or sets the automatic CB detection text and voice ATIS values.
+    /// </summary>
+    public AutomaticCbDetection AutomaticCbDetection { get; set; } = new("//////CB", "RADAR DETECTED C-B CLOUDS");
+
+    /// <summary>
     /// Gets or sets the dictionary of cloud types.
     /// </summary>
     [JsonConverter(typeof(CloudTypeConverter))]

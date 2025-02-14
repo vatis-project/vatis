@@ -101,100 +101,100 @@ public class CloudNode : BaseNode<CloudLayer>
     {
         ArgumentNullException.ThrowIfNull(Station);
 
-        if (layer.Amount == CloudLayer.CloudAmount.None && layer.BaseHeight == null &&
-            layer.Type == CloudLayer.CloudType.Cumulonimbus)
+        if (!Station.IsFaaAtis && layer is
+                { Amount: CloudLayer.CloudAmount.None, BaseHeight: null, Type: CloudLayer.CloudType.Cumulonimbus })
         {
-            return "//////CB";
+            return Station.AtisFormat.Clouds.AutomaticCbDetection.Text ?? "//////CB";
         }
 
-        if (Station.AtisFormat.Clouds.Types.TryGetValue(AmountToString(layer.Amount), out var value))
+        if (!Station.AtisFormat.Clouds.Types.TryGetValue(AmountToString(layer.Amount), out var value))
         {
-            var template = value.Text;
+            return "";
+        }
 
-            if (layer.BaseHeight == null)
-            {
-                template = Regex.Replace(template, "{altitude}",
-                    $"{Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text}",
-                    RegexOptions.IgnoreCase);
-            }
-            else
-            {
-                var height = (int)layer.BaseHeight.ActualValue;
+        var template = value.Text;
 
-                if (Station.AtisFormat.Clouds.ConvertToMetric)
-                    height *= 30;
-                else if (Station.AtisFormat.Clouds.IsAltitudeInHundreds)
-                    height *= 100;
+        if (layer.BaseHeight == null)
+        {
+            template = Regex.Replace(template, "{altitude}",
+                $"{Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text}",
+                RegexOptions.IgnoreCase);
+        }
+        else
+        {
+            var height = (int)layer.BaseHeight.ActualValue;
 
-                // Match {altitude} or {altitude:N}, where N is the number of digits
-                template = Regex.Replace(
-                    template,
-                    @"\{altitude(?::(\d+))?\}",
-                    match =>
+            if (Station.AtisFormat.Clouds.ConvertToMetric)
+                height *= 30;
+            else if (Station.AtisFormat.Clouds.IsAltitudeInHundreds)
+                height *= 100;
+
+            // Match {altitude} or {altitude:N}, where N is the number of digits
+            template = Regex.Replace(
+                template,
+                @"\{altitude(?::(\d+))?\}",
+                match =>
+                {
+                    var minDigits = 3;
+                    if (int.TryParse(match.Groups[1].Value, out var specifiedDigits))
                     {
-                        var minDigits = 3;
-                        if (int.TryParse(match.Groups[1].Value, out var specifiedDigits))
-                        {
-                            minDigits = specifiedDigits;
-                        }
+                        minDigits = specifiedDigits;
+                    }
 
-                        return height.ToString(new string('0', minDigits));
-                    },
-                    RegexOptions.IgnoreCase
-                );
-            }
-
-            template = layer.Type != CloudLayer.CloudType.None
-                ? Regex.Replace(template, "{convective}", TypeToString(layer.Type), RegexOptions.IgnoreCase)
-                : Regex.Replace(template, "{convective}", "", RegexOptions.IgnoreCase);
-
-            return template.Trim().ToUpperInvariant();
+                    return height.ToString(new string('0', minDigits));
+                },
+                RegexOptions.IgnoreCase
+            );
         }
 
-        return "";
+        template = layer.Type != CloudLayer.CloudType.None
+            ? Regex.Replace(template, "{convective}", TypeToString(layer.Type), RegexOptions.IgnoreCase)
+            : Regex.Replace(template, "{convective}", "", RegexOptions.IgnoreCase);
+
+        return template.Trim().ToUpperInvariant();
     }
 
     private string FormatCloudsVoice(CloudLayer layer, CloudLayer? ceiling)
     {
         ArgumentNullException.ThrowIfNull(Station);
 
-        if (layer.Amount == CloudLayer.CloudAmount.None && layer.BaseHeight == null &&
-            layer.Type == CloudLayer.CloudType.Cumulonimbus)
+        if (!Station.IsFaaAtis && layer is
+                { Amount: CloudLayer.CloudAmount.None, BaseHeight: null, Type: CloudLayer.CloudType.Cumulonimbus })
         {
-            return "RADAR DETECTED C-B CLOUDS.";
+            return Station.AtisFormat.Clouds.AutomaticCbDetection.Voice ?? "RADAR DETECTED C-B CLOUDS.";
         }
 
-        if (Station.AtisFormat.Clouds.Types.TryGetValue(AmountToString(layer.Amount), out var value))
+        if (!Station.AtisFormat.Clouds.Types.TryGetValue(AmountToString(layer.Amount), out var value))
         {
-            var template = value.Voice;
-
-            if (layer.BaseHeight == null)
-            {
-                template = Regex.Replace(template, "{altitude}",
-                    $" {Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice} ", RegexOptions.IgnoreCase);
-            }
-            else
-            {
-                var height = (int)layer.BaseHeight.ActualValue;
-                height *= Station.AtisFormat.Clouds.ConvertToMetric ? 30 : 100;
-                template = Regex.Replace(template, "{altitude}",
-                    Station.AtisFormat.Clouds.ConvertToMetric
-                        ? (height < 1000 ? $" {height.ToGroupForm()} " : $" {height.ToWordString()} ") + " meters "
-                        : $" {height.ToWordString()} ", RegexOptions.IgnoreCase);
-            }
-
-            template = Regex.Replace(template, "{convective}",
-                layer.Type != CloudLayer.CloudType.None
-                    ? Station.AtisFormat.Clouds.ConvectiveTypes.GetValueOrDefault(TypeToString(layer.Type), "")
-                    : "", RegexOptions.IgnoreCase);
-
-            return Station.AtisFormat.Clouds.IdentifyCeilingLayer &&
-                   layer.Amount != CloudLayer.CloudAmount.VerticalVisibility &&
-                   layer == ceiling
-                ? "ceiling " + template.Trim().ToUpperInvariant()
-                : template.Trim().ToUpperInvariant();
+            return "";
         }
 
-        return "";
+        var template = value.Voice;
+
+        if (layer.BaseHeight == null)
+        {
+            template = Regex.Replace(template, "{altitude}",
+                $" {Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice} ", RegexOptions.IgnoreCase);
+        }
+        else
+        {
+            var height = (int)layer.BaseHeight.ActualValue;
+            height *= Station.AtisFormat.Clouds.ConvertToMetric ? 30 : 100;
+            template = Regex.Replace(template, "{altitude}",
+                Station.AtisFormat.Clouds.ConvertToMetric
+                    ? (height < 1000 ? $" {height.ToGroupForm()} " : $" {height.ToWordString()} ") + " meters "
+                    : $" {height.ToWordString()} ", RegexOptions.IgnoreCase);
+        }
+
+        template = Regex.Replace(template, "{convective}",
+            layer.Type != CloudLayer.CloudType.None
+                ? Station.AtisFormat.Clouds.ConvectiveTypes.GetValueOrDefault(TypeToString(layer.Type), "")
+                : "", RegexOptions.IgnoreCase);
+
+        return Station.AtisFormat.Clouds.IdentifyCeilingLayer &&
+               layer.Amount != CloudLayer.CloudAmount.VerticalVisibility &&
+               layer == ceiling
+            ? "ceiling " + template.Trim().ToUpperInvariant()
+            : template.Trim().ToUpperInvariant();
     }
 }
