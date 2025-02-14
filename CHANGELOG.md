@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.10
+### Added
+- Added missing weather precipitation types.
+- Added support for parsing the TREND group in METAR reports.
+- Added an option to acknowledge new ATIS update notifications in the mini-view window.
+- Added support for automatic CB (cumulonimbus) detection parsing.
+### Changed
+- Updated the mini-view window to dynamically reposition pin and restore controls based on the window's position.
+- Updated the UI scrollbar style for improved consistency.
+### Fixed
+- Fixed an issue where the "Include before free-text" checkbox state was not remembered.
+- Fixed an issue that caused the Recent Weather group to be missing.
+- Fixed ATIS station sorting inconsistencies.
+- Fixed spacing between NOTAM and closing statement elements in text ATIS.
+- Fixed the minimum macOS version requirement; the minimum supported version is now macOS 12.
+- Fixed an issue where undetermined cloud layers were not parsed correctly.
+
 ## v4.1.0-beta.9
 ### Changed
 - Disabled text editing keyboard shortcuts in textareas to prevent unintended modifications. For example, pressing CTRL+D no longer deletes all text.
