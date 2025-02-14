@@ -101,6 +101,12 @@ public class CloudNode : BaseNode<CloudLayer>
     {
         ArgumentNullException.ThrowIfNull(Station);
 
+        if (layer.Amount == CloudLayer.CloudAmount.None && layer.BaseHeight == null &&
+            layer.Type == CloudLayer.CloudType.Cumulonimbus)
+        {
+            return "//////CB";
+        }
+
         if (Station.AtisFormat.Clouds.Types.TryGetValue(AmountToString(layer.Amount), out var value))
         {
             var template = value.Text;
@@ -151,6 +157,12 @@ public class CloudNode : BaseNode<CloudLayer>
     private string FormatCloudsVoice(CloudLayer layer, CloudLayer? ceiling)
     {
         ArgumentNullException.ThrowIfNull(Station);
+
+        if (layer.Amount == CloudLayer.CloudAmount.None && layer.BaseHeight == null &&
+            layer.Type == CloudLayer.CloudType.Cumulonimbus)
+        {
+            return "RADAR DETECTED C-B CLOUDS.";
+        }
 
         if (Station.AtisFormat.Clouds.Types.TryGetValue(AmountToString(layer.Amount), out var value))
         {
