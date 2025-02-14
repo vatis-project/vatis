@@ -2,17 +2,15 @@ name: "CodeQL"
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    if: "!contains(github.event.pull_request.title, '[ci skip]') && !contains(github.event.pull_request.body, '[ci skip]')"
+    if: "!(contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.body, '[skip ci]') || 
+      contains(join(github.event.pull_request.labels.*.name, ','), 'skip ci'))"
     permissions:
       actions: read
       contents: read

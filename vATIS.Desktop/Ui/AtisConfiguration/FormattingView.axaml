@@ -565,20 +565,29 @@
 						</DataGrid>
 					</TabItem>
 					<TabItem Header="Convective Cloud Types">
-						<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding ConvectiveCloudTypes, DataType=vm:FormattingViewModel}">
-							<Interaction.Behaviors>
-								<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
-							</Interaction.Behaviors>
-							<DataGrid.Styles>
-								<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
-									<Setter Property="IsVisible" Value="False" />
-								</Style>
-							</DataGrid.Styles>
-							<DataGrid.Columns>
-								<DataGridTextColumn Header="Acronym" Width="1*" IsReadOnly="True" Binding="{Binding Key, DataType=models:ConvectiveCloudTypeMeta}"/>
-								<DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Value, DataType=models:ConvectiveCloudTypeMeta}"/>
-							</DataGrid.Columns>
-						</DataGrid>
+                        <StackPanel Orientation="Vertical" Spacing="10">
+                            <DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding ConvectiveCloudTypes, DataType=vm:FormattingViewModel}">
+							    <Interaction.Behaviors>
+								    <behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
+							    </Interaction.Behaviors>
+							    <DataGrid.Styles>
+								    <Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+									    <Setter Property="IsVisible" Value="False" />
+								    </Style>
+							    </DataGrid.Styles>
+							    <DataGrid.Columns>
+								    <DataGridTextColumn Header="Acronym" Width="1*" IsReadOnly="True" Binding="{Binding Key, DataType=models:ConvectiveCloudTypeMeta}"/>
+								    <DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Value, DataType=models:ConvectiveCloudTypeMeta}"/>
+							    </DataGrid.Columns>
+						    </DataGrid>
+                            <StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
+                                <TextBlock Text="Automatic CB Detection" FontSize="16" Margin="0,10,0,0" ToolTip.Tip="When //////CB is presented in the METAR"/>
+                                <TextBlock ToolTip.Tip="The value presented in the text ATIS">Text:</TextBlock>
+                                <TextBox Text="{Binding AutomaticCbDetectionText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="The value presented in the text ATIS" FontFamily="{StaticResource Monospace}"/>
+                                <TextBlock ToolTip.Tip="The spoken value in the voice ATIS">Voice:</TextBlock>
+                                <TextBox Text="{Binding AutomaticCbDetectionVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="The spoken value in the voice ATIS" FontFamily="{StaticResource Monospace}"/>
+                            </StackPanel>
+                        </StackPanel>
 					</TabItem>
 				</TabControl>
 			</StackPanel>

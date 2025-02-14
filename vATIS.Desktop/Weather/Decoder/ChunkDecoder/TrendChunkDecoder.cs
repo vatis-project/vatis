@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -20,10 +21,31 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 /// </remarks>
 public sealed class TrendChunkDecoder : MetarChunkDecoder
 {
+    // Surface Wind
+    private const string WindDirectionRegexPattern = "(?:[0-9]{3}|VRB|///)";
+    private const string WindSpeedRegexPattern = "P?(?:[/0-9]{2,3}|//)";
+    private const string WindSpeedVariationsRegexPattern = "(?:GP?(?:[0-9]{2,3}))?";
+    private const string WindUnitRegexPattern = "(?:KT|MPS|KPH)";
+
+    // Prevailing Visibility
+    private const string VisibilityRegexPattern = "(?:[0-9]{4})?";
+
+    // Present Weather
+    private const string CaracRegexPattern = "TS|FZ|SH|BL|DR|MI|BC|PR";
+    private const string TypeRegexPattern = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|//";
+
+    // Clouds
+    private const string NoCloudRegexPattern = "(?:NSC|NCD|CLR|SKC)";
+    private const string LayerRegexPattern = "(?:VV|FEW|SCT|BKN|OVC|///)(?:[0-9]{3}|///)(?:CB|TCU|///)?";
+
     /// <inheritdoc/>
     public override string GetRegex()
     {
-        return @"(TREND|NOSIG|BECMG|TEMPO)\s*(?:(FM(\d{4}))?\s*(TL(\d{4}))?\s*(AT(\d{4}))?)?\s*([\w\d\/\s]+)?=";
+        var windRegex = $"{WindDirectionRegexPattern}{WindSpeedRegexPattern}{WindSpeedVariationsRegexPattern}{WindUnitRegexPattern}";
+        var visibilityRegex = $"{VisibilityRegexPattern}|CAVOK";
+        var presentWeatherRegex = $@"(?:[-+]|VC)?(?:{CaracRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?";
+        var cloudRegex = $@"(?:{NoCloudRegexPattern}|(?:{LayerRegexPattern})(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?)";
+        return $@"TREND (TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?)?)";
     }
 
     /// <inheritdoc/>
@@ -36,40 +58,67 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
 
         if (found.Count > 1)
         {
-            var trend = new TrendForecast
-            {
-                ChangeIndicator = found[1].Value switch
-                {
-                    "NOSIG" => TrendForecastType.NoSignificantChanges,
-                    "BECMG" => TrendForecastType.Becoming,
-                    "TEMPO" => TrendForecastType.Temporary,
-                    _ => throw new ArgumentException("Invalid ChangeIndicator"),
-                },
-            };
+            var firstTrend = ParseTrendForecast(found, 1);
+            result.Add("TrendForecast", firstTrend);
 
-            if (!string.IsNullOrEmpty(found[2].Value) && found[2].Value.StartsWith("FM"))
+            if (!string.IsNullOrEmpty(found[9].Value))
             {
-                trend.FromTime = found[3].Value;
+                var futureTrend = ParseTrendForecast(found, 10);
+                result.Add("TrendForecastFuture", futureTrend);
             }
-
-            if (!string.IsNullOrEmpty(found[4].Value) && found[4].Value.StartsWith("TL"))
-            {
-                trend.UntilTime = found[5].Value;
-            }
-
-            if (!string.IsNullOrEmpty(found[6].Value) && found[6].Value.StartsWith("AT"))
-            {
-                trend.AtTime = found[7].Value;
-            }
-
-            if (!string.IsNullOrEmpty(found[8].Value))
-            {
-                trend.Forecast = found[8].Value;
-            }
-
-            result.Add(newRemainingMetar, trend);
         }
 
         return GetResults(newRemainingMetar, result);
+    }
+
+    private TrendForecast ParseTrendForecast(List<Group> found, int startIndex)
+    {
+        var trend = new TrendForecast
+        {
+            ChangeIndicator = found[startIndex].Value switch
+            {
+                "NOSIG" => TrendForecastType.NoSignificantChanges,
+                "BECMG" => TrendForecastType.Becoming,
+                "TEMPO" => TrendForecastType.Temporary,
+                _ => throw new ArgumentException("Invalid ChangeIndicator"),
+            },
+        };
+
+        if (!string.IsNullOrEmpty(found[startIndex + 1].Value))
+        {
+            trend.AtTime = found[startIndex + 1].Value;
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 2].Value))
+        {
+            trend.FromTime = found[startIndex + 2].Value;
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 3].Value))
+        {
+            trend.UntilTime = found[startIndex + 3].Value;
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 4].Value))
+        {
+            trend.SurfaceWind = found[startIndex + 4].Value + " ";
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 5].Value))
+        {
+            trend.PrevailingVisibility = found[startIndex + 5].Value + " ";
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 6].Value))
+        {
+            trend.WeatherCodes = found[startIndex + 6].Value + " ";
+        }
+
+        if (!string.IsNullOrEmpty(found[startIndex + 7].Value))
+        {
+            trend.Clouds = found[startIndex + 7].Value + " ";
+        }
+
+        return trend;
     }
 }

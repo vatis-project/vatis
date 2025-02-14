@@ -691,6 +691,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(_atisStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.IncludeBeforeFreeText = _atisStation.NotamsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -742,6 +743,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(_atisStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.IncludeBeforeFreeText = _atisStation.AirportConditionsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -836,8 +838,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                             var dto = AtisBotUtils.AddBotRequest(vm.AudioBuffer, _atisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                                _cancellationToken.Token)!;
+                            await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                                _cancellationToken.Token);
                         }).ContinueWith(t =>
                         {
                             if (t.IsFaulted)
@@ -854,6 +856,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleVoiceRecordAtisCommand Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -885,6 +888,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         }
                         catch (Exception ex)
                         {
+                            Log.Error(ex, "Error connecting to voice server");
                             ErrorMessage = ex.Message;
                         }
 
@@ -906,6 +910,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         }
                         catch (Exception ex)
                         {
+                            Log.Error(ex, "Error disconnecting from voice server");
                             ErrorMessage = ex.Message;
                         }
 
@@ -921,6 +926,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleNetworkStatusChanged Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -990,6 +996,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception e)
                 {
+                    Log.Error(e, "HandleNetworkConnect Exception");
                     NativeAudio.EmitSound(SoundType.Error);
                     ErrorMessage = e.Message;
                     _networkConnection?.Disconnect();
@@ -1004,6 +1011,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleNetworkConnect Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -1102,18 +1110,34 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var propertyUpdates = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() =>
             {
-                Metar = e.Metar.RawMetar?.ToUpperInvariant();
-                Altimeter = e.Metar.Pressure?.Value?.ActualUnit == Value.Unit.HectoPascal
-                    ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
-                    : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
-                Wind = e.Metar.SurfaceWind?.RawValue;
-                ObservationTime = e.Metar.Time.Replace(":", "");
-                propertyUpdates.SetResult();
+                try
+                {
+                    Metar = e.Metar.RawMetar?.ToUpperInvariant();
+                    Altimeter = e.Metar.Pressure?.Value?.ActualUnit == Value.Unit.HectoPascal
+                        ? "Q" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000")
+                        : "A" + e.Metar.Pressure?.Value?.ActualValue.ToString("0000");
+                    Wind = e.Metar.SurfaceWind?.RawValue;
+                    ObservationTime = e.Metar.Time;
+                    propertyUpdates.SetResult();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to update METAR properties.");
+                    propertyUpdates.SetException(ex);
+                }
             });
 
             // Wait for the UI thread to finish updating the properties. Without this it's possible
             // to publish updated METAR information either via the hub or websocket with old data.
-            await propertyUpdates.Task;
+            try
+            {
+                await propertyUpdates.Task;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to update METAR properties.");
+                throw;
+            }
 
             if (_atisStation.AtisVoice.UseTextToSpeech)
             {
@@ -1132,7 +1156,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                     await PublishAtisToWebsocket();
                     await PublishAtisToHub();
-                    _networkConnection?.SendSubscriberNotification(AtisLetter);
+
+                    if (!e.IsNewMetar)
+                    {
+                        // Prevent duplicate subscriber notifications.
+                        // Send notification only when the initial METAR is received upon first connection.
+                        _networkConnection?.SendSubscriberNotification(AtisLetter);
+                    }
+
                     await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
 
                     var voiceAtis = await _atisBuilder.BuildVoiceAtis(_atisStation, SelectedAtisPreset, AtisLetter,
@@ -1144,13 +1175,17 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         {
                             var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto, _cancellationToken.Token)!;
+                            await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                                _cancellationToken.Token);
                         }).ContinueWith(t =>
                         {
                             if (t.IsFaulted)
                             {
-                                ErrorMessage = string.Join(",",
-                                    t.Exception.InnerExceptions.Select(exception => exception.Message));
+                                var errors = t.Exception.InnerExceptions
+                                    .Select(ex => $"{ex.GetType().Name}: {ex.Message}").ToList();
+                                ErrorMessage = string.Join(Environment.NewLine, errors);
+                                Log.Error(t.Exception, "Failed to update voice ATIS");
+
                                 _networkConnection?.Disconnect();
                                 NativeAudio.EmitSound(SoundType.Error);
                             }
@@ -1163,6 +1198,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex, "OnMetarResponseReceived Exception");
                     ErrorMessage = ex.Message;
                     _networkConnection?.Disconnect();
                     NativeAudio.EmitSound(SoundType.Error);
@@ -1171,6 +1207,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "OnMetarResponseReceived Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -1256,6 +1293,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (preset == null)
                 return;
 
+            if (_voiceServerConnection == null)
+                return;
+
             if (preset != _previousAtisPreset)
             {
                 SelectedAtisPreset = preset;
@@ -1299,8 +1339,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         {
                             var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                            await _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                                _cancellationToken.Token)!;
+                            await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                                _cancellationToken.Token);
                         }, _cancellationToken.Token);
                     }
                 }
@@ -1308,9 +1348,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (OperationCanceledException)
         {
+            // Ignored
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleSelectedAtisPresetChanged Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
@@ -1324,7 +1366,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void PopulateNotams()
     {
-        if (NotamsTextDocument == null)
+        if (NotamsTextDocument == null || SelectedAtisPreset == null)
             return;
 
         // Clear the list of read-only NOTAM text segments.
@@ -1371,7 +1413,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void PopulateAirportConditions()
     {
-        if (AirportConditionsTextDocument == null)
+        if (AirportConditionsTextDocument == null || SelectedAtisPreset == null)
             return;
 
         // Clear the list of read-only NOTAM text segments.
@@ -1481,7 +1523,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     {
                         var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
                             _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
-                        _voiceServerConnection?.AddOrUpdateBot(_networkConnection.Callsign, dto,
+                        await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                             _cancellationToken.Token);
                     }
                 }
@@ -1490,6 +1532,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex, "HandleAtisLetterChanged Exception");
                     Dispatcher.UIThread.Post(() => { ErrorMessage = ex.Message; });
                 }
             }, _cancellationToken.Token);
@@ -1500,6 +1543,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
         catch (Exception e)
         {
+            Log.Error(e, "HandleAtisLetterChanged Exception");
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
