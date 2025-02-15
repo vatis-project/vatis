@@ -118,7 +118,7 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
 
     private void HandleMoveStationDown()
     {
-        if (Source.RowSelection?.SelectedIndex <= Source.Items.Count() - 1)
+        if (Source.RowSelection?.SelectedIndex < Source.Items.Count() - 1)
         {
             var definition = Source.RowSelection.SelectedItem;
             var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
