@@ -252,7 +252,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the available speech rate multipliers.
     /// </summary>
-    public ObservableCollection<double> SpeechRates { get; } = [0.5, 0.75, 1.0, 1.25, 1.5];
+    public ObservableCollection<double> SpeechRates { get; } = new(s_allowedSpeechRates);
 
     /// <summary>
     /// Gets or sets the selected speech rate multiplier.
