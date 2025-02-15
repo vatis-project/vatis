@@ -27,7 +27,7 @@
 						<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CloseWindowCommand, DataType=vm:SortAtisStationsDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
 					</Grid>
 				</Border>
-				<Grid ColumnDefinitions="1*,10,80" Margin="20">
+				<Grid ColumnDefinitions="1*,10,100" Margin="20">
 					<TreeDataGrid Grid.Column="0" CornerRadius="5" BorderBrush="#646464" BorderThickness="1" MaxHeight="200" Source="{Binding Source, DataType=vm:SortAtisStationsDialogViewModel, Mode=OneWay}" CanUserResizeColumns="False" CanUserSortColumns="False">
 						<TreeDataGrid.Styles>
 							<Style Selector="TreeDataGrid /template/ Border#ColumnHeadersPresenterBorder">
