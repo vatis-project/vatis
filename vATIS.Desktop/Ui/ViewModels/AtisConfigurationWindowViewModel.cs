@@ -487,29 +487,59 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                 dialog.Topmost = lifetime.MainWindow.Topmost;
                 if (dialog.DataContext is SortAtisStationsDialogViewModel context)
                 {
-                    if (_sessionManager.CurrentProfile?.Stations != null)
+                    if (_sessionManager.CurrentProfile == null)
                     {
-                        context.AtisStations = new ObservableCollection<AtisStation>(_atisStationSource.Items);
-                        context.AtisStations.CollectionChanged += (_, _) =>
+                        Log.Error("Current profile is null");
+                        return;
+                    }
+
+                    if (_sessionManager.CurrentProfile.Stations == null)
+                    {
+                        Log.Error("Current profile stations is null");
+                        return;
+                    }
+
+                    context.AtisStations = new ObservableCollection<AtisStation>(_atisStationSource.Items);
+                    context.AtisStations.CollectionChanged += (_, _) =>
+                    {
+                        try
                         {
                             var idx = 0;
-                            _atisStationSource.Clear();
+                            var updatedStations = new List<AtisStation>();
                             foreach (var item in context.AtisStations)
                             {
                                 item.Ordinal = ++idx;
+                                updatedStations.Add(item);
+                            }
+
+                            // Validate ordinals
+                            var ordinals = updatedStations.Select(x => x.Ordinal).ToList();
+                            if (ordinals.Count != ordinals.Distinct().Count())
+                            {
+                                Log.Error("Duplicate ordinals detected");
+                                return;
+                            }
+
+                            // Update source and publish events
+                            _atisStationSource.Clear();
+                            foreach (var item in updatedStations)
+                            {
                                 _atisStationSource.Add(item);
                                 EventBus.Instance.Publish(new AtisStationOrdinalChanged(item.Id, item.Ordinal));
                             }
 
-                            if (_sessionManager.CurrentProfile != null)
-                            {
-                                _sessionManager.CurrentProfile.Stations =
-                                    _atisStationSource.Items.OrderBy(x => x.Ordinal).ToList();
-                                _profileRepository.Save(_sessionManager.CurrentProfile);
-                            }
-                        };
-                    }
+                            // Save changes
+                            _sessionManager.CurrentProfile.Stations = updatedStations;
+                            _profileRepository.Save(_sessionManager.CurrentProfile);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Failed to update station ordinals");
 
+                            // Restore original order
+                            context.AtisStations = new ObservableCollection<AtisStation>(_atisStationSource.Items);
+                        }
+                    };
                     await dialog.ShowDialog((Window)_dialogOwner);
                 }
             }
