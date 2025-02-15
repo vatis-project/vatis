@@ -26,6 +26,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// </summary>
 public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
+    private static readonly double[] s_allowedSpeechRates = [0.5, 0.75, 1.0, 1.25, 1.5];
     private readonly CompositeDisposable _disposables = [];
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
@@ -44,6 +45,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     private string? _idsEndpoint;
     private ObservableCollection<VoiceMetaData>? _availableVoices;
     private bool _showDuplicateAtisTypeError;
+    private double _selectedSpeechRate;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GeneralConfigViewModel"/> class.
@@ -248,6 +250,27 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets the available speech rate multipliers.
+    /// </summary>
+    public ObservableCollection<double> SpeechRates { get; } = [0.5, 0.75, 1.0, 1.25, 1.5];
+
+    /// <summary>
+    /// Gets or sets the selected speech rate multiplier.
+    /// </summary>
+    public double SelectedSpeechRate
+    {
+        get => _selectedSpeechRate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedSpeechRate, value);
+            if (!_initializedProperties.Add(nameof(SelectedSpeechRate)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to show duplicate ATIS type error.
     /// </summary>
     public bool ShowDuplicateAtisTypeError
@@ -374,6 +397,15 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisVoice.Voice = TextToSpeechVoice;
         }
 
+        if (Math.Abs(SelectedStation.AtisVoice.SpeechRateMultiplier - SelectedSpeechRate) > 0.0001)
+        {
+            // Ensure SelectedSpeechRate is one of the valid options
+            SelectedStation.AtisVoice.SpeechRateMultiplier = Array.Exists(s_allowedSpeechRates,
+                rate => Math.Abs(rate - SelectedSpeechRate) < 0.0001)
+                ? SelectedSpeechRate
+                : 1.0; // If not valid, set to 1.0
+        }
+
         if (HasErrors || ShowDuplicateAtisTypeError)
         {
             return false;
@@ -409,6 +441,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         IdsEndpoint = station.IdsEndpoint;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
         TextToSpeechVoice = station.AtisVoice.Voice;
+
+        // Ensure the speech rate is one of the allowed values: 0.5, 0.75, 1.0, 1.25, 1.5
+        SelectedSpeechRate = Array.Exists(s_allowedSpeechRates,
+            rate => Math.Abs(rate - station.AtisVoice.SpeechRateMultiplier) < 0.0001)
+            ? station.AtisVoice.SpeechRateMultiplier
+            : 1.0; // Default value if the rate is not allowed
 
         HasUnsavedChanges = false;
     }
