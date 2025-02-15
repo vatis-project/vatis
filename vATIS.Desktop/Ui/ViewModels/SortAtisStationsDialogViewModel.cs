@@ -109,7 +109,7 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
             if (definition != null)
             {
                 AtisStations.Move(oldIndex, newIndex);
-                definition.Ordinal = newIndex;
+                NormalizeOrdinals();
                 Source.Items = AtisStations.OrderBy(x => x.Ordinal).ToList();
                 Source.RowSelection.SelectedIndex = newIndex;
             }
@@ -126,10 +126,18 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
             if (definition != null)
             {
                 AtisStations.Move(oldIndex, newIndex);
-                definition.Ordinal = newIndex;
+                NormalizeOrdinals();
                 Source.Items = AtisStations.OrderBy(x => x.Ordinal).ToList();
                 Source.RowSelection.SelectedIndex = newIndex;
             }
+        }
+    }
+
+    private void NormalizeOrdinals()
+    {
+        for (var i = 0; i < AtisStations.Count; i++)
+        {
+            AtisStations[i].Ordinal = i;
         }
     }
 }
