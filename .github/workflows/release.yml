@@ -113,11 +113,15 @@ jobs:
               --outputDir ./velopack \
               --verbose
 
-      - name: Upload Linux Build Artifacts
+      - name: Rename AppImage
+        run: |
+          mv ./velopack/org.vatsim.vatis.AppImage ./velopack/vATIS.AppImage
+
+      - name: Upload Linux AppImage
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
-          path: ./build
+          path: ./velopack
           retention-days: 1
 
   build-macos:
@@ -475,11 +479,16 @@ jobs:
               --skipVeloAppCheck \
               --verbose
 
+      - name: Rename Setup EXE
+        shell: bash
+        run: |
+          mv ./velopack/org.vatsim.vatis-win-Setup.exe ./velopack/vATIS-Setup.exe
+
       - name: Upload Windows Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: ./build
+          path: ./velopack
           retention-days: 1
 
   upload-release-assets:
@@ -515,7 +524,6 @@ jobs:
           aws configure set response_checksum_validation when_required
 
           # Upload Linux Assets
-          mv ./linux-build/org.vatsim.vatis.AppImage ./linux-build/vATIS.AppImage
           aws s3 sync ./linux-build s3://vatis-releases/linux \
             --exclude "${{ needs.build-linux.outputs.PREVIOUS_RELEASE }}" \
             --exclude "assets.linux.json" \
@@ -532,7 +540,6 @@ jobs:
             --endpoint-url "${{secrets.AWS_ENDPOINT}}"
 
           # Upload Windows
-          mv ./windows-build/org.vatsim.vatis-win-Setup.exe ./windows-build/vATIS-Setup.exe
           aws s3 sync ./windows-build s3://vatis-releases/windows \
             --exclude "${{ needs.build-windows.outputs.PREVIOUS_RELEASE }}" \
             --exclude "RELEASES" \
