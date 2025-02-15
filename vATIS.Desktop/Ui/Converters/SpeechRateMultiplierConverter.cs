@@ -19,9 +19,12 @@ public class SpeechRateMultiplierConverter : IValueConverter
     /// <returns>A string formatted as the speech rate with an 'x' suffix (e.g., "1.0x").</returns>
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (value is null)
+            return null;
+
         if (value is double rate)
         {
-            return $"{rate}x"; // Format as 0.5x, 1.0x, etc.
+            return $"{rate.ToString(CultureInfo.InvariantCulture)}x"; // Format as 0.5x, 1.0x, etc.
         }
 
         return value;
@@ -37,8 +40,12 @@ public class SpeechRateMultiplierConverter : IValueConverter
     /// <returns>A double representing the speech rate (e.g., 0.5).</returns>
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (value is null)
+            return null;
+
         // If converting back (e.g., from "0.5x" to 0.5), remove the "x" and parse the number.
-        if (value is string rateString && double.TryParse(rateString.Replace("x", ""), out var result))
+        if (value is string rateString &&
+            double.TryParse(rateString.Replace("x", ""), CultureInfo.InvariantCulture, out var result))
         {
             return result;
         }
