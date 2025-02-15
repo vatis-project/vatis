@@ -1,3 +1,8 @@
+// <copyright file="ReleaseNotesDialogViewModel.cs" company="Justin Shannon">
+// Copyright (c) Justin Shannon. All rights reserved.
+// Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 using ReactiveUI;
 using Vatsim.Vatis.Ui.Dialogs;
 
@@ -18,7 +23,7 @@ public class ReleaseNotesDialogViewModel : ReactiveViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets the release notes markdown text.
+    /// Gets or sets the release notes Markdown text.
     /// </summary>
     public string? ReleaseNotes
     {
