@@ -94,6 +94,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         RenameAtisCommand = ReactiveCommand.CreateFromTask(HandleRenameAtis);
         CopyAtisCommand = ReactiveCommand.CreateFromTask(HandleCopyAtis);
         ImportAtisStationCommand = ReactiveCommand.Create(HandleImportAtisStation);
+        OpenSortAtisStationsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenSortAtisStationsDialog);
 
         _disposables.Add(CloseWindowCommand);
         _disposables.Add(SaveAndCloseCommand);
@@ -125,8 +126,10 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         _atisStationSource.Connect()
             .AutoRefresh(x => x.Name)
             .AutoRefresh(x => x.AtisType)
+            .AutoRefresh(x => x.Ordinal)
             .Sort(SortExpressionComparer<AtisStation>
-                .Ascending(i => i.Identifier)
+                .Ascending(i => i.Ordinal)
+                .ThenBy(i => i.Identifier)
                 .ThenBy(i => i.AtisType))
             .Bind(out var sortedStations)
             .Subscribe(_ => { AtisStations = sortedStations; });
@@ -214,6 +217,11 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     /// Gets the command that handles importing an ATIS station.
     /// </summary>
     public ReactiveCommand<Unit, Unit> ImportAtisStationCommand { get; }
+
+    /// <summary>
+    /// Gets the command that opens the dialog to sort ATIS stations.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenSortAtisStationsDialogCommand { get; }
 
     /// <summary>
     /// Gets or sets the collection of <see cref="AtisStation"/> objects used to represent ATIS stations in the configuration window.
@@ -457,6 +465,57 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                 };
                 await dialog.ShowDialog((Window)_dialogOwner);
             }
+        }
+    }
+
+    private async Task HandleOpenSortAtisStationsDialog()
+    {
+        try
+        {
+            if (_dialogOwner == null)
+                return;
+
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            {
+                if (lifetime.MainWindow == null)
+                {
+                    return;
+                }
+
+                var dialog = _windowFactory.CreateSortAtisStationsDialog();
+                dialog.Topmost = lifetime.MainWindow.Topmost;
+                if (dialog.DataContext is SortAtisStationsDialogViewModel context)
+                {
+                    if (_sessionManager.CurrentProfile?.Stations != null)
+                    {
+                        context.AtisStations = new ObservableCollection<AtisStation>(_atisStationSource.Items);
+                        context.AtisStations.CollectionChanged += (_, _) =>
+                        {
+                            var idx = 0;
+                            _atisStationSource.Clear();
+                            foreach (var item in context.AtisStations)
+                            {
+                                item.Ordinal = ++idx;
+                                _atisStationSource.Add(item);
+                                EventBus.Instance.Publish(new AtisStationOrdinalChanged(item.Id, item.Ordinal));
+                            }
+
+                            if (_sessionManager.CurrentProfile != null)
+                            {
+                                _sessionManager.CurrentProfile.Stations =
+                                    _atisStationSource.Items.OrderBy(x => x.Ordinal).ToList();
+                                _profileRepository.Save(_sessionManager.CurrentProfile);
+                            }
+                        };
+                    }
+
+                    await dialog.ShowDialog((Window)_dialogOwner);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in HandleSortAtisStations");
         }
     }
 

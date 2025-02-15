@@ -25,6 +25,11 @@ public class AtisStation : ReactiveObject
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
+    /// Gets or sets the display ordinal.
+    /// </summary>
+    public int Ordinal { get; set; }
+
+    /// <summary>
     /// Gets or sets the identifier of the ATIS station.
     /// </summary>
     public required string Identifier { get; set; }

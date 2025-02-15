@@ -73,6 +73,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private string? _id;
     private string? _identifier;
     private string? _tabText;
+    private int _ordinal;
     private char _atisLetter;
     private bool _isAtisLetterInputMode;
     private string? _metarString;
@@ -136,6 +137,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         Id = station.Id;
         Identifier = station.Identifier;
+        Ordinal = station.Ordinal;
         _atisStation = station;
         _appConfig = appConfig;
         _atisBuilder = atisBuilder;
@@ -590,6 +592,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// Gets a value indicating the ATIS type.
     /// </summary>
     public AtisType AtisType => _atisStation.AtisType;
+
+    /// <summary>
+    /// Gets or sets a value indicating the station sort ordinal.
+    /// </summary>
+    public int Ordinal
+    {
+        get => _ordinal;
+        set => this.RaiseAndSetIfChanged(ref _ordinal, value);
+    }
 
     /// <summary>
     /// Disconnects the current network connection and updates the network connection status

@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -46,6 +47,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     private readonly IAtisHubConnection _atisHubConnection;
     private readonly IWebsocketService _websocketService;
     private readonly SourceList<AtisStationViewModel> _atisStationSource = new();
+    private List<string> _previousKeys = new();
     private string? _beforeStationSortSelectedStationId;
     private int _selectedTabIndex;
     private string _currentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
@@ -83,6 +85,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
+            .AutoRefresh(x => x.Ordinal)
             .Do(_ =>
             {
                 if (AtisStations != null && AtisStations.Count > SelectedTabIndex)
@@ -97,6 +100,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                     NetworkConnectionStatus.Observer => 1,
                     _ => 2
                 })
+                .ThenBy(i => i.Ordinal)
                 .ThenBy(i => i.Identifier ?? string.Empty)
                 .ThenBy(i => i.AtisType switch
                 {
@@ -108,10 +112,16 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Bind(out var sortedStations)
             .Subscribe(_ =>
             {
+                // Generate composite keys using Identifier + Ordinal
+                var currentKeys = sortedStations.Select(s => $"{s.Identifier}_{s.AtisType}_{s.Ordinal}").ToList();
+                var keysChanged = !_previousKeys.SequenceEqual(currentKeys);
+                _previousKeys = currentKeys;
+
                 AtisStations = sortedStations;
-                if (_beforeStationSortSelectedStationId == null || AtisStations.Count == 0)
+
+                if (keysChanged || _beforeStationSortSelectedStationId == null || AtisStations.Count == 0)
                 {
-                    SelectedTabIndex = 0; // No valid previous station or empty list
+                    SelectedTabIndex = 0; // Reset if ordinals change or no valid previous station
                 }
                 else
                 {
@@ -120,7 +130,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
                     SelectedTabIndex = selectedStation != null
                         ? AtisStations.IndexOf(selectedStation)
-                        : 0; // Default to the first tab if no match
+                        : 0; // Default to first tab if no match
                 }
             });
 
@@ -128,9 +138,11 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
+            .AutoRefresh(x => x.Ordinal)
             .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
             .Sort(SortExpressionComparer<AtisStationViewModel>
-                .Ascending(i => i.Identifier ?? string.Empty)
+                .Ascending(i => i.Ordinal)
+                .ThenBy(i => i.Identifier ?? string.Empty)
                 .ThenBy(i => i.AtisType switch
                 {
                     AtisType.Combined => 0,
@@ -184,7 +196,15 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 _atisStationSource.Remove(station);
             }
         }));
-        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(evt =>
+        _disposables.Add(EventBus.Instance.Subscribe<AtisStationOrdinalChanged>(evt =>
+        {
+            var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
+            if (station != null)
+            {
+                station.Ordinal = evt.NewOrdinal;
+            }
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(_ =>
         {
             Debug.WriteLine("GeneralSettingsUpdated");
         }));

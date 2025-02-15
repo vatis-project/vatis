@@ -196,4 +196,16 @@ internal class WindowFactory : IWindowFactory
         var viewModel = _provider.GetService<SortPresetsDialogViewModel>();
         return new SortPresetsDialog(viewModel);
     }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="SortAtisStationsDialog"/> class.
+    /// </summary>
+    /// <returns>
+    /// A new instance of the <see cref="SortAtisStationsDialog"/> class.
+    /// </returns>
+    public SortAtisStationsDialog CreateSortAtisStationsDialog()
+    {
+        var viewModel = _provider.GetService<SortAtisStationsDialogViewModel>();
+        return new SortAtisStationsDialog(viewModel);
+    }
 }
