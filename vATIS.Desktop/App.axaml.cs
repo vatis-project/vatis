@@ -186,17 +186,24 @@ public class App : Application
                 // Show release notes of new version
                 if (arguments.TryGetValue("--isUpdated", out _))
                 {
-                    var locator = VelopackLocator.GetDefault(NullLogger.Instance);
-                    var currentRelease = locator.GetLocalPackages()
-                        .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
-                    if (currentRelease?.NotesMarkdown != null)
+                    try
                     {
-                        var releaseNotes = _serviceProvider.GetService<ReleaseNotesDialog>();
-                        if (releaseNotes.ViewModel != null)
+                        var locator = VelopackLocator.GetDefault(NullLogger.Instance);
+                        var currentRelease = locator.GetLocalPackages()
+                            .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
+                        if (currentRelease?.NotesMarkdown != null)
                         {
-                            releaseNotes.ViewModel.ReleaseNotes = currentRelease.NotesMarkdown;
-                            await releaseNotes.ShowDialog(_startupWindow);
+                            var releaseNotes = _serviceProvider.GetService<ReleaseNotesDialog>();
+                            if (releaseNotes.ViewModel != null)
+                            {
+                                releaseNotes.ViewModel.ReleaseNotes = currentRelease.NotesMarkdown;
+                                await releaseNotes.ShowDialog(_startupWindow);
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error showing release notes.");
                     }
                 }
 

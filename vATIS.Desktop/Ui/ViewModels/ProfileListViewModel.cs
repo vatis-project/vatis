@@ -403,21 +403,28 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         if (_dialogOwner == null)
             return;
 
-        var locator = VelopackLocator.GetDefault(NullLogger.Instance);
-        var currentRelease = locator.GetLocalPackages()
-            .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
-        var releaseNotes = currentRelease?.NotesMarkdown;
-
-        if (string.IsNullOrEmpty(releaseNotes))
-            return;
-
-        var dialog = _windowFactory.CreateReleaseNotesDialog();
-
-        if (dialog.ViewModel != null)
+        try
         {
-            dialog.ViewModel.ReleaseNotes = releaseNotes;
-        }
+            var locator = VelopackLocator.GetDefault(NullLogger.Instance);
+            var currentRelease = locator.GetLocalPackages()
+                .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
+            var releaseNotes = currentRelease?.NotesMarkdown;
 
-        dialog.ShowDialog((Window)_dialogOwner);
+            if (string.IsNullOrEmpty(releaseNotes))
+                return;
+
+            var dialog = _windowFactory.CreateReleaseNotesDialog();
+
+            if (dialog.ViewModel != null)
+            {
+                dialog.ViewModel.ReleaseNotes = releaseNotes;
+            }
+
+            dialog.ShowDialog((Window)_dialogOwner);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error opening release notes");
+        }
     }
 }
