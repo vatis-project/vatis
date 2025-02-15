@@ -43,8 +43,8 @@
 					</TreeDataGrid>
 					<!--Up/Down Buttons-->
 					<StackPanel Grid.Column="2" Orientation="Vertical" Spacing="5">
-						<Button Theme="{StaticResource Dark}" Command="{Binding MoveStationUpCommand, DataType=vm:SortAtisStationsDialogViewModel}">Up</Button>
-						<Button Theme="{StaticResource Dark}" Command="{Binding MoveStationDownCommand, DataType=vm:SortAtisStationsDialogViewModel}">Down</Button>
+						<Button Theme="{StaticResource Dark}" Command="{Binding MoveStationUpCommand, DataType=vm:SortAtisStationsDialogViewModel}">Move Up</Button>
+						<Button Theme="{StaticResource Dark}" Command="{Binding MoveStationDownCommand, DataType=vm:SortAtisStationsDialogViewModel}">Move Down</Button>
 					</StackPanel>
 				</Grid>
 			</StackPanel>
