@@ -65,7 +65,8 @@ public class ClientUpdater : IClientUpdater
 
         if (_updateInfo == null) return false;
         await _updateManager.DownloadUpdatesAsync(_updateInfo, ReportProgress);
-        await _updateManager.WaitExitThenApplyUpdatesAsync(_updateInfo, silent: true);
+        await _updateManager.WaitExitThenApplyUpdatesAsync(_updateInfo, silent: true,
+            restartArgs: ["--isUpdated"]);
 
         return true;
     }

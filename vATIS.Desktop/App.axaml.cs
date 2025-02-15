@@ -18,6 +18,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveUI;
 using Sentry;
 using Serilog;
@@ -29,11 +30,13 @@ using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
+using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Startup;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Updates;
 using Vatsim.Vatis.Voice.Audio;
+using Velopack.Locators;
 
 namespace Vatsim.Vatis;
 
@@ -179,6 +182,30 @@ public class App : Application
                 await CheckForProfileUpdatesAsync();
                 await UpdateNavDataAsync();
                 await UpdateAvailableVoicesAsync();
+
+                // Show release notes of new version
+                if (arguments.TryGetValue("--isUpdated", out _))
+                {
+                    try
+                    {
+                        var locator = VelopackLocator.GetDefault(NullLogger.Instance);
+                        var currentRelease = locator.GetLocalPackages()
+                            .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
+                        if (currentRelease?.NotesMarkdown != null)
+                        {
+                            var releaseNotes = _serviceProvider.GetService<ReleaseNotesDialog>();
+                            if (releaseNotes.ViewModel != null)
+                            {
+                                releaseNotes.ViewModel.ReleaseNotes = currentRelease.NotesMarkdown;
+                                await releaseNotes.ShowDialog(_startupWindow);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error showing release notes.");
+                    }
+                }
 
                 _startupWindow.Close();
 

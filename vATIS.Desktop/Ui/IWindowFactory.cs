@@ -97,4 +97,10 @@ public interface IWindowFactory
     /// </summary>
     /// <returns>An instance of the <see cref="SortPresetsDialog"/> class.</returns>
     SortPresetsDialog CreateSortPresetsDialog();
+
+    /// <summary>
+    /// Creates and initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
+    /// </summary>
+    /// <returns>An instance of the <see cref="ReleaseNotesDialog"/> class.</returns>
+    ReleaseNotesDialog CreateReleaseNotesDialog();
 }
