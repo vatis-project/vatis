@@ -112,7 +112,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Bind(out var sortedStations)
             .Subscribe(_ =>
             {
-                // Generate composite keys using Identifier + Ordinal
+                // Generate composite keys using Identifier + AtisType + Ordinal
                 var currentKeys = sortedStations.Select(s => $"{s.Identifier}_{s.AtisType}_{s.Ordinal}").ToList();
                 var keysChanged = !_previousKeys.SequenceEqual(currentKeys);
                 _previousKeys = currentKeys;
