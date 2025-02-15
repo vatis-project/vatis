@@ -27,6 +27,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
     private static readonly double[] s_allowedSpeechRates = [0.5, 0.75, 1.0, 1.25, 1.5];
+    private static readonly HashSet<double> s_allowedSpeechRatesSet = new(s_allowedSpeechRates);
     private readonly CompositeDisposable _disposables = [];
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
@@ -400,8 +401,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         if (Math.Abs(SelectedStation.AtisVoice.SpeechRateMultiplier - SelectedSpeechRate) > 0.0001)
         {
             // Ensure SelectedSpeechRate is one of the valid options
-            SelectedStation.AtisVoice.SpeechRateMultiplier = Array.Exists(s_allowedSpeechRates,
-                rate => Math.Abs(rate - SelectedSpeechRate) < 0.0001)
+            SelectedStation.AtisVoice.SpeechRateMultiplier = s_allowedSpeechRatesSet.Contains(SelectedSpeechRate)
                 ? SelectedSpeechRate
                 : 1.0; // If not valid, set to 1.0
         }
@@ -443,8 +443,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         TextToSpeechVoice = station.AtisVoice.Voice;
 
         // Ensure the speech rate is one of the allowed values: 0.5, 0.75, 1.0, 1.25, 1.5
-        SelectedSpeechRate = Array.Exists(s_allowedSpeechRates,
-            rate => Math.Abs(rate - station.AtisVoice.SpeechRateMultiplier) < 0.0001)
+        SelectedSpeechRate = s_allowedSpeechRatesSet.Contains(station.AtisVoice.SpeechRateMultiplier)
             ? station.AtisVoice.SpeechRateMultiplier
             : 1.0; // Default value if the rate is not allowed
 
