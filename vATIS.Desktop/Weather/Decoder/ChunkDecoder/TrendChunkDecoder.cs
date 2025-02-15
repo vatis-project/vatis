@@ -45,7 +45,7 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
         var visibilityRegex = $"{VisibilityRegexPattern}|CAVOK";
         var presentWeatherRegex = $@"(?:[-+]|VC)?(?:{CaracRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?";
         var cloudRegex = $@"(?:{NoCloudRegexPattern}|(?:{LayerRegexPattern})(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?)";
-        return $@"TREND (TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?)?)";
+        return $@"(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?)?)";
     }
 
     /// <inheritdoc/>
