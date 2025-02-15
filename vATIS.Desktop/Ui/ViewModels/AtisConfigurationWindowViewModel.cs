@@ -106,6 +106,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         _disposables.Add(RenameAtisCommand);
         _disposables.Add(CopyAtisCommand);
         _disposables.Add(ImportAtisStationCommand);
+        _disposables.Add(OpenSortAtisStationsDialogCommand);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
