@@ -73,6 +73,7 @@ namespace Vatsim.Vatis.Container;
 [Transient(typeof(MessageBoxView))]
 [Transient(typeof(SortPresetsDialog))]
 [Transient(typeof(SortAtisStationsDialog))]
+[Transient(typeof(ReleaseNotesDialog))]
 
 // ViewModels
 [Transient(typeof(ProfileListViewModel))]
@@ -98,6 +99,7 @@ namespace Vatsim.Vatis.Container;
 [Transient(typeof(PresetsViewModel))]
 [Transient(typeof(SandboxViewModel))]
 [Transient(typeof(SortAtisStationsDialogViewModel))]
+[Transient(typeof(ReleaseNotesDialogViewModel))]
 internal sealed partial class ServiceProvider
 {
     /// <summary>

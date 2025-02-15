@@ -72,7 +72,13 @@
 			</DockPanel>
 			<DockPanel Grid.Row="2">
 				<Border BorderBrush="#646464" BorderThickness="0,1,0,0">
-					<TextBlock Foreground="White" Text="{Binding ClientVersion, DataType=vm:ProfileListViewModel}" Margin="5,3" TextAlignment="Center" VerticalAlignment="Center" />
+					<TextBlock Name="Version" Foreground="White" Text="{Binding ClientVersion, DataType=vm:ProfileListViewModel}" Margin="5,3" TextAlignment="Center" VerticalAlignment="Center" Cursor="Hand" ToolTip.Tip="Click to view release notes">
+                        <Interaction.Behaviors>
+                            <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" SourceInteractive="Version">
+                                <InvokeCommandAction Command="{Binding OpenReleaseNotesCommand, DataType=vm:ProfileListViewModel}"/>
+                            </RoutedEventTriggerBehavior>
+                        </Interaction.Behaviors>
+                    </TextBlock>
 				</Border>
 			</DockPanel>
 		</Grid>

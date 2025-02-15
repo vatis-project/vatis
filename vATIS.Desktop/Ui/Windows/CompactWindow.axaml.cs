@@ -4,8 +4,6 @@
 // </copyright>
 
 using System;
-using System.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -71,27 +69,29 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
             model.UpdatePosition(this);
         }
 
-        // Get the bounding rectangle of all screens combined
-        var totalScreenBounds = Screens.All
-            .Select(s => s.WorkingArea)
-            .Aggregate((acc, next) => acc.Union(next));
+        // Get the screen the window is currently on
+        var currentScreen = Screens.ScreenFromPoint(Position);
+        if (currentScreen == null) return;
 
-        var totalLeft = totalScreenBounds.X;
-        var totalRight = totalScreenBounds.X + totalScreenBounds.Width;
-
+        var screenBounds = currentScreen.WorkingArea;
         var windowLeft = Position.X;
         var windowRight = windowLeft + (int)Width;
 
-        var isRightOffScreen = windowRight > totalRight;
-        var isRightFullyVisible = windowRight <= totalRight && windowLeft >= totalLeft;
+        var isRightOffScreen = windowRight > screenBounds.X + screenBounds.Width;
+        var isLeftOffScreen = windowLeft < screenBounds.X;
 
-        // Update alignment only if the window is partially off-screen
+        // Adjust alignment based on visibility
         if (isRightOffScreen)
         {
             WindowControls.HorizontalAlignment = HorizontalAlignment.Left;
         }
-        else if (isRightFullyVisible)
+        else if (isLeftOffScreen)
         {
+            WindowControls.HorizontalAlignment = HorizontalAlignment.Right;
+        }
+        else
+        {
+            // Keep default alignment when fully visible
             WindowControls.HorizontalAlignment = HorizontalAlignment.Right;
         }
     }

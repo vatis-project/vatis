@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
@@ -41,11 +42,18 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
     /// <inheritdoc/>
     public override string GetRegex()
     {
-        var windRegex = $"{WindDirectionRegexPattern}{WindSpeedRegexPattern}{WindSpeedVariationsRegexPattern}{WindUnitRegexPattern}";
-        var visibilityRegex = $"{VisibilityRegexPattern}|CAVOK";
-        var presentWeatherRegex = $@"(?:[-+]|VC)?(?:{CaracRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?";
-        var cloudRegex = $@"(?:{NoCloudRegexPattern}|(?:{LayerRegexPattern})(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?)";
-        return $@"TREND (TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*(TEMPO|BECMG|NOSIG)\s*(?:AT(\d{{4}}))?\s*(?:FM(\d{{4}}))?\s*(?:TL(\d{{4}}))?\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?)?)";
+        const string windRegex =
+            $"{WindDirectionRegexPattern}{WindSpeedRegexPattern}{WindSpeedVariationsRegexPattern}{WindUnitRegexPattern}";
+        const string visibilityRegex = $"{VisibilityRegexPattern}|CAVOK";
+        const string presentWeatherRegex =
+            $@"(?:[-+]|VC)?(?:{CaracRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?";
+        const string cloudRegex =
+            $@"(?:{NoCloudRegexPattern}|(?:{LayerRegexPattern})(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?)";
+
+        const string timeRegex = @"\s*(?:AT(\d{4}))?\s*(?:FM(\d{4}))?\s*(?:TL(\d{4}))?";
+        const string trendGroup =
+            $@"(TEMPO|BECMG|NOSIG){timeRegex}\s*({windRegex})?\s*({visibilityRegex})?\s*({presentWeatherRegex})?\s*({cloudRegex})?";
+        return $@"{trendGroup}\s*((?=\s*(?:TEMPO|BECMG|NOSIG|$))(?:\s*{trendGroup})?)";
     }
 
     /// <inheritdoc/>

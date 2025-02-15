@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reflection;
@@ -18,6 +19,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Profiles;
@@ -27,6 +29,7 @@ using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Utils;
+using Velopack.Locators;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -78,6 +81,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         DeleteProfileCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleDeleteProfile, canExecute);
         StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession, canExecute);
         ExitCommand = ReactiveCommand.Create(HandleExit);
+        OpenReleaseNotesCommand = ReactiveCommand.Create(HandleOpenReleaseNotes);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
@@ -134,6 +138,11 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     /// Gets the command that handles application exit functionality.
     /// </summary>
     public ReactiveCommand<Unit, Unit> ExitCommand { get; }
+
+    /// <summary>
+    /// Gets the command that opens the release notes for the installed version.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenReleaseNotesCommand { get; }
 
     /// <summary>
     /// Gets or sets the collection of profiles.
@@ -208,6 +217,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         ExportProfileCommand.Dispose();
         StartClientSessionCommand.Dispose();
         ExitCommand.Dispose();
+        OpenReleaseNotesCommand.Dispose();
     }
 
     private async Task Initialize()
@@ -385,6 +395,36 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         if (Application.Current!.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             Dispatcher.UIThread.Invoke(() => desktop.Shutdown());
+        }
+    }
+
+    private void HandleOpenReleaseNotes()
+    {
+        if (_dialogOwner == null)
+            return;
+
+        try
+        {
+            var locator = VelopackLocator.GetDefault(NullLogger.Instance);
+            var currentRelease = locator.GetLocalPackages()
+                .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
+            var releaseNotes = currentRelease?.NotesMarkdown;
+
+            if (string.IsNullOrEmpty(releaseNotes))
+                return;
+
+            var dialog = _windowFactory.CreateReleaseNotesDialog();
+
+            if (dialog.ViewModel != null)
+            {
+                dialog.ViewModel.ReleaseNotes = releaseNotes;
+            }
+
+            dialog.ShowDialog((Window)_dialogOwner);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error opening release notes");
         }
     }
 }

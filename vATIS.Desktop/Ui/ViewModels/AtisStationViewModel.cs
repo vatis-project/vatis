@@ -93,6 +93,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private List<ICompletionData> _contractionCompletionData = [];
     private bool _hasUnsavedAirportConditions;
     private bool _hasUnsavedNotams;
+    private string? _previousFreeTextNotams;
+    private string? _previousFreeTextAirportConditions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisStationViewModel"/> class.
@@ -1312,8 +1314,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 SelectedAtisPreset = preset;
                 _previousAtisPreset = preset;
 
-                PopulateAirportConditions();
-                PopulateNotams();
+                PopulateAirportConditions(presetChanged: true);
+                PopulateNotams(presetChanged: true);
 
                 HasUnsavedNotams = false;
                 HasUnsavedAirportConditions = false;
@@ -1375,7 +1377,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void PopulateNotams()
+    private void PopulateNotams(bool presetChanged = false)
     {
         if (NotamsTextDocument == null || SelectedAtisPreset == null)
             return;
@@ -1388,6 +1390,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
+
+        if (!presetChanged)
+        {
+            // The preset wasn't changed, so restore any unsaved free-text.
+            _previousFreeTextNotams = NotamsTextDocument.Text[_notamFreeTextOffset..];
+        }
 
         // Start with an empty document.
         NotamsTextDocument.Text = "";
@@ -1415,14 +1423,27 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             _notamFreeTextOffset = staticDefinitionsString.Length;
         }
 
-        // Always append the free-form NOTAM text after the static definitions (if any).
-        if (!string.IsNullOrEmpty(SelectedAtisPreset?.Notams))
+        // Always append the free-form NOTAM text after any predefined content.
+        if (presetChanged)
         {
-            NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset?.Notams);
+            // If the preset was changed, insert the saved NOTAMs
+            // but exclude any unsaved user-entered free text.
+            if (!string.IsNullOrEmpty(SelectedAtisPreset?.Notams))
+            {
+                NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset?.Notams);
+            }
+        }
+        else
+        {
+            // When closing the dialog, restore the user's previously entered free text.
+            if (!string.IsNullOrEmpty(_previousFreeTextNotams))
+            {
+                NotamsTextDocument.Insert(_notamFreeTextOffset, _previousFreeTextNotams);
+            }
         }
     }
 
-    private void PopulateAirportConditions()
+    private void PopulateAirportConditions(bool presetChanged = false)
     {
         if (AirportConditionsTextDocument == null || SelectedAtisPreset == null)
             return;
@@ -1435,6 +1456,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
+
+        if (!presetChanged)
+        {
+            // The preset wasn't changed, so restore any unsaved free-text.
+            _previousFreeTextAirportConditions = AirportConditionsTextDocument.Text[_airportConditionsFreeTextOffset..];
+        }
 
         // Start with an empty document.
         AirportConditionsTextDocument.Text = "";
@@ -1464,11 +1491,24 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
         }
 
-        // Always append the free-form airport conditions after the static definitions (if any).
-        if (!string.IsNullOrEmpty(SelectedAtisPreset?.AirportConditions))
+        // Always append the free-form NOTAM text after any static content.
+        if (presetChanged)
         {
-            AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
-                SelectedAtisPreset?.AirportConditions);
+            // If the selected preset was changed, insert the saved airport conditions
+            // but exclude any unsaved user-entered free text.
+            if (!string.IsNullOrEmpty(SelectedAtisPreset?.AirportConditions))
+            {
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
+                    SelectedAtisPreset?.AirportConditions);
+            }
+        }
+        else
+        {
+            // When closing the dialog, restore the user's previously entered free text.
+            if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
+            {
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, _previousFreeTextAirportConditions);
+            }
         }
     }
 
