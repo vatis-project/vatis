@@ -14,6 +14,7 @@
         <converters:SpeechRateMultiplierConverter x:Key="SpeechRateMultiplierConverter"/>
         <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
 		<converters:CharToStringConverter x:Key="CharToStringConverter"/>
+        <x:String x:Key="SpeechRateTooltip">Adjust the speech speed. Choose from: 0.5x (slowest), 0.75x (slower), 1x (normal), 1.25x (faster), and 1.5x (fastest).</x:String>
 	</UserControl.Resources>
 	<StackPanel Spacing="8">
 		<StackPanel>
@@ -116,8 +117,8 @@
 						<RadioButton Theme="{StaticResource RadioButton}" Content="Voice Recorded" IsChecked="{Binding !UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
 					</StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="15">
-                        <TextBlock VerticalAlignment="Center" ToolTip.Tip="Adjust the speech speed. Choose from: 0.5x (slowest), 0.75x (slower), 1x (normal), 1.25x (faster), and 1.5x (fastest).">Speech Rate Multiplier:</TextBlock>
-                        <ComboBox Width="100" Classes="Dark" ItemsSource="{Binding SpeechRates, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding SelectedSpeechRate, DataType=vm:GeneralConfigViewModel}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" ToolTip.Tip="Adjust the speech speed. Choose from: 0.5x (slowest), 0.75x (slower), 1x (normal), 1.25x (faster), and 1.5x (fastest).">
+                        <TextBlock VerticalAlignment="Center" ToolTip.Tip="{StaticResource SpeechRateTooltip}">Speech Rate Multiplier:</TextBlock>
+                        <ComboBox Width="100" Classes="Dark" ItemsSource="{Binding SpeechRates, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding SelectedSpeechRate, DataType=vm:GeneralConfigViewModel}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" ToolTip.Tip="{StaticResource SpeechRateTooltip}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding ., Converter={StaticResource SpeechRateMultiplierConverter}}"></TextBlock>
