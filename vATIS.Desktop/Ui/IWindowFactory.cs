@@ -99,6 +99,11 @@ public interface IWindowFactory
     SortPresetsDialog CreateSortPresetsDialog();
 
     /// <summary>
+    /// Creates and initializes a new instance of the <see cref="SortAtisStationsDialog"/> class.
+    /// </summary>
+    /// <returns>An instance of the <see cref="SortAtisStationsDialog"/> class.</returns>
+    SortAtisStationsDialog CreateSortAtisStationsDialog();
+
     /// Creates and initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="ReleaseNotesDialog"/> class.</returns>

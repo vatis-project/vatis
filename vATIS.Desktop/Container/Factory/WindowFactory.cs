@@ -198,6 +198,17 @@ internal class WindowFactory : IWindowFactory
     }
 
     /// <summary>
+    /// Creates a new instance of the <see cref="SortAtisStationsDialog"/> class.
+    /// </summary>
+    /// <returns>
+    /// A new instance of the <see cref="SortAtisStationsDialog"/> class.
+    /// </returns>
+    public SortAtisStationsDialog CreateSortAtisStationsDialog()
+    {
+        var viewModel = _provider.GetService<SortAtisStationsDialogViewModel>();
+        return new SortAtisStationsDialog(viewModel);
+    }
+    
     /// Creates and initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="ReleaseNotesDialog"/> class.</returns>

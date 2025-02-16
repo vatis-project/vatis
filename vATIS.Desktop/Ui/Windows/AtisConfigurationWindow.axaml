@@ -104,9 +104,10 @@
 							<views:SandboxView DataContext="{Binding SandboxViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
 						</TabItem>
 					</TabControl>
-					<Grid ColumnDefinitions="30*,70*" Grid.Column="0" Grid.Row="1">
-						<Button Command="{Binding NewAtisStationDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}" Grid.Column="0" Margin="0,0,5,0" Theme="{StaticResource Dark}" Height="28">New</Button>
-						<Button Grid.Column="1" Theme="{StaticResource Dark}" Height="28" Command="{Binding ImportAtisStationCommand, DataType=vm:AtisConfigurationWindowViewModel}">Import Existing</Button>
+					<Grid ColumnDefinitions="1*,1*,1*" Grid.Column="0" Grid.Row="1">
+						<Button Command="{Binding NewAtisStationDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}" Grid.Column="0" Margin="0,0,5,0" Theme="{StaticResource Dark}" Height="28" HorizontalAlignment="Stretch">New</Button>
+                        <Button Grid.Column="1" Theme="{StaticResource Dark}" Height="28" Command="{Binding OpenSortAtisStationsDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}" Margin="0,0,5,0" HorizontalAlignment="Stretch">Sort</Button>
+                        <Button Grid.Column="2" Theme="{StaticResource Dark}" Height="28" Command="{Binding ImportAtisStationCommand, DataType=vm:AtisConfigurationWindowViewModel}" HorizontalAlignment="Stretch">Import</Button>
 					</Grid>
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Spacing="5">
 						<Button Theme="{StaticResource Dark}" Height="28" Command="{Binding SaveAndCloseCommand, DataType=vm:AtisConfigurationWindowViewModel}" CommandParameter="{Binding ElementName=Window}">Save &amp; Close</Button>

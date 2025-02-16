@@ -94,6 +94,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         RenameAtisCommand = ReactiveCommand.CreateFromTask(HandleRenameAtis);
         CopyAtisCommand = ReactiveCommand.CreateFromTask(HandleCopyAtis);
         ImportAtisStationCommand = ReactiveCommand.Create(HandleImportAtisStation);
+        OpenSortAtisStationsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenSortAtisStationsDialog);
 
         _disposables.Add(CloseWindowCommand);
         _disposables.Add(SaveAndCloseCommand);
@@ -105,6 +106,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         _disposables.Add(RenameAtisCommand);
         _disposables.Add(CopyAtisCommand);
         _disposables.Add(ImportAtisStationCommand);
+        _disposables.Add(OpenSortAtisStationsDialogCommand);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
@@ -125,8 +127,10 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         _atisStationSource.Connect()
             .AutoRefresh(x => x.Name)
             .AutoRefresh(x => x.AtisType)
+            .AutoRefresh(x => x.Ordinal)
             .Sort(SortExpressionComparer<AtisStation>
-                .Ascending(i => i.Identifier)
+                .Ascending(i => i.Ordinal)
+                .ThenBy(i => i.Identifier)
                 .ThenBy(i => i.AtisType))
             .Bind(out var sortedStations)
             .Subscribe(_ => { AtisStations = sortedStations; });
@@ -214,6 +218,11 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     /// Gets the command that handles importing an ATIS station.
     /// </summary>
     public ReactiveCommand<Unit, Unit> ImportAtisStationCommand { get; }
+
+    /// <summary>
+    /// Gets the command that opens the dialog to sort ATIS stations.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenSortAtisStationsDialogCommand { get; }
 
     /// <summary>
     /// Gets or sets the collection of <see cref="AtisStation"/> objects used to represent ATIS stations in the configuration window.
@@ -457,6 +466,87 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                 };
                 await dialog.ShowDialog((Window)_dialogOwner);
             }
+        }
+    }
+
+    private async Task HandleOpenSortAtisStationsDialog()
+    {
+        try
+        {
+            if (_dialogOwner == null)
+                return;
+
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            {
+                if (lifetime.MainWindow == null)
+                {
+                    return;
+                }
+
+                var dialog = _windowFactory.CreateSortAtisStationsDialog();
+                dialog.Topmost = lifetime.MainWindow.Topmost;
+                if (dialog.DataContext is SortAtisStationsDialogViewModel context)
+                {
+                    if (_sessionManager.CurrentProfile == null)
+                    {
+                        Log.Error("Current profile is null");
+                        return;
+                    }
+
+                    if (_sessionManager.CurrentProfile.Stations == null)
+                    {
+                        Log.Error("Current profile stations is null");
+                        return;
+                    }
+
+                    context.AtisStations = new ObservableCollection<AtisStation>(_atisStationSource.Items);
+                    context.AtisStations.CollectionChanged += (_, _) =>
+                    {
+                        try
+                        {
+                            var idx = 0;
+                            var updatedStations = new List<AtisStation>();
+                            foreach (var item in context.AtisStations)
+                            {
+                                item.Ordinal = ++idx;
+                                updatedStations.Add(item);
+                            }
+
+                            // Validate ordinals
+                            var ordinals = updatedStations.Select(x => x.Ordinal).ToList();
+                            if (ordinals.Count != ordinals.Distinct().Count())
+                            {
+                                Log.Error("Duplicate ordinals detected");
+                                return;
+                            }
+
+                            // Update source and publish events
+                            _atisStationSource.Clear();
+                            foreach (var item in updatedStations)
+                            {
+                                _atisStationSource.Add(item);
+                                EventBus.Instance.Publish(new AtisStationOrdinalChanged(item.Id, item.Ordinal));
+                            }
+
+                            // Save changes
+                            _sessionManager.CurrentProfile.Stations = updatedStations;
+                            _profileRepository.Save(_sessionManager.CurrentProfile);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Failed to update station ordinals");
+
+                            // Restore original order
+                            context.AtisStations = new ObservableCollection<AtisStation>(_atisStationSource.Items);
+                        }
+                    };
+                    await dialog.ShowDialog((Window)_dialogOwner);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in HandleSortAtisStations");
         }
     }
 
