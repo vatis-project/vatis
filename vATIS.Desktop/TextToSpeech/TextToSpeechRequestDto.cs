@@ -28,7 +28,7 @@ public class TextToSpeechRequestDto
     /// <summary>
     /// Gets or sets the speech rate multiplier.
     /// </summary>
-    public double? SpeechRateMultiplier { get; set; }
+    public double? SpeechRate { get; set; }
 
     /// <summary>
     /// Gets or sets the JSON Web Token (JWT) used for authentication.

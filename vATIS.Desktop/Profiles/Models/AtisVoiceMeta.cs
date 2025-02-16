@@ -23,7 +23,7 @@ public class AtisVoiceMeta
     /// <summary>
     /// Gets or sets the speech rate multiplier.
     /// </summary>
-    public double SpeechRateMultiplier { get; set; } = 1.0;
+    public int SpeechRate { get; set; } = 180;
 
     /// <summary>
     /// Creates a new instance of <see cref="AtisVoiceMeta"/> that is a copy of the current instance.
@@ -35,7 +35,7 @@ public class AtisVoiceMeta
         {
             UseTextToSpeech = UseTextToSpeech,
             Voice = Voice,
-            SpeechRateMultiplier = SpeechRateMultiplier
+            SpeechRate = SpeechRate
         };
     }
 }
