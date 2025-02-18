@@ -195,9 +195,12 @@ public class MockAtisHubConnection : IAtisHubConnection
     }
 
     /// <inheritdoc />
-    public Task DisconnectAtis(AtisHubDto dto)
+    public async Task DisconnectAtis(AtisHubDto dto)
     {
-        return Task.CompletedTask;
+        if (_hubConnection is not { State: HubConnectionState.Connected })
+            return;
+
+        await _hubConnection.InvokeAsync("DisconnectAtis", dto);
     }
 
     private void SetConnectionState(ConnectionState connectionState)
