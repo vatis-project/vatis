@@ -239,35 +239,39 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }));
         _disposables.Add(EventBus.Instance.Subscribe<AtisHubAtisReceived>(sync =>
         {
-            if (sync.Dto.StationId == station.Identifier &&
-                sync.Dto.AtisType == station.AtisType &&
-                NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+            if (sync.Dto.StationId != station.Identifier ||
+                sync.Dto.AtisType != station.AtisType ||
+                NetworkConnectionStatus == NetworkConnectionStatus.Connected)
             {
-                if (!string.IsNullOrEmpty(sync.Dto.Metar))
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(sync.Dto.Metar))
+            {
+                _decodedMetar = _metarDecoder.ParseNotStrict(sync.Dto.Metar);
+            }
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                AtisLetter = sync.Dto.AtisLetter;
+                Wind = sync.Dto.Wind;
+                Altimeter = sync.Dto.Altimeter;
+                Metar = sync.Dto.Metar;
+                ObservationTime = _decodedMetar?.Time.Replace(":", "");
+                NetworkConnectionStatus = sync.Dto.IsOnline
+                    ? NetworkConnectionStatus.Observer
+                    : NetworkConnectionStatus.Disconnected;
+
+                if (AirportConditionsTextDocument != null)
                 {
-                    _decodedMetar = _metarDecoder.ParseNotStrict(sync.Dto.Metar);
+                    AirportConditionsTextDocument.Text = sync.Dto.AirportConditions ?? "";
                 }
 
-                Dispatcher.UIThread.Post(() =>
+                if (NotamsTextDocument != null)
                 {
-                    AtisLetter = sync.Dto.AtisLetter;
-                    Wind = sync.Dto.Wind;
-                    Altimeter = sync.Dto.Altimeter;
-                    Metar = sync.Dto.Metar;
-                    ObservationTime = _decodedMetar?.Time.Replace(":", "");
-                    NetworkConnectionStatus = NetworkConnectionStatus.Observer;
-
-                    if (AirportConditionsTextDocument != null)
-                    {
-                        AirportConditionsTextDocument.Text = sync.Dto.AirportConditions ?? "";
-                    }
-
-                    if (NotamsTextDocument != null)
-                    {
-                        NotamsTextDocument.Text = sync.Dto.Notams ?? "";
-                    }
-                });
-            }
+                    NotamsTextDocument.Text = sync.Dto.Notams ?? "";
+                }
+            });
         }));
         _disposables.Add(EventBus.Instance.Subscribe<AtisHubExpiredAtisReceived>(sync =>
         {
@@ -277,7 +281,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    AtisLetter = _atisStation.CodeRange.Low;
+                    // Validate ATIS letter to make sure it's within the configured code range.
+                    AtisLetter = sync.Dto.AtisLetter < _atisStation.CodeRange.Low ||
+                                 sync.Dto.AtisLetter > _atisStation.CodeRange.High
+                        ? _atisStation.CodeRange.Low
+                        : sync.Dto.AtisLetter;
                     Wind = null;
                     Altimeter = null;
                     Metar = null;
@@ -302,6 +310,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }));
         _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ =>
         {
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+            {
+                _atisHubConnection.DisconnectAtis(
+                    new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType, AtisLetter, isOnline: false));
+            }
+
             _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
             _voiceServerConnection.Disconnect();
             _networkConnection.Disconnect();
@@ -917,6 +931,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                             await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
                             _voiceServerConnection?.Disconnect();
 
+                            await _atisHubConnection.DisconnectAtis(
+                                new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType, AtisLetter, isOnline: false));
+
                             // Dispose of the ATIS publish timer to stop further publishing.
                             _publishAtisTimer?.Dispose();
                             _publishAtisTimer = null;
@@ -1291,7 +1308,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
 
             await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
-                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions, notams));
+                AtisLetter, isOnline: true, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions, notams));
         }
         catch (Exception ex)
         {

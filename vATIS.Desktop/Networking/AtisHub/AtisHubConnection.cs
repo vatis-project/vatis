@@ -133,6 +133,15 @@ public class AtisHubConnection : IAtisHubConnection
         return await _hubConnection.InvokeAsync<char>("GetDigitalAtisLetter", dto);
     }
 
+    /// <inheritdoc />
+    public async Task DisconnectAtis(AtisHubDto dto)
+    {
+        if (_hubConnection is not { State: HubConnectionState.Connected })
+            return;
+
+        await _hubConnection.InvokeAsync("DisconnectAtis", dto);
+    }
+
     private Task OnHubConnectionClosed(Exception? exception)
     {
         if (exception != null)

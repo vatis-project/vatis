@@ -4,11 +4,12 @@
 // </copyright>
 
 using System;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
-using Avalonia.Threading;
+using Serilog;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
@@ -18,7 +19,7 @@ namespace Vatsim.Vatis.Ui.Windows;
 /// </summary>
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
-    private bool _initialized = false;
+    private bool _initialized;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainWindow"/> class.
@@ -56,13 +57,33 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
     }
 
-    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    private async void OnClosing(object? sender, WindowClosingEventArgs e)
     {
-        // Check if the window close request was triggered by the user (e.g., ALT+F4 or similar)
-        if (!e.IsProgrammatic)
+        try
         {
-            // Terminate the client session and navigate back to the profile dialog
-            Dispatcher.UIThread.Invoke(() => ViewModel?.EndClientSessionCommand.Execute().Subscribe());
+            if (e.IsProgrammatic)
+            {
+                return;
+            }
+
+            e.Cancel = true; // Prevent the window from closing immediately
+
+            if (ViewModel?.EndClientSessionCommand != null)
+            {
+                var shouldClose = await ViewModel.EndClientSessionCommand.Execute().FirstAsync();
+                if (shouldClose)
+                {
+                    e.Cancel = false; // Allow the window to close
+                }
+            }
+            else
+            {
+                e.Cancel = false; // No command available, allow closing
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "OnClosing Error");
         }
     }
 

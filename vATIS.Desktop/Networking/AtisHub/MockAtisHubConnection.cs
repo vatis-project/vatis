@@ -194,6 +194,12 @@ public class MockAtisHubConnection : IAtisHubConnection
         return null;
     }
 
+    /// <inheritdoc />
+    public Task DisconnectAtis(AtisHubDto dto)
+    {
+        return Task.CompletedTask;
+    }
+
     private void SetConnectionState(ConnectionState connectionState)
     {
         _hubConnectionState = connectionState;

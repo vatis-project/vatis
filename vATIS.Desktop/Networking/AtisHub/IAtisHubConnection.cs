@@ -46,4 +46,11 @@ public interface IAtisHubConnection
     /// <param name="dto">The request parameters to fetch the digital ATIS letter.</param>
     /// <returns>The ATIS letter if available; otherwise, null.</returns>
     Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto);
+
+    /// <summary>
+    /// Sends a disconnect message to the ATIS hub.
+    /// </summary>
+    /// <param name="dto">The DTO representing the ATIS connection.</param>
+    /// <returns>A task that represents the asynchronous subscribe operation.</returns>
+    Task DisconnectAtis(AtisHubDto dto);
 }
