@@ -74,6 +74,7 @@ public class TextToSpeechService : ITextToSpeechService
             {
                 Text = text,
                 Voice = VoiceList.FirstOrDefault(v => v.Name == station.AtisVoice.Voice)?.Id ?? "default",
+                SpeechRate = station.AtisVoice.SpeechRate,
                 Jwt = authToken
             };
 

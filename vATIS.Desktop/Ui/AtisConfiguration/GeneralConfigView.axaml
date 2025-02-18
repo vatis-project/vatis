@@ -11,8 +11,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.GeneralConfigView">
 	<UserControl.Resources>
-		<converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+        <converters:SpeechRateMultiplierConverter x:Key="SpeechRateMultiplierConverter"/>
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
 		<converters:CharToStringConverter x:Key="CharToStringConverter"/>
+        <x:String x:Key="SpeechRateTooltip">Select a speech rate to control voice ATIS speed. 180 WPM (words per minute) is the default. Lower values slow down speech, while higher values speed it up.</x:String>
 	</UserControl.Resources>
 	<StackPanel Spacing="8">
 		<StackPanel>
@@ -23,7 +25,7 @@
 						<Interaction.Behaviors>
 							<behaviors:VhfFrequencyFormatBehavior/>
 							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>										
+						</Interaction.Behaviors>
 					</TextBox>
 				</StackPanel>
 			</Border>
@@ -114,6 +116,10 @@
 						<ComboBox Width="280" Classes="Dark" HorizontalAlignment="Stretch" ItemsSource="{Binding AvailableVoices, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding TextToSpeechVoice, DataType=vm:GeneralConfigViewModel}" DisplayMemberBinding="{Binding Name, DataType=tts:VoiceMetaData}" SelectedValueBinding="{Binding Name, DataType=tts:VoiceMetaData}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
 						<RadioButton Theme="{StaticResource RadioButton}" Content="Voice Recorded" IsChecked="{Binding !UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
 					</StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="13">
+                        <TextBlock VerticalAlignment="Center" ToolTip.Tip="{StaticResource SpeechRateTooltip}">Speech Rate (WPM):</TextBlock>
+                        <ComboBox Width="100" Classes="Dark" ItemsSource="{Binding SpeechRates, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding SelectedSpeechRate, DataType=vm:GeneralConfigViewModel}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" ToolTip.Tip="{StaticResource SpeechRateTooltip}"/>
+                    </StackPanel>
 					<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
 				</StackPanel>
 			</Border>

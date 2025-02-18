@@ -26,6 +26,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// </summary>
 public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
+    private static readonly int[] s_allowedSpeechRates = [120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
     private readonly CompositeDisposable _disposables = [];
     private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
@@ -44,6 +45,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     private string? _idsEndpoint;
     private ObservableCollection<VoiceMetaData>? _availableVoices;
     private bool _showDuplicateAtisTypeError;
+    private int _selectedSpeechRate;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GeneralConfigViewModel"/> class.
@@ -248,6 +250,27 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets the available speech rate multipliers.
+    /// </summary>
+    public ObservableCollection<int> SpeechRates { get; } = new(s_allowedSpeechRates);
+
+    /// <summary>
+    /// Gets or sets the selected speech rate multiplier.
+    /// </summary>
+    public int SelectedSpeechRate
+    {
+        get => _selectedSpeechRate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedSpeechRate, value);
+            if (!_initializedProperties.Add(nameof(SelectedSpeechRate)))
+            {
+                HasUnsavedChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to show duplicate ATIS type error.
     /// </summary>
     public bool ShowDuplicateAtisTypeError
@@ -374,6 +397,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisVoice.Voice = TextToSpeechVoice;
         }
 
+        if (SelectedStation.AtisVoice.SpeechRate != SelectedSpeechRate)
+        {
+            SelectedStation.AtisVoice.SpeechRate =
+                s_allowedSpeechRates.Contains(SelectedSpeechRate) ? SelectedSpeechRate : 180;
+        }
+
         if (HasErrors || ShowDuplicateAtisTypeError)
         {
             return false;
@@ -409,6 +438,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         IdsEndpoint = station.IdsEndpoint;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
         TextToSpeechVoice = station.AtisVoice.Voice;
+
+        // Ensure speech rate is a valid value.
+        SelectedSpeechRate = s_allowedSpeechRates.Contains(station.AtisVoice.SpeechRate)
+            ? station.AtisVoice.SpeechRate
+            : 180; // Fallback to default speech rate value.
 
         HasUnsavedChanges = false;
     }

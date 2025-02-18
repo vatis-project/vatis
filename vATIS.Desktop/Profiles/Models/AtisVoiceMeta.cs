@@ -21,6 +21,11 @@ public class AtisVoiceMeta
     public string? Voice { get; set; } = "Default";
 
     /// <summary>
+    /// Gets or sets the speech rate multiplier.
+    /// </summary>
+    public int SpeechRate { get; set; } = 180;
+
+    /// <summary>
     /// Creates a new instance of <see cref="AtisVoiceMeta"/> that is a copy of the current instance.
     /// </summary>
     /// <returns>A new <see cref="AtisVoiceMeta"/> instance that is a copy of this instance.</returns>
@@ -30,6 +35,7 @@ public class AtisVoiceMeta
         {
             UseTextToSpeech = UseTextToSpeech,
             Voice = Voice,
+            SpeechRate = SpeechRate
         };
     }
 }
