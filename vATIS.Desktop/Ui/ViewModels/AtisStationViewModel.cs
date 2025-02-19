@@ -1481,6 +1481,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     : AirportConditionsTextDocument.Text[readonlySegment.Length..];
             }
         }
+        else
+        {
+            _previousFreeTextAirportConditions = "";
+        }
 
         ReadOnlyAirportConditions.Clear();
         AirportConditionsTextDocument.Text = "";

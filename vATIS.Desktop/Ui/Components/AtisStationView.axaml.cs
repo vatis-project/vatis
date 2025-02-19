@@ -7,11 +7,9 @@ using System;
 using System.Reactive.Linq;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
-using AvaloniaEdit.Rendering;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Networking;
@@ -94,22 +92,35 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             }
         };
 
-        AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
-        {
-            if (ViewModel?.ReadOnlyAirportConditions == null)
-                return;
+        AirportConditions.TextChanged += (_, _) => AirportConditionsCaretPosition();
+        AirportConditions.TextArea.Caret.PositionChanged += (_, _) => AirportConditionsCaretPosition();
+        AirportConditions.TextArea.GotFocus += (_, _) => AirportConditionsCaretPosition();
+    }
 
-            foreach (var segment in ViewModel.ReadOnlyAirportConditions)
+    private void AirportConditionsCaretPosition()
+    {
+        if (ViewModel?.ReadOnlyAirportConditions == null)
+            return;
+
+        foreach (var segment in ViewModel.ReadOnlyAirportConditions)
+        {
+            // If caret is within or at the start of a read-only segment
+            if (AirportConditions.CaretOffset >= segment.StartOffset && AirportConditions.CaretOffset <= segment.EndOffset)
             {
-                // If caret is within or at the start of a read-only segment
-                if (AirportConditions.CaretOffset >= segment.StartOffset && AirportConditions.CaretOffset <= segment.EndOffset)
+                if (ViewModel.AtisStation.AirportConditionsBeforeFreeText)
                 {
                     // Move caret to the end of the read-only segment
                     AirportConditions.CaretOffset = segment.EndOffset;
-                    break;
                 }
+                else
+                {
+                    // Move caret to the beginning of the read-only segment
+                    AirportConditions.CaretOffset = segment.StartOffset;
+                }
+
+                break;
             }
-        };
+        }
     }
 
     private async void AtisLetterOnDoubleTapped(object? sender, TappedEventArgs e)
