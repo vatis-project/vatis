@@ -1457,7 +1457,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             // Insert free-text after static definitions
             if (!string.IsNullOrEmpty(_previousFreeTextNotams))
             {
-                NotamsTextDocument.Insert(_notamFreeTextOffset, _previousFreeTextNotams.TrimEnd());
+                NotamsTextDocument.Insert(_notamFreeTextOffset, _previousFreeTextNotams.Trim());
             }
             else if (!string.IsNullOrEmpty(SelectedAtisPreset.Notams))
             {
@@ -1468,13 +1468,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             if (!string.IsNullOrEmpty(_previousFreeTextNotams))
             {
-                NotamsTextDocument.Insert(0, _previousFreeTextNotams + " ");
-                _notamFreeTextOffset = _previousFreeTextNotams.Length + 1;
+                NotamsTextDocument.Insert(0, _previousFreeTextNotams.Trim() + " ");
+                _notamFreeTextOffset = _previousFreeTextNotams.Trim().Length + 1;
             }
             else if (!string.IsNullOrEmpty(SelectedAtisPreset.Notams))
             {
-                NotamsTextDocument.Insert(0, SelectedAtisPreset.Notams + " ");
-                _notamFreeTextOffset = SelectedAtisPreset.Notams.Length + 1;
+                NotamsTextDocument.Insert(0, SelectedAtisPreset.Notams.Trim() + " ");
+                _notamFreeTextOffset = SelectedAtisPreset.Notams.Trim().Length + 1;
             }
 
             // Insert static definitions after free-text
@@ -1544,25 +1544,24 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             // Insert free-text after static definitions
             if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
             {
-                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, _previousFreeTextAirportConditions.TrimEnd());
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, _previousFreeTextAirportConditions.Trim());
             }
             else if (!string.IsNullOrEmpty(SelectedAtisPreset.AirportConditions))
             {
-                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
-                    SelectedAtisPreset.AirportConditions);
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, SelectedAtisPreset.AirportConditions);
             }
         }
         else
         {
             if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
             {
-                AirportConditionsTextDocument.Insert(0, _previousFreeTextAirportConditions + " ");
-                _airportConditionsFreeTextOffset = _previousFreeTextAirportConditions.Length + 1;
+                AirportConditionsTextDocument.Insert(0, _previousFreeTextAirportConditions.Trim() + " ");
+                _airportConditionsFreeTextOffset = _previousFreeTextAirportConditions.Trim().Length + 1;
             }
             else if (!string.IsNullOrEmpty(SelectedAtisPreset.AirportConditions))
             {
-                AirportConditionsTextDocument.Insert(0, SelectedAtisPreset.AirportConditions + " ");
-                _airportConditionsFreeTextOffset = SelectedAtisPreset.AirportConditions.Length + 1;
+                AirportConditionsTextDocument.Insert(0, SelectedAtisPreset.AirportConditions.Trim() + " ");
+                _airportConditionsFreeTextOffset = SelectedAtisPreset.AirportConditions.Trim().Length + 1;
             }
 
             // Insert static definitions after free-text
