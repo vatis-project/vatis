@@ -664,7 +664,18 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        SelectedAtisPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
+        var freeText = "";
+
+        var readonlySegment = ReadOnlyNotams.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? NotamsTextDocument?.Text[..readonlySegment.StartOffset]
+                : NotamsTextDocument?.Text[readonlySegment.Length..];
+        }
+
+        SelectedAtisPreset.Notams = string.IsNullOrEmpty(freeText) ? NotamsTextDocument?.Text.Trim() : freeText.Trim();
+
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
 
@@ -1398,63 +1409,84 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (NotamsTextDocument == null || SelectedAtisPreset == null)
             return;
 
-        // Clear the list of read-only NOTAM text segments.
-        ReadOnlyNotams.Clear();
-
-        // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
+        // Retrieve and sort enabled NOTAMs by their ordinal value.
         var staticDefinitions = AtisStation.NotamDefinitions
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
 
+        // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
         {
-            // The preset wasn't changed, so restore any unsaved free-text.
-            _previousFreeTextNotams = NotamsTextDocument.Text[_notamFreeTextOffset..];
-        }
-
-        // Start with an empty document.
-        NotamsTextDocument.Text = "";
-
-        // Reset offset
-        _notamFreeTextOffset = 0;
-
-        // If static NOTAM definitions exist, insert them into the document.
-        if (staticDefinitions.Count > 0)
-        {
-            // Combine static NOTAM definitions into a single string, separated by periods.
-            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
-
-            // Insert static NOTAM definitions at the beginning of the document.
-            NotamsTextDocument.Insert(0, staticDefinitionsString);
-
-            // Add the static NOTAM range to the read-only list to prevent modification.
-            ReadOnlyNotams.Add(new TextSegment
+            var readonlySegment = ReadOnlyNotams.FirstSegment;
+            if (readonlySegment != null)
             {
-                StartOffset = 0,
-                EndOffset = staticDefinitionsString.Length
-            });
-
-            // Update the starting index for the next insertion.
-            _notamFreeTextOffset = staticDefinitionsString.Length;
-        }
-
-        // Always append the free-form NOTAM text after any predefined content.
-        if (presetChanged)
-        {
-            // If the preset was changed, insert the saved NOTAMs
-            // but exclude any unsaved user-entered free text.
-            if (!string.IsNullOrEmpty(SelectedAtisPreset?.Notams))
-            {
-                NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset?.Notams);
+                _previousFreeTextNotams = readonlySegment.StartOffset > 0
+                    ? NotamsTextDocument.Text[..readonlySegment.StartOffset]
+                    : NotamsTextDocument.Text[readonlySegment.Length..];
             }
         }
         else
         {
-            // When closing the dialog, restore the user's previously entered free text.
+            _previousFreeTextNotams = "";
+        }
+
+        ReadOnlyNotams.Clear();
+        NotamsTextDocument.Text = "";
+        _notamFreeTextOffset = 0;
+
+        var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+        // Insert static definitions before free-text
+        if (AtisStation.NotamsBeforeFreeText)
+        {
+            if (staticDefinitions.Count > 0)
+            {
+                // Insert static definitions
+                NotamsTextDocument.Insert(0, staticDefinitionsString);
+
+                // Mark static definitions segment as readonly
+                ReadOnlyNotams.Add(new TextSegment
+                {
+                    StartOffset = 0, Length = staticDefinitionsString.Length
+                });
+
+                _notamFreeTextOffset = staticDefinitionsString.Length;
+            }
+
+            // Insert free-text after static definitions
             if (!string.IsNullOrEmpty(_previousFreeTextNotams))
             {
-                NotamsTextDocument.Insert(_notamFreeTextOffset, _previousFreeTextNotams);
+                NotamsTextDocument.Insert(_notamFreeTextOffset, _previousFreeTextNotams.TrimEnd());
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.Notams))
+            {
+                NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset.Notams);
+            }
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(_previousFreeTextNotams))
+            {
+                NotamsTextDocument.Insert(0, _previousFreeTextNotams + " ");
+                _notamFreeTextOffset = _previousFreeTextNotams.Length + 1;
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.Notams))
+            {
+                NotamsTextDocument.Insert(0, SelectedAtisPreset.Notams + " ");
+                _notamFreeTextOffset = SelectedAtisPreset.Notams.Length + 1;
+            }
+
+            // Insert static definitions after free-text
+            if (staticDefinitions.Count > 0)
+            {
+                NotamsTextDocument.Insert(_notamFreeTextOffset, staticDefinitionsString);
+
+                // Mark static definitions segment as readonly
+                ReadOnlyNotams.Add(new TextSegment
+                {
+                    StartOffset = _notamFreeTextOffset, Length = staticDefinitionsString.Length
+                });
             }
         }
     }

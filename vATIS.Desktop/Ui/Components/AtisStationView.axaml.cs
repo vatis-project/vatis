@@ -61,11 +61,11 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             AirportConditions.TextArea.ReadOnlySectionProvider =
                 new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyAirportConditions);
-            NotamFreeText.TextArea.ReadOnlySectionProvider =
+            NotamText.TextArea.ReadOnlySectionProvider =
                 new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyNotams);
             AirportConditions.TextArea.TextView.LineTransformers.Add(
                 new ReadOnlySegmentTransformer(ViewModel.ReadOnlyAirportConditions));
-            NotamFreeText.TextArea.TextView.LineTransformers.Add(
+            NotamText.TextArea.TextView.LineTransformers.Add(
                 new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
         }
     }
@@ -75,26 +75,39 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (ViewModel == null)
             return;
 
-        NotamFreeText.TextArea.Caret.PositionChanged += (_, _) =>
-        {
-            if (ViewModel?.ReadOnlyNotams == null)
-                return;
-
-            foreach (var segment in ViewModel.ReadOnlyNotams)
-            {
-                // If caret is within or at the start of a read-only segment
-                if (NotamFreeText.CaretOffset >= segment.StartOffset && NotamFreeText.CaretOffset <= segment.EndOffset)
-                {
-                    // Move caret to the end of the read-only segment
-                    NotamFreeText.CaretOffset = segment.EndOffset;
-                    break;
-                }
-            }
-        };
+        NotamText.TextChanged += (_, _) => NotamsCaretPosition();
+        NotamText.TextArea.Caret.PositionChanged += (_, _) => NotamsCaretPosition();
+        NotamText.TextArea.GotFocus += (_, _) => NotamsCaretPosition();
 
         AirportConditions.TextChanged += (_, _) => AirportConditionsCaretPosition();
         AirportConditions.TextArea.Caret.PositionChanged += (_, _) => AirportConditionsCaretPosition();
         AirportConditions.TextArea.GotFocus += (_, _) => AirportConditionsCaretPosition();
+    }
+
+    private void NotamsCaretPosition()
+    {
+        if (ViewModel?.ReadOnlyNotams == null)
+            return;
+
+        foreach (var segment in ViewModel.ReadOnlyNotams)
+        {
+            // If caret is within or at the start of a read-only segment
+            if (NotamText.CaretOffset >= segment.StartOffset && NotamText.CaretOffset <= segment.EndOffset)
+            {
+                if (ViewModel.AtisStation.NotamsBeforeFreeText)
+                {
+                    // Move caret to the end of the read-only segment
+                    NotamText.CaretOffset = segment.EndOffset;
+                }
+                else
+                {
+                    // Move caret to the beginning of the read-only segment
+                    NotamText.CaretOffset = segment.StartOffset;
+                }
+
+                break;
+            }
+        }
     }
 
     private void AirportConditionsCaretPosition()
@@ -249,12 +262,12 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         _airportConditionsInitialized = true;
     }
 
-    private void NotamFreeText_OnTextChanged(object? sender, EventArgs e)
+    private void NotamText_OnTextChanged(object? sender, EventArgs e)
     {
         if (ViewModel?.SelectedAtisPreset == null)
             return;
 
-        if (!NotamFreeText.TextArea.IsFocused)
+        if (!NotamText.TextArea.IsFocused)
             return;
 
         if (_notamsInitialized)
