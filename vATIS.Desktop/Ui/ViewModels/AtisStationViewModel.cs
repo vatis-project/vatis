@@ -672,7 +672,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        SelectedAtisPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
+        var freeText = "";
+
+        var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? AirportConditionsTextDocument?.Text[..readonlySegment.StartOffset]
+                : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
+        }
+
+        SelectedAtisPreset.AirportConditions =
+            string.IsNullOrEmpty(freeText) ? AirportConditionsTextDocument?.Text.Trim() : freeText.Trim();
+
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
 
@@ -1448,66 +1460,81 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (AirportConditionsTextDocument == null || SelectedAtisPreset == null)
             return;
 
-        // Clear the list of read-only NOTAM text segments.
-        ReadOnlyAirportConditions.Clear();
-
         // Retrieve and sort enabled static airport conditions by their ordinal value.
         var staticDefinitions = _atisStation.AirportConditionDefinitions
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
 
+        // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
         {
-            // The preset wasn't changed, so restore any unsaved free-text.
-            _previousFreeTextAirportConditions = AirportConditionsTextDocument.Text[_airportConditionsFreeTextOffset..];
+            var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
+            if (readonlySegment != null)
+            {
+                _previousFreeTextAirportConditions = readonlySegment.StartOffset > 0
+                    ? AirportConditionsTextDocument.Text[..readonlySegment.StartOffset]
+                    : AirportConditionsTextDocument.Text[readonlySegment.Length..];
+            }
         }
 
-        // Start with an empty document.
+        ReadOnlyAirportConditions.Clear();
         AirportConditionsTextDocument.Text = "";
-
-        // Reset offset
         _airportConditionsFreeTextOffset = 0;
 
-        // If static airport conditions exist, insert them into the document.
-        if (staticDefinitions.Count > 0)
+        var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+
+        // Insert static definitions before free-text
+        if (_atisStation.AirportConditionsBeforeFreeText)
         {
-            // Combine static airport conditions into a single string, separated by periods.
-            // A trailing space is added to ensure proper spacing between the static definitions
-            // and the subsequent free-form text.
-            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
-
-            // Insert static airport conditions at the beginning of the document.
-            AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
-
-            // Add the static airport conditions to the read-only list to prevent modification.
-            ReadOnlyAirportConditions.Add(new TextSegment
+            if (staticDefinitions.Count > 0)
             {
-                StartOffset = 0,
-                EndOffset = staticDefinitionsString.Length
-            });
+                // Insert static definitions
+                AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
 
-            // Update the starting index for the next insertion.
-            _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
-        }
+                // Mark static definitions segment as readonly
+                ReadOnlyAirportConditions.Add(new TextSegment
+                {
+                    StartOffset = 0, Length = staticDefinitionsString.Length
+                });
 
-        // Always append the free-form NOTAM text after any static content.
-        if (presetChanged)
-        {
-            // If the selected preset was changed, insert the saved airport conditions
-            // but exclude any unsaved user-entered free text.
-            if (!string.IsNullOrEmpty(SelectedAtisPreset?.AirportConditions))
+                _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
+            }
+
+            // Insert free-text after static definitions
+            if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
+            {
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, _previousFreeTextAirportConditions.TrimEnd());
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.AirportConditions))
             {
                 AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
-                    SelectedAtisPreset?.AirportConditions);
+                    SelectedAtisPreset.AirportConditions);
             }
         }
         else
         {
-            // When closing the dialog, restore the user's previously entered free text.
             if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
             {
-                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, _previousFreeTextAirportConditions);
+                AirportConditionsTextDocument.Insert(0, _previousFreeTextAirportConditions + " ");
+                _airportConditionsFreeTextOffset = _previousFreeTextAirportConditions.Length + 1;
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.AirportConditions))
+            {
+                AirportConditionsTextDocument.Insert(0, SelectedAtisPreset.AirportConditions + " ");
+                _airportConditionsFreeTextOffset = SelectedAtisPreset.AirportConditions.Length + 1;
+            }
+
+            // Insert static definitions after free-text
+            if (staticDefinitions.Count > 0)
+            {
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, staticDefinitionsString);
+
+                // Mark static definitions segment as readonly
+                ReadOnlyAirportConditions.Add(new TextSegment
+                {
+                    StartOffset = _airportConditionsFreeTextOffset, Length = staticDefinitionsString.Length
+                });
             }
         }
     }
