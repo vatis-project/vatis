@@ -1435,7 +1435,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         NotamsTextDocument.Text = "";
         _notamFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
 
         // Insert static definitions before free-text
         if (AtisStation.NotamsBeforeFreeText)
@@ -1522,7 +1522,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         AirportConditionsTextDocument.Text = "";
         _airportConditionsFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
 
         // Insert static definitions before free-text
         if (AtisStation.AirportConditionsBeforeFreeText)

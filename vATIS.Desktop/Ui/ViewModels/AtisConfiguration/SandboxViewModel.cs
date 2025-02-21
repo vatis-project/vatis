@@ -637,7 +637,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         // Reset offset
         _notamFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
 
         // Insert static definitions before free-text
         if (SelectedStation.NotamsBeforeFreeText)
@@ -732,7 +732,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         // Reset offset
         _airportConditionsFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
+        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
 
         // Insert static definitions before free-text
         if (SelectedStation.AirportConditionsBeforeFreeText)
