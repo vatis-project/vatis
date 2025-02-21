@@ -56,9 +56,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     private bool _hasUnsavedNotams;
     private TextDocument? _airportConditionsTextDocument = new();
     private TextDocument? _notamsTextDocument = new();
+    private TextDocument _textAtisTextDocument = new();
+    private TextDocument _voiceAtisTextDocument = new();
     private List<ICompletionData> _contractionCompletionData = [];
-    private string? _sandboxTextAtis;
-    private string? _sandboxSpokenTextAtis;
     private bool _isSandboxPlaybackActive;
     private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceResponse;
     private string? _previousFreeTextNotams;
@@ -255,6 +255,24 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the text ATIS text document.
+    /// </summary>
+    public TextDocument TextAtisTextDocument
+    {
+        get => _textAtisTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _textAtisTextDocument, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text ATIS text document.
+    /// </summary>
+    public TextDocument VoiceAtisTextDocument
+    {
+        get => _voiceAtisTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _voiceAtisTextDocument, value);
+    }
+
+    /// <summary>
     /// Gets or sets the collection of read-only airport condition text segments.
     /// </summary>
     public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
@@ -271,24 +289,6 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _contractionCompletionData;
         set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the sandbox text ATIS.
-    /// </summary>
-    public string? SandboxTextAtis
-    {
-        get => _sandboxTextAtis;
-        set => this.RaiseAndSetIfChanged(ref _sandboxTextAtis, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the sandbox spoken text ATIS.
-    /// </summary>
-    public string? SandboxSpokenTextAtis
-    {
-        get => _sandboxSpokenTextAtis;
-        set => this.RaiseAndSetIfChanged(ref _sandboxSpokenTextAtis, value);
     }
 
     /// <summary>
@@ -344,8 +344,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         SandboxMetar = "";
         HasUnsavedAirportConditions = false;
         HasUnsavedNotams = false;
-        SandboxTextAtis = "";
-        SandboxSpokenTextAtis = "";
+        TextAtisTextDocument.Text = "";
+        VoiceAtisTextDocument.Text = "";
         IsSandboxPlaybackActive = false;
         NativeAudio.StopBufferPlayback();
         LoadContractionData();
@@ -389,8 +389,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             _cancellationToken.Dispose();
             _cancellationToken = new CancellationTokenSource();
 
-            SandboxTextAtis = "Loading...";
-            SandboxSpokenTextAtis = "Loading...";
+            TextAtisTextDocument.Text = "Loading...";
+            VoiceAtisTextDocument.Text = "Loading...";
 
             var randomLetter =
                 (char)_random.Next(SelectedStation.CodeRange.Low + SelectedStation.CodeRange.High + 1);
@@ -406,18 +406,19 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
                 var decodedMetar = _metarDecoder.ParseNotStrict(SandboxMetar);
                 var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, SelectedPreset, randomLetter,
                     decodedMetar, _cancellationToken.Token);
-                AtisBuilderVoiceResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
+                AtisBuilderVoiceResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset,
+                    randomLetter,
                     decodedMetar, _cancellationToken.Token, true);
-                SandboxTextAtis = textAtis?.ToUpperInvariant();
-                SandboxSpokenTextAtis = AtisBuilderVoiceResponse.SpokenText?.ToUpperInvariant();
+                TextAtisTextDocument.Text = textAtis?.ToUpperInvariant() ?? "";
+                VoiceAtisTextDocument.Text = AtisBuilderVoiceResponse.SpokenText?.ToUpperInvariant() ?? "";
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to refresh sandbox ATIS for station {StationId} {Identifier} with preset {PresetId}",
                 SelectedStation?.Id, SelectedStation?.Identifier, SelectedPreset?.Id);
-            SandboxTextAtis = "Error: " + ex.Message;
-            SandboxSpokenTextAtis = "Error: " + ex.Message;
+            TextAtisTextDocument.Text = "Error: " + ex.Message;
+            VoiceAtisTextDocument.Text = "";
         }
     }
 
