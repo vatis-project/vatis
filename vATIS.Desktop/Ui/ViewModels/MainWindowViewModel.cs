@@ -250,7 +250,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the command to end the current client session.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> EndClientSessionCommand { get; }
+    public ReactiveCommand<Unit, bool> EndClientSessionCommand { get; }
 
     /// <summary>
     /// Gets the command to invoke the compact view mode.
@@ -426,12 +426,12 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private async Task EndClientSession()
+    private async Task<bool> EndClientSession()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             if (lifetime.MainWindow == null)
-                return;
+                return true;
 
             if (AtisStations.Any(x => x.NetworkConnectionStatus == NetworkConnectionStatus.Connected))
             {
@@ -439,11 +439,13 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                         "You still have active ATIS connections. Are you sure you want to exit?", "Confirm",
                         MessageBoxButton.YesNo, MessageBoxIcon.Warning) == MessageBoxResult.No)
                 {
-                    return;
+                    return false;
                 }
             }
 
             _sessionManager.EndSession();
         }
+
+        return true;
     }
 }
