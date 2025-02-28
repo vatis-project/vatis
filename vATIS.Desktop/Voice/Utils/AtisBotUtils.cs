@@ -32,7 +32,7 @@ public static class AtisBotUtils
     /// <param name="lonDeg">The longitude in degrees where the bot is located.</param>
     /// <param name="altM">The altitude in meters for the bot's position.</param>
     /// <returns>A new instance of the <see cref="PutBotRequestDto"/> containing the bot setup data.</returns>
-    public static PutBotRequestDto AddBotRequest(byte[] audioData, uint frequency, double latDeg, double lonDeg,
+    public static PutBotRequestDto CreateAtisBotDto(byte[] audioData, uint frequency, double latDeg, double lonDeg,
         double altM)
     {
         var audioBuffer = ConvertBytesTo16BitPcm(audioData);
