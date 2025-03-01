@@ -1,8 +1,6 @@
 #ifndef AUDIO_CONTEXT_H
 #define AUDIO_CONTEXT_H
 
-#define MINIAUDIO_IMPLEMENTATION
-
 #include "miniaudio.h"
 #include "sound_type.h"
 
