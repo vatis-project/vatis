@@ -61,29 +61,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         try
         {
-            if (e.IsProgrammatic)
-            {
+            // Check if the window close request was triggered by the user (e.g., ALT+F4 or similar)
+            if (ViewModel is null || e.IsProgrammatic)
                 return;
-            }
 
-            e.Cancel = true; // Prevent the window from closing immediately
+            e.Cancel = true;
 
-            if (ViewModel?.EndClientSessionCommand != null)
+            var shouldClose = await ViewModel.EndClientSessionCommand.Execute().FirstAsync();
+            if (shouldClose)
             {
-                var shouldClose = await ViewModel.EndClientSessionCommand.Execute().FirstAsync();
-                if (shouldClose)
-                {
-                    e.Cancel = false; // Allow the window to close
-                }
-            }
-            else
-            {
-                e.Cancel = false; // No command available, allow closing
+                e.Cancel = false;
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "OnClosing Error");
+            Log.Error(ex, "OnClosing Exception");
         }
     }
 

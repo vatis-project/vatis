@@ -4,7 +4,6 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,9 +67,6 @@ public class VoiceServerConnection : IVoiceServerConnection
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (Debugger.IsAttached)
-            return;
-
         try
         {
             if (_jwtToken == null)
@@ -98,9 +94,6 @@ public class VoiceServerConnection : IVoiceServerConnection
     /// <inheritdoc />
     public async Task RemoveBot(string callsign, CancellationToken? cancellationToken = null)
     {
-        if (Debugger.IsAttached)
-            return;
-
         if (_jwtToken == null)
             return;
 
