@@ -33,3 +33,6 @@ This application relies on the following third-party libraries:
 
 - **[MetarDecoder](https://github.com/afonsoft/metar-decoder)**  
   Licensed under the [GPLv3 License](licenses/GPL-v3.txt).
+
+- **[MiniAudio](https://github.com/mackron/miniaudio)**  
+  Licensed under the [MIT License](licenses/MiniAudio-License.txt).
