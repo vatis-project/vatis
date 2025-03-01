@@ -23,7 +23,7 @@
 			<StackPanel Orientation="Vertical">
 				<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
 					<Grid ColumnDefinitions="1*,1*">
-						<TextBlock Text="Sort Presets" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
+						<TextBlock Text="Sort ATIS Stations" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
 						<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CloseWindowCommand, DataType=vm:SortAtisStationsDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
 					</Grid>
 				</Border>
