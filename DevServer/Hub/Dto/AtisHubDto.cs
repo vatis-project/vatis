@@ -13,6 +13,11 @@ namespace DevServer.Hub.Dto;
 public class AtisHubDto
 {
     /// <summary>
+    /// Gets or sets a value indicating whether the ATIS is currently online.
+    /// </summary>
+    public bool IsOnline { get; set; }
+
+    /// <summary>
     /// Gets or sets the station identifier.
     /// </summary>
     public string? StationId { get; set; }

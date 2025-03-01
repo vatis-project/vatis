@@ -80,6 +80,8 @@ public class ClientHub : Hub<IClientHub>
     {
         var key = $"{hubDto.StationId}_{hubDto.AtisType}";
 
+        hubDto.IsOnline = true;
+
         var serverDto = new ServerDto
         {
             ConnectionId = Context.ConnectionId,
@@ -95,5 +97,37 @@ public class ClientHub : Hub<IClientHub>
         }
 
         await Clients.Others.AtisReceived([hubDto]);
+    }
+
+    /// <summary>
+    /// Disconnects an ATIS from the hub.
+    /// </summary>
+    /// <param name="dto">The dto representing the ATIS to disconnect.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task DisconnectAtis(AtisHubDto dto)
+    {
+        var key = $"{dto.StationId}_{dto.AtisType}";
+
+        var serverDto = new ServerDto
+        {
+            ConnectionId = Context.ConnectionId,
+            Dto = new AtisHubDto
+            {
+                StationId = dto.StationId,
+                AtisLetter = dto.AtisLetter,
+                AtisType = dto.AtisType,
+                IsOnline = false
+            },
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        lock (s_syncLock)
+        {
+            _cacheService.CacheAtis(key, serverDto);
+        }
+
+        await Clients.All.RemoveAtisReceived(dto);
+
+        Log.Debug($"DisconnectAtis: [{Context.ConnectionId}] {key}");
     }
 }
