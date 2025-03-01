@@ -22,6 +22,7 @@ using DynamicData.Binding;
 using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveUI;
 using Serilog;
+using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -43,6 +44,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     private readonly IWindowFactory _windowFactory;
     private readonly IWindowLocationService _windowLocationService;
     private readonly IProfileRepository _profileRepository;
+    private readonly IAppConfig _appConfig;
     private readonly SourceList<ProfileViewModel> _profileList = new();
     private IDialogOwner? _dialogOwner;
     private string _previousUserValue = "";
@@ -56,15 +58,18 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="windowFactory">Factory for creating application windows.</param>
     /// <param name="windowLocationService">Service for managing window locations.</param>
     /// <param name="profileRepository">Repository for managing user profiles.</param>
+    /// <param name="appConfig">The application configuration.</param>
     public ProfileListViewModel(ISessionManager sessionManager,
         IWindowFactory windowFactory,
         IWindowLocationService windowLocationService,
-        IProfileRepository profileRepository)
+        IProfileRepository profileRepository,
+        IAppConfig appConfig)
     {
         _sessionManager = sessionManager;
         _windowFactory = windowFactory;
         _windowLocationService = windowLocationService;
         _profileRepository = profileRepository;
+        _appConfig = appConfig;
 
         var version = Assembly.GetEntryAssembly()
             ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
@@ -81,7 +86,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         DeleteProfileCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleDeleteProfile, canExecute);
         StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession, canExecute);
         ExitCommand = ReactiveCommand.Create(HandleExit);
-        OpenReleaseNotesCommand = ReactiveCommand.Create(HandleOpenReleaseNotes);
+        OpenReleaseNotesCommand = ReactiveCommand.CreateFromTask(HandleOpenReleaseNotes);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
@@ -398,7 +403,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void HandleOpenReleaseNotes()
+    private async Task HandleOpenReleaseNotes()
     {
         if (_dialogOwner == null)
             return;
@@ -408,23 +413,24 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
             var locator = VelopackLocator.GetDefault(NullLogger.Instance);
             var currentRelease = locator.GetLocalPackages()
                 .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
-            var releaseNotes = currentRelease?.NotesMarkdown;
-
-            if (string.IsNullOrEmpty(releaseNotes))
-                return;
-
-            var dialog = _windowFactory.CreateReleaseNotesDialog();
-
-            if (dialog.ViewModel != null)
+            if (currentRelease?.NotesMarkdown != null)
             {
-                dialog.ViewModel.ReleaseNotes = releaseNotes;
+                var releaseNotes = _windowFactory.CreateReleaseNotesDialog();
+                if (releaseNotes.ViewModel != null)
+                {
+                    releaseNotes.ViewModel.SuppressReleaseNotes = _appConfig.SuppressReleaseNotes;
+                    releaseNotes.ViewModel.ReleaseNotes = currentRelease.NotesMarkdown;
+                    if (await releaseNotes.ShowDialog<DialogResult>((Window)_dialogOwner) == DialogResult.Ok)
+                    {
+                        _appConfig.SuppressReleaseNotes = releaseNotes.ViewModel.SuppressReleaseNotes;
+                        _appConfig.SaveConfig();
+                    }
+                }
             }
-
-            dialog.ShowDialog((Window)_dialogOwner);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error opening release notes");
+            Log.Error(ex, "Error showing release notes.");
         }
     }
 }

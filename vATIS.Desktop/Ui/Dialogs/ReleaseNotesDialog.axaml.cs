@@ -12,7 +12,7 @@ namespace Vatsim.Vatis.Ui.Dialogs;
 /// <summary>
 /// Represents a dialog that displays the release notes for the installed version.
 /// </summary>
-public partial class ReleaseNotesDialog : ReactiveWindow<ReleaseNotesDialogViewModel>
+public partial class ReleaseNotesDialog : ReactiveWindow<ReleaseNotesDialogViewModel>, ICloseable
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
@@ -34,6 +34,6 @@ public partial class ReleaseNotesDialog : ReactiveWindow<ReleaseNotesDialogViewM
 
     private void CloseWindow(object? sender, RoutedEventArgs e)
     {
-        Close();
+        Close(DialogResult.Ok);
     }
 }

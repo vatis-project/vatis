@@ -62,6 +62,9 @@ public class AppConfig : IAppConfig
     public bool AutoFetchAtisLetter { get; set; }
 
     /// <inheritdoc />
+    public bool SuppressReleaseNotes { get; set; }
+
+    /// <inheritdoc />
     [JsonIgnore]
     public string PasswordDecrypted
     {
@@ -101,6 +104,7 @@ public class AppConfig : IAppConfig
             MicrophoneDevice = config.MicrophoneDevice;
             PlaybackDevice = config.PlaybackDevice;
             AutoFetchAtisLetter = config.AutoFetchAtisLetter;
+            SuppressReleaseNotes = config.SuppressReleaseNotes;
         }
 
         SaveConfig();
