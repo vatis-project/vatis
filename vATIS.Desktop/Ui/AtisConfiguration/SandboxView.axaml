@@ -65,12 +65,20 @@
 		<Grid ColumnDefinitions="50*,10,50*" RowDefinitions="*,*">
 			<StackPanel Grid.Column="0" Orientation="Vertical" Spacing="5">
 				<TextBlock Text="Text ATIS:"/>
-				<TextBox Text="{Binding SandboxTextAtis, DataType=vm:SandboxViewModel}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Height="110" Theme="{StaticResource DarkTextBox}" FontFamily="{StaticResource Monospace}"/>
+                <editor:TextEditor Height="110" Padding="4" Document="{Binding TextAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
+                    <editor:TextEditor.Options>
+                        <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
+                    </editor:TextEditor.Options>
+                </editor:TextEditor>
 			</StackPanel>
 			<Button Grid.Column="0" Grid.Row="1" Margin="0,10,0,0" HorizontalAlignment="Stretch" Theme="{StaticResource Dark}" Content="Refresh ATIS" Command="{Binding RefreshSandboxAtisCommand, DataType=vm:SandboxViewModel}"/>
 			<StackPanel Grid.Column="2" Grid.Row="0" Orientation="Vertical" Spacing="5">
 				<TextBlock Text="Voice ATIS:"/>
-				<TextBox Text="{Binding SandboxSpokenTextAtis, DataType=vm:SandboxViewModel}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Height="110" Theme="{StaticResource DarkTextBox}" FontFamily="{StaticResource Monospace}"/>
+                <editor:TextEditor Height="110" Padding="4" Document="{Binding VoiceAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
+                    <editor:TextEditor.Options>
+                        <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
+                    </editor:TextEditor.Options>
+                </editor:TextEditor>
 			</StackPanel>
 			<Button Grid.Row="1" Grid.Column="2" Margin="0,10,0,0" Theme="{StaticResource Dark}" Command="{Binding PlaySandboxAtisCommand, DataType=vm:SandboxViewModel}" Content="{Binding IsSandboxPlaybackActive, DataType=vm:SandboxViewModel, Converter={StaticResource ButtonLabelConverter}, FallbackValue=Listen}"/>
 		</Grid>

@@ -54,7 +54,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly IAppConfig _appConfig;
     private readonly IProfileRepository _profileRepository;
     private readonly IAtisBuilder _atisBuilder;
-    private readonly AtisStation _atisStation;
     private readonly IWindowFactory _windowFactory;
     private readonly INetworkConnection? _networkConnection;
     private readonly IVoiceServerConnection? _voiceServerConnection;
@@ -140,7 +139,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         Id = station.Id;
         Identifier = station.Identifier;
         Ordinal = station.Ordinal;
-        _atisStation = station;
+        AtisStation = station;
         _appConfig = appConfig;
         _atisBuilder = atisBuilder;
         _windowFactory = windowFactory;
@@ -152,7 +151,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _atisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
 
-        _atisLetter = _atisStation.CodeRange.Low;
+        _atisLetter = AtisStation.CodeRange.Low;
 
         ReadOnlyAirportConditions = new TextSegmentCollection<TextSegment>(AirportConditionsTextDocument);
         ReadOnlyNotams = new TextSegmentCollection<TextSegment>(NotamsTextDocument);
@@ -205,7 +204,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         LoadContractionData();
 
-        _networkConnection = connectionFactory.CreateConnection(_atisStation);
+        _networkConnection = connectionFactory.CreateConnection(AtisStation);
         _networkConnection.NetworkConnectionFailed += OnNetworkConnectionFailed;
         _networkConnection.NetworkErrorReceived += OnNetworkErrorReceived;
         _networkConnection.NetworkConnected += OnNetworkConnected;
@@ -215,24 +214,24 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _networkConnection.KillRequestReceived += OnKillRequestedReceived;
         _voiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
-        UseTexToSpeech = !_atisStation.AtisVoice.UseTextToSpeech;
+        UseTexToSpeech = !AtisStation.AtisVoice.UseTextToSpeech;
         _disposables.Add(EventBus.Instance.Subscribe<AtisVoiceTypeChanged>(evt =>
         {
-            if (evt.Id == _atisStation.Id)
+            if (evt.Id == AtisStation.Id)
             {
                 UseTexToSpeech = !evt.UseTextToSpeech;
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
-            if (evt.Id == _atisStation.Id)
+            if (evt.Id == AtisStation.Id)
             {
-                AtisPresetList = new ObservableCollection<AtisPreset>(_atisStation.Presets.OrderBy(x => x.Ordinal));
+                AtisPresetList = new ObservableCollection<AtisPreset>(AtisStation.Presets.OrderBy(x => x.Ordinal));
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
-            if (evt.StationId == _atisStation.Id)
+            if (evt.StationId == AtisStation.Id)
             {
                 LoadContractionData();
             }
@@ -271,13 +270,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }));
         _disposables.Add(EventBus.Instance.Subscribe<AtisHubExpiredAtisReceived>(sync =>
         {
-            if (sync.Dto.StationId == _atisStation.Identifier &&
-                sync.Dto.AtisType == _atisStation.AtisType &&
+            if (sync.Dto.StationId == AtisStation.Identifier &&
+                sync.Dto.AtisType == AtisStation.AtisType &&
                 NetworkConnectionStatus == NetworkConnectionStatus.Observer)
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    AtisLetter = _atisStation.CodeRange.Low;
+                    AtisLetter = AtisStation.CodeRange.Low;
                     Wind = null;
                     Altimeter = null;
                     Metar = null;
@@ -298,7 +297,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }));
         _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ =>
         {
-            _atisHubConnection.SubscribeToAtis(new SubscribeDto(_atisStation.Identifier, _atisStation.AtisType));
+            _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType));
         }));
         _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ =>
         {
@@ -378,6 +377,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
 
     /// <summary>
+    /// Gets the ATIS station.
+    /// </summary>
+    public AtisStation AtisStation { get; }
+
+    /// <summary>
     /// Gets the unique identifier for the ATIS station.
     /// </summary>
     public string? Id
@@ -416,7 +420,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the range of valid ATIS code letters associated with the ATIS station.
     /// </summary>
-    public CodeRangeMeta CodeRange => _atisStation.CodeRange;
+    public CodeRangeMeta CodeRange => AtisStation.CodeRange;
 
     /// <summary>
     /// Gets or sets a value indicating whether the ATIS letter input mode is active.
@@ -593,7 +597,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets a value indicating the ATIS type.
     /// </summary>
-    public AtisType AtisType => _atisStation.AtisType;
+    public AtisType AtisType => AtisStation.AtisType;
 
     /// <summary>
     /// Gets or sets a value indicating the station sort ordinal.
@@ -650,7 +654,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleSetAtisLetter(char letter)
     {
-        if (letter < _atisStation.CodeRange.Low || letter > _atisStation.CodeRange.High)
+        if (letter < AtisStation.CodeRange.Low || letter > AtisStation.CodeRange.High)
             return;
         AtisLetter = letter;
     }
@@ -660,7 +664,18 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        SelectedAtisPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
+        var freeText = "";
+
+        var readonlySegment = ReadOnlyNotams.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? NotamsTextDocument?.Text[..readonlySegment.StartOffset]
+                : NotamsTextDocument?.Text[readonlySegment.Length..];
+        }
+
+        SelectedAtisPreset.Notams = string.IsNullOrEmpty(freeText) ? NotamsTextDocument?.Text.Trim() : freeText.Trim();
+
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
 
@@ -672,7 +687,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        SelectedAtisPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
+        var freeText = "";
+
+        var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? AirportConditionsTextDocument?.Text[..readonlySegment.StartOffset]
+                : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
+        }
+
+        SelectedAtisPreset.AirportConditions =
+            string.IsNullOrEmpty(freeText) ? AirportConditionsTextDocument?.Text.Trim() : freeText.Trim();
+
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
 
@@ -683,7 +710,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         ContractionCompletionData.Clear();
 
-        foreach (var contraction in _atisStation.Contractions.ToList())
+        foreach (var contraction in AtisStation.Contractions.ToList())
         {
             if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
@@ -702,21 +729,21 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         dlg.Topmost = lifetime.MainWindow.Topmost;
         if (dlg.DataContext is StaticNotamsDialogViewModel viewModel)
         {
-            viewModel.Definitions = new ObservableCollection<StaticDefinition>(_atisStation.NotamDefinitions);
+            viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
-            viewModel.IncludeBeforeFreeText = _atisStation.NotamsBeforeFreeText;
+            viewModel.IncludeBeforeFreeText = AtisStation.NotamsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
-                _atisStation.NotamsBeforeFreeText = val;
+                AtisStation.NotamsBeforeFreeText = val;
                 if (_sessionManager.CurrentProfile != null)
                     _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
             {
-                _atisStation.NotamDefinitions.Clear();
-                _atisStation.NotamDefinitions.AddRange(changes);
+                AtisStation.NotamDefinitions.Clear();
+                AtisStation.NotamDefinitions.AddRange(changes);
                 if (_sessionManager.CurrentProfile != null)
                     _profileRepository.Save(_sessionManager.CurrentProfile);
             });
@@ -724,11 +751,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             viewModel.Definitions.CollectionChanged += (_, _) =>
             {
                 var idx = 0;
-                _atisStation.NotamDefinitions.Clear();
+                AtisStation.NotamDefinitions.Clear();
                 foreach (var item in viewModel.Definitions)
                 {
                     item.Ordinal = ++idx;
-                    _atisStation.NotamDefinitions.Add(item);
+                    AtisStation.NotamDefinitions.Add(item);
                 }
 
                 if (_sessionManager.CurrentProfile != null)
@@ -754,21 +781,21 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         dlg.Topmost = lifetime.MainWindow.Topmost;
         if (dlg.DataContext is StaticAirportConditionsDialogViewModel viewModel)
         {
-            viewModel.Definitions = new ObservableCollection<StaticDefinition>(_atisStation.AirportConditionDefinitions);
+            viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
-            viewModel.IncludeBeforeFreeText = _atisStation.AirportConditionsBeforeFreeText;
+            viewModel.IncludeBeforeFreeText = AtisStation.AirportConditionsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
-                _atisStation.AirportConditionsBeforeFreeText = val;
+                AtisStation.AirportConditionsBeforeFreeText = val;
                 if (_sessionManager.CurrentProfile != null)
                     _profileRepository.Save(_sessionManager.CurrentProfile);
             });
 
             viewModel.Definitions.ToObservableChangeSet().AutoRefresh(x => x.Enabled).Bind(out var changes).Subscribe(_ =>
             {
-                _atisStation.AirportConditionDefinitions.Clear();
-                _atisStation.AirportConditionDefinitions.AddRange(changes);
+                AtisStation.AirportConditionDefinitions.Clear();
+                AtisStation.AirportConditionDefinitions.AddRange(changes);
                 if (_sessionManager.CurrentProfile != null)
                     _profileRepository.Save(_sessionManager.CurrentProfile);
             });
@@ -776,11 +803,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             viewModel.Definitions.CollectionChanged += (_, _) =>
             {
                 var idx = 0;
-                _atisStation.AirportConditionDefinitions.Clear();
+                AtisStation.AirportConditionDefinitions.Clear();
                 foreach (var item in viewModel.Definitions)
                 {
                     item.Ordinal = ++idx;
-                    _atisStation.AirportConditionDefinitions.Add(item);
+                    AtisStation.AirportConditionDefinitions.Add(item);
                 }
 
                 if (_sessionManager.CurrentProfile != null)
@@ -831,7 +858,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 var window = _windowFactory.CreateVoiceRecordAtisDialog();
                 if (window.DataContext is VoiceRecordAtisDialogViewModel vm)
                 {
-                    var textAtis = await _atisBuilder.BuildTextAtis(_atisStation, SelectedAtisPreset, AtisLetter, _decodedMetar,
+                    var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter, _decodedMetar,
                         _cancellationToken.Token);
 
                     vm.AtisScript = textAtis;
@@ -841,15 +868,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     {
                         await Task.Run(async () =>
                         {
-                            _atisStation.TextAtis = textAtis;
-                            _atisStation.AtisLetter = AtisLetter;
+                            AtisStation.TextAtis = textAtis;
+                            AtisStation.AtisLetter = AtisLetter;
 
                             await PublishAtisToHub();
                             _networkConnection.SendSubscriberNotification(AtisLetter);
-                            await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter,
+                            await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter,
                                 _cancellationToken.Token);
 
-                            var dto = AtisBotUtils.AddBotRequest(vm.AudioBuffer, _atisStation.Frequency,
+                            var dto = AtisBotUtils.AddBotRequest(vm.AudioBuffer, AtisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                                 _cancellationToken.Token);
@@ -1152,7 +1179,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 throw;
             }
 
-            if (_atisStation.AtisVoice.UseTextToSpeech)
+            if (AtisStation.AtisVoice.UseTextToSpeech)
             {
                 try
                 {
@@ -1161,11 +1188,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     _cancellationToken.Dispose();
                     _cancellationToken = new CancellationTokenSource();
 
-                    var textAtis = await _atisBuilder.BuildTextAtis(_atisStation, SelectedAtisPreset, AtisLetter, e.Metar,
+                    var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter, e.Metar,
                         _cancellationToken.Token);
 
-                    _atisStation.TextAtis = textAtis?.ToUpperInvariant();
-                    _atisStation.AtisLetter = AtisLetter;
+                    AtisStation.TextAtis = textAtis?.ToUpperInvariant();
+                    AtisStation.AtisLetter = AtisLetter;
 
                     await PublishAtisToWebsocket();
                     await PublishAtisToHub();
@@ -1177,16 +1204,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         _networkConnection?.SendSubscriberNotification(AtisLetter);
                     }
 
-                    await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
+                    await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
 
-                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(_atisStation, SelectedAtisPreset, AtisLetter,
+                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(AtisStation, SelectedAtisPreset, AtisLetter,
                         e.Metar, _cancellationToken.Token);
 
                     if (voiceAtis.AudioBytes != null && _networkConnection != null)
                     {
                         await Task.Run(async () =>
                         {
-                            var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
+                            var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, AtisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                                 _cancellationToken.Token);
@@ -1241,13 +1268,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         await _websocketService.SendAtisMessage(session, new AtisMessage.AtisMessageValue
         {
-            Station = _atisStation.Identifier,
-            AtisType = _atisStation.AtisType,
+            Station = AtisStation.Identifier,
+            AtisType = AtisStation.AtisType,
             AtisLetter = AtisLetter,
             Metar = Metar?.Trim(),
             Wind = Wind?.Trim(),
             Altimeter = Altimeter?.Trim(),
-            TextAtis = _atisStation.TextAtis,
+            TextAtis = AtisStation.TextAtis,
             IsNewAtis = IsNewAtis,
             NetworkConnectionStatus = NetworkConnectionStatus,
             Pressure = _decodedMetar?.Pressure?.Value ?? null,
@@ -1290,7 +1317,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var airportConditions = await Dispatcher.UIThread.InvokeAsync(() => AirportConditionsTextDocument?.Text);
             var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
 
-            await _atisHubConnection.PublishAtis(new AtisHubDto(_atisStation.Identifier, _atisStation.AtisType,
+            await _atisHubConnection.PublishAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
                 AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions, notams));
         }
         catch (Exception ex)
@@ -1326,31 +1353,31 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 if (_decodedMetar == null)
                     return;
 
-                var textAtis = await _atisBuilder.BuildTextAtis(_atisStation, SelectedAtisPreset, AtisLetter, _decodedMetar,
+                var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter, _decodedMetar,
                     _cancellationToken.Token);
 
-                _atisStation.TextAtis = textAtis?.ToUpperInvariant();
-                _atisStation.AtisLetter = AtisLetter;
+                AtisStation.TextAtis = textAtis?.ToUpperInvariant();
+                AtisStation.AtisLetter = AtisLetter;
 
                 await PublishAtisToHub();
                 await PublishAtisToWebsocket();
-                await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
+                await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, _cancellationToken.Token);
 
-                if (_atisStation.AtisVoice.UseTextToSpeech)
+                if (AtisStation.AtisVoice.UseTextToSpeech)
                 {
                     // Cancel previous request
                     await _cancellationToken.CancelAsync();
                     _cancellationToken.Dispose();
                     _cancellationToken = new CancellationTokenSource();
 
-                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(_atisStation, SelectedAtisPreset, AtisLetter,
+                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(AtisStation, SelectedAtisPreset, AtisLetter,
                         _decodedMetar, _cancellationToken.Token);
 
                     if (voiceAtis.AudioBytes != null)
                     {
                         await Task.Run(async () =>
                         {
-                            var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
+                            var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, AtisStation.Frequency,
                                 _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                                 _cancellationToken.Token);
@@ -1382,63 +1409,84 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (NotamsTextDocument == null || SelectedAtisPreset == null)
             return;
 
-        // Clear the list of read-only NOTAM text segments.
-        ReadOnlyNotams.Clear();
-
-        // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
-        var staticDefinitions = _atisStation.NotamDefinitions
+        // Retrieve and sort enabled NOTAMs by their ordinal value.
+        var staticDefinitions = AtisStation.NotamDefinitions
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
 
+        // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
         {
-            // The preset wasn't changed, so restore any unsaved free-text.
-            _previousFreeTextNotams = NotamsTextDocument.Text[_notamFreeTextOffset..];
-        }
-
-        // Start with an empty document.
-        NotamsTextDocument.Text = "";
-
-        // Reset offset
-        _notamFreeTextOffset = 0;
-
-        // If static NOTAM definitions exist, insert them into the document.
-        if (staticDefinitions.Count > 0)
-        {
-            // Combine static NOTAM definitions into a single string, separated by periods.
-            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
-
-            // Insert static NOTAM definitions at the beginning of the document.
-            NotamsTextDocument.Insert(0, staticDefinitionsString);
-
-            // Add the static NOTAM range to the read-only list to prevent modification.
-            ReadOnlyNotams.Add(new TextSegment
+            var readonlySegment = ReadOnlyNotams.FirstSegment;
+            if (readonlySegment != null)
             {
-                StartOffset = 0,
-                EndOffset = staticDefinitionsString.Length
-            });
-
-            // Update the starting index for the next insertion.
-            _notamFreeTextOffset = staticDefinitionsString.Length;
-        }
-
-        // Always append the free-form NOTAM text after any predefined content.
-        if (presetChanged)
-        {
-            // If the preset was changed, insert the saved NOTAMs
-            // but exclude any unsaved user-entered free text.
-            if (!string.IsNullOrEmpty(SelectedAtisPreset?.Notams))
-            {
-                NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset?.Notams);
+                _previousFreeTextNotams = readonlySegment.StartOffset > 0
+                    ? NotamsTextDocument.Text[..readonlySegment.StartOffset]
+                    : NotamsTextDocument.Text[readonlySegment.Length..];
             }
         }
         else
         {
-            // When closing the dialog, restore the user's previously entered free text.
+            _previousFreeTextNotams = "";
+        }
+
+        ReadOnlyNotams.Clear();
+        NotamsTextDocument.Text = "";
+        _notamFreeTextOffset = 0;
+
+        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+
+        // Insert static definitions before free-text
+        if (AtisStation.NotamsBeforeFreeText)
+        {
+            if (staticDefinitions.Count > 0)
+            {
+                // Insert static definitions
+                NotamsTextDocument.Insert(0, staticDefinitionsString);
+
+                // Mark static definitions segment as readonly
+                ReadOnlyNotams.Add(new TextSegment
+                {
+                    StartOffset = 0, Length = staticDefinitionsString.Length
+                });
+
+                _notamFreeTextOffset = staticDefinitionsString.Length;
+            }
+
+            // Insert free-text after static definitions
             if (!string.IsNullOrEmpty(_previousFreeTextNotams))
             {
-                NotamsTextDocument.Insert(_notamFreeTextOffset, _previousFreeTextNotams);
+                NotamsTextDocument.Insert(_notamFreeTextOffset, _previousFreeTextNotams.Trim());
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.Notams))
+            {
+                NotamsTextDocument.Insert(_notamFreeTextOffset, SelectedAtisPreset.Notams);
+            }
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(_previousFreeTextNotams))
+            {
+                NotamsTextDocument.Insert(0, _previousFreeTextNotams.Trim() + " ");
+                _notamFreeTextOffset = _previousFreeTextNotams.Trim().Length + 1;
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.Notams))
+            {
+                NotamsTextDocument.Insert(0, SelectedAtisPreset.Notams.Trim() + " ");
+                _notamFreeTextOffset = SelectedAtisPreset.Notams.Trim().Length + 1;
+            }
+
+            // Insert static definitions after free-text
+            if (staticDefinitions.Count > 0)
+            {
+                NotamsTextDocument.Insert(_notamFreeTextOffset, staticDefinitionsString);
+
+                // Mark static definitions segment as readonly
+                ReadOnlyNotams.Add(new TextSegment
+                {
+                    StartOffset = _notamFreeTextOffset, Length = staticDefinitionsString.Length
+                });
             }
         }
     }
@@ -1448,66 +1496,84 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (AirportConditionsTextDocument == null || SelectedAtisPreset == null)
             return;
 
-        // Clear the list of read-only NOTAM text segments.
-        ReadOnlyAirportConditions.Clear();
-
         // Retrieve and sort enabled static airport conditions by their ordinal value.
-        var staticDefinitions = _atisStation.AirportConditionDefinitions
+        var staticDefinitions = AtisStation.AirportConditionDefinitions
             .Where(x => x.Enabled)
             .OrderBy(x => x.Ordinal)
             .ToList();
 
+        // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
         {
-            // The preset wasn't changed, so restore any unsaved free-text.
-            _previousFreeTextAirportConditions = AirportConditionsTextDocument.Text[_airportConditionsFreeTextOffset..];
-        }
-
-        // Start with an empty document.
-        AirportConditionsTextDocument.Text = "";
-
-        // Reset offset
-        _airportConditionsFreeTextOffset = 0;
-
-        // If static airport conditions exist, insert them into the document.
-        if (staticDefinitions.Count > 0)
-        {
-            // Combine static airport conditions into a single string, separated by periods.
-            // A trailing space is added to ensure proper spacing between the static definitions
-            // and the subsequent free-form text.
-            var staticDefinitionsString = string.Join(". ", staticDefinitions) + ". ";
-
-            // Insert static airport conditions at the beginning of the document.
-            AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
-
-            // Add the static airport conditions to the read-only list to prevent modification.
-            ReadOnlyAirportConditions.Add(new TextSegment
+            var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
+            if (readonlySegment != null)
             {
-                StartOffset = 0,
-                EndOffset = staticDefinitionsString.Length
-            });
-
-            // Update the starting index for the next insertion.
-            _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
-        }
-
-        // Always append the free-form NOTAM text after any static content.
-        if (presetChanged)
-        {
-            // If the selected preset was changed, insert the saved airport conditions
-            // but exclude any unsaved user-entered free text.
-            if (!string.IsNullOrEmpty(SelectedAtisPreset?.AirportConditions))
-            {
-                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset,
-                    SelectedAtisPreset?.AirportConditions);
+                _previousFreeTextAirportConditions = readonlySegment.StartOffset > 0
+                    ? AirportConditionsTextDocument.Text[..readonlySegment.StartOffset]
+                    : AirportConditionsTextDocument.Text[readonlySegment.Length..];
             }
         }
         else
         {
-            // When closing the dialog, restore the user's previously entered free text.
+            _previousFreeTextAirportConditions = "";
+        }
+
+        ReadOnlyAirportConditions.Clear();
+        AirportConditionsTextDocument.Text = "";
+        _airportConditionsFreeTextOffset = 0;
+
+        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+
+        // Insert static definitions before free-text
+        if (AtisStation.AirportConditionsBeforeFreeText)
+        {
+            if (staticDefinitions.Count > 0)
+            {
+                // Insert static definitions
+                AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
+
+                // Mark static definitions segment as readonly
+                ReadOnlyAirportConditions.Add(new TextSegment
+                {
+                    StartOffset = 0, Length = staticDefinitionsString.Length
+                });
+
+                _airportConditionsFreeTextOffset = staticDefinitionsString.Length;
+            }
+
+            // Insert free-text after static definitions
             if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
             {
-                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, _previousFreeTextAirportConditions);
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, _previousFreeTextAirportConditions.Trim());
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.AirportConditions))
+            {
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, SelectedAtisPreset.AirportConditions);
+            }
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
+            {
+                AirportConditionsTextDocument.Insert(0, _previousFreeTextAirportConditions.Trim() + " ");
+                _airportConditionsFreeTextOffset = _previousFreeTextAirportConditions.Trim().Length + 1;
+            }
+            else if (!string.IsNullOrEmpty(SelectedAtisPreset.AirportConditions))
+            {
+                AirportConditionsTextDocument.Insert(0, SelectedAtisPreset.AirportConditions.Trim() + " ");
+                _airportConditionsFreeTextOffset = SelectedAtisPreset.AirportConditions.Trim().Length + 1;
+            }
+
+            // Insert static definitions after free-text
+            if (staticDefinitions.Count > 0)
+            {
+                AirportConditionsTextDocument.Insert(_airportConditionsFreeTextOffset, staticDefinitionsString);
+
+                // Mark static definitions segment as readonly
+                ReadOnlyAirportConditions.Add(new TextSegment
+                {
+                    StartOffset = _airportConditionsFreeTextOffset, Length = staticDefinitionsString.Length
+                });
             }
         }
     }
@@ -1532,7 +1598,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             // connected or doesn't support text to speech.
             await PublishAtisToWebsocket();
 
-            if (!_atisStation.AtisVoice.UseTextToSpeech)
+            if (!AtisStation.AtisVoice.UseTextToSpeech)
                 return;
 
             if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
@@ -1556,23 +1622,23 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 try
                 {
-                    var textAtis = await _atisBuilder.BuildTextAtis(_atisStation, SelectedAtisPreset, atisLetter,
+                    var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, atisLetter,
                         _decodedMetar, _cancellationToken.Token);
 
-                    _atisStation.TextAtis = textAtis?.ToUpperInvariant();
-                    _atisStation.AtisLetter = AtisLetter;
+                    AtisStation.TextAtis = textAtis?.ToUpperInvariant();
+                    AtisStation.AtisLetter = AtisLetter;
 
                     await PublishAtisToHub();
                     _networkConnection?.SendSubscriberNotification(AtisLetter);
-                    await _atisBuilder.UpdateIds(_atisStation, SelectedAtisPreset, AtisLetter,
+                    await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter,
                         _cancellationToken.Token);
 
-                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(_atisStation, SelectedAtisPreset, AtisLetter,
+                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(AtisStation, SelectedAtisPreset, AtisLetter,
                         _decodedMetar, _cancellationToken.Token);
 
                     if (voiceAtis.AudioBytes != null && _networkConnection != null)
                     {
-                        var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, _atisStation.Frequency,
+                        var dto = AtisBotUtils.AddBotRequest(voiceAtis.AudioBytes, AtisStation.Frequency,
                             _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
                         await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                             _cancellationToken.Token);
@@ -1614,7 +1680,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             // must match to acknowledge the update.
             // If a specific station isn't specified then the request is for all stations.
             if (!string.IsNullOrEmpty(e.Station) &&
-                (e.Station != _atisStation.Identifier || e.AtisType != _atisStation.AtisType))
+                (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
             {
                 return;
             }
@@ -1633,7 +1699,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         // must match to acknowledge the update.
         // If a specific station isn't specified then the request is for all stations.
         if (!string.IsNullOrEmpty(e.Station) &&
-            (e.Station != _atisStation.Identifier || e.AtisType != _atisStation.AtisType))
+            (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
         {
             return;
         }
@@ -1658,14 +1724,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
 
         AtisLetter++;
-        if (AtisLetter > _atisStation.CodeRange.High)
-            AtisLetter = _atisStation.CodeRange.Low;
+        if (AtisLetter > AtisStation.CodeRange.High)
+            AtisLetter = AtisStation.CodeRange.Low;
     }
 
     private void DecrementAtisLetter()
     {
         AtisLetter--;
-        if (AtisLetter < _atisStation.CodeRange.Low)
-            AtisLetter = _atisStation.CodeRange.High;
+        if (AtisLetter < AtisStation.CodeRange.Low)
+            AtisLetter = AtisStation.CodeRange.High;
     }
 }

@@ -53,40 +53,71 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
         if (ViewModel == null)
             return;
 
-        NotamFreeText.TextArea.Caret.PositionChanged += (_, _) =>
-        {
-            if (ViewModel?.ReadOnlyNotams == null)
-                return;
+        NotamFreeText.TextChanged += (_, _) => NotamsCaretPosition();
+        NotamFreeText.TextArea.Caret.PositionChanged += (_, _) => NotamsCaretPosition();
+        NotamFreeText.TextArea.GotFocus += (_, _) => NotamsCaretPosition();
 
-            foreach (var segment in ViewModel.ReadOnlyNotams)
+        AirportConditions.TextChanged += (_, _) => AirportConditionsCaretPosition();
+        AirportConditions.TextArea.Caret.PositionChanged += (_, _) => AirportConditionsCaretPosition();
+        AirportConditions.TextArea.GotFocus += (_, _) => AirportConditionsCaretPosition();
+    }
+
+    private void NotamsCaretPosition()
+    {
+        if (ViewModel?.ReadOnlyNotams == null)
+            return;
+
+        if (ViewModel.SelectedStation == null)
+            return;
+
+        foreach (var segment in ViewModel.ReadOnlyNotams)
+        {
+            // If caret is within or at the start of a read-only segment
+            if (NotamFreeText.CaretOffset >= segment.StartOffset && NotamFreeText.CaretOffset <= segment.EndOffset)
             {
-                // If caret is within or at the start of a read-only segment
-                if (NotamFreeText.CaretOffset >= segment.StartOffset && NotamFreeText.CaretOffset <= segment.EndOffset)
+                if (ViewModel.SelectedStation.NotamsBeforeFreeText)
                 {
                     // Move caret to the end of the read-only segment
                     NotamFreeText.CaretOffset = segment.EndOffset;
-                    break;
                 }
+                else
+                {
+                    // Move caret to the beginning of the read-only segment
+                    NotamFreeText.CaretOffset = segment.StartOffset;
+                }
+
+                break;
             }
-        };
+        }
+    }
 
-        AirportConditions.TextArea.Caret.PositionChanged += (_, _) =>
+    private void AirportConditionsCaretPosition()
+    {
+        if (ViewModel?.ReadOnlyAirportConditions == null)
+            return;
+
+        if (ViewModel.SelectedStation == null)
+            return;
+
+        foreach (var segment in ViewModel.ReadOnlyAirportConditions)
         {
-            if (ViewModel?.ReadOnlyAirportConditions == null)
-                return;
-
-            foreach (var segment in ViewModel.ReadOnlyAirportConditions)
+            // If caret is within or at the start of a read-only segment
+            if (AirportConditions.CaretOffset >= segment.StartOffset && AirportConditions.CaretOffset <= segment.EndOffset)
             {
-                // If caret is within or at the start of a read-only segment
-                if (AirportConditions.CaretOffset >= segment.StartOffset &&
-                    AirportConditions.CaretOffset <= segment.EndOffset)
+                if (ViewModel.SelectedStation.AirportConditionsBeforeFreeText)
                 {
                     // Move caret to the end of the read-only segment
                     AirportConditions.CaretOffset = segment.EndOffset;
-                    break;
                 }
+                else
+                {
+                    // Move caret to the beginning of the read-only segment
+                    AirportConditions.CaretOffset = segment.StartOffset;
+                }
+
+                break;
             }
-        };
+        }
     }
 
     private void AirportConditions_OnTextChanged(object? sender, EventArgs e)
