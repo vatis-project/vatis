@@ -189,7 +189,7 @@ public class App : Application
                 await UpdateAvailableVoicesAsync();
 
                 // Show release notes of new version
-                if (Program.IsUpdated)
+                if (Program.IsUpdated && !appConfig.SuppressReleaseNotes)
                 {
                     try
                     {
@@ -202,7 +202,11 @@ public class App : Application
                             if (releaseNotes.ViewModel != null)
                             {
                                 releaseNotes.ViewModel.ReleaseNotes = currentRelease.NotesMarkdown;
-                                await releaseNotes.ShowDialog(_startupWindow);
+                                if (await releaseNotes.ShowDialog<DialogResult>(_startupWindow) == DialogResult.Ok)
+                                {
+                                    appConfig.SuppressReleaseNotes = releaseNotes.ViewModel.SuppressReleaseNotes;
+                                    appConfig.SaveConfig();
+                                }
                             }
                         }
                     }
