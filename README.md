@@ -29,10 +29,10 @@ vATIS is licensed under the **[GPLv3 open-source license](LICENSE)**.
 This application relies on the following third-party libraries:
 
 - **[WatsonWebsocket](https://github.com/jchristn/WatsonWebsocket)**  
-  Licensed under the [MIT License](licenses/MIT.txt).
+  Licensed under the [MIT License](licenses/WatsonWebsocket-License.txt).
 
 - **[MetarDecoder](https://github.com/afonsoft/metar-decoder)**  
-  Licensed under the [GPLv3 License](licenses/GPL-v3.txt).
+  Licensed under the [GPLv3 License](licenses/MetarDecoder-License.txt).
 
 - **[MiniAudio](https://github.com/mackron/miniaudio)**  
   Licensed under the [MIT License](licenses/MiniAudio-License.txt).
