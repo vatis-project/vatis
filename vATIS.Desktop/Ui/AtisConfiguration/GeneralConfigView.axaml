@@ -4,14 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
-             xmlns:profiles="using:Vatsim.Vatis.Profiles"
              xmlns:tts="using:Vatsim.Vatis.TextToSpeech"
              xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.GeneralConfigView">
 	<UserControl.Resources>
-        <converters:SpeechRateMultiplierConverter x:Key="SpeechRateMultiplierConverter"/>
         <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
 		<converters:CharToStringConverter x:Key="CharToStringConverter"/>
         <x:String x:Key="SpeechRateTooltip">Select a speech rate to control voice ATIS speed. 180 WPM (words per minute) is the default. Lower values slow down speech, while higher values speed it up.</x:String>
