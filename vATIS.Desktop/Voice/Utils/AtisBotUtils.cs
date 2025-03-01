@@ -21,7 +21,6 @@ public static class AtisBotUtils
     private const double BytesPerSecond = 96000.0;
     private const int BitRate = 8192;
     private const int MaxOpusPacketLength = 1275;
-    private static readonly byte[] s_encodedBuffer = new byte[MaxOpusPacketLength];
 
     /// <summary>
     /// Creates a <see cref="PutBotRequestDto"/> using the provided audio data and station properties for the bot.
@@ -40,7 +39,7 @@ public static class AtisBotUtils
         var encoder = OpusCodecFactory.CreateEncoder(SampleRate, 1, OpusApplication.OPUS_APPLICATION_VOIP);
         encoder.Bitrate = BitRate;
 
-        Array.Clear(s_encodedBuffer, 0, s_encodedBuffer.Length);
+        var encodedBuffer = new byte[MaxOpusPacketLength];
 
         var segmentCount = (int)Math.Floor((double)audioBuffer.Length / FrameSize);
         var bufferOffset = 0;
@@ -49,11 +48,11 @@ public static class AtisBotUtils
         for (var i = 0; i < segmentCount; i++)
         {
             var pcmSegment = new ReadOnlySpan<short>(audioBuffer, bufferOffset, FrameSize);
-            Span<byte> outputBuffer = s_encodedBuffer;
+            Span<byte> outputBuffer = encodedBuffer;
 
-            var len = encoder.Encode(pcmSegment, FrameSize, outputBuffer, s_encodedBuffer.Length);
+            var len = encoder.Encode(pcmSegment, FrameSize, outputBuffer, encodedBuffer.Length);
             var trimmedBuffer = new byte[len];
-            Buffer.BlockCopy(s_encodedBuffer, 0, trimmedBuffer, 0, len);
+            Buffer.BlockCopy(encodedBuffer, 0, trimmedBuffer, 0, len);
             opusData.Add(trimmedBuffer);
 
             bufferOffset += FrameSize;
