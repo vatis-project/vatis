@@ -14,6 +14,7 @@ using System.Reactive;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -61,6 +62,8 @@ public class App : Application
             SentrySdk.Init(options =>
             {
                 options.Dsn = "https://0df6303309d591db70c9848473373990@o477107.ingest.us.sentry.io/4508223788548096";
+                options.StackTraceMode = StackTraceMode.Enhanced;
+                options.IsGlobalModeEnabled = true;
                 options.AutoSessionTracking = true;
                 options.TracesSampleRate = 1.0;
                 options.CacheDirectoryPath = _appDataPath;
@@ -73,9 +76,11 @@ public class App : Application
         RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
         {
             Log.Error(ex, "RxAppException");
+
             if (SentrySdk.IsEnabled)
             {
                 SentrySdk.CaptureException(ex);
+                SentrySdk.FlushAsync().SafeFireAndForget();
             }
 
             ShowErrorAsync(ex.Message);
@@ -184,7 +189,7 @@ public class App : Application
                 await UpdateAvailableVoicesAsync();
 
                 // Show release notes of new version
-                if (arguments.TryGetValue("--isUpdated", out _))
+                if (Program.IsUpdated)
                 {
                     try
                     {
@@ -249,10 +254,12 @@ public class App : Application
     private static void SetupLogging(bool debugMode)
     {
         var logPath = Path.Combine(PathProvider.LogsFolderPath, "Log.txt");
+
         var config = new LoggerConfiguration().WriteTo.File(
             logPath,
             retainedFileCountLimit: 7,
             rollingInterval: RollingInterval.Day);
+
         if (debugMode)
         {
             config = config.WriteTo.Trace().MinimumLevel.Debug();
@@ -361,12 +368,17 @@ public class App : Application
 
     private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)
     {
+        if (ex.Handled)
+            return;
+
         try
         {
             Log.Error(ex.Exception, "UIThread_UnhandledException");
+
             if (SentrySdk.IsEnabled)
             {
                 SentrySdk.CaptureException(ex.Exception);
+                SentrySdk.FlushAsync().SafeFireAndForget();
             }
 
             ShowErrorAsync(ex.Exception.Message);
@@ -414,36 +426,62 @@ public class App : Application
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        if (e.ExceptionObject is Exception ex)
-        {
-            Log.Error(ex, "OnUnhandledException");
-            if (SentrySdk.IsEnabled)
-            {
-                SentrySdk.CaptureException(ex);
-            }
+        if (e.ExceptionObject is not Exception ex)
+            return;
 
-            ShowErrorAsync(ex.Message);
-        }
-    }
-
-    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs ex)
-    {
-        Log.Error(ex.Exception, "OnUnobservedTaskException");
         if (SentrySdk.IsEnabled)
         {
-            SentrySdk.CaptureException(ex.Exception);
+            ex.SetSentryMechanism("UnhandledException", handled: false);
+            SentrySdk.CaptureException(ex);
+            SentrySdk.FlushAsync().SafeFireAndForget();
+            Log.Warning(ex, "Unhandled {Type}: {Message}", ex.GetType().Name, ex.Message);
+        }
+        else
+        {
+            Log.Fatal(ex, "Unhandled {Type}: {Message}", ex.GetType().Name, ex.Message);
         }
 
-        ShowErrorAsync(ex.Exception.Message);
+        ShowErrorAsync(ex.Message);
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        if (e.Observed || e.Exception is not Exception unobservedEx)
+            return;
+
+        try
+        {
+            var originalException = unobservedEx.InnerException ?? unobservedEx;
+            Log.Error(originalException, "OnUnobservedTaskException");
+
+            if (SentrySdk.IsEnabled)
+            {
+                originalException.SetSentryMechanism("UnobservedTaskException");
+                SentrySdk.CaptureException(originalException);
+                SentrySdk.FlushAsync().SafeFireAndForget();
+            }
+
+            ShowErrorAsync(originalException.Message);
+
+            // Consider the exception observed if we were able to show the error to the user.
+            e.SetObserved();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to show UnobservedTaskException notification.");
+        }
     }
 
     private void HandleError(Exception ex, string context, bool fatal)
     {
         _startupWindow?.Close();
+
         Log.Error(ex, context);
+
         if (SentrySdk.IsEnabled)
         {
             SentrySdk.CaptureException(ex);
+            SentrySdk.FlushAsync().SafeFireAndForget();
         }
 
         ShowErrorAsync(ex.Message, fatal);

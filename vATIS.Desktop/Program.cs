@@ -18,6 +18,11 @@ namespace Vatsim.Vatis;
 internal static class Program
 {
     /// <summary>
+    /// Gets a value indicating whether the application has been updated and the release notes should be displayed.
+    /// </summary>
+    public static bool IsUpdated { get; private set; }
+
+    /// <summary>
     /// Main entry point for the application.
     /// </summary>
     /// <param name="args">The command line arguments.</param>
@@ -27,7 +32,7 @@ internal static class Program
         try
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-            VelopackApp.Build().Run();
+            VelopackApp.Build().WithRestarted(_ => IsUpdated = true).Run();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnExplicitShutdown);
         }
         catch (Exception ex)

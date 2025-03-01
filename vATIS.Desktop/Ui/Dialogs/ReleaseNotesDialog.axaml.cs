@@ -24,6 +24,14 @@ public partial class ReleaseNotesDialog : ReactiveWindow<ReleaseNotesDialogViewM
         ViewModel = viewModel;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
+    /// </summary>
+    public ReleaseNotesDialog()
+    {
+        InitializeComponent();
+    }
+
     private void CloseWindow(object? sender, RoutedEventArgs e)
     {
         Close();
