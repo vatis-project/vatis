@@ -51,6 +51,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 {
+    private const int TransceiverHeightM = 10;
     private readonly IAppConfig _appConfig;
     private readonly IProfileRepository _profileRepository;
     private readonly IAtisBuilder _atisBuilder;
@@ -912,7 +913,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                             // Generate DTO with ATIS audio and transceiver data
                             var dto = AtisBotUtils.CreateAtisBotDto(vm.AudioBuffer, AtisStation.Frequency,
-                                _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
+                                _atisStationAirport.Latitude, _atisStationAirport.Longitude, TransceiverHeightM);
 
                             // Send the DTO to the voice server
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
@@ -1252,7 +1253,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         try
                         {
                             var dto = AtisBotUtils.CreateAtisBotDto(voiceAtis.AudioBytes, AtisStation.Frequency,
-                                _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
+                                _atisStationAirport.Latitude, _atisStationAirport.Longitude, TransceiverHeightM);
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                                 _cancellationToken.Token).ConfigureAwait(false);
                         }
@@ -1412,7 +1413,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     if (voiceAtis.AudioBytes != null)
                     {
                         var dto = AtisBotUtils.CreateAtisBotDto(voiceAtis.AudioBytes, AtisStation.Frequency,
-                            _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
+                            _atisStationAirport.Latitude, _atisStationAirport.Longitude, TransceiverHeightM);
                         await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                             _cancellationToken.Token).ConfigureAwait(false);
                     }
@@ -1666,7 +1667,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 if (voiceAtis.AudioBytes != null && _networkConnection != null)
                 {
                     var dto = AtisBotUtils.CreateAtisBotDto(voiceAtis.AudioBytes, AtisStation.Frequency,
-                        _atisStationAirport.Latitude, _atisStationAirport.Longitude, 100);
+                        _atisStationAirport.Latitude, _atisStationAirport.Longitude, TransceiverHeightM);
                     await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                         _cancellationToken.Token).ConfigureAwait(false);
                 }
