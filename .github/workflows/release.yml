@@ -103,7 +103,7 @@ jobs:
       - name: Compile Release Notes
         shell: bash
         run: |
-          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)" 
+          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)"
           echo -n "$RELEASE_NOTES" | sed 's/^\s*-/\*/' > RELEASE_NOTES.md
 
       - name: Velopack
@@ -306,7 +306,7 @@ jobs:
       - name: Compile Release Notes
         shell: bash
         run: |
-          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)" 
+          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)"
           echo -n "$RELEASE_NOTES" | sed 's/^\s*-/\*/' > RELEASE_NOTES.md
 
       - name: Velopack
@@ -475,7 +475,7 @@ jobs:
       - name: Compile Release Notes
         shell: bash
         run: |
-          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)" 
+          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)"
           echo -n "$RELEASE_NOTES" | sed 's/^\s*-/\*/' > RELEASE_NOTES.md
 
       - name: Velopack
