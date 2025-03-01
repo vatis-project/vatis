@@ -100,6 +100,12 @@ jobs:
           FILE=$(find ./velopack -type f -printf '%P\n')
           echo "PREVIOUS_RELEASE=$FILE" >> $GITHUB_OUTPUT
 
+      - name: Compile Release Notes
+        shell: bash
+        run: |
+          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)" 
+          echo -n "$RELEASE_NOTES" | sed 's/^\s*-/\*/' > RELEASE_NOTES.md
+
       - name: Velopack
         run: |
           vpk pack \
@@ -111,6 +117,7 @@ jobs:
               --mainExe vATIS \
               --icon ./vATIS.Desktop/Assets/MainIcon.png \
               --outputDir ./velopack \
+              --releaseNotes RELEASE_NOTES.md \
               --verbose
 
       - name: Rename AppImage
@@ -296,6 +303,12 @@ jobs:
           FILE=$(find ./velopack -type f | sed 's|./velopack/||')
           echo "PREVIOUS_RELEASE=$FILE" >> $GITHUB_OUTPUT
 
+      - name: Compile Release Notes
+        shell: bash
+        run: |
+          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)" 
+          echo -n "$RELEASE_NOTES" | sed 's/^\s*-/\*/' > RELEASE_NOTES.md
+
       - name: Velopack
         run: |
           vpk pack \
@@ -309,6 +322,7 @@ jobs:
               --mainExe vATIS \
               --icon ./vATIS.Desktop/Assets/MainIcon.icns \
               --outputDir ./velopack \
+              --releaseNotes RELEASE_NOTES.md \
               --verbose
 
       - name: Upload Debug Symbols
@@ -457,7 +471,13 @@ jobs:
             CertificateProfileName = $env:CERTIFICATE_PROFILE_NAME
           }
           $metadata | ConvertTo-Json -Depth 10 | Set-Content -Path metadata.json
-      
+
+      - name: Compile Release Notes
+        shell: bash
+        run: |
+          RELEASE_NOTES="$(awk -v version="${{ github.event.inputs.version }}" 'BEGIN {ORS="\n"} /## v/{if(p) exit; if($0 ~ version) p=1; if(p) print $0; next}; p' CHANGELOG.md)" 
+          echo -n "$RELEASE_NOTES" | sed 's/^\s*-/\*/' > RELEASE_NOTES.md
+
       - name: Velopack
         shell: bash
         env:
@@ -477,6 +497,7 @@ jobs:
               --azureTrustedSignFile ./metadata.json \
               --noPortable \
               --skipVeloAppCheck \
+              --releaseNotes RELEASE_NOTES.md \
               --verbose
 
       - name: Rename Setup EXE
