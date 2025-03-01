@@ -103,6 +103,14 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         _disposables.Add(TestExternalGeneratorCommand);
         _disposables.Add(TemplateVariableClicked);
         _disposables.Add(FetchSandboxMetarCommand);
+
+        _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
+        {
+            if (evt.StationId == SelectedStation?.Id)
+            {
+                PopulateContractions();
+            }
+        }));
     }
 
     /// <summary>
@@ -160,7 +168,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// </summary>
     public ReactiveCommand<Unit, Unit> FetchSandboxMetarCommand { get; }
 
-/// <summary>
+    /// <summary>
     /// Gets or sets a value indicating whether there are unsaved changes.
     /// </summary>
     public bool HasUnsavedChanges
@@ -828,15 +836,23 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         ExternalGeneratorSandboxResponse = null;
         AtisTemplateText = string.Empty;
 
-        ContractionCompletionData = [];
-        foreach (var contraction in station.Contractions)
-        {
-            if (!string.IsNullOrEmpty(contraction.VariableName) && !string.IsNullOrEmpty(contraction.Voice))
-            {
-                ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
-            }
-        }
+        PopulateContractions();
 
         HasUnsavedChanges = false;
+    }
+
+    private void PopulateContractions()
+    {
+        if (SelectedStation == null)
+        {
+            return;
+        }
+
+        ContractionCompletionData = [];
+        foreach (var contraction in SelectedStation.Contractions.ToList())
+        {
+            if (contraction is { VariableName: not null, Voice: not null })
+                ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
+        }
     }
 }
