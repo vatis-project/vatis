@@ -6,7 +6,6 @@
 using System;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
@@ -18,7 +17,8 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 /// </summary>
 public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<TreeDataGrid>
 {
-    /// <inheritdoc />
+    private IDisposable? _selectionChangedSubscription;
+
     /// <summary>
     /// Attaches to the visual tree and subscribes to the selection change event
     /// to scroll the selected item into view.
@@ -26,38 +26,53 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<TreeDat
     /// <param name="disposable">A composite disposable to manage subscriptions.</param>
     protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
     {
-        if (AssociatedObject is { RowSelection: { } rowSelection })
+        // Ensure the associated object is a TreeDataGrid and its RowSelection is available
+        if (AssociatedObject is { RowSelection: not null } treeDataGrid)
         {
-            Observable.FromEventPattern(rowSelection, nameof(rowSelection.SelectionChanged))
-                .Select(_ =>
-                {
-                    // Retrieve the first selected index.
-                    var selectedIndexPath = rowSelection.SelectedIndex.FirstOrDefault();
-                    if (AssociatedObject.Rows is null)
-                    {
-                        return selectedIndexPath;
-                    }
-
-                    // Convert the logical index to the actual row index in the UI.
-                    var rowIndex = AssociatedObject.Rows.ModelIndexToRowIndex(selectedIndexPath);
-
-                    // Adjust the index if the selected item is a child of a parent row.
-                    if (rowSelection.SelectedIndex.Count > 1)
-                    {
-                        // Skip the first index (parent), sum the child indices, and adjust.
-                        rowIndex += rowSelection.SelectedIndex.Skip(1).Sum();
-
-                        // Add 1 to correct the index for proper positioning.
-                        rowIndex += 1;
-                    }
-
-                    return rowIndex;
-                })
-                .WhereNotNull()
-                .Do(ScrollToItemIndex)
-                .Subscribe()
-                .DisposeWith(disposable);
+            // Subscribe to the SelectionChanged event manually to avoid reflection
+            _selectionChangedSubscription = treeDataGrid.RowSelection.WhenAnyValue(x => x.SelectedIndex)
+                .Subscribe(_ => OnSelectionChanged(treeDataGrid));
+            disposable.Add(_selectionChangedSubscription);
         }
+    }
+
+    /// <inheritdoc />
+    protected override void OnDetaching()
+    {
+        // Unsubscribe from the event when detached
+        _selectionChangedSubscription?.Dispose();
+        base.OnDetaching();
+    }
+
+    /// <summary>
+    /// Handles the selection change event to update the scroll position.
+    /// </summary>
+    private void OnSelectionChanged(TreeDataGrid treeDataGrid)
+    {
+        // Retrieve the first selected index directly.
+        var selectedIndexPath = treeDataGrid.RowSelection?.SelectedIndex.Count > 0
+            ? treeDataGrid.RowSelection.SelectedIndex[0]
+            : -1; // Or use a suitable fallback value if no selection exists
+
+        if (treeDataGrid.Rows == null || selectedIndexPath == -1)
+        {
+            return;
+        }
+
+        // Convert the logical index to the actual row index in the UI.
+        var rowIndex = treeDataGrid.Rows.ModelIndexToRowIndex(selectedIndexPath);
+
+        // Adjust the index if the selected item is a child of a parent row.
+        if (treeDataGrid.RowSelection?.SelectedIndex.Count > 1)
+        {
+            // Skip the first index (parent), sum the child indices, and adjust.
+            rowIndex += treeDataGrid.RowSelection.SelectedIndex.Skip(1).Sum();
+
+            // Add 1 to correct the index for proper positioning.
+            rowIndex += 1;
+        }
+
+        ScrollToItemIndex(rowIndex);
     }
 
     /// <summary>
@@ -66,9 +81,9 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<TreeDat
     /// <param name="index">The index of the row to bring into view.</param>
     private void ScrollToItemIndex(int index)
     {
-        if (AssociatedObject is { RowsPresenter: { } rowsPresenter })
+        if (AssociatedObject is { RowsPresenter: not null } treeDataGrid)
         {
-            rowsPresenter.BringIntoView(index);
+            treeDataGrid.RowsPresenter.BringIntoView(index);
         }
     }
 }
