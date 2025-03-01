@@ -189,7 +189,7 @@ public class App : Application
                 await UpdateAvailableVoicesAsync();
 
                 // Show release notes of new version
-                if (arguments.TryGetValue("--isUpdated", out _))
+                if (Program.IsUpdated)
                 {
                     try
                     {
