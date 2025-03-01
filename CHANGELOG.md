@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.11
+### Added
+- Added a release notes dialog to list the changes in the newly installed version, with an option to disable the dialog for future versions.
+- Introduced support for customizing the display order of ATIS station tabs.
+- Implemented the ability to customize the spoken speech rate of the voice ATIS.
+### Changed
+- Enhanced the display of static and free-text airport conditions and NOTAMs, ensuring the text is now shown in the correct order in the UI.
+- Improved exception error logging to provide more detailed information.
+- Optimized asynchronous method invocations and handling for better performance.
+- Reduced the transceiver height to 10 meters.
+- Updated to the latest version of the miniaudio library.
+- Updated Avalonia packages to the latest versions.
+- Improved the synchronization of ATIS letters to other users; ATISes that recently went offline will only populate the last used letter rather than showing as online (red letter).
+### Fixed
+- Fixed the ATIS letter coloring issue for observed ATIS stations.
+- Fixed an issue where unsaved airport conditions and NOTAM free-text were discarded when the static definition dialog was closed.
+- Fixed an issue with the TREND forecast regex expression.
+- Fixed the alignment of window controls for the mini-window when the user's monitors have different resolutions.
+- Fixed an issue where the contraction list would not refresh in the Presets configuration window.
+- Fixed an issue with application shutdown logic that prevented the app from asking if the user was sure they wanted to disconnect.
+
 ## v4.1.0-beta.10
 ### Added
 - Added missing weather precipitation types.
