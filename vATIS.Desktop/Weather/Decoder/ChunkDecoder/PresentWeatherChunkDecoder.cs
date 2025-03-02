@@ -29,7 +29,7 @@ public sealed class PresentWeatherChunkDecoder : MetarChunkDecoder
     /// Defines a regular expression pattern used to match specific weather phenomenon types in METAR data,
     /// utilized within the <see cref="PresentWeatherChunkDecoder"/> class.
     /// </summary>
-    public const string TypeRegexPattern = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|//";
+    public const string TypeRegexPattern = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|NSW|//";
 
     private const string PresentWeatherParameterName = "PresentWeather";
 
