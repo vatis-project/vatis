@@ -18,19 +18,17 @@ public class AtisHubDto
     /// <param name="stationId">The identifier of the station.</param>
     /// <param name="atisType">The type of ATIS.</param>
     /// <param name="atisLetter">The letter associated with the ATIS.</param>
-    /// <param name="isOnline">A value indicating whether the ATIS is connected.</param>
     /// <param name="metar">The METAR (Meteorological Aerodrome Report) information.</param>
     /// <param name="wind">The wind information.</param>
     /// <param name="altimeter">The altimeter setting.</param>
     /// <param name="airportConditions">The airport conditions.</param>
     /// <param name="notams">The NOTAMs.</param>
-    public AtisHubDto(string stationId, AtisType atisType, char atisLetter, bool isOnline, string? metar = null, string? wind = null,
+    public AtisHubDto(string stationId, AtisType atisType, char atisLetter, string? metar = null, string? wind = null,
         string? altimeter = null, string? airportConditions = null, string? notams = null)
     {
         StationId = stationId;
         AtisType = atisType;
         AtisLetter = atisLetter;
-        IsOnline = isOnline;
         Metar = metar;
         Wind = wind;
         Altimeter = altimeter;
