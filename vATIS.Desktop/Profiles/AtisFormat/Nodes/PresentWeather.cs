@@ -314,6 +314,7 @@ public class PresentWeather : BaseFormat
         { "FZDZPL", "Freezing Drizzle And Ice Pellets" },
         { "HZ", "Haze" },
         { "MIFG", "Shallow Fog" },
+        { "NSW", "No Significant Weather" },
         { "PL", "Ice Pellets" },
         { "PLDZ", "Ice Pellets And Drizzle" },
         { "PLDZRA", "Ice Pellets, Drizzle And Rain" },

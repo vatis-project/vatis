@@ -33,7 +33,7 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
 
     // Present Weather
     private const string CaracRegexPattern = "TS|FZ|SH|BL|DR|MI|BC|PR";
-    private const string TypeRegexPattern = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|//";
+    private const string TypeRegexPattern = "DZ|RA|SN|SG|PL|DS|GR|GS|UP|IC|FG|BR|SA|DU|HZ|FU|VA|PY|DU|PO|SQ|FC|DS|SS|NSW|//";
 
     // Clouds
     private const string NoCloudRegexPattern = "(?:NSC|NCD|CLR|SKC)";

@@ -176,9 +176,17 @@ public class TrendNode : BaseNode<TrendForecast>
 
         if (decodedTrend.PresentWeather.Count > 0)
         {
-            var node = NodeParser.Parse<PresentWeatherNode, WeatherPhenomenon>(decodedTrend, Station);
-            voiceAtis.Add(node.VoiceAtis);
-            textAtis.Add(node.TextAtis);
+            foreach (var weatherType in decodedTrend.PresentWeather)
+            {
+                if (string.IsNullOrEmpty(weatherType.RawValue))
+                    continue;
+
+                if (Station.AtisFormat.PresentWeather.PresentWeatherTypes.TryGetValue(weatherType.RawValue.Trim(), out var type))
+                {
+                    voiceAtis.Add(type.Spoken);
+                    textAtis.Add(type.Text);
+                }
+            }
         }
 
         if (decodedTrend.Clouds.Count > 0)

@@ -206,16 +206,16 @@ public class ProfileRepository : IProfileRepository
     private void EnsureLatestVersion(Profile profile, out bool wasUpdated)
     {
         wasUpdated = false;
-        if (profile.Version < 2)
+        if (profile.Version < 3)
         {
-            UpdateTo2(profile);
+            UpdateTo3(profile);
             wasUpdated = true;
         }
     }
 
-    private void UpdateTo2(Profile profile)
+    private void UpdateTo3(Profile profile)
     {
-        Log.Information($"Updating profile {profile.Name} to version 2");
+        Log.Information($"Updating profile {profile.Name} to version 3");
 
         if (profile.Stations != null)
         {
@@ -225,6 +225,6 @@ public class ProfileRepository : IProfileRepository
             }
         }
 
-        profile.Version = 2;
+        profile.Version = 3;
     }
 }
