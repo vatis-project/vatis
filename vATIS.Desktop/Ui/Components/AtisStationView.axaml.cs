@@ -59,10 +59,21 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
         if (ViewModel != null)
         {
+            // Assign empty read-only section providers before setting new ones
+            AirportConditions.TextArea.ReadOnlySectionProvider = new TextSegmentReadOnlySectionProvider<TextSegment>([]);
+            NotamText.TextArea.ReadOnlySectionProvider = new TextSegmentReadOnlySectionProvider<TextSegment>([]);
+
+            // Remove previous transformers
+            AirportConditions.TextArea.TextView.LineTransformers.Clear();
+            NotamText.TextArea.TextView.LineTransformers.Clear();
+
+            // Assign new read-only sections
             AirportConditions.TextArea.ReadOnlySectionProvider =
                 new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyAirportConditions);
             NotamText.TextArea.ReadOnlySectionProvider =
                 new TextSegmentReadOnlySectionProvider<TextSegment>(ViewModel.ReadOnlyNotams);
+
+            // Add new line transformers
             AirportConditions.TextArea.TextView.LineTransformers.Add(
                 new ReadOnlySegmentTransformer(ViewModel.ReadOnlyAirportConditions));
             NotamText.TextArea.TextView.LineTransformers.Add(

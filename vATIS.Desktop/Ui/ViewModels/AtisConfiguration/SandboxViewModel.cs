@@ -427,7 +427,17 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset == null)
             return;
 
-        SelectedPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
+        var freeText = "";
+
+        var readonlySegment = ReadOnlyNotams.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? NotamsTextDocument?.Text[..readonlySegment.StartOffset]
+                : NotamsTextDocument?.Text[readonlySegment.Length..];
+        }
+
+        SelectedPreset.Notams = string.IsNullOrEmpty(freeText) ? NotamsTextDocument?.Text.Trim() : freeText.Trim();
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -499,7 +509,20 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset == null)
             return;
 
-        SelectedPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
+        var freeText = "";
+
+        var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? AirportConditionsTextDocument?.Text[..readonlySegment.StartOffset]
+                : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
+        }
+
+        SelectedPreset.AirportConditions = string.IsNullOrEmpty(freeText)
+            ? AirportConditionsTextDocument?.Text.Trim()
+            : freeText.Trim();
+
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
 
