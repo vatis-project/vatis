@@ -33,7 +33,7 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
     public override string GetRegex()
     {
         return
-            $"^({NoCloudRegexPattern}|({LayerRegexPattern})( {LayerRegexPattern})?( {LayerRegexPattern})?( {LayerRegexPattern})?)( )";
+            $"^({NoCloudRegexPattern}|({LayerRegexPattern})( {LayerRegexPattern})?( {LayerRegexPattern})?( {LayerRegexPattern})?( {LayerRegexPattern})?( {LayerRegexPattern})?)( )";
     }
 
     /// <summary>
