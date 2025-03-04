@@ -64,6 +64,7 @@ private:
 	ma_device playbackDevice = {};
 	ma_device captureDevice = {};
 	ma_device bufferPlaybackDevice = {};
+	ma_engine engine;
 
 	size_t playbackPos = 0;
 	std::mutex audioMutex;
