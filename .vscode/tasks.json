@@ -1,24 +1,57 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "type": "dotnet",
-      "task": "build vATIS.Desktop/vATIS.Desktop.csproj",
-      "file": "${workspaceFolder}/vATIS.Desktop/vATIS.Desktop.csproj",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": [],
-      "label": "Build vATIS.Desktop"
-    },
-    {
-      "type": "dotnet",
-      "task": "build DevServer/DevServer.csproj",
-      "file": "${workspaceFolder}/DevServer/DevServer.csproj",
-      "group": "build",
-      "problemMatcher": [],
-      "label": "Build DevServer"
-    }
-  ]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "dotnet",
+            "task": "build vATIS.Desktop/vATIS.Desktop.csproj",
+            "file": "${workspaceFolder}/vATIS.Desktop/vATIS.Desktop.csproj",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "label": "Build vATIS.Desktop"
+        },
+        {
+            "type": "dotnet",
+            "task": "build DevServer/DevServer.csproj",
+            "file": "${workspaceFolder}/DevServer/DevServer.csproj",
+            "group": "build",
+            "problemMatcher": [],
+            "label": "Build DevServer"
+        },
+        {
+            "type": "shell",
+            "label": "CMake - Generate build files",
+            "command": "cmake",
+            "args": [
+                "-S",
+                "./NativeAudio",
+                "-B",
+                "./NativeAudio/out",
+                "-G",
+                "Visual Studio 17 2022"
+            ],
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"]
+        },
+        {
+            "type": "shell",
+            "label": "CMake - Build NativeAudio (Debug)",
+            "command": "cmake",
+            "args": ["--build", "./NativeAudio/out", "--config", "Debug"],
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "dependsOn": ["CMake - generate build files"]
+        },
+        {
+            "type": "shell",
+            "label": "CMake - Build NativeAudio (Release)",
+            "command": "cmake",
+            "args": ["--build", "./NativeAudio/out", "--config", "Release"],
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "dependsOn": ["CMake - generate build files"]
+        }
+    ]
 }
