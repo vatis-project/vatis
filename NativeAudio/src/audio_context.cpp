@@ -15,6 +15,7 @@ AudioContext::AudioContext() :
 	contextConfig.jack.pClientName = "org.vatsim.vatis";
 	contextConfig.pulse.pApplicationName = "org.vatsim.vatis";
 	ma_context_init(NULL, 0, &contextConfig, &context);
+	ma_engine_init(NULL, &engine);
 }
 
 AudioContext::~AudioContext()
@@ -35,6 +36,7 @@ void AudioContext::Close()
 	}
 
 	ma_context_uninit(&context);
+	ma_engine_uninit(&engine);
 }
 
 std::map<int, ma_device_info> AudioContext::GetPlaybackDevices(unsigned int api)
@@ -393,13 +395,7 @@ void AudioContext::DestroyDevices()
 
 void AudioContext::EmitSound(SoundType soundType)
 {
-	std::thread([soundType]() {
-		ma_engine engine;
-		ma_result result = ma_engine_init(NULL, &engine);
-		if (result != MA_SUCCESS) {
-			return;
-		}
-
+	std::thread([=]() {
 		const unsigned char* soundData = nullptr;
 		unsigned int soundDataSize = 0;
 
@@ -413,14 +409,12 @@ void AudioContext::EmitSound(SoundType soundType)
 			soundDataSize = notification_sound_size;
 			break;
 		default:
-			ma_engine_uninit(&engine);
 			return;
 		}
 
 		ma_decoder decoder;
-		result = ma_decoder_init_memory(soundData, soundDataSize, NULL, &decoder);
+		ma_result result = ma_decoder_init_memory(soundData, soundDataSize, NULL, &decoder);
 		if (result != MA_SUCCESS) {
-			ma_engine_uninit(&engine);
 			return;
 		}
 
@@ -428,7 +422,6 @@ void AudioContext::EmitSound(SoundType soundType)
 		result = ma_sound_init_from_data_source(&engine, &decoder, 0, NULL, &sound);
 		if (result != MA_SUCCESS) {
 			ma_decoder_uninit(&decoder);
-			ma_engine_uninit(&engine);
 			return;
 		}
 
@@ -442,7 +435,6 @@ void AudioContext::EmitSound(SoundType soundType)
 		ma_sound_stop(&sound);
 		ma_sound_uninit(&sound);
 		ma_decoder_uninit(&decoder);
-		ma_engine_uninit(&engine);
 	}).detach();
 }
 
