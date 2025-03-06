@@ -52,7 +52,7 @@
             "args": ["--build", "./NativeAudio/out", "--config", "Release"],
             "group": "build",
             "problemMatcher": ["$gcc", "$msCompile"],
-            "dependsOn": ["CMake - generate build files"]
+            "dependsOn": ["CMake - Generate build files"]
         }
     ]
 }
