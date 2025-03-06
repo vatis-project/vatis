@@ -8,10 +8,12 @@
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
              xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
+             xmlns:networking="clr-namespace:Vatsim.Vatis.Networking"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="300"
 			 x:Class="Vatsim.Vatis.Ui.Components.AtisStationView">
 	<UserControl.Resources>
-		<converters:ConnectButtonLabelConverter x:Key="ConnectButtonLabelConverter"/>
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+        <converters:ConnectButtonLabelConverter x:Key="ConnectButtonLabelConverter"/>
 		<converters:ConnectButtonColorConverter x:Key="ConnectButtonColorConverter"/>
 	</UserControl.Resources>
 	<Border Background="#323232" Padding="10">
@@ -51,7 +53,7 @@
 					<Button Grid.Column="0" Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:AtisStationViewModel}">AIRPORT CONDITIONS</Button>
 					<Button Grid.Column="1" Theme="{StaticResource HyperlinkButtonSave}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5"  IsVisible="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveAirportConditionsText, DataType=vm:AtisStationViewModel}">★SAVE CHANGES★</Button>
 				</Grid>
-				<editor:TextEditor Name="AirportConditions" Grid.Row="1" Grid.Column="0" Document="{Binding AirportConditionsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="AirportConditions_OnTextChanged">
+				<editor:TextEditor Name="AirportConditions" Grid.Row="1" Grid.Column="0" Document="{Binding AirportConditionsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="AirportConditions_OnTextChanged" IsReadOnly="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Observer}}">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:AtisStationViewModel}"/>
@@ -62,7 +64,7 @@
 					<Button Grid.Column="0" Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:AtisStationViewModel}">NOTAMS</Button>
 					<Button Grid.Column="1" Theme="{StaticResource HyperlinkButtonSave}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5"  HorizontalAlignment="Right" IsVisible="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel, FallbackValue=False}" Command="{Binding SaveNotamsText, DataType=vm:AtisStationViewModel}">★SAVE CHANGES★</Button>
 				</Grid>
-				<editor:TextEditor Name="NotamText" Grid.Row="1" Grid.Column="2" Document="{Binding NotamsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="NotamText_OnTextChanged">
+				<editor:TextEditor Name="NotamText" Grid.Row="1" Grid.Column="2" Document="{Binding NotamsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="NotamText_OnTextChanged" IsReadOnly="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Observer}}">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:AtisStationViewModel}"/>
