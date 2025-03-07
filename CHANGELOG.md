@@ -5,34 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v4.1.0-beta.12
+## v4.1.0-beta.13
+### Added
+- Added a release notes dialog that lists changes in the newly installed version, with an option to disable it for future updates.
+- Introduced support for customizing the display order of ATIS station tabs.
+- Implemented the ability to adjust the spoken speech rate of the voice ATIS.
 ### Changed
-- Increased the maximum number of cloud groups to 6.
+- Enhanced the display of static and free-text airport conditions and NOTAMs, ensuring correct text order in the UI.  
+- Improved exception logging to provide more detailed error information.
+- Optimized asynchronous method invocations and task cancellation for better performance.
+- Reduced transceiver height to 10 meters.
+- Updated to the latest version of the miniaudio library.
+- Updated Avalonia packages to their latest versions.
+- Increased the maximum number of cloud groups to six.
+- Improved ATIS letter synchronization with other users; ATIS stations that recently went offline now retain the last used letter instead of appearing online (red letter).
+- Modified the airport conditions and NOTAMs text box to be read-only when the ATIS is observed.
 ### Fixed
-- Fixed an issue where airport conditions and NOTAMs free-text were duplicated after saving.
-- Fixed an issue with invalid position indexes in airport conditions and NOTAMs read-only (blue) text segments, causing incorrect portions to be colorized.
-- Fixed an issue with parsing NSW in TREND forecast.
+- Fixed ATIS letter coloring for observed ATIS stations.
+- Fixed an issue where unsaved airport conditions and NOTAM free-text were discarded when closing the static definition dialog.
+- Fixed a typo in the TREND forecast regex expression.
+- Adjusted window control alignment in mini-window mode for multi-monitor setups with different resolutions.
+- Fixed an issue where the contraction list failed to refresh in the Presets configuration window.
+- Fixed an application shutdown issue that prevented the disconnect confirmation prompt from appearing when the user pressed ALT+F4.
+- Corrected ATIS letter incrementing/decrementing behavior to prevent invalid characters.
+- Fixed an issue causing airport conditions and NOTAM free-text to duplicate.
+- Fixed a miniaudio library crash that occurred after playing a notification sound.
+- Fixed incorrect text position in airport conditions and NOTAMs read-only (blue) text segments, which caused improper text colorization.
+- Fixed an issue with parsing NSW in TREND forecasts.
+
+## v4.1.0-beta.12
+YANKED
 
 ## v4.1.0-beta.11
-### Added
-- Added a release notes dialog to list the changes in the newly installed version, with an option to disable the dialog for future versions.
-- Introduced support for customizing the display order of ATIS station tabs.
-- Implemented the ability to customize the spoken speech rate of the voice ATIS.
-### Changed
-- Enhanced the display of static and free-text airport conditions and NOTAMs, ensuring the text is now shown in the correct order in the UI.
-- Improved exception error logging to provide more detailed information.
-- Optimized asynchronous method invocations and handling for better performance.
-- Reduced the transceiver height to 10 meters.
-- Updated to the latest version of the miniaudio library.
-- Updated Avalonia packages to the latest versions.
-- Improved the synchronization of ATIS letters to other users; ATISes that recently went offline will only populate the last used letter rather than showing as online (red letter).
-### Fixed
-- Fixed the ATIS letter coloring issue for observed ATIS stations.
-- Fixed an issue where unsaved airport conditions and NOTAM free-text were discarded when the static definition dialog was closed.
-- Fixed an issue with the TREND forecast regex expression.
-- Fixed the alignment of window controls for the mini-window when the user's monitors have different resolutions.
-- Fixed an issue where the contraction list would not refresh in the Presets configuration window.
-- Fixed an issue with application shutdown logic that prevented the app from asking if the user was sure they wanted to disconnect.
+YANKED
 
 ## v4.1.0-beta.10
 ### Added
