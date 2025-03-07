@@ -19,8 +19,9 @@ public interface IAuthTokenManager
     string? AuthToken { get; }
 
     /// <summary>
-    /// Asynchronously retrieves the authentication token.
+    /// Retrieves the authentication token asynchronously.
     /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the authentication token.</returns>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task that resolves to the authentication token, or null if unavailable.</returns>
     Task<string?> GetAuthToken(CancellationToken cancellationToken = default);
 }
