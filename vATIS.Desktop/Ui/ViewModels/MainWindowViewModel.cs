@@ -174,7 +174,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
             {
-                station.Disconnect();
+                _ = station.Disconnect();
 
                 _disposables.Remove(station);
                 _atisStationSource.Remove(station);
