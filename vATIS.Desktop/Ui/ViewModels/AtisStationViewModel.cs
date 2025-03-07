@@ -265,15 +265,44 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     ? NetworkConnectionStatus.Observer
                     : NetworkConnectionStatus.Disconnected;
 
-                if (AirportConditionsTextDocument != null)
+                // Sync airport conditions and NOTAM text for online ATISes
+                if (sync.Dto.IsOnline)
                 {
-                    AirportConditionsTextDocument.Text =
-                        sync.Dto.AirportConditions ?? SelectedAtisPreset?.AirportConditions ?? "";
-                }
+                    if (AirportConditionsTextDocument != null)
+                    {
+                        AirportConditionsTextDocument.Text = sync.Dto.AirportConditions ?? "";
+                    }
 
-                if (NotamsTextDocument != null)
+                    if (NotamsTextDocument != null)
+                    {
+                        NotamsTextDocument.Text = sync.Dto.Notams ?? "";
+                    }
+                }
+                else
                 {
-                    NotamsTextDocument.Text = sync.Dto.Notams ?? SelectedAtisPreset?.Notams ?? "";
+                    // If the ATIS is offline, then populate the airport conditions
+                    // and notams for the selected preset.
+                    if (SelectedAtisPreset != null)
+                    {
+                        PopulateAirportConditions();
+                        PopulateNotams();
+                    }
+
+                    // Otherwise, just empty the textboxes.
+                    // This makes it appear as the offline state.
+                    // Only the ATIS letter is still synced for a short period.
+                    else
+                    {
+                        if (AirportConditionsTextDocument != null)
+                        {
+                            AirportConditionsTextDocument.Text = "";
+                        }
+
+                        if (NotamsTextDocument != null)
+                        {
+                            NotamsTextDocument.Text = "";
+                        }
+                    }
                 }
             });
         }));
@@ -978,6 +1007,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     break;
                 case NetworkConnectionStatus.Disconnected:
                     await DisconnectFromVoiceServer();
+
+                    // Reset airport and NOTAM textboxes
+                    PopulateNotams(true);
+                    PopulateAirportConditions(true);
                     break;
                 case NetworkConnectionStatus.Connecting:
                 case NetworkConnectionStatus.Observer:
