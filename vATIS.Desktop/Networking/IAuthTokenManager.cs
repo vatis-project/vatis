@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Vatsim.Vatis.Networking;
@@ -21,5 +22,5 @@ public interface IAuthTokenManager
     /// Asynchronously retrieves the authentication token.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task result contains the authentication token.</returns>
-    Task<string?> GetAuthToken();
+    Task<string?> GetAuthToken(CancellationToken cancellationToken = default);
 }

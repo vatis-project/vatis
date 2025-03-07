@@ -59,8 +59,9 @@ public class AtisBuilder : IAtisBuilder
     }
 
     /// <inheritdoc/>
-    public async Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset, char currentAtisLetter, DecodedMetar decodedMetar,
-        CancellationToken cancellationToken, bool sandboxRequest = false)
+    public async Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset,
+        char currentAtisLetter, DecodedMetar decodedMetar, CancellationToken cancellationToken,
+        bool sandboxRequest = false)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -73,8 +74,8 @@ public class AtisBuilder : IAtisBuilder
 
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
-        var (spokenText, audioBytes) = await CreateVoiceAtis(station, preset, currentAtisLetter, variables,
-            cancellationToken, sandboxRequest);
+        var (spokenText, audioBytes) =
+            await CreateVoiceAtis(station, preset, currentAtisLetter, variables, cancellationToken);
 
         return new AtisBuilderVoiceAtisResponse(spokenText, audioBytes);
     }
@@ -131,11 +132,7 @@ public class AtisBuilder : IAtisBuilder
             }
 
             var jsonSerialized = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.IdsUpdateRequest);
-            await _downloader.PostJson(station.IdsEndpoint, jsonSerialized, jwt);
-        }
-        catch (OperationCanceledException)
-        {
-            // ignored
+            await _downloader.PostJson(station.IdsEndpoint, jsonSerialized, jwt, cancellationToken);
         }
         catch (HttpRequestException ex)
         {
@@ -184,9 +181,10 @@ public class AtisBuilder : IAtisBuilder
     }
 
     private async Task<(string? SpokenText, byte[]? AudioBytes)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
-        char currentAtisLetter, List<AtisVariable> variables, CancellationToken cancellationToken,
-        bool sandboxRequest = false)
+        char currentAtisLetter, List<AtisVariable> variables, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var template = preset.Template ?? "";
 
         template = ReplaceContractionVariable(template, station, voiceVariable: true);
@@ -201,6 +199,8 @@ public class AtisBuilder : IAtisBuilder
             {
                 tasks.Add(Task.Run(async () =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var icao = match.Groups[1].Value;
                     var icaoMetar = await _metarRepository!.GetMetar(icao, triggerMessageBus: false);
 
@@ -261,9 +261,6 @@ public class AtisBuilder : IAtisBuilder
 
         if (station.AtisVoice.UseTextToSpeech)
         {
-            // catches multiple ATIS letter button presses in quick succession
-            await Task.Delay(sandboxRequest ? 0 : 5000, cancellationToken);
-
             if (_textToSpeechService == null)
                 throw new AtisBuilderException("TextToSpeech service not initialized");
 
@@ -350,8 +347,8 @@ public class AtisBuilder : IAtisBuilder
         return template;
     }
 
-    private async Task<List<AtisVariable>> ParseNodesFromMetar(AtisStation station, AtisPreset preset, DecodedMetar metar, Airport airportData,
-        char currentAtisLetter)
+    private async Task<List<AtisVariable>> ParseNodesFromMetar(AtisStation station, AtisPreset preset,
+        DecodedMetar metar, Airport airportData, char currentAtisLetter)
     {
         var time = NodeParser.Parse<ObservationTimeNode, string>(metar, station);
         var surfaceWind = NodeParser.Parse<SurfaceWindNode, SurfaceWind>(metar, station);
@@ -464,7 +461,8 @@ public class AtisBuilder : IAtisBuilder
         var variables = new List<AtisVariable>
         {
             new("FACILITY", airportData.Id, airportData.Name),
-            new("ATIS_LETTER", currentAtisLetter.ToString(), currentAtisLetter.ToPhonetic(), ["LETTER", "ATIS_CODE", "ID"]),
+            new("ATIS_LETTER", currentAtisLetter.ToString(), currentAtisLetter.ToPhonetic(),
+                ["LETTER", "ATIS_CODE", "ID"]),
             new("TIME", time.TextAtis, time.VoiceAtis, ["OBS_TIME", "OBSTIME"]),
             new("WIND", surfaceWind.TextAtis, surfaceWind.VoiceAtis, ["SURFACE_WIND"]),
             new("RVR", rvr.TextAtis, rvr.VoiceAtis),
