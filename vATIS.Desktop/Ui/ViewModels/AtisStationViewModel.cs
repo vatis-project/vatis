@@ -1028,8 +1028,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
             _voiceServerConnection?.Disconnect();
 
-            await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
-                AtisLetter));
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+            {
+                await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
+                    AtisLetter));
+            }
 
             // Dispose of the ATIS publish timer to stop further publishing.
             if (_publishAtisTimer != null)

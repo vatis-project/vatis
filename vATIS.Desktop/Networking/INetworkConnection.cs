@@ -50,6 +50,11 @@ public interface INetworkConnection
     event EventHandler<ClientEventArgs<string>> ChangeServerReceived;
 
     /// <summary>
+    /// Occurs when a PONG event is received.
+    /// </summary>
+    event EventHandler PongReceived;
+
+    /// <summary>
     /// Gets the callsign associated with the network connection.
     /// </summary>
     string Callsign { get; }

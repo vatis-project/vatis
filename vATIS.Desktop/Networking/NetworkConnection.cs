@@ -122,6 +122,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
         _fsdSession.AtcPositionReceived += OnATCPositionReceived;
         _fsdSession.DeleteAtcReceived += OnDeleteATCReceived;
         _fsdSession.ChangeServerReceived += OnChangeServerReceived;
+        _fsdSession.PongReceived += OnPongReceived;
         _fsdSession.RawDataReceived += OnRawDataReceived;
         _fsdSession.RawDataSent += OnRawDataSent;
 
@@ -163,6 +164,9 @@ public class NetworkConnection : INetworkConnection, IDisposable
 
     /// <inheritdoc />
     public event EventHandler<ClientEventArgs<string>> ChangeServerReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler PongReceived = (_, _) => { };
 
     /// <inheritdoc />
     public string Callsign { get; }
@@ -268,7 +272,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
 
     private void OnNetworkConnected(object? sender, NetworkEventArgs e)
     {
-        NetworkConnected(this, EventArgs.Empty);
+        // Not used
     }
 
     private void OnNetworkDisconnected(object? sender, NetworkEventArgs e)
@@ -317,6 +321,14 @@ public class NetworkConnection : INetworkConnection, IDisposable
         SendAddAtc();
         SendAtcPositionPacket();
         _fsdPositionUpdateTimer.Start();
+
+        // Send a PING to the FSD server to check network connectivity.
+        // This is a hack to verify if we are actually connected to the network.
+        // If the server replies with a PONG, we can safely assume the connection is active.
+        // Without this check, vATIS might assume the connection is successful and start
+        // the ATIS build process, even if the connection was lost (e.g., due to a duplicate callsign).
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        _fsdSession.SendPdu(new PDUPing(Callsign, PDUBase.SERVER_CALLSIGN, timestamp));
     }
 
     private void OnClientQueryReceived(object? sender, DataReceivedEventArgs<PDUClientQuery> e)
@@ -442,6 +454,15 @@ public class NetworkConnection : INetworkConnection, IDisposable
     private void OnChangeServerReceived(object? sender, DataReceivedEventArgs<PDUChangeServer> e)
     {
         ChangeServerReceived(this, new ClientEventArgs<string>(e.Pdu.NewServer));
+    }
+
+    private void OnPongReceived(object? sender, DataReceivedEventArgs<PDUPong> e)
+    {
+        // Successfully received a PONG response from the FSD server.
+        // We can now safely assume the connection to the FSD server is active.
+        // Notify the client that the connection is established, allowing it to proceed with
+        // building the ATIS.
+        NetworkConnected(this, EventArgs.Empty);
     }
 
     private void OnFsdPositionUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
