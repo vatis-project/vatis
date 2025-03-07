@@ -7,6 +7,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
@@ -45,8 +46,10 @@ public class AuthTokenManager : IAuthTokenManager, IDisposable
     public string? AuthToken { get; private set; }
 
     /// <inheritdoc />
-    public async Task<string?> GetAuthToken()
+    public async Task<string?> GetAuthToken(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (AuthToken != null && (DateTime.UtcNow - _authTokenGeneratedAt).TotalMinutes < AuthTokenShelfLifeMinutes)
         {
             return AuthToken;
@@ -65,7 +68,7 @@ public class AuthTokenManager : IAuthTokenManager, IDisposable
 
         var jsonRequest = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.JsonObject);
 
-        var response = await _downloader.PostJsonResponse(AuthTokenUrl, jsonRequest);
+        var response = await _downloader.PostJsonResponse(AuthTokenUrl, jsonRequest, cancellationToken: cancellationToken);
         {
             try
             {
@@ -76,7 +79,8 @@ public class AuthTokenManager : IAuthTokenManager, IDisposable
                 throw new ApplicationException("Authentication failed.", ex);
             }
 
-            var jsonResponse = JsonSerializer.Deserialize(await response.Content.ReadAsStringAsync(), SourceGenerationContext.NewDefault.JsonObject);
+            var jsonResponse = JsonSerializer.Deserialize(await response.Content.ReadAsStringAsync(cancellationToken),
+                SourceGenerationContext.NewDefault.JsonObject);
             if (jsonResponse == null)
                 return null;
 

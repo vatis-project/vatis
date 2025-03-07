@@ -66,7 +66,9 @@ public class TextToSpeechService : ITextToSpeechService
     /// <inheritdoc />
     public async Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken)
     {
-        var authToken = await _authTokenManager.GetAuthToken();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var authToken = await _authTokenManager.GetAuthToken(cancellationToken);
 
         try
         {
@@ -86,10 +88,6 @@ public class TextToSpeechService : ITextToSpeechService
                 await response.CopyToAsync(stream, cancellationToken);
                 return stream.ToArray();
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // Ignored
         }
         catch (Exception ex)
         {
