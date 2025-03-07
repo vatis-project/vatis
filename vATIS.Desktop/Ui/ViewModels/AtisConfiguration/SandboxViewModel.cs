@@ -49,6 +49,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<AtisPreset>? _presets;
     private AtisPreset? _selectedPreset;
     private AtisStation? _selectedStation;
+    private AtisPreset? _previousPreset;
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
     private string? _sandboxMetar;
@@ -84,7 +85,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         FetchSandboxMetarCommand = ReactiveCommand.CreateFromTask(HandleFetchSandboxMetar);
-        SelectedPresetChangedCommand = ReactiveCommand.Create(HandleSelectedPresetChanged);
+        SelectedPresetChangedCommand = ReactiveCommand.Create<AtisPreset>(HandleSelectedPresetChanged);
         OpenStaticAirportConditionsDialogCommand =
             ReactiveCommand.CreateFromTask(HandleOpenStaticAirportConditionsDialog);
         OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
@@ -140,7 +141,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the command executed when the selected preset changes.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> SelectedPresetChangedCommand { get; }
+    public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
 
     /// <summary>
     /// Gets the command used to open the static airport conditions dialog.
@@ -346,6 +347,17 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         HasUnsavedNotams = false;
         TextAtisTextDocument.Text = "";
         VoiceAtisTextDocument.Text = "";
+
+        if (AirportConditionsTextDocument != null)
+        {
+            AirportConditionsTextDocument.Text = "";
+        }
+
+        if (NotamsTextDocument != null)
+        {
+            NotamsTextDocument.Text = "";
+        }
+
         IsSandboxPlaybackActive = false;
         NativeAudio.StopBufferPlayback();
         LoadContractionData();
@@ -398,9 +410,6 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             if (randomLetter is < 'A' or > 'Z')
                 randomLetter = 'A';
 
-            SelectedPreset.AirportConditions = AirportConditionsFreeText?[_airportConditionsFreeTextOffset..];
-            SelectedPreset.Notams = NotamsFreeText?[_notamFreeTextOffset..];
-
             if (SandboxMetar != null)
             {
                 var decodedMetar = _metarDecoder.ParseNotStrict(SandboxMetar);
@@ -437,7 +446,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
                 : NotamsTextDocument?.Text[readonlySegment.Length..];
         }
 
-        SelectedPreset.Notams = string.IsNullOrEmpty(freeText) ? NotamsTextDocument?.Text.Trim() : freeText.Trim();
+        SelectedPreset.Notams = freeText?.Trim();
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -519,9 +528,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
                 : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
         }
 
-        SelectedPreset.AirportConditions = string.IsNullOrEmpty(freeText)
-            ? AirportConditionsTextDocument?.Text.Trim()
-            : freeText.Trim();
+        SelectedPreset.AirportConditions = freeText?.Trim();
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -589,13 +596,19 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         PopulateAirportConditions();
     }
 
-    private void HandleSelectedPresetChanged()
+    private void HandleSelectedPresetChanged(AtisPreset? preset)
     {
-        if (SelectedPreset == null)
+        if (preset == null)
             return;
 
-        PopulateAirportConditions(presetChanged: true);
-        PopulateNotams(presetChanged: true);
+        if (preset != _previousPreset)
+        {
+            SelectedPreset = preset;
+            _previousPreset = preset;
+
+            PopulateAirportConditions(presetChanged: true);
+            PopulateNotams(presetChanged: true);
+        }
     }
 
     private async Task HandleFetchSandboxMetar()
@@ -719,10 +732,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
 
     private void PopulateAirportConditions(bool presetChanged = false)
     {
-        if (AirportConditionsTextDocument == null)
-            return;
-
-        if (SelectedStation == null || SelectedPreset == null)
+        if (AirportConditionsTextDocument == null || SelectedStation == null || SelectedPreset == null)
             return;
 
         // Retrieve and sort enabled static airport conditions by their ordinal value.

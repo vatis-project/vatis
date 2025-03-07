@@ -718,7 +718,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 : NotamsTextDocument?.Text[readonlySegment.Length..];
         }
 
-        SelectedAtisPreset.Notams = string.IsNullOrEmpty(freeText) ? NotamsTextDocument?.Text.Trim() : freeText.Trim();
+        SelectedAtisPreset.Notams = freeText?.Trim();
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -741,8 +741,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
         }
 
-        SelectedAtisPreset.AirportConditions =
-            string.IsNullOrEmpty(freeText) ? AirportConditionsTextDocument?.Text.Trim() : freeText.Trim();
+        SelectedAtisPreset.AirportConditions = freeText?.Trim();
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
