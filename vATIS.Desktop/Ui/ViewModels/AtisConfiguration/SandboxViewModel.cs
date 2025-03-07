@@ -436,7 +436,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset == null)
             return;
 
-        var freeText = "";
+        string? freeText;
 
         var readonlySegment = ReadOnlyNotams.FirstSegment;
         if (readonlySegment != null)
@@ -444,6 +444,10 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             freeText = readonlySegment.StartOffset > 0
                 ? NotamsTextDocument?.Text[..readonlySegment.StartOffset]
                 : NotamsTextDocument?.Text[readonlySegment.Length..];
+        }
+        else
+        {
+            freeText = NotamsTextDocument?.Text;
         }
 
         SelectedPreset.Notams = freeText?.Trim();
@@ -518,7 +522,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset == null)
             return;
 
-        var freeText = "";
+        string? freeText;
 
         var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
         if (readonlySegment != null)
@@ -526,6 +530,10 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             freeText = readonlySegment.StartOffset > 0
                 ? AirportConditionsTextDocument?.Text[..readonlySegment.StartOffset]
                 : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
+        }
+        else
+        {
+            freeText = AirportConditionsTextDocument?.Text;
         }
 
         SelectedPreset.AirportConditions = freeText?.Trim();

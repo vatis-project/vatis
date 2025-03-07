@@ -703,7 +703,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        var freeText = "";
+        string? freeText;
 
         var readonlySegment = ReadOnlyNotams.FirstSegment;
         if (readonlySegment != null)
@@ -711,6 +711,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             freeText = readonlySegment.StartOffset > 0
                 ? NotamsTextDocument?.Text[..readonlySegment.StartOffset]
                 : NotamsTextDocument?.Text[readonlySegment.Length..];
+        }
+        else
+        {
+            freeText = NotamsTextDocument?.Text;
         }
 
         SelectedAtisPreset.Notams = freeText?.Trim();
@@ -726,7 +730,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedAtisPreset == null)
             return;
 
-        var freeText = "";
+        string? freeText;
 
         var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
         if (readonlySegment != null)
@@ -734,6 +738,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             freeText = readonlySegment.StartOffset > 0
                 ? AirportConditionsTextDocument?.Text[..readonlySegment.StartOffset]
                 : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
+        }
+        else
+        {
+            freeText = AirportConditionsTextDocument?.Text;
         }
 
         SelectedAtisPreset.AirportConditions = freeText?.Trim();
