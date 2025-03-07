@@ -59,6 +59,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
         if (ViewModel != null)
         {
+            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+                return;
+
             // Assign empty read-only section providers before setting new ones
             AirportConditions.TextArea.ReadOnlySectionProvider = new TextSegmentReadOnlySectionProvider<TextSegment>([]);
             NotamText.TextArea.ReadOnlySectionProvider = new TextSegmentReadOnlySectionProvider<TextSegment>([]);
