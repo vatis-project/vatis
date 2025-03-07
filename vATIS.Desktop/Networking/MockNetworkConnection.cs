@@ -79,6 +79,9 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
     public event EventHandler<ClientEventArgs<string>>? ChangeServerReceived = (_, _) => { };
 
     /// <inheritdoc />
+    public event EventHandler? PongReceived = (_, _) => { };
+
+    /// <inheritdoc />
     public string Callsign { get; }
 
     /// <inheritdoc />
