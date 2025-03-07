@@ -648,6 +648,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public void Disconnect()
     {
         _networkConnection?.Disconnect();
+        _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType, AtisLetter));
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
     }
 
@@ -1079,6 +1080,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (_networkConnection.IsConnected)
             {
                 _networkConnection.Disconnect();
+                await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType, AtisLetter));
                 NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
                 return;
             }
