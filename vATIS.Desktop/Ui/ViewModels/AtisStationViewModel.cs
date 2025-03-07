@@ -645,7 +645,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// Disconnects the current network connection and updates the network connection status
     /// to <see cref="NetworkConnectionStatus.Disconnected"/>.
     /// </summary>
-    public void Disconnect()
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task Disconnect()
     {
         if (_networkConnection != null)
         {
@@ -658,7 +659,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Flag ATIS as disconnected on the hub
-        _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType, AtisLetter));
+        await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType, AtisLetter));
 
         // Set network connection status as disconnected
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
@@ -950,7 +951,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         {
                             Log.Error(ex, "Error in voice ATIS update");
                             ErrorMessage = ex.Message;
-                            Disconnect();
+                            await Disconnect();
                             NativeAudio.EmitSound(SoundType.Error);
                         }
                     }
@@ -1091,7 +1092,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             if (_networkConnection.IsConnected)
             {
-                Disconnect();
+                await Disconnect();
                 return;
             }
 
@@ -1124,7 +1125,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Log.Error(e, "HandleNetworkConnect Exception");
                 NativeAudio.EmitSound(SoundType.Error);
                 ErrorMessage = e.Message;
-                Disconnect();
+                await Disconnect();
             }
         }
         catch (Exception e)
@@ -1182,7 +1183,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnChangeServerReceived(object? sender, ClientEventArgs<string> e)
     {
-        Disconnect();
+        _ = Disconnect();
         _networkConnection?.Connect(e.Value);
     }
 
@@ -1282,7 +1283,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 {
                     Log.Error(ex, "OnMetarResponseReceived Exception");
                     ErrorMessage = ex.Message;
-                    Disconnect();
+                    await Disconnect();
                     NativeAudio.EmitSound(SoundType.Error);
                 }
             }
