@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased the maximum number of cloud groups to six.
 - Improved ATIS letter synchronization with other users; ATIS stations that recently went offline now retain the last used letter instead of appearing online (red letter).
 - Modified the airport conditions and NOTAMs text box to be read-only when the ATIS is observed.
+- Improved validation to ensure FSD network connectivity before starting the ATIS build process.
 ### Fixed
 - Fixed ATIS letter coloring for observed ATIS stations.
 - Fixed an issue where unsaved airport conditions and NOTAM free-text were discarded when closing the static definition dialog.
