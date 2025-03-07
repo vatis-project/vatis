@@ -659,7 +659,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Flag ATIS as disconnected on the hub
-        await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType, AtisLetter));
+        try
+        {
+            await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
+                AtisLetter));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to disconnect ATIS from hub.");
+        }
 
         // Set network connection status as disconnected
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
