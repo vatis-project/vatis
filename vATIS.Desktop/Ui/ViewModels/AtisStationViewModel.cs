@@ -912,14 +912,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                             AtisStation.AtisLetter = AtisLetter;
 
                             // Publish the ATIS to the hub
-                            await PublishAtisToHub().ConfigureAwait(false);
+                            await PublishAtisToHub();
 
                             // Notify all subscribed users about the new ATIS update
                             _networkConnection.SendSubscriberNotification(AtisLetter);
 
                             // Update IDS
                             await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter,
-                                localToken.Token).ConfigureAwait(false);
+                                localToken.Token);
 
                             // Generate DTO with ATIS audio and transceiver data
                             var dto = AtisBotUtils.CreateAtisBotDto(vm.AudioBuffer, AtisStation.Frequency,
@@ -927,7 +927,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                             // Send the DTO to the voice server
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                                localToken.Token).ConfigureAwait(false);
+                                localToken.Token);
                         }
                         catch (OperationCanceledException)
                         {
@@ -1244,15 +1244,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 try
                 {
                     var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-                        e.Metar, localToken.Token).ConfigureAwait(false);
+                        e.Metar, localToken.Token);
 
                     AtisStation.TextAtis = textAtis?.ToUpperInvariant();
                     AtisStation.AtisLetter = AtisLetter;
 
-                    await PublishAtisToWebsocket().ConfigureAwait(false);
-                    await PublishAtisToHub().ConfigureAwait(false);
-                    await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, localToken.Token)
-                        .ConfigureAwait(false);
+                    await PublishAtisToWebsocket();
+                    await PublishAtisToHub();
+                    await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, localToken.Token);
 
                     if (!e.IsNewMetar)
                     {
@@ -1354,7 +1353,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
 
             await _atisHubConnection.PublishAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
-                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions, notams));
+                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions?.Trim(), notams?.Trim()));
         }
         catch (Exception ex)
         {
@@ -1396,12 +1395,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 AtisStation.TextAtis = textAtis?.ToUpperInvariant();
                 AtisStation.AtisLetter = AtisLetter;
 
-                await PublishAtisToHub().ConfigureAwait(false);
+                await PublishAtisToHub();
 
-                await PublishAtisToWebsocket().ConfigureAwait(false);
+                await PublishAtisToWebsocket();
 
-                await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, localToken.Token)
-                    .ConfigureAwait(false);
+                await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, localToken.Token);
 
                 await RequestVoiceAtis();
             }
@@ -1440,21 +1438,20 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             var localCts = _voiceRequestCts;
 
-            _ = Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 await _voiceRequestLock.WaitAsync(localCts.Token);
                 try
                 {
-                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(AtisStation, SelectedAtisPreset,
-                        AtisLetter, _decodedMetar, localCts.Token).ConfigureAwait(false);
+                    var voiceAtis = await _atisBuilder.BuildVoiceAtis(AtisStation, SelectedAtisPreset, AtisLetter,
+                        _decodedMetar, localCts.Token);
 
                     if (voiceAtis.AudioBytes != null)
                     {
                         var dto = AtisBotUtils.CreateAtisBotDto(voiceAtis.AudioBytes, AtisStation.Frequency,
                             _atisStationAirport.Latitude, _atisStationAirport.Longitude, TransceiverHeightM);
 
-                        await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
-                            localCts.Token).ConfigureAwait(false);
+                        await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto, localCts.Token);
                     }
                 }
                 catch (OperationCanceledException)
