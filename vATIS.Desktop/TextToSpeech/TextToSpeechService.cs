@@ -89,6 +89,10 @@ public class TextToSpeechService : ITextToSpeechService
                 return stream.ToArray();
             }
         }
+        catch (TaskCanceledException)
+        {
+            // Ignored
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Error requesting audio for voice {Voice}",
