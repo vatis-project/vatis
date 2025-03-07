@@ -1762,15 +1762,17 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        AtisLetter++;
-        if (AtisLetter > AtisStation.CodeRange.High)
+        if (AtisLetter >= AtisStation.CodeRange.High)
             AtisLetter = AtisStation.CodeRange.Low;
+        else
+            AtisLetter++;
     }
 
     private void DecrementAtisLetter()
     {
-        AtisLetter--;
-        if (AtisLetter < AtisStation.CodeRange.Low)
+        if (AtisLetter <= AtisStation.CodeRange.Low)
             AtisLetter = AtisStation.CodeRange.High;
+        else
+            AtisLetter--;
     }
 }
