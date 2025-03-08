@@ -280,21 +280,43 @@ public class AtisBuilder : IAtisBuilder
 
         foreach (var variable in variables)
         {
-            template = template.Replace($"[{variable.Find}:VOX]", variable.VoiceReplace);
-            template = template.Replace($"${variable.Find}:VOX", variable.VoiceReplace);
+            if (!string.IsNullOrEmpty(variable.VoiceReplace))
+            {
+                template = template.Replace($"[{variable.Find}:VOX]", variable.VoiceReplace);
+                template = template.Replace($"${variable.Find}:VOX", variable.VoiceReplace);
+            }
 
-            template = template.Replace($"[{variable.Find}]", variable.TextReplace);
-            template = template.Replace($"${variable.Find}", variable.TextReplace);
+            if (!string.IsNullOrEmpty(variable.TextReplace))
+            {
+                template = template.Replace($"[{variable.Find}]", variable.TextReplace);
+                template = template.Replace($"${variable.Find}", variable.TextReplace);
+            }
+            else
+            {
+                // Remove lines containing the variable placeholder if TextReplace is empty
+                template = Regex.Replace(template, $@"^.*(\[{variable.Find}\]|\${variable.Find}).*\r?\n?", "", RegexOptions.Multiline);
+            }
 
             if (variable.Aliases != null)
             {
                 foreach (var alias in variable.Aliases)
                 {
-                    template = template.Replace($"[{alias}:VOX]", variable.VoiceReplace);
-                    template = template.Replace($"${alias}:VOX", variable.VoiceReplace);
+                    if (!string.IsNullOrEmpty(variable.VoiceReplace))
+                    {
+                        template = template.Replace($"[{alias}:VOX]", variable.VoiceReplace);
+                        template = template.Replace($"${alias}:VOX", variable.VoiceReplace);
+                    }
 
-                    template = template.Replace($"[{alias}]", variable.TextReplace);
-                    template = template.Replace($"${alias}", variable.TextReplace);
+                    if (!string.IsNullOrEmpty(variable.TextReplace))
+                    {
+                        template = template.Replace($"[{alias}]", variable.TextReplace);
+                        template = template.Replace($"${alias}", variable.TextReplace);
+                    }
+                    else
+                    {
+                        // Remove lines containing the alias placeholder if TextReplace is empty
+                        template = Regex.Replace(template, $@"^.*(\[{alias}\]|\${alias}).*\r?\n?", "", RegexOptions.Multiline);
+                    }
                 }
             }
         }
@@ -340,9 +362,6 @@ public class AtisBuilder : IAtisBuilder
             closingTemplate = Regex.Replace(closingTemplate, @"{letter\|word}", currentAtisLetter.ToPhonetic());
             template += closingTemplate;
         }
-
-        // Remove text parsing characters
-        template = RemoveTextParsingCharacters(template);
 
         return template;
     }

@@ -352,9 +352,24 @@ public class NetworkConnection : INetworkConnection, IDisposable
                 var num = 0;
                 if (_atisStation != null && !string.IsNullOrEmpty(_atisStation.TextAtis))
                 {
-                    // break up the text into 64 characters per line
-                    var regex = new Regex(@"(.{1,64})(?:\s|$)");
-                    var collection = regex.Matches(_atisStation.TextAtis).Select(x => x.Groups[1].Value).ToList();
+                    List<string> collection;
+
+                    // Check if the text contains any line breaks
+                    if (_atisStation.TextAtis.Contains('\n') || _atisStation.TextAtis.Contains('\r'))
+                    {
+                        // Use existing line breaks
+                        collection =
+                        [
+                            .. _atisStation.TextAtis.Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries)
+                        ];
+                    }
+                    else
+                    {
+                        // Break up the text into 64-character lines if no line breaks are present
+                        var regex = new Regex(@"(.{1,64})(?:\s|$)");
+                        collection = regex.Matches(_atisStation.TextAtis).Select(x => x.Groups[1].Value).ToList();
+                    }
+
                     foreach (var line in collection)
                     {
                         num++;
