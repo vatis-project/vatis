@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.14
+### Added
+- Added a confirmation dialog to prompt saving of unsaved airport conditions or NOTAMs free-text when switching presets.
+### Changed
+- Updated airport conditions and NOTAMs textboxes to be read-only for observed ATISes.
+- Clear airport conditions and NOTAMs textboxes when an observed ATIS is disconnected.
+### Fixed
+- Improved asynchronous handling in the ATIS builder functions.
+- Resolved an issue where an ATIS was not disconnected from the ATIS hub.
+- Fixed an issue that caused airport conditions and NOTAMs free-text to not be saved.
+- Fixed an issue that prevented the "SAVE CHANGES" action from appearing after clearing all text from the airport conditions or NOTAMs textboxes.
+
 ## v4.1.0-beta.13
 ### Added
 - Added a release notes dialog that lists changes in the newly installed version, with an option to disable it for future updates.
@@ -19,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Avalonia packages to their latest versions.
 - Increased the maximum number of cloud groups to six.
 - Improved ATIS letter synchronization with other users; ATIS stations that recently went offline now retain the last used letter instead of appearing online (red letter).
-- Modified the airport conditions and NOTAMs text box to be read-only when the ATIS is observed.
 - Improved validation to ensure FSD network connectivity before starting the ATIS build process.
 ### Fixed
 - Fixed ATIS letter coloring for observed ATIS stations.
