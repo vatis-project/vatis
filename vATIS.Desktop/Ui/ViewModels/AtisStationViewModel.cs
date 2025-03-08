@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using AvaloniaEdit.CodeCompletion;
@@ -1435,6 +1436,23 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             if (preset != _previousAtisPreset)
             {
+                if (HasUnsavedNotams || HasUnsavedAirportConditions)
+                {
+                    if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+                    {
+                        if (lifetime.MainWindow == null)
+                            return;
+
+                        if (await MessageBox.ShowDialog(lifetime.MainWindow,
+                                "You have unsaved Airport Conditions or NOTAMs. Would you like to save them first?",
+                                "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                        {
+                            SaveNotamsText.Execute().Subscribe();
+                            SaveAirportConditionsText.Execute().Subscribe();
+                        }
+                    }
+                }
+
                 SelectedAtisPreset = preset;
                 _previousAtisPreset = preset;
 
