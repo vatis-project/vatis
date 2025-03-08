@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Vatsim.Vatis.Profiles.Models;
 
-namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
+namespace Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 
 public class AtisPresetMessage
 {

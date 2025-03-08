@@ -5,7 +5,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
+namespace Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 
 /// <summary>
 /// Represents an error message sent over the websocket.

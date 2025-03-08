@@ -7,10 +7,10 @@ using System;
 using System.Threading.Tasks;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
-using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 using WatsonWebsocket;
 
-namespace Vatsim.Vatis.Ui.Services;
+namespace Vatsim.Vatis.Ui.Services.Websocket;
 
 /// <summary>
 /// Represents a WebsocketService.
@@ -25,7 +25,6 @@ public interface IWebsocketService
     /// <summary>
     /// Event that is raised when a client requests ATIS information. The requesting session and the station requested, if specified, are passed as parameters.
     /// </summary>
-    ///
     public event EventHandler<GetAtisReceived> GetAtisReceived;
 
     /// <summary>
@@ -37,6 +36,21 @@ public interface IWebsocketService
     /// Event that is raised when a client requests a list of presets for a specific ATIS station.
     /// </summary>
     public event EventHandler<GetPresetsReceived> GetPresetsReceived;
+
+    /// <summary>
+    /// Event that is raised by a websocket client to configure an ATIS station.
+    /// </summary>
+    public event EventHandler<GetConfigureAtisReceived> ConfigureAtisReceived;
+
+    /// <summary>
+    /// Event that is raised by a websocket client to connect an ATIS.
+    /// </summary>
+    public event EventHandler<GetConnectAtisReceived> ConnectAtisReceived;
+
+    /// <summary>
+    /// Event that is raised by a websocket client to disconnect an ATIS.
+    /// </summary>
+    public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived;
 
     /// <summary>
     /// Sends an ATIS message to a specific session, or to all connected clients if session is null.

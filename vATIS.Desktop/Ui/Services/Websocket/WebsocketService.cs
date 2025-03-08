@@ -12,10 +12,10 @@ using System.Threading.Tasks;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
-using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 using WatsonWebsocket;
 
-namespace Vatsim.Vatis.Ui.Services;
+namespace Vatsim.Vatis.Ui.Services.Websocket;
 
 /// <summary>
 /// Provides a websocket interface to vATIS.
@@ -42,22 +42,26 @@ public class WebsocketService : IWebsocketService
         _server.MessageReceived += OnMessageReceived;
     }
 
-    /// <summary>
-    /// Event that is raised when a client requests ATIS information. The requesting session and the station requested, if specified, are passed as parameters.
-    /// </summary>
-    ///
+    /// <inheritdoc />
     public event EventHandler<GetAtisReceived> GetAtisReceived = (_, _) => { };
 
     /// <inheritdoc />
-    public event EventHandler<GetStationsReceived> GetStationsReceived= (_, _) => { };
+    public event EventHandler<GetStationsReceived> GetStationsReceived = (_, _) => { };
 
-    /// <summary>
-    /// Event that is raised when a client acknowledges an ATIS update. The requesting session and the station acknowledged, if specified, is passed as a parameter.
-    /// </summary>
+    /// <inheritdoc />
     public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = (_, _) => { };
 
     /// <inheritdoc />
     public event EventHandler<GetPresetsReceived> GetPresetsReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<GetConfigureAtisReceived> ConfigureAtisReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<GetConnectAtisReceived> ConnectAtisReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived = (_, _) => { };
 
     /// <summary>
     /// Starts the WebSocket server.
@@ -100,14 +104,12 @@ public class WebsocketService : IWebsocketService
     /// <returns>A task.</returns>
     public async Task SendAtisMessage(ClientMetadata? session, AtisMessage.AtisMessageValue value)
     {
-        var message = new AtisMessage
-        {
-            Value = value,
-        };
+        var message = new AtisMessage { Value = value, };
 
         if (session is not null)
         {
-            await _server.SendAsync(session.Guid, JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
+            await _server.SendAsync(session.Guid,
+                JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
         }
         else
         {
@@ -156,14 +158,9 @@ public class WebsocketService : IWebsocketService
         }
         catch (Exception ex)
         {
-            var error = new ErrorMessage
-            {
-                Value = new ErrorMessage.ErrorValue
-                {
-                    Message = ex.Message,
-                },
-            };
-            await _server.SendAsync(e.Client.Guid, JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
+            var error = new ErrorMessage { Value = new ErrorMessage.ErrorValue { Message = ex.Message, }, };
+            await _server.SendAsync(e.Client.Guid,
+                JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
         }
     }
 
@@ -196,29 +193,83 @@ public class WebsocketService : IWebsocketService
     /// <exception cref="ArgumentException">Thrown if the type is missing or invalid.</exception>
     private void HandleRequest(ClientMetadata session, ArraySegment<byte> message)
     {
-        var request = JsonSerializer.Deserialize(message, SourceGenerationContext.NewDefault.CommandMessage);
+        using var doc = JsonDocument.Parse(message);
+        var root = doc.RootElement;
 
-        if (request == null || string.IsNullOrWhiteSpace(request.MessageType))
+        if (!root.TryGetProperty("type", out var typeProperty))
         {
             throw new ArgumentException("Invalid request: no message type specified");
         }
 
-        switch (request.MessageType)
+        var messageType = typeProperty.GetString() ??
+                          throw new ArgumentException("Invalid request: no message type specified");
+
+        var commandMessageTypes = new HashSet<string>
         {
-            case "getAtis":
-                GetAtisReceived(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
-                break;
-            case "acknowledgeAtisUpdate":
-                AcknowledgeAtisUpdateReceived(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
-                break;
-            case "getStations":
-                GetStationsReceived(this, new GetStationsReceived(session));
-                break;
-            case "getPresets":
-                GetPresetsReceived(this, new GetPresetsReceived(session, request.Value?.Station, request.Value?.AtisType));
-                break;
-            default:
-                throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");
+            "acknowledgeAtisUpdate", "getAtis", "getStations", "getPresets"
+        };
+
+        if (commandMessageTypes.Contains(messageType))
+        {
+            var request =
+                JsonSerializer.Deserialize(root.GetRawText(), SourceGenerationContext.NewDefault.CommandMessage) ??
+                throw new ArgumentException("Invalid request: no message value specified");
+
+            switch (messageType)
+            {
+                case "getAtis":
+                    GetAtisReceived(this,
+                        new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
+                    break;
+                case "acknowledgeAtisUpdate":
+                    AcknowledgeAtisUpdateReceived(this,
+                        new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
+                    break;
+                case "getStations":
+                    GetStationsReceived(this, new GetStationsReceived(session));
+                    break;
+                case "getPresets":
+                    GetPresetsReceived(this,
+                        new GetPresetsReceived(session, request.Value?.Station, request.Value?.AtisType));
+                    break;
+                default:
+                    throw new ArgumentException($"Invalid request: unknown message type {messageType}");
+            }
+        }
+        else
+        {
+            switch (messageType)
+            {
+                case "configureAtis":
+                {
+                    var request = JsonSerializer.Deserialize(root.GetRawText(),
+                                      SourceGenerationContext.NewDefault.ConfigureAtisMessage) ??
+                                  throw new ArgumentException("Invalid request: no message value specified");
+                    ConfigureAtisReceived(this, new GetConfigureAtisReceived(session, request.Payload));
+                    break;
+                }
+
+                case "connectAtis":
+                {
+                    var request = JsonSerializer.Deserialize(root.GetRawText(),
+                                      SourceGenerationContext.NewDefault.ConnectAtisMessage) ??
+                                  throw new ArgumentException("Invalid request: no message value specified");
+                    ConnectAtisReceived(this, new GetConnectAtisReceived(session, request.Payload));
+                    break;
+                }
+
+                case "disconnectAtis":
+                {
+                    var request = JsonSerializer.Deserialize(root.GetRawText(),
+                                      SourceGenerationContext.NewDefault.DisconnectAtisMessage) ??
+                                  throw new ArgumentException("Invalid request: no message value specified");
+                    DisconnectAtisReceived(this, new GetDisconnectAtisReceived(session, request.Payload));
+                    break;
+                }
+
+                default:
+                    throw new ArgumentException($"Invalid request: unknown message type {messageType}");
+            }
         }
     }
 

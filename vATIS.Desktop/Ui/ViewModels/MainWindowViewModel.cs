@@ -31,7 +31,8 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
-using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket;
+using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 

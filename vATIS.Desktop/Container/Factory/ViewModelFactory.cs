@@ -13,6 +13,7 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui;
 using Vatsim.Vatis.Ui.Services;
+using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 using Vatsim.Vatis.Weather;

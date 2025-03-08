@@ -36,8 +36,8 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
-using Vatsim.Vatis.Ui.Services;
-using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket;
+using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
@@ -71,6 +71,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private CancellationTokenSource _voiceRecordAtisCts = new();
     private CancellationTokenSource _processMetarCts = new();
     private CancellationTokenSource _atisLetterChangedCts = new();
+    private CancellationTokenSource _wsUpdateAtisCts = new();
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
     private Timer? _publishAtisTimer;
@@ -208,6 +209,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _websocketService.GetAtisReceived += OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
         _websocketService.GetPresetsReceived += OnGetPresetsReceived;
+        _websocketService.ConfigureAtisReceived += OnConfigureAtisReceived;
+        _websocketService.ConnectAtisReceived += OnConnectAtisReceived;
+        _websocketService.DisconnectAtisReceived += OnDisconnectAtisReceived;
 
         LoadContractionData();
 
@@ -712,6 +716,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
         _websocketService.GetPresetsReceived -= OnGetPresetsReceived;
+        _websocketService.ConfigureAtisReceived -= OnConfigureAtisReceived;
+        _websocketService.ConnectAtisReceived -= OnConnectAtisReceived;
+        _websocketService.DisconnectAtisReceived -= OnDisconnectAtisReceived;
 
         if (_networkConnection != null)
         {
@@ -1817,6 +1824,88 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
 
         HandleAcknowledgeAtisUpdate();
+    }
+
+    private void OnConfigureAtisReceived(object? sender, GetConfigureAtisReceived e)
+    {
+        if (e.Payload == null)
+            return;
+
+        var isMatchingId = !string.IsNullOrEmpty(e.Payload.Id) && AtisStation.Id == e.Payload.Id;
+        var isMatchingStation = !string.IsNullOrEmpty(e.Payload.Station) &&
+                                AtisStation.Identifier == e.Payload.Station &&
+                                AtisStation.AtisType == e.Payload.AtisType;
+
+        if (isMatchingId || isMatchingStation)
+        {
+            var preset = AtisStation.Presets.FirstOrDefault(x => x.Name == e.Payload.Preset);
+            if (preset != null)
+            {
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    SelectedAtisPreset = preset;
+                    UpdatePresetData(e.Payload);
+                });
+            }
+            else
+            {
+                throw new Exception($"Invalid Preset Name: {e.Payload.Preset}");
+            }
+        }
+    }
+
+    private void UpdatePresetData(ConfigureAtisMessage.ConfigureAtisMessagePayload payload)
+    {
+        if (SelectedAtisPreset != null)
+        {
+            SelectedAtisPreset.AirportConditions = payload.AirportConditionsFreeText ?? "";
+            SelectedAtisPreset.Notams = payload.NotamsFreeText ?? "";
+        }
+
+        if (AirportConditionsTextDocument != null)
+        {
+            AirportConditionsTextDocument.Text = payload.AirportConditionsFreeText ?? "";
+        }
+
+        if (NotamsTextDocument != null)
+        {
+            NotamsTextDocument.Text = payload.NotamsFreeText ?? "";
+        }
+    }
+
+    private void OnConnectAtisReceived(object? sender, GetConnectAtisReceived e)
+    {
+        if (e.Payload == null)
+            return;
+
+        if (SelectedAtisPreset == null || NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+            return;
+
+        var isMatchingId = !string.IsNullOrEmpty(e.Payload.Id) && AtisStation.Id == e.Payload.Id;
+        var isMatchingStation = !string.IsNullOrEmpty(e.Payload.Station) &&
+                                AtisStation.Identifier == e.Payload.Station &&
+                                AtisStation.AtisType == e.Payload.AtisType;
+
+        if (isMatchingId || isMatchingStation)
+        {
+            Dispatcher.UIThread.Invoke(() => { NetworkConnectCommand.Execute().Subscribe(); });
+        }
+    }
+
+    private void OnDisconnectAtisReceived(object? sender, GetDisconnectAtisReceived e)
+    {
+        if (e.Payload == null)
+            return;
+
+        var isMatchingId = !string.IsNullOrEmpty(e.Payload.Id) && AtisStation.Id == e.Payload.Id;
+        var isMatchingStation = !string.IsNullOrEmpty(e.Payload.Station) &&
+                                AtisStation.Identifier == e.Payload.Station &&
+                                AtisStation.AtisType == e.Payload.AtisType;
+
+        if (isMatchingId || isMatchingStation)
+        {
+            Dispatcher.UIThread.Invoke(async () => { await Disconnect(); });
+        }
     }
 
     private async void OnGetPresetsReceived(object? sender, GetPresetsReceived e)

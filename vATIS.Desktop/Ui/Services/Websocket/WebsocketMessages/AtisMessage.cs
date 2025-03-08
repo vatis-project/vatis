@@ -8,7 +8,7 @@ using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
-namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
+namespace Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 
 /// <summary>
 /// Represents a message sent over the websocket with ATIS information.
