@@ -24,9 +24,6 @@ namespace Vatsim.Vatis.Ui.Components;
 /// </summary>
 public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 {
-    private bool _airportConditionsInitialized;
-    private bool _notamsInitialized;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisStationView"/> class.
     /// </summary>
@@ -268,12 +265,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (!AirportConditions.TextArea.IsFocused)
             return;
 
-        if (_airportConditionsInitialized)
-        {
-            ViewModel.HasUnsavedAirportConditions = true;
-        }
-
-        _airportConditionsInitialized = true;
+        ViewModel.HasUnsavedAirportConditions = true;
     }
 
     private void NotamText_OnTextChanged(object? sender, EventArgs e)
@@ -284,11 +276,6 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         if (!NotamText.TextArea.IsFocused)
             return;
 
-        if (_notamsInitialized)
-        {
-            ViewModel.HasUnsavedNotams = true;
-        }
-
-        _notamsInitialized = true;
+        ViewModel.HasUnsavedNotams = true;
     }
 }
