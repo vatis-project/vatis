@@ -27,6 +27,7 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
         InitializeComponent();
         ViewModel = viewModel;
         Closed += OnClosed;
+        Closing += OnClosing;
     }
 
     /// <summary>
@@ -52,6 +53,14 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();
+    }
+
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (e.IsProgrammatic)
+            return;
+
+        e.Cancel = true;
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
