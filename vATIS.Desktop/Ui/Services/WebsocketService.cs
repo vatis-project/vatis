@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Serilog;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using WatsonWebsocket;
 
@@ -47,10 +48,16 @@ public class WebsocketService : IWebsocketService
     ///
     public event EventHandler<GetAtisReceived> GetAtisReceived = (_, _) => { };
 
+    /// <inheritdoc />
+    public event EventHandler<GetStationsReceived> GetStationsReceived= (_, _) => { };
+
     /// <summary>
     /// Event that is raised when a client acknowledges an ATIS update. The requesting session and the station acknowledged, if specified, is passed as a parameter.
     /// </summary>
     public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<GetPresetsReceived> GetPresetsReceived = (_, _) => { };
 
     /// <summary>
     /// Starts the WebSocket server.
@@ -105,6 +112,20 @@ public class WebsocketService : IWebsocketService
         else
         {
             await SendAsync(JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.AtisMessage));
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SendAtisPresets(ClientMetadata? session, AtisPresetsMessage value)
+    {
+        if (session is not null)
+        {
+            await _server.SendAsync(session.Guid,
+                JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetsMessage));
+        }
+        else
+        {
+            await SendAsync(JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetsMessage));
         }
     }
 
@@ -176,6 +197,12 @@ public class WebsocketService : IWebsocketService
             case "acknowledgeAtisUpdate":
                 AcknowledgeAtisUpdateReceived(this, new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
                 break;
+            case "getStations":
+                GetStationsReceived(this, new GetStationsReceived(session));
+                break;
+            case "getPresets":
+                GetPresetsReceived(this, new GetPresetsReceived(session, request.Value?.Station, request.Value?.AtisType));
+                break;
             default:
                 throw new ArgumentException($"Invalid request: unknown message type {request.MessageType}");
         }
@@ -207,6 +234,7 @@ public class WebsocketService : IWebsocketService
         }
 
         await Task.WhenAll(tasks);
+        _sessions.Clear();
     }
 
     /// <summary>

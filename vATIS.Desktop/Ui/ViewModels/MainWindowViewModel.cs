@@ -24,6 +24,7 @@ using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
+using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles.Models;
@@ -77,6 +78,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
+
+        _websocketService.GetStationsReceived += OnGetAtisStations;
 
         _disposables.Add(OpenSettingsDialogCommand);
         _disposables.Add(OpenProfileConfigurationWindowCommand);
@@ -382,6 +385,12 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         GC.SuppressFinalize(this);
         _disposables.Dispose();
+        _websocketService.GetStationsReceived -= OnGetAtisStations;
+    }
+
+    private void OnGetAtisStations(object? sender, GetStationsReceived e)
+    {
+        throw new NotImplementedException();
     }
 
     private async Task OpenProfileConfigurationWindow()

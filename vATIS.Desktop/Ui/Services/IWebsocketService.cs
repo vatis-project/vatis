@@ -6,6 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using Vatsim.Vatis.Events;
+using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 using WatsonWebsocket;
 
@@ -28,12 +29,31 @@ public interface IWebsocketService
     public event EventHandler<GetAtisReceived> GetAtisReceived;
 
     /// <summary>
+    /// Event that is raised when a client requests a list of a ATIS stations.
+    /// </summary>
+    public event EventHandler<GetStationsReceived> GetStationsReceived;
+
+    /// <summary>
+    /// Event that is raised when a client requests a list of presets for a specific ATIS station.
+    /// </summary>
+    public event EventHandler<GetPresetsReceived> GetPresetsReceived;
+
+    /// <summary>
     /// Sends an ATIS message to a specific session, or to all connected clients if session is null.
     /// </summary>
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
     Task SendAtisMessage(ClientMetadata? session, AtisMessage.AtisMessageValue value);
+
+    /// <summary>
+    /// Sends a message to the specific session with the list of ATIS preset names,
+    /// or to all connected clients if session is null.
+    /// </summary>
+    /// <param name="session">The session to send the message to.</param>
+    /// <param name="value">The value to send.</param>
+    /// <returns>A task.</returns>
+    Task SendAtisPresets(ClientMetadata? session, AtisPresetsMessage value);
 
     /// <summary>
     /// Starts the WebSocket server.

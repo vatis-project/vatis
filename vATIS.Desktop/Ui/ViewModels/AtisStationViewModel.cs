@@ -13,7 +13,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using AvaloniaEdit.CodeCompletion;
@@ -27,6 +26,7 @@ using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Container.Factory;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
+using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
@@ -207,6 +207,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         _websocketService.GetAtisReceived += OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
+        _websocketService.GetPresetsReceived += OnGetPresetsReceived;
 
         LoadContractionData();
 
@@ -710,6 +711,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
+        _websocketService.GetPresetsReceived -= OnGetPresetsReceived;
 
         if (_networkConnection != null)
         {
@@ -1815,6 +1817,26 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
 
         HandleAcknowledgeAtisUpdate();
+    }
+
+    private async void OnGetPresetsReceived(object? sender, GetPresetsReceived e)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(e.Station) &&
+                (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
+                return;
+
+            var presets = (from preset in AtisStation.Presets
+                where !string.IsNullOrEmpty(preset.Name)
+                select preset.Name).ToList();
+
+            await _websocketService.SendAtisPresets(e.Session, new AtisPresetsMessage { Presets = presets });
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in OnGetPresetsReceived");
+        }
     }
 
     private void HandleAcknowledgeAtisUpdate()

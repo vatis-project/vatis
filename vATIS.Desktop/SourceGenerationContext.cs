@@ -60,6 +60,7 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(AtisMessage))]
 [JsonSerializable(typeof(CommandMessage))]
 [JsonSerializable(typeof(ErrorMessage))]
+[JsonSerializable(typeof(AtisPresetsMessage))]
 [JsonSerializable(typeof(DigitalAtisRequestDto))]
 [JsonSerializable(typeof(List<DigitalAtisResponseDto>))]
 [JsonSerializable(typeof(JsonElement))]
