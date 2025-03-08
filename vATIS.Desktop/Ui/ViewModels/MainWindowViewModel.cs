@@ -31,6 +31,7 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
+using Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -390,7 +391,14 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnGetAtisStations(object? sender, GetStationsReceived e)
     {
-        throw new NotImplementedException();
+        var stations = (from station in AtisStations.ToList()
+            where !string.IsNullOrEmpty(station.Id) && !string.IsNullOrEmpty(station.Identifier)
+            select new AtisStationMessage.AtisStationRecord
+            {
+                Id = station.Id, Name = station.Identifier, AtisType = station.AtisType
+            }).ToList();
+
+        _websocketService.SendAtisStations(e.Session, new AtisStationMessage { Stations = [..stations] });
     }
 
     private async Task OpenProfileConfigurationWindow()

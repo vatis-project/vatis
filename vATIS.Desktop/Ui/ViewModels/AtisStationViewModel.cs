@@ -1831,7 +1831,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 where !string.IsNullOrEmpty(preset.Name)
                 select preset.Name).ToList();
 
-            await _websocketService.SendAtisPresets(e.Session, new AtisPresetsMessage { Presets = presets });
+            await _websocketService.SendAtisPresets(e.Session, new AtisPresetMessage { Presets = presets });
         }
         catch (Exception ex)
         {

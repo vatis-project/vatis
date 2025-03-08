@@ -116,16 +116,30 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <inheritdoc />
-    public async Task SendAtisPresets(ClientMetadata? session, AtisPresetsMessage value)
+    public async Task SendAtisPresets(ClientMetadata? session, AtisPresetMessage value)
     {
         if (session is not null)
         {
             await _server.SendAsync(session.Guid,
-                JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetsMessage));
+                JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetMessage));
         }
         else
         {
-            await SendAsync(JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetsMessage));
+            await SendAsync(JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetMessage));
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SendAtisStations(ClientMetadata? session, AtisStationMessage value)
+    {
+        if (session is not null)
+        {
+            await _server.SendAsync(session.Guid,
+                JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisStationMessage));
+        }
+        else
+        {
+            await SendAsync(JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisStationMessage));
         }
     }
 

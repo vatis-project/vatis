@@ -53,7 +53,16 @@ public interface IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    Task SendAtisPresets(ClientMetadata? session, AtisPresetsMessage value);
+    Task SendAtisPresets(ClientMetadata? session, AtisPresetMessage value);
+
+    /// <summary>
+    /// Sends a message with a list of ATIS stations to the specific client session,
+    /// or to all connected clients if the session is null.
+    /// </summary>
+    /// <param name="session">The session to send the message to.</param>
+    /// <param name="value">The value to send.</param>
+    /// <returns>A task.</returns>
+    Task SendAtisStations(ClientMetadata? session, AtisStationMessage value);
 
     /// <summary>
     /// Starts the WebSocket server.

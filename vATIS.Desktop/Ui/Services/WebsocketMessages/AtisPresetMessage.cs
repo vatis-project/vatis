@@ -4,7 +4,7 @@ using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Ui.Services.WebsocketMessages;
 
-public class AtisPresetsMessage
+public class AtisPresetMessage
 {
     /// <summary>
     /// Gets the string identifying the message type.
@@ -16,5 +16,5 @@ public class AtisPresetsMessage
     /// Gets or sets a list of ATIS preset names.
     /// </summary>
     [JsonPropertyName("presets")]
-    public List<string> Presets { get; set; }
+    public List<string>? Presets { get; set; }
 }
