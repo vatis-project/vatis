@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using AvaloniaEdit.Document;
@@ -18,9 +19,6 @@ namespace Vatsim.Vatis.Ui.AtisConfiguration;
 /// </summary>
 public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
 {
-    private bool _airportConditionsInitialized;
-    private bool _notamsInitialized;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SandboxView"/> class.
     /// </summary>
@@ -138,15 +136,10 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
             if (vm.SelectedPreset == null)
                 return;
 
-            if (_airportConditionsInitialized)
-            {
-                if (!AirportConditions.TextArea.IsFocused)
-                    return;
+            if (!AirportConditions.TextArea.IsFocused)
+                return;
 
-                vm.HasUnsavedAirportConditions = true;
-            }
-
-            _airportConditionsInitialized = true;
+            vm.HasUnsavedAirportConditions = true;
         }
     }
 
@@ -157,15 +150,10 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
             if (vm.SelectedPreset == null)
                 return;
 
-            if (_notamsInitialized)
-            {
-                if (!NotamFreeText.TextArea.IsFocused)
-                    return;
+            if (!NotamFreeText.TextArea.IsFocused)
+                return;
 
-                vm.HasUnsavedNotams = true;
-            }
-
-            _notamsInitialized = true;
+            vm.HasUnsavedNotams = true;
         }
     }
 }

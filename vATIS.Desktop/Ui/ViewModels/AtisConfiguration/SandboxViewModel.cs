@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
@@ -25,6 +26,7 @@ using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Weather;
@@ -85,7 +87,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         FetchSandboxMetarCommand = ReactiveCommand.CreateFromTask(HandleFetchSandboxMetar);
-        SelectedPresetChangedCommand = ReactiveCommand.Create<AtisPreset>(HandleSelectedPresetChanged);
+        SelectedPresetChangedCommand = ReactiveCommand.CreateFromTask<AtisPreset>(HandleSelectedPresetChanged);
         OpenStaticAirportConditionsDialogCommand =
             ReactiveCommand.CreateFromTask(HandleOpenStaticAirportConditionsDialog);
         OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
@@ -604,18 +606,32 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         PopulateAirportConditions();
     }
 
-    private void HandleSelectedPresetChanged(AtisPreset? preset)
+    private async Task HandleSelectedPresetChanged(AtisPreset? preset)
     {
-        if (preset == null)
+        if (preset == null || DialogOwner == null)
             return;
 
         if (preset != _previousPreset)
         {
+            if (HasUnsavedNotams || HasUnsavedAirportConditions)
+            {
+                if (await MessageBox.ShowDialog((Window)DialogOwner,
+                        "You have unsaved Airport Conditions or NOTAMs. Would you like to save them first?",
+                        "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                {
+                    SaveNotamsTextCommand.Execute().Subscribe();
+                    SaveAirportConditionsTextCommand.Execute().Subscribe();
+                }
+            }
+
             SelectedPreset = preset;
             _previousPreset = preset;
 
             PopulateAirportConditions(presetChanged: true);
             PopulateNotams(presetChanged: true);
+
+            HasUnsavedNotams = false;
+            HasUnsavedAirportConditions = false;
         }
     }
 
