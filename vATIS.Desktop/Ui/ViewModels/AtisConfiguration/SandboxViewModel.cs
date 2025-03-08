@@ -513,7 +513,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        await dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog((Window)DialogOwner);
 
         // Update the free-form text area after the dialog is closed
         PopulateNotams();
@@ -600,7 +600,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        await dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog((Window)DialogOwner);
 
         // Update the free-form text area after the dialog is closed
         PopulateAirportConditions();
