@@ -23,12 +23,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Config;
+using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
+using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Utils;
 using Velopack.Locators;
 
@@ -46,6 +48,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     private readonly IProfileRepository _profileRepository;
     private readonly IAppConfig _appConfig;
     private readonly SourceList<ProfileViewModel> _profileList = new();
+    private readonly IWebsocketService _websocketService;
     private IDialogOwner? _dialogOwner;
     private string _previousUserValue = "";
     private ProfileViewModel? _selectedProfile;
@@ -59,17 +62,20 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="windowLocationService">Service for managing window locations.</param>
     /// <param name="profileRepository">Repository for managing user profiles.</param>
     /// <param name="appConfig">The application configuration.</param>
+    /// <param name="websocketService">The websocket service.</param>
     public ProfileListViewModel(ISessionManager sessionManager,
         IWindowFactory windowFactory,
         IWindowLocationService windowLocationService,
         IProfileRepository profileRepository,
-        IAppConfig appConfig)
+        IAppConfig appConfig,
+        IWebsocketService websocketService)
     {
         _sessionManager = sessionManager;
         _windowFactory = windowFactory;
         _windowLocationService = windowLocationService;
         _profileRepository = profileRepository;
         _appConfig = appConfig;
+        _websocketService = websocketService;
 
         var version = Assembly.GetEntryAssembly()
             ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
@@ -102,6 +108,8 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
             .Bind(out var sortedProfiles)
             .Subscribe(_ => Profiles = sortedProfiles);
         Profiles = sortedProfiles;
+
+        _websocketService.LoadProfileRequested += OnChangeProfileRequested;
     }
 
     /// <summary>
@@ -214,6 +222,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
+
         InitializeCommand.Dispose();
         ShowNewProfileDialogCommand.Dispose();
         RenameProfileCommand.Dispose();
@@ -223,6 +232,8 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         StartClientSessionCommand.Dispose();
         ExitCommand.Dispose();
         OpenReleaseNotesCommand.Dispose();
+
+        _websocketService.LoadProfileRequested -= OnChangeProfileRequested;
     }
 
     private async Task Initialize()
@@ -397,7 +408,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleExit()
     {
-        if (Application.Current!.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             Dispatcher.UIThread.Invoke(() => desktop.Shutdown());
         }
@@ -431,6 +442,14 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Error showing release notes.");
+        }
+    }
+
+    private void OnChangeProfileRequested(object? sender, GetChangeProfileReceived e)
+    {
+        if (e.ProfileId != null)
+        {
+            Dispatcher.UIThread.Invoke(() => _sessionManager.StartSession(e.ProfileId));
         }
     }
 }

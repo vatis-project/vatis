@@ -30,12 +30,7 @@ public interface IWebsocketService
     /// <summary>
     /// Event that is raised when a client requests a list of a ATIS stations.
     /// </summary>
-    public event EventHandler<GetStationsReceived> GetStationsReceived;
-
-    /// <summary>
-    /// Event that is raised when a client requests a list of presets for a specific ATIS station.
-    /// </summary>
-    public event EventHandler<GetPresetsReceived> GetPresetsReceived;
+    public event EventHandler<GetStationListReceived> GetStationsReceived;
 
     /// <summary>
     /// Event that is raised by a websocket client to configure an ATIS station.
@@ -51,6 +46,16 @@ public interface IWebsocketService
     /// Event that is raised by a websocket client to disconnect an ATIS.
     /// </summary>
     public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived;
+
+    /// <summary>
+    /// Event that is raised by a websocket client to change the active profile.
+    /// </summary>
+    public event EventHandler<GetChangeProfileReceived> LoadProfileRequested;
+
+    /// <summary>
+    /// Event that is raised by a websocket client to exit the application.
+    /// </summary>
+    public event EventHandler ApplicationExitRequested;
 
     /// <summary>
     /// Sends an ATIS message to a specific session, or to all connected clients if session is null.

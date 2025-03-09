@@ -4,13 +4,11 @@
 // </copyright>
 
 using System;
-using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
-using Serilog;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Profiles;
@@ -27,8 +25,11 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
     public ProfileListDialog(ProfileListViewModel viewModel)
     {
         InitializeComponent();
+
         ViewModel = viewModel;
-        Loaded += ProfileListDialog_Loaded;
+
+        Opened += OnOpened;
+        Loaded += OnLoaded;
         Closed += OnClosed;
         Closing += OnClosing;
     }
@@ -41,32 +42,9 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         InitializeComponent();
     }
 
-    /// <summary>
-    /// Invoked when the dialog is opened.
-    /// </summary>
-    /// <param name="e">An <see cref="EventArgs"/> instance containing the event data.</param>
-    protected override void OnOpened(EventArgs e)
+    private void OnOpened(object? sender, EventArgs e)
     {
-        base.OnOpened(e);
-        if (DataContext is ProfileListViewModel model)
-        {
-            model.SetDialogOwner(this);
-        }
-    }
-
-    /// <summary>
-    /// Handles the logic that occurs when the <see cref="ProfileListDialog"/> is loaded.
-    /// </summary>
-    /// <param name="e">The event data associated with the loaded event.</param>
-    protected override void OnLoaded(RoutedEventArgs e)
-    {
-        base.OnLoaded(e);
-
-        PositionChanged += OnPositionChanged;
-        if (DataContext is ProfileListViewModel model)
-        {
-            model.RestorePosition(this);
-        }
+        ViewModel?.SetDialogOwner(this);
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -84,16 +62,11 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         ViewModel?.Dispose();
     }
 
-    private async void ProfileListDialog_Loaded(object? sender, RoutedEventArgs e)
+    private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        try
-        {
-            await ViewModel?.InitializeCommand.Execute()!;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to load profile list");
-        }
+        PositionChanged += OnPositionChanged;
+        ViewModel?.InitializeCommand.Execute().Subscribe();
+        ViewModel?.RestorePosition(this);
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)

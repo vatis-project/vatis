@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -77,6 +78,13 @@ public class SessionManager : ISessionManager
         CurrentConnectionCount = 0;
         _mainWindow?.Close();
         ShowProfileListDialog();
+    }
+
+    /// <inheritdoc />
+    public async Task ChangeProfile(string profileId)
+    {
+        EndSession();
+        await StartSession(profileId);
     }
 
     private void ShowProfileListDialog()

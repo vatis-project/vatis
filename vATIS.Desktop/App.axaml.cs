@@ -26,6 +26,7 @@ using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
+using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles;
@@ -33,6 +34,8 @@ using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
+using Vatsim.Vatis.Ui.Services.Websocket;
+using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 using Vatsim.Vatis.Ui.Startup;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Updates;
@@ -70,6 +73,7 @@ public class App : Application
             });
         }
 
+        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
         Dispatcher.UIThread.UnhandledException += UIThread_UnhandledException;
@@ -132,6 +136,10 @@ public class App : Application
                 var informationalVersion = Assembly.GetEntryAssembly()
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                 Log.Information($"vATIS version {informationalVersion} starting up");
+
+                var websocket = _serviceProvider.GetService<IWebsocketService>();
+                websocket.ApplicationExitRequested += OnApplicationExitRequested;
+                await websocket.StartAsync();
 
                 var appConfig = _serviceProvider.GetService<IAppConfig>();
                 try
@@ -370,6 +378,11 @@ public class App : Application
         return parsedArgs;
     }
 
+    private void OnApplicationExitRequested(object? sender, EventArgs e)
+    {
+        Shutdown();
+    }
+
     private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)
     {
         if (ex.Handled)
@@ -426,6 +439,11 @@ public class App : Application
             await _serviceProvider.GetService<INavDataRepository>().CheckForUpdates();
             await _serviceProvider.GetService<INavDataRepository>().Initialize();
         }
+    }
+
+    private void OnProcessExit(object? sender, EventArgs e)
+    {
+        _serviceProvider?.GetService<IWebsocketService>().StopAsync();
     }
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)

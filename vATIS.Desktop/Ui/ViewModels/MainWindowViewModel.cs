@@ -82,6 +82,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
 
         _websocketService.GetStationsReceived += OnGetAtisStations;
+        _websocketService.ApplicationExitRequested += OnApplicationExitRequested;
+        _websocketService.LoadProfileRequested += OnChangeProfileRequested;
 
         _disposables.Add(OpenSettingsDialogCommand);
         _disposables.Add(OpenProfileConfigurationWindowCommand);
@@ -314,24 +316,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Starts the WebSocket connection using the underlying WebSocket service.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task StartWebsocket()
-    {
-        await _websocketService.StartAsync();
-    }
-
-    /// <summary>
-    /// Stops the WebSocket connection asynchronously.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task StopWebsocket()
-    {
-        await _websocketService.StopAsync();
-    }
-
-    /// <summary>
     /// Connects to the ATIS hub using the provided hub connection.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation of connecting to the ATIS hub.</returns>
@@ -388,18 +372,48 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         GC.SuppressFinalize(this);
         _disposables.Dispose();
         _websocketService.GetStationsReceived -= OnGetAtisStations;
+        _websocketService.ApplicationExitRequested -= OnApplicationExitRequested;
+        _websocketService.LoadProfileRequested -= OnChangeProfileRequested;
     }
 
-    private void OnGetAtisStations(object? sender, GetStationsReceived e)
+    private void OnGetAtisStations(object? sender, GetStationListReceived e)
     {
         var stations = (from station in AtisStations.ToList()
             where !string.IsNullOrEmpty(station.Id) && !string.IsNullOrEmpty(station.Identifier)
             select new AtisStationMessage.AtisStationRecord
             {
-                Id = station.Id, Name = station.Identifier, AtisType = station.AtisType
+                Id = station.Id,
+                Name = station.Identifier,
+                AtisType = station.AtisType,
+                Presets = [.. station.AtisPresetList.OrderBy(n => n.Ordinal).ThenBy(n => n.Name).Select(n => n.Name)]
             }).ToList();
 
         _websocketService.SendAtisStations(e.Session, new AtisStationMessage { Stations = [..stations] });
+    }
+
+    private void OnApplicationExitRequested(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Shutdown();
+            }
+        });
+    }
+
+    private void OnChangeProfileRequested(object? sender, GetChangeProfileReceived e)
+    {
+        if (e.ProfileId == _sessionManager.CurrentProfile?.Id)
+            return;
+
+        Dispatcher.UIThread.Invoke(async () =>
+        {
+            if (e.ProfileId != null)
+            {
+                await _sessionManager.ChangeProfile(e.ProfileId);
+            }
+        });
     }
 
     private async Task OpenProfileConfigurationWindow()

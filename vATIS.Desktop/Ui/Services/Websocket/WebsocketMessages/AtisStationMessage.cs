@@ -49,5 +49,11 @@ public class AtisStationMessage
         [JsonPropertyName("atisType")]
         [JsonConverter(typeof(JsonStringEnumConverter<AtisType>))]
         public AtisType AtisType { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list of presets.
+        /// </summary>
+        [JsonPropertyName("presets")]
+        public List<string>? Presets { get; set; }
     }
 }

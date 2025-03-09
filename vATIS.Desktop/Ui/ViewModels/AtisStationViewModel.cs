@@ -71,7 +71,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private CancellationTokenSource _voiceRecordAtisCts = new();
     private CancellationTokenSource _processMetarCts = new();
     private CancellationTokenSource _atisLetterChangedCts = new();
-    private CancellationTokenSource _wsUpdateAtisCts = new();
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
     private Timer? _publishAtisTimer;
@@ -208,7 +207,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         _websocketService.GetAtisReceived += OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
-        _websocketService.GetPresetsReceived += OnGetPresetsReceived;
         _websocketService.ConfigureAtisReceived += OnConfigureAtisReceived;
         _websocketService.ConnectAtisReceived += OnConnectAtisReceived;
         _websocketService.DisconnectAtisReceived += OnDisconnectAtisReceived;
@@ -368,6 +366,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             .Subscribe();
 
         this.WhenAnyValue(x => x.AtisLetter)
+            .Skip(1)
             .Throttle(TimeSpan.FromSeconds(5))
             .Select(_ => Observable.FromAsync(HandleAtisLetterChanged))
             .Concat()
@@ -715,7 +714,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
-        _websocketService.GetPresetsReceived -= OnGetPresetsReceived;
         _websocketService.ConfigureAtisReceived -= OnConfigureAtisReceived;
         _websocketService.ConnectAtisReceived -= OnConnectAtisReceived;
         _websocketService.DisconnectAtisReceived -= OnDisconnectAtisReceived;
@@ -1905,26 +1903,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (isMatchingId || isMatchingStation)
         {
             Dispatcher.UIThread.Invoke(async () => { await Disconnect(); });
-        }
-    }
-
-    private async void OnGetPresetsReceived(object? sender, GetPresetsReceived e)
-    {
-        try
-        {
-            if (!string.IsNullOrEmpty(e.Station) &&
-                (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
-                return;
-
-            var presets = (from preset in AtisStation.Presets
-                where !string.IsNullOrEmpty(preset.Name)
-                select preset.Name).ToList();
-
-            await _websocketService.SendAtisPresets(e.Session, new AtisPresetMessage { Presets = presets });
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error in OnGetPresetsReceived");
         }
     }
 

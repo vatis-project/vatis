@@ -6,12 +6,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
+using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 using WatsonWebsocket;
 
@@ -22,6 +24,8 @@ namespace Vatsim.Vatis.Ui.Services.Websocket;
 /// </summary>
 public class WebsocketService : IWebsocketService
 {
+    private readonly IProfileRepository _profileRepository;
+
     // The websocket server.
     private readonly WatsonWsServer _server;
 
@@ -31,8 +35,11 @@ public class WebsocketService : IWebsocketService
     /// <summary>
     /// Initializes a new instance of the <see cref="WebsocketService"/> class.
     /// </summary>
-    public WebsocketService()
+    /// <param name="profileRepository">The profile repository service.</param>
+    public WebsocketService(IProfileRepository profileRepository)
     {
+        _profileRepository = profileRepository;
+
         // The loopback address is used to avoid Windows prompting for firewall permissions
         // when vATIS runs.
         _server = new WatsonWsServer(hostname: IPAddress.Loopback.ToString(), port: 49082);
@@ -46,13 +53,10 @@ public class WebsocketService : IWebsocketService
     public event EventHandler<GetAtisReceived> GetAtisReceived = (_, _) => { };
 
     /// <inheritdoc />
-    public event EventHandler<GetStationsReceived> GetStationsReceived = (_, _) => { };
+    public event EventHandler<GetStationListReceived> GetStationsReceived = (_, _) => { };
 
     /// <inheritdoc />
     public event EventHandler<AcknowledgeAtisUpdateReceived> AcknowledgeAtisUpdateReceived = (_, _) => { };
-
-    /// <inheritdoc />
-    public event EventHandler<GetPresetsReceived> GetPresetsReceived = (_, _) => { };
 
     /// <inheritdoc />
     public event EventHandler<GetConfigureAtisReceived> ConfigureAtisReceived = (_, _) => { };
@@ -62,6 +66,12 @@ public class WebsocketService : IWebsocketService
 
     /// <inheritdoc />
     public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler<GetChangeProfileReceived> LoadProfileRequested = (_, _) => { };
+
+    /// <inheritdoc />
+    public event EventHandler ApplicationExitRequested = (_, _) => { };
 
     /// <summary>
     /// Starts the WebSocket server.
@@ -156,6 +166,10 @@ public class WebsocketService : IWebsocketService
         {
             HandleRequest(e.Client, e.Data);
         }
+        catch (TaskCanceledException)
+        {
+            // Ignore
+        }
         catch (Exception ex)
         {
             var error = new ErrorMessage { Value = new ErrorMessage.ErrorValue { Message = ex.Message, }, };
@@ -206,7 +220,7 @@ public class WebsocketService : IWebsocketService
 
         var commandMessageTypes = new HashSet<string>
         {
-            "acknowledgeAtisUpdate", "getAtis", "getStations", "getPresets"
+            "acknowledgeAtisUpdate", "getAtis", "getProfiles", "getStations", "quit"
         };
 
         if (commandMessageTypes.Contains(messageType))
@@ -217,20 +231,21 @@ public class WebsocketService : IWebsocketService
 
             switch (messageType)
             {
-                case "getAtis":
-                    GetAtisReceived(this,
-                        new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
-                    break;
                 case "acknowledgeAtisUpdate":
                     AcknowledgeAtisUpdateReceived(this,
                         new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
                     break;
-                case "getStations":
-                    GetStationsReceived(this, new GetStationsReceived(session));
+                case "getAtis":
+                    GetAtisReceived(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
                     break;
-                case "getPresets":
-                    GetPresetsReceived(this,
-                        new GetPresetsReceived(session, request.Value?.Station, request.Value?.AtisType));
+                case "getProfiles":
+                    HandleGetInstalledProfiles(session);
+                    break;
+                case "getStations":
+                    GetStationsReceived(this, new GetStationListReceived(session));
+                    break;
+                case "quit":
+                    ApplicationExitRequested(this, EventArgs.Empty);
                     break;
                 default:
                     throw new ArgumentException($"Invalid request: unknown message type {messageType}");
@@ -240,6 +255,15 @@ public class WebsocketService : IWebsocketService
         {
             switch (messageType)
             {
+                case "loadProfile":
+                {
+                    var request = JsonSerializer.Deserialize(root.GetRawText(),
+                                      SourceGenerationContext.NewDefault.LoadProfileMessage) ??
+                                  throw new ArgumentException("Invalid request: no message value specified");
+                    LoadProfileRequested(this, new GetChangeProfileReceived(session, request.Payload?.ProfileId));
+                    break;
+                }
+
                 case "configureAtis":
                 {
                     var request = JsonSerializer.Deserialize(root.GetRawText(),
@@ -271,6 +295,29 @@ public class WebsocketService : IWebsocketService
                     throw new ArgumentException($"Invalid request: unknown message type {messageType}");
             }
         }
+    }
+
+    private void HandleGetInstalledProfiles(ClientMetadata? session)
+    {
+        Task.Run(async () =>
+        {
+            var profiles = await _profileRepository.LoadAll();
+            var list = profiles.Select(profile =>
+                new InstalledProfilesMessage.ProfileEntity { Id = profile.Id, Name = profile.Name }).ToList();
+
+            var message = new InstalledProfilesMessage { Profiles = [..list] };
+
+            if (session is not null)
+            {
+                await _server.SendAsync(session.Guid,
+                    JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.InstalledProfilesMessage));
+            }
+            else
+            {
+                await SendAsync(JsonSerializer.Serialize(message,
+                    SourceGenerationContext.NewDefault.InstalledProfilesMessage));
+            }
+        });
     }
 
     /// <summary>

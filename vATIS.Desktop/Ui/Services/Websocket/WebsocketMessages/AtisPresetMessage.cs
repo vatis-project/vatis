@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 
+/// <summary>
+/// Represents a class that returns a list of available presets.
+/// </summary>
 public class AtisPresetMessage
 {
     /// <summary>
