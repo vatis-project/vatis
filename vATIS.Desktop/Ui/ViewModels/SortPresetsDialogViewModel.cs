@@ -91,10 +91,11 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         CloseWindowCommand.Dispose();
         MovePresetUpCommand.Dispose();
         MovePresetDownCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleCloseWindow(ICloseable window)

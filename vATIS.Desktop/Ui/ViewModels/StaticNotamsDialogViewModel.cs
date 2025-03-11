@@ -186,14 +186,14 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
-
         CloseWindowCommand.Dispose();
         NewDefinitionCommand.Dispose();
         DeleteDefinitionCommand.Dispose();
         EditDefinitionCommand.Dispose();
         MoveDefinitionDownCommand.Dispose();
         MoveDefinitionUpCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleMoveDefinitionUp()

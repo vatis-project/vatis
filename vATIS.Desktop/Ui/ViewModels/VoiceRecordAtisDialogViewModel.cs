@@ -369,8 +369,9 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         _disposables.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private static byte[] CombineAudioBuffers(List<byte[]> audioBuffers)

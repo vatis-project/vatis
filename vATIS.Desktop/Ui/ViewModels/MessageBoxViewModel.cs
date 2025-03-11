@@ -167,11 +167,12 @@ public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         YesButtonCommand.Dispose();
         NoButtonCommand.Dispose();
         OkButtonCommand.Dispose();
         CancelButtonCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleYesButtonCommand(ICloseable window)

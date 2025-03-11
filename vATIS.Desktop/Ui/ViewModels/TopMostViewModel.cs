@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Reactive;
 using ReactiveUI;
 using Vatsim.Vatis.Config;
@@ -13,7 +14,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// <summary>
 /// Represents the view model responsible for managing the "Always On Top" behavior for the <see cref="MainWindow"/>.
 /// </summary>
-public class TopMostViewModel : ReactiveViewModelBase
+public class TopMostViewModel : ReactiveViewModelBase, IDisposable
 {
     private IAppConfig? _appConfig;
     private bool _isTopMost;
@@ -50,6 +51,14 @@ public class TopMostViewModel : ReactiveViewModelBase
     {
         _appConfig = appConfig;
         IsTopMost = _appConfig.AlwaysOnTop;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ToggleIsTopMost.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleToggleIsTopMost()
