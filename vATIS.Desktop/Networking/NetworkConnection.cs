@@ -352,24 +352,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
                 var num = 0;
                 if (_atisStation != null && !string.IsNullOrEmpty(_atisStation.TextAtis))
                 {
-                    List<string> collection;
-
-                    // Check if the text contains any line breaks
-                    if (_atisStation.TextAtis.Contains('\n') || _atisStation.TextAtis.Contains('\r'))
-                    {
-                        // Use existing line breaks
-                        collection =
-                        [
-                            .. _atisStation.TextAtis.Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries)
-                        ];
-                    }
-                    else
-                    {
-                        // Break up the text into 64-character lines if no line breaks are present
-                        var regex = new Regex(@"(.{1,64})(?:\s|$)");
-                        collection = regex.Matches(_atisStation.TextAtis).Select(x => x.Groups[1].Value).ToList();
-                    }
-
+                    var collection = FormatAtisText(_atisStation.TextAtis);
                     foreach (var line in collection)
                     {
                         num++;
@@ -508,5 +491,21 @@ public class NetworkConnection : INetworkConnection, IDisposable
 
         _fsdSession.SendPdu(new PDUATCPosition(Callsign, _fsdFrequency, NetworkFacility.Twr, 50,
             _appConfig.NetworkRating, _airportData.Latitude, _airportData.Longitude));
+    }
+
+    private List<string> FormatAtisText(string atisText)
+    {
+        // Check if the text contains any line breaks
+        if (atisText.Contains('\n') || atisText.Contains('\r'))
+        {
+            // Use existing line breaks
+            return [.. atisText.Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries)];
+        }
+        else
+        {
+            // Break up the text into 64-character lines if no line breaks are present
+            var regex = new Regex(@"(.{1,64})(?:\s|$)");
+            return regex.Matches(atisText).Select(x => x.Groups[1].Value).ToList();
+        }
     }
 }
