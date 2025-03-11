@@ -26,7 +26,6 @@ using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
-using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles;
