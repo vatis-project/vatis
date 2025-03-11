@@ -20,7 +20,7 @@ public class InstalledProfilesMessage
     public string MessageType => "getProfiles";
 
     /// <summary>
-    /// Gets or sets a list of ATIS preset names.
+    /// Gets or sets a list of installed profiles.
     /// </summary>
     [JsonPropertyName("profiles")]
     public List<ProfileEntity>? Profiles { get; set; }
