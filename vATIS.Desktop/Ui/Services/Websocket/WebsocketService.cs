@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
@@ -239,7 +240,7 @@ public class WebsocketService : IWebsocketService
                     GetAtisReceived(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
                     break;
                 case "getProfiles":
-                    HandleGetInstalledProfiles(session);
+                    HandleGetInstalledProfiles(session).SafeFireAndForget();
                     break;
                 case "getStations":
                     GetStationsReceived(this, new GetStationListReceived(session));
@@ -297,27 +298,24 @@ public class WebsocketService : IWebsocketService
         }
     }
 
-    private void HandleGetInstalledProfiles(ClientMetadata? session)
+    private async Task HandleGetInstalledProfiles(ClientMetadata? session)
     {
-        Task.Run(async () =>
+        var profiles = await _profileRepository.LoadAll();
+        var list = profiles.Select(profile =>
+            new InstalledProfilesMessage.ProfileEntity { Id = profile.Id, Name = profile.Name }).ToList();
+
+        var message = new InstalledProfilesMessage { Profiles = [..list] };
+
+        if (session is not null)
         {
-            var profiles = await _profileRepository.LoadAll();
-            var list = profiles.Select(profile =>
-                new InstalledProfilesMessage.ProfileEntity { Id = profile.Id, Name = profile.Name }).ToList();
-
-            var message = new InstalledProfilesMessage { Profiles = [..list] };
-
-            if (session is not null)
-            {
-                await _server.SendAsync(session.Guid,
-                    JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.InstalledProfilesMessage));
-            }
-            else
-            {
-                await SendAsync(JsonSerializer.Serialize(message,
-                    SourceGenerationContext.NewDefault.InstalledProfilesMessage));
-            }
-        });
+            await _server.SendAsync(session.Guid,
+                JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.InstalledProfilesMessage));
+        }
+        else
+        {
+            await SendAsync(JsonSerializer.Serialize(message,
+                SourceGenerationContext.NewDefault.InstalledProfilesMessage));
+        }
     }
 
     /// <summary>
