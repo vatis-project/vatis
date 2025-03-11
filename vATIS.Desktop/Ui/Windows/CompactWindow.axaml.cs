@@ -4,11 +4,13 @@
 // </copyright>
 
 using System;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.ReactiveUI;
+using Serilog;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
@@ -16,7 +18,7 @@ namespace Vatsim.Vatis.Ui.Windows;
 /// <summary>
 /// Represents a compact window designed as part of the VATSIM user interface.
 /// </summary>
-public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICloseable
+public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICloseable, IDialogOwner
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="CompactWindow"/> class with the specified view model.
@@ -25,8 +27,12 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
     public CompactWindow(CompactWindowViewModel viewModel)
     {
         InitializeComponent();
+
         ViewModel = viewModel;
+        ViewModel.SetDialogOwner(this);
+
         Closed += OnClosed;
+        Closing += OnClosing;
     }
 
     /// <summary>
@@ -52,6 +58,29 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();
+    }
+
+    private async void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        try
+        {
+            // Check if the window close request was triggered by the user (e.g., ALT+F4 or similar)
+            if (ViewModel is null || e.IsProgrammatic)
+                return;
+
+            e.Cancel = true;
+
+            var shouldClose = await ViewModel.EndClientSessionCommand.Execute().FirstAsync();
+            if (shouldClose)
+            {
+                e.Cancel = false;
+                Close();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "OnClosing Exception");
+        }
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
