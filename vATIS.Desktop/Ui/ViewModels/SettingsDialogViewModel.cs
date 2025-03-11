@@ -134,8 +134,9 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         SaveSettingsCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void SaveSettings(ICloseable window)

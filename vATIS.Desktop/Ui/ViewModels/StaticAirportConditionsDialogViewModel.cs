@@ -177,13 +177,14 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         CloseWindowCommand.Dispose();
         NewDefinitionCommand.Dispose();
         EditDefinitionCommand.Dispose();
         DeleteDefinitionCommand.Dispose();
         MoveDefinitionUpCommand.Dispose();
         MoveDefinitionDownCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleMoveDefinitionUp()

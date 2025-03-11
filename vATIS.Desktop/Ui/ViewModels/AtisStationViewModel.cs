@@ -748,6 +748,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _voiceRecordAtisCts.Dispose();
         _selectedPresetCts.Dispose();
         _atisLetterChangedCts.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleSetAtisLetter(char letter)

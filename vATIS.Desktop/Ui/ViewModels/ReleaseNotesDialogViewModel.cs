@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Reactive;
 using ReactiveUI;
 using Vatsim.Vatis.Ui.Dialogs;
@@ -12,7 +13,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// <summary>
 /// Represents the view model for the <see cref="ReleaseNotesDialog"/>.
 /// </summary>
-public class ReleaseNotesDialogViewModel : ReactiveViewModelBase
+public class ReleaseNotesDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     private string? _releaseNotes;
     private bool _suppressReleaseNotes;
@@ -50,6 +51,14 @@ public class ReleaseNotesDialogViewModel : ReactiveViewModelBase
     {
         get => _suppressReleaseNotes;
         set => this.RaiseAndSetIfChanged(ref _suppressReleaseNotes, value);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        CloseWindowCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleCloseWindow(ICloseable window)

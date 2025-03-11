@@ -50,8 +50,8 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     private readonly SourceList<ProfileViewModel> _profileList = new();
     private readonly IWebsocketService _websocketService;
     private IDialogOwner? _dialogOwner;
-    private string _previousUserValue = "";
     private ProfileViewModel? _selectedProfile;
+    private string _previousUserValue = "";
     private bool _showOverlay;
 
     /// <summary>
@@ -96,10 +96,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
-            {
-                ShowOverlay = lifetime.Windows.Count > 1;
-            };
+            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += OnWindowCollectionChanged;
         }
 
         _profileList.Connect()
@@ -221,8 +218,6 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
-
         InitializeCommand.Dispose();
         ShowNewProfileDialogCommand.Dispose();
         RenameProfileCommand.Dispose();
@@ -234,6 +229,15 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         OpenReleaseNotesCommand.Dispose();
 
         _websocketService.LoadProfileRequested -= OnChangeProfileRequested;
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged -= OnWindowCollectionChanged;
+        }
+
+        _profileList.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private async Task Initialize()
@@ -450,6 +454,14 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         if (e.ProfileId != null)
         {
             Dispatcher.UIThread.Invoke(() => _sessionManager.StartSession(e.ProfileId));
+        }
+    }
+    
+    private void OnWindowCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            ShowOverlay = lifetime.Windows.Count > 1;
         }
     }
 }

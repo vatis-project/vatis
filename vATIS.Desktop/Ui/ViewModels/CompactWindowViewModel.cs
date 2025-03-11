@@ -5,11 +5,16 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using Vatsim.Vatis.Networking;
+using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -19,25 +24,35 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly ISessionManager _sessionManager;
     private readonly IWindowLocationService _windowLocationService;
+    private IDialogOwner? _dialogOwner;
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
     private bool _isControlsVisible;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CompactWindowViewModel"/> class.
     /// </summary>
+    /// <param name="sessionManager">The session manager service.</param>
     /// <param name="windowLocationService">The service responsible for managing window locations.</param>
-    public CompactWindowViewModel(IWindowLocationService windowLocationService)
+    public CompactWindowViewModel(ISessionManager sessionManager, IWindowLocationService windowLocationService)
     {
+        _sessionManager = sessionManager;
         _windowLocationService = windowLocationService;
 
         InvokeMainWindowCommand = ReactiveCommand.Create<ICloseable>(InvokeMainWindow);
+        EndClientSessionCommand = ReactiveCommand.CreateFromTask(HandleEndClientSession);
     }
 
     /// <summary>
     /// Gets the command used to invoke the main window logic.
     /// </summary>
     public ReactiveCommand<ICloseable, Unit> InvokeMainWindowCommand { get; }
+
+    /// <summary>
+    /// Gets the command to end the current client session.
+    /// </summary>
+    public ReactiveCommand<Unit, bool> EndClientSessionCommand { get; }
 
     /// <summary>
     /// Gets or sets the collection of ATIS station view models displayed in the compact window.
@@ -82,11 +97,21 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
         _windowLocationService.Restore(window);
     }
 
+    /// <summary>
+    /// Sets the window dialog owner.
+    /// </summary>
+    /// <param name="owner">The owner of the dialog.</param>
+    public void SetDialogOwner(IDialogOwner owner)
+    {
+        _dialogOwner = owner;
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         InvokeMainWindowCommand.Dispose();
+        EndClientSessionCommand.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private void InvokeMainWindow(ICloseable window)
@@ -97,5 +122,24 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
         {
             lifetime.MainWindow?.Show();
         }
+    }
+
+    private async Task<bool> HandleEndClientSession()
+    {
+        if (_dialogOwner == null)
+            return true;
+
+        if (Stations.Any(x => x.NetworkConnectionStatus == NetworkConnectionStatus.Connected))
+        {
+            if (await MessageBox.ShowDialog((Window)_dialogOwner,
+                    "You still have active ATIS connections. Are you sure you want to exit?", "Confirm",
+                    MessageBoxButton.YesNo, MessageBoxIcon.Warning) == MessageBoxResult.No)
+            {
+                return false;
+            }
+        }
+
+        _sessionManager.EndSession();
+        return true;
     }
 }

@@ -299,6 +299,8 @@ public class AtisBuilder : IAtisBuilder
             }
         }
 
+        template = Regex.Replace(template, @"^\s*$[\r\n]+", "", RegexOptions.Multiline);
+
         try
         {
             var matches = Regex.Matches(template, @"\[PRESSURE_(\w{4})\]", RegexOptions.IgnoreCase);
@@ -340,9 +342,6 @@ public class AtisBuilder : IAtisBuilder
             closingTemplate = Regex.Replace(closingTemplate, @"{letter\|word}", currentAtisLetter.ToPhonetic());
             template += closingTemplate;
         }
-
-        // Remove text parsing characters
-        template = RemoveTextParsingCharacters(template);
 
         return template;
     }

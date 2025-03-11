@@ -100,10 +100,11 @@ public class UserInputDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         DialogResultChanged = null;
         CancelButtonCommand.Dispose();
         OkButtonCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleOkButton(ICloseable window)

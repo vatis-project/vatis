@@ -110,10 +110,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
-            {
-                ShowOverlay = lifetime.Windows.Count(w => w.GetType() != typeof(Windows.MainWindow)) > 1;
-            };
+            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += OnCollectionChanged;
         }
 
         if (_sessionManager.CurrentProfile?.Stations != null)
@@ -133,7 +130,8 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                 .ThenBy(i => i.Identifier)
                 .ThenBy(i => i.AtisType))
             .Bind(out var sortedStations)
-            .Subscribe(_ => { AtisStations = sortedStations; });
+            .Subscribe(_ => { AtisStations = sortedStations; })
+            .DisposeWith(_disposables);
         AtisStations = sortedStations;
     }
 
@@ -306,8 +304,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         _disposables.Dispose();
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged -= OnCollectionChanged;
+        }
+
+        GC.SuppressFinalize(this);
     }
 
     private async Task HandleCloseWindow(ICloseable? window)
@@ -825,5 +829,13 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         GeneralConfigViewModel?.Reset();
         SelectedTabControlTabIndex = 0;
         HasUnsavedChanges = false;
+    }
+
+    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            ShowOverlay = lifetime.Windows.Count(w => w.GetType() != typeof(Windows.MainWindow)) > 1;
+        }
     }
 }
