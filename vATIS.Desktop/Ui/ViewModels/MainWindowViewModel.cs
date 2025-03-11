@@ -387,7 +387,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnGetAtisStations(object? sender, GetStationListReceived e)
     {
-        var stations = (from station in AtisStations.ToList()
+        var stations = (from station in AtisStations
             where !string.IsNullOrEmpty(station.Id) && !string.IsNullOrEmpty(station.Identifier)
             select new AtisStationMessage.AtisStationRecord
             {
