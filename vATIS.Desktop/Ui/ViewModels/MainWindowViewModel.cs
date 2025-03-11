@@ -83,7 +83,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
 
         _websocketService.GetStationsReceived += OnGetAtisStations;
-        _websocketService.ApplicationExitRequested += OnApplicationExitRequested;
         _websocketService.LoadProfileRequested += OnChangeProfileRequested;
 
         _disposables.Add(OpenSettingsDialogCommand);
@@ -370,7 +369,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         _websocketService.GetStationsReceived -= OnGetAtisStations;
-        _websocketService.ApplicationExitRequested -= OnApplicationExitRequested;
         _websocketService.LoadProfileRequested -= OnChangeProfileRequested;
 
         _dispatcherTimer.Stop();
@@ -400,17 +398,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             }).ToList();
 
         _websocketService.SendAtisStations(e.Session, new AtisStationMessage { Stations = [..stations] });
-    }
-
-    private void OnApplicationExitRequested(object? sender, EventArgs e)
-    {
-        Dispatcher.UIThread.Invoke(() =>
-        {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.Shutdown();
-            }
-        });
     }
 
     private void OnChangeProfileRequested(object? sender, GetChangeProfileReceived e)

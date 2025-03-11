@@ -71,7 +71,6 @@ public class App : Application
             });
         }
 
-        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
         Dispatcher.UIThread.UnhandledException += UIThread_UnhandledException;
@@ -376,9 +375,21 @@ public class App : Application
         return parsedArgs;
     }
 
-    private void OnApplicationExitRequested(object? sender, EventArgs e)
+    private async void OnApplicationExitRequested(object? sender, EventArgs e)
     {
-        Shutdown();
+        try
+        {
+            if (_serviceProvider != null)
+            {
+                await _serviceProvider.GetService<IWebsocketService>().StopAsync();
+            }
+
+            Shutdown();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "OnApplicationExitRequested Failed");
+        }
     }
 
     private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)
@@ -437,11 +448,6 @@ public class App : Application
             await _serviceProvider.GetService<INavDataRepository>().CheckForUpdates();
             await _serviceProvider.GetService<INavDataRepository>().Initialize();
         }
-    }
-
-    private void OnProcessExit(object? sender, EventArgs e)
-    {
-        _serviceProvider?.GetService<IWebsocketService>().StopAsync();
     }
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
