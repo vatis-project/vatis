@@ -13,7 +13,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// <summary>
 /// Represents a view model for managing the "Always On Top" functionality of a compact window in the application.
 /// </summary>
-public class CompactWindowTopMostViewModel : ReactiveViewModelBase
+public class CompactWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
 {
     private static readonly Lazy<CompactWindowTopMostViewModel> s_instance = new(() =>
         new CompactWindowTopMostViewModel());
@@ -53,6 +53,14 @@ public class CompactWindowTopMostViewModel : ReactiveViewModelBase
     {
         _appConfig = appConfig;
         IsTopMost = _appConfig.CompactWindowAlwaysOnTop;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ToggleIsTopMost?.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleToggleIsTopMost()

@@ -84,9 +84,10 @@ public class NewAtisStationDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         CancelButtonCommand.Dispose();
         OkButtonCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleOkButtonCommand(ICloseable window)

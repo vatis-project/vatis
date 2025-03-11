@@ -109,9 +109,9 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         InvokeMainWindowCommand.Dispose();
         EndClientSessionCommand.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private void InvokeMainWindow(ICloseable window)

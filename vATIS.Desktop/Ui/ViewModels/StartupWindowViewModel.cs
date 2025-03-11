@@ -43,6 +43,7 @@ public class StartupWindowViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         _disposables.Dispose();
+
         GC.SuppressFinalize(this);
     }
 }

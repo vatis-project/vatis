@@ -37,7 +37,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public MainWindow CreateMainWindow()
     {
-        var viewModel = _provider.GetService<MainWindowViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<MainWindowViewModel>();
         return new MainWindow(viewModel);
     }
 
@@ -49,7 +50,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public ProfileListDialog CreateProfileListDialog()
     {
-        var viewModel = _provider.GetService<ProfileListViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<ProfileListViewModel>();
         return new ProfileListDialog(viewModel);
     }
 
@@ -61,7 +63,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public SettingsDialog CreateSettingsDialog()
     {
-        var viewModel = _provider.GetService<SettingsDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<SettingsDialogViewModel>();
         return new SettingsDialog(viewModel);
     }
 
@@ -73,7 +76,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public CompactWindow CreateCompactWindow()
     {
-        var viewModel = _provider.GetService<CompactWindowViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<CompactWindowViewModel>();
         return new CompactWindow(viewModel);
     }
 
@@ -85,7 +89,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public AtisConfigurationWindow CreateProfileConfigurationWindow()
     {
-        var viewModel = _provider.GetService<AtisConfigurationWindowViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<AtisConfigurationWindowViewModel>();
         return new AtisConfigurationWindow(viewModel);
     }
 
@@ -97,7 +102,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public UserInputDialog CreateUserInputDialog()
     {
-        var viewModel = _provider.GetService<UserInputDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<UserInputDialogViewModel>();
         return new UserInputDialog(viewModel);
     }
 
@@ -109,7 +115,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public NewAtisStationDialog CreateNewAtisStationDialog()
     {
-        var viewModel = _provider.GetService<NewAtisStationDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<NewAtisStationDialogViewModel>();
         return new NewAtisStationDialog(viewModel);
     }
 
@@ -121,7 +128,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public VoiceRecordAtisDialog CreateVoiceRecordAtisDialog()
     {
-        var viewModel = _provider.GetService<VoiceRecordAtisDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<VoiceRecordAtisDialogViewModel>();
         return new VoiceRecordAtisDialog(viewModel);
     }
 
@@ -133,7 +141,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public TransitionLevelDialog CreateTransitionLevelDialog()
     {
-        var viewModel = _provider.GetService<TransitionLevelDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<TransitionLevelDialogViewModel>();
         return new TransitionLevelDialog(viewModel);
     }
 
@@ -145,7 +154,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public NewContractionDialog CreateNewContractionDialog()
     {
-        var viewModel = _provider.GetService<NewContractionDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<NewContractionDialogViewModel>();
         return new NewContractionDialog(viewModel);
     }
 
@@ -157,7 +167,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public StaticAirportConditionsDialog CreateStaticAirportConditionsDialog()
     {
-        var viewModel = _provider.GetService<StaticAirportConditionsDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<StaticAirportConditionsDialogViewModel>();
         return new StaticAirportConditionsDialog(viewModel);
     }
 
@@ -169,7 +180,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public StaticNotamsDialog CreateStaticNotamsDialog()
     {
-        var viewModel = _provider.GetService<StaticNotamsDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<StaticNotamsDialogViewModel>();
         return new StaticNotamsDialog(viewModel);
     }
 
@@ -181,7 +193,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public StaticDefinitionEditorDialog CreateStaticDefinitionEditorDialog()
     {
-        var viewModel = _provider.GetService<StaticDefinitionEditorDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<StaticDefinitionEditorDialogViewModel>();
         return new StaticDefinitionEditorDialog(viewModel);
     }
 
@@ -193,7 +206,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public SortPresetsDialog CreateSortPresetsDialog()
     {
-        var viewModel = _provider.GetService<SortPresetsDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<SortPresetsDialogViewModel>();
         return new SortPresetsDialog(viewModel);
     }
 
@@ -205,7 +219,8 @@ internal class WindowFactory : IWindowFactory
     /// </returns>
     public SortAtisStationsDialog CreateSortAtisStationsDialog()
     {
-        var viewModel = _provider.GetService<SortAtisStationsDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<SortAtisStationsDialogViewModel>();
         return new SortAtisStationsDialog(viewModel);
     }
 
@@ -215,7 +230,8 @@ internal class WindowFactory : IWindowFactory
     /// <returns>An instance of the <see cref="ReleaseNotesDialog"/> class.</returns>
     public ReleaseNotesDialog CreateReleaseNotesDialog()
     {
-        var viewModel = _provider.GetService<ReleaseNotesDialogViewModel>();
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<ReleaseNotesDialogViewModel>();
         return new ReleaseNotesDialog(viewModel);
     }
 }

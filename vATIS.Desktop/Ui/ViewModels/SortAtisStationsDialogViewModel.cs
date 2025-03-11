@@ -88,10 +88,11 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         CloseWindowCommand.Dispose();
         MoveStationUpCommand.Dispose();
         MoveStationDownCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleCloseWindow(ICloseable window)

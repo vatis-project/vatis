@@ -47,6 +47,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     private readonly IAtisHubConnection _atisHubConnection;
     private readonly IWebsocketService _websocketService;
     private readonly SourceList<AtisStationViewModel> _atisStationSource = new();
+    private readonly DispatcherTimer _dispatcherTimer;
     private List<string> _previousKeys = new();
     private string? _beforeStationSortSelectedStationId;
     private int _selectedTabIndex;
@@ -132,14 +133,15 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                         ? AtisStations.IndexOf(selectedStation)
                         : 0; // Default to first tab if no match
                 }
-            });
+            }).DisposeWith(_disposables);
 
         AtisStations = sortedStations;
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .AutoRefresh(x => x.Ordinal)
-            .Filter(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+            .Filter(x =>
+                x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
             .Sort(SortExpressionComparer<AtisStationViewModel>
                 .Ascending(i => i.Ordinal)
                 .ThenBy(i => i.Identifier ?? string.Empty)
@@ -151,7 +153,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                     _ => 3
                 }))
             .Bind(out var connectedStations)
-            .Subscribe(_ => { CompactWindowStations = connectedStations; });
+            .Subscribe(_ => { CompactWindowStations = connectedStations; })
+            .DisposeWith(_disposables);
 
         CompactWindowStations = connectedStations;
 
@@ -211,15 +214,12 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
-            {
-                ShowOverlay = lifetime.Windows.Count > 1;
-            };
+            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += OnWindowCollectionChanged;
         }
 
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
-        timer.Tick += (_, _) => CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
-        timer.Start();
+        _dispatcherTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _dispatcherTimer.Tick += DispatcherTimerOnTick;
+        _dispatcherTimer.Start();
     }
 
     /// <summary>
@@ -380,8 +380,18 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
+        _atisStationSource.Clear();
         _disposables.Dispose();
+
+        _dispatcherTimer.Stop();
+        _dispatcherTimer.Tick -= DispatcherTimerOnTick;
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged -= OnWindowCollectionChanged;
+        }
+
+        GC.SuppressFinalize(this);
     }
 
     private async Task OpenProfileConfigurationWindow()
@@ -447,5 +457,18 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         }
 
         return true;
+    }
+
+    private void DispatcherTimerOnTick(object? sender, EventArgs e)
+    {
+        CurrentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
+    }
+
+    private void OnWindowCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            ShowOverlay = lifetime.Windows.Count > 1;
+        }
     }
 }

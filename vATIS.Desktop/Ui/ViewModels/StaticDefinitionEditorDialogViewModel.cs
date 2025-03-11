@@ -112,10 +112,11 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     /// <inheritdoc />
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
         DialogResultChanged = null;
         CancelButtonCommand.Dispose();
         SaveButtonCommand.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void HandleSaveButton(ICloseable window)
