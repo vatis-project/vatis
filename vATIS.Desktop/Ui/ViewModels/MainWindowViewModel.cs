@@ -32,7 +32,7 @@ using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Ui.Services.Websocket;
-using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 

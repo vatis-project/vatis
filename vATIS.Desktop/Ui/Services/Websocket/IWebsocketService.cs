@@ -7,7 +7,7 @@ using System;
 using System.Threading.Tasks;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
-using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Ui.Services.Websocket;

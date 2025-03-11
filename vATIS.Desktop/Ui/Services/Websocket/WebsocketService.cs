@@ -14,7 +14,7 @@ using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Profiles;
-using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Ui.Services.Websocket;

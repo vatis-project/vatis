@@ -3,7 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using WatsonWebsocket;
 
 namespace Vatsim.Vatis.Events.WebSocket;

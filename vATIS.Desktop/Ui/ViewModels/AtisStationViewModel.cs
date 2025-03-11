@@ -37,7 +37,7 @@ using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Ui.Services.Websocket;
-using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;

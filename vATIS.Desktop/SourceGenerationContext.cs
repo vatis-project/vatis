@@ -15,7 +15,7 @@ using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.TextToSpeech;
-using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using Vatsim.Vatis.Updates;
 using Vatsim.Vatis.Voice.Dto;
 

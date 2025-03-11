@@ -35,7 +35,6 @@ using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services.Websocket;
-using Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
 using Vatsim.Vatis.Ui.Startup;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Updates;

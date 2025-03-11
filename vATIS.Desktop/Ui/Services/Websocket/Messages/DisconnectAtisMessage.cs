@@ -1,4 +1,4 @@
-// <copyright file="ConnectAtisMessage.cs" company="Justin Shannon">
+// <copyright file="DisconnectAtisMessage.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -6,29 +6,29 @@
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Profiles.Models;
 
-namespace Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+namespace Vatsim.Vatis.Ui.Services.Websocket.Messages;
 
 /// <summary>
-/// Represents a message sent over the websocket to connect an ATIS.
+/// Represents a message sent over the websocket to disconnect an ATIS.
 /// </summary>
-public class ConnectAtisMessage
+public class DisconnectAtisMessage
 {
     /// <summary>
     /// Gets the string identifying the message type.
     /// </summary>
     [JsonPropertyName("type")]
-    public string MessageType => "connectAtis";
+    public string MessageType => "disconnectAtis";
 
     /// <summary>
     /// Gets or sets the message payload.
     /// </summary>
     [JsonPropertyName("value")]
-    public ConnectMessagePayload? Payload { get; set; }
+    public DisconnectMessagePayload? Payload { get; set; }
 
     /// <summary>
     /// Represents the message payload.
     /// </summary>
-    public class ConnectMessagePayload
+    public class DisconnectMessagePayload
     {
         /// <summary>
         /// Gets or sets the unique station ID.

@@ -6,7 +6,7 @@
 using System.Text.Json.Serialization;
 using Vatsim.Vatis.Profiles.Models;
 
-namespace Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+namespace Vatsim.Vatis.Ui.Services.Websocket.Messages;
 
 /// <summary>
 /// Represents a message sent over the websocket to configure an ATIS station before connecting.

@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Vatsim.Vatis.Ui.Services.Websocket.WebsocketMessages;
+namespace Vatsim.Vatis.Ui.Services.Websocket.Messages;
 
 /// <summary>
 /// Represents a websocket message that contains a list of installed profiles.
