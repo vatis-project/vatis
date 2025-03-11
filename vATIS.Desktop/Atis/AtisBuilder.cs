@@ -280,46 +280,26 @@ public class AtisBuilder : IAtisBuilder
 
         foreach (var variable in variables)
         {
-            if (!string.IsNullOrEmpty(variable.VoiceReplace))
-            {
-                template = template.Replace($"[{variable.Find}:VOX]", variable.VoiceReplace);
-                template = template.Replace($"${variable.Find}:VOX", variable.VoiceReplace);
-            }
+            template = template.Replace($"[{variable.Find}:VOX]", variable.VoiceReplace);
+            template = template.Replace($"${variable.Find}:VOX", variable.VoiceReplace);
 
-            if (!string.IsNullOrEmpty(variable.TextReplace))
-            {
-                template = template.Replace($"[{variable.Find}]", variable.TextReplace);
-                template = template.Replace($"${variable.Find}", variable.TextReplace);
-            }
-            else
-            {
-                // Remove lines containing the variable placeholder if TextReplace is empty
-                template = Regex.Replace(template, $@"^.*(\[{variable.Find}\]|\${variable.Find}).*\r?\n?", "", RegexOptions.Multiline);
-            }
+            template = template.Replace($"[{variable.Find}]", variable.TextReplace);
+            template = template.Replace($"${variable.Find}", variable.TextReplace);
 
             if (variable.Aliases != null)
             {
                 foreach (var alias in variable.Aliases)
                 {
-                    if (!string.IsNullOrEmpty(variable.VoiceReplace))
-                    {
-                        template = template.Replace($"[{alias}:VOX]", variable.VoiceReplace);
-                        template = template.Replace($"${alias}:VOX", variable.VoiceReplace);
-                    }
+                    template = template.Replace($"[{alias}:VOX]", variable.VoiceReplace);
+                    template = template.Replace($"${alias}:VOX", variable.VoiceReplace);
 
-                    if (!string.IsNullOrEmpty(variable.TextReplace))
-                    {
-                        template = template.Replace($"[{alias}]", variable.TextReplace);
-                        template = template.Replace($"${alias}", variable.TextReplace);
-                    }
-                    else
-                    {
-                        // Remove lines containing the alias placeholder if TextReplace is empty
-                        template = Regex.Replace(template, $@"^.*(\[{alias}\]|\${alias}).*\r?\n?", "", RegexOptions.Multiline);
-                    }
+                    template = template.Replace($"[{alias}]", variable.TextReplace);
+                    template = template.Replace($"${alias}", variable.TextReplace);
                 }
             }
         }
+
+        template = Regex.Replace(template, @"^\s*$[\r\n]+", "", RegexOptions.Multiline);
 
         try
         {
