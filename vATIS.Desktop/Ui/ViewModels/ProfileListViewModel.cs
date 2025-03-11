@@ -456,7 +456,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
             Dispatcher.UIThread.Invoke(() => _sessionManager.StartSession(e.ProfileId));
         }
     }
-    
+
     private void OnWindowCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
