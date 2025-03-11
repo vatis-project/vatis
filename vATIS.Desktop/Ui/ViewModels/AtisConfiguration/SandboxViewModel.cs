@@ -11,9 +11,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using DynamicData;
@@ -463,20 +461,11 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
 
     private async Task HandleOpenStaticNotamsDialog()
     {
-        if (DialogOwner == null)
-            return;
-
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
-            return;
-
-        if (lifetime.MainWindow == null)
-            return;
-
-        if (SelectedStation == null)
+        if (DialogOwner == null || SelectedStation == null)
             return;
 
         var dlg = _windowFactory.CreateStaticNotamsDialog();
-        dlg.Topmost = lifetime.MainWindow.Topmost;
+        dlg.Topmost = ((Window)DialogOwner).Topmost;
         if (dlg.DataContext is StaticNotamsDialogViewModel viewModel)
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(SelectedStation.NotamDefinitions);
@@ -514,7 +503,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        await dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog((Window)DialogOwner);
 
         // Update the free-form text area after the dialog is closed
         PopulateNotams();
@@ -549,20 +538,11 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
 
     private async Task HandleOpenStaticAirportConditionsDialog()
     {
-        if (DialogOwner == null)
-            return;
-
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
-            return;
-
-        if (lifetime.MainWindow == null)
-            return;
-
-        if (SelectedStation == null)
+        if (DialogOwner == null || SelectedStation == null)
             return;
 
         var dlg = _windowFactory.CreateStaticAirportConditionsDialog();
-        dlg.Topmost = lifetime.MainWindow.Topmost;
+        dlg.Topmost = ((Window)DialogOwner).Topmost;
         if (dlg.DataContext is StaticAirportConditionsDialogViewModel viewModel)
         {
             viewModel.Definitions =
@@ -601,7 +581,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             };
         }
 
-        await dlg.ShowDialog(lifetime.MainWindow);
+        await dlg.ShowDialog((Window)DialogOwner);
 
         // Update the free-form text area after the dialog is closed
         PopulateAirportConditions();
