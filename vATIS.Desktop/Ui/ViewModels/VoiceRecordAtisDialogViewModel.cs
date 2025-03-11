@@ -371,6 +371,12 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         _disposables.Dispose();
 
+        _elapsedTimeUpdateTimer.Stop();
+        _elapsedTimeUpdateTimer.Dispose();
+
+        _maxRecordingDurationTimer.Stop();
+        _maxRecordingDurationTimer.Dispose();
+
         GC.SuppressFinalize(this);
     }
 
