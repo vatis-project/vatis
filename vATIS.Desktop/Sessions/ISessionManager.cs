@@ -46,4 +46,11 @@ public interface ISessionManager
     /// and closes the main application window if applicable.
     /// </summary>
     void EndSession();
+
+    /// <summary>
+    /// Used by websocket to end and start a new session with the specified profile ID.
+    /// </summary>
+    /// <param name="profileId">The profile ID.</param>
+    /// <returns>A task.</returns>
+    Task ChangeProfile(string profileId);
 }
