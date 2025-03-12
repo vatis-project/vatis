@@ -260,6 +260,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             Dispatcher.UIThread.Post(() =>
             {
+                if (NetworkConnectionStatus == NetworkConnectionStatus.Observer &&
+                    (sync.Dto.AtisLetter != AtisLetter || sync.Dto.Metar != Metar))
+                {
+                    IsNewAtis = true;
+                }
+
                 AtisLetter = sync.Dto.AtisLetter;
                 Wind = sync.Dto.Wind;
                 Altimeter = sync.Dto.Altimeter;
