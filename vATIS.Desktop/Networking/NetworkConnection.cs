@@ -286,6 +286,12 @@ public class NetworkConnection : INetworkConnection, IDisposable
 
     private void OnNetworkError(object? sender, NetworkErrorEventArgs e)
     {
+        if (e.Error.StartsWith("Parse error."))
+        {
+            Log.Warning(e.Error);
+            return;
+        }
+
         NetworkErrorReceived(this, new NetworkErrorReceived(e.Error));
     }
 
