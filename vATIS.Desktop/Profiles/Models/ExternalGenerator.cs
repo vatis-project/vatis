@@ -3,6 +3,8 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
+
 namespace Vatsim.Vatis.Profiles.Models;
 
 /// <summary>
@@ -18,7 +20,18 @@ public class ExternalGenerator
     /// <summary>
     /// Gets or sets the URL associated with the external generator.
     /// </summary>
+    [Obsolete("Use TextUrl and VoiceUrl instead.")]
     public string? Url { get; set; }
+
+    /// <summary>
+    /// Gets or sets the URL for text ATIS generation.
+    /// </summary>
+    public string? TextUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the URL for voice ATIS generation.
+    /// </summary>
+    public string? VoiceUrl { get; set; }
 
     /// <summary>
     /// Gets or sets the arrival runways for the external generator.
@@ -39,4 +52,19 @@ public class ExternalGenerator
     /// Gets or sets the remarks associated with the external generator.
     /// </summary>
     public string? Remarks { get; set; }
+
+    /// <summary>
+    /// Migrates the legacy Url property to the new Url properties.
+    /// </summary>
+    public void MigrateUrl()
+    {
+        #pragma warning disable CS0618
+        if (!string.IsNullOrEmpty(Url))
+        {
+            TextUrl ??= Url;
+            VoiceUrl ??= Url;
+            Url = null;
+        }
+        #pragma warning restore CS0618
+    }
 }

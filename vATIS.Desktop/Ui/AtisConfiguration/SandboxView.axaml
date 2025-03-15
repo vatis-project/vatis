@@ -9,7 +9,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.SandboxView">
 	<UserControl.Resources>
-		<converters:RecordAtisListenButtonLabelConverter x:Key="ButtonLabelConverter"/>
+		<converters:AtisPlaybackButtonLabelConverter x:Key="ButtonLabelConverter"/>
 	</UserControl.Resources>
 	<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 	<StackPanel Spacing="15" Orientation="Vertical" VerticalAlignment="Center">

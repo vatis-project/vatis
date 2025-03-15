@@ -96,7 +96,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             x => x.IsSandboxPlaybackActive,
             x => x.SandboxMetar,
             x => x.SelectedPreset,
-            (playback, metar, preset) => playback == false && metar != null && preset != null);
+            (playback, metar, preset) => playback == false && !string.IsNullOrEmpty(metar) && preset is { ExternalGenerator.Enabled: false });
         RefreshSandboxAtisCommand = ReactiveCommand.CreateFromTask(HandleRefreshSandboxAtis, canRefreshAtis);
 
         var canPlaySandboxAtis = this.WhenAnyValue(
@@ -417,8 +417,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
                 var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, SelectedPreset, randomLetter,
                     decodedMetar, _cancellationToken.Token);
                 AtisBuilderVoiceResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset,
-                    randomLetter,
-                    decodedMetar, _cancellationToken.Token, true);
+                    randomLetter, decodedMetar, _cancellationToken.Token, true);
                 TextAtisTextDocument.Text = textAtis?.ToUpperInvariant() ?? "";
                 VoiceAtisTextDocument.Text = AtisBuilderVoiceResponse.SpokenText?.ToUpperInvariant() ?? "";
             }
@@ -604,16 +603,16 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
                     SaveAirportConditionsTextCommand.Execute().Subscribe();
                 }
             }
-
-            SelectedPreset = preset;
-            _previousPreset = preset;
-
-            PopulateAirportConditions(presetChanged: true);
-            PopulateNotams(presetChanged: true);
-
-            HasUnsavedNotams = false;
-            HasUnsavedAirportConditions = false;
         }
+
+        SelectedPreset = preset;
+        _previousPreset = preset;
+
+        PopulateAirportConditions(presetChanged: true);
+        PopulateNotams(presetChanged: true);
+
+        HasUnsavedNotams = false;
+        HasUnsavedAirportConditions = false;
     }
 
     private async Task HandleFetchSandboxMetar()

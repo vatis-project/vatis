@@ -7,9 +7,13 @@
              xmlns:controls="using:Vatsim.Vatis.Ui.Controls"
              xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
+             xmlns:converters="clr-namespace:Vatsim.Vatis.Ui.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.PresetsView">
-	<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+    <UserControl.Resources>
+        <converters:AtisPlaybackButtonLabelConverter x:Key="PlaybackLabelConverter"/>
+    </UserControl.Resources>
+    <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 		<StackPanel Orientation="Vertical">
 			<Grid ColumnDefinitions="*,Auto">
 				<ComboBox Name="SelectedPreset" Grid.Column="0" Classes="Dark" Margin="0,0,10,0" ItemsSource="{Binding Presets, DataType=vm:PresetsViewModel}" SelectedItem="{Binding SelectedPreset, DataType=vm:PresetsViewModel}" SelectionChanged="SelectedPreset_OnSelectionChanged">
@@ -198,72 +202,101 @@
 					</Button>
 				</WrapPanel>
 			</StackPanel>
-			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}">
-				<StackPanel Orientation="Vertical" Spacing="10">
-					<StackPanel Spacing="5">
-						<TextBlock Text="URL:"/>
-						<TextBox Text="{Binding ExternalGeneratorUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
-							<Interaction.Behaviors>
-								<behaviors:SelectAllTextOnFocusBehavior/>
-							</Interaction.Behaviors>
-						</TextBox>
-					</StackPanel>
-					<Grid ColumnDefinitions="*,5,*" RowDefinitions="*,10,*">
-						<StackPanel Spacing="5" Grid.Column="0">
-							<TextBlock Text="Arrival Runways:"/>
-							<TextBox Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
-								<Interaction.Behaviors>
-									<behaviors:TextBoxUppercaseBehavior/>
-									<behaviors:SelectAllTextOnFocusBehavior/>
-								</Interaction.Behaviors>
-							</TextBox>
-						</StackPanel>
-						<StackPanel Spacing="5" Grid.Row="0" Grid.Column="2">
-							<TextBlock Text="Departure Runways:"/>
-							<TextBox Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
-								<Interaction.Behaviors>
-									<behaviors:TextBoxUppercaseBehavior/>
-									<behaviors:SelectAllTextOnFocusBehavior/>
-								</Interaction.Behaviors>
-							</TextBox>
-						</StackPanel>
-						<StackPanel Spacing="5" Grid.Column="0" Grid.Row="2">
-							<TextBlock Text="Approaches In Use:"/>
-							<TextBox Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
-								<Interaction.Behaviors>
-									<behaviors:TextBoxUppercaseBehavior/>
-									<behaviors:SelectAllTextOnFocusBehavior/>
-								</Interaction.Behaviors>
-							</TextBox>
-						</StackPanel>
-						<StackPanel Spacing="5" Grid.Column="2" Grid.Row="2">
-							<TextBlock Text="Remarks:"/>
-							<TextBox Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
-								<Interaction.Behaviors>
-									<behaviors:TextBoxUppercaseBehavior/>
-									<behaviors:SelectAllTextOnFocusBehavior/>
-								</Interaction.Behaviors>
-							</TextBox>
-						</StackPanel>
-					</Grid>
-					<StackPanel Orientation="Vertical" Spacing="5">
-						<TextBlock Text="Sandbox:"/>
-						<Grid ColumnDefinitions="100*,5,12*,5,12*">
-							<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:PresetsViewModel}">
-								<Interaction.Behaviors>
-									<behaviors:TextBoxUppercaseBehavior/>
-								</Interaction.Behaviors>
-							</TextBox>
-							<Button Grid.Column="2" Theme="{StaticResource Dark}" Content="Fetch" Command="{Binding FetchSandboxMetarCommand, DataType=vm:PresetsViewModel}"/>
-							<Button Grid.Column="4" Theme="{StaticResource Dark}" Content="Test" Command="{Binding TestExternalGeneratorCommand, DataType=vm:PresetsViewModel}" IsEnabled="{Binding SandboxMetar, DataType=vm:PresetsViewModel, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-						</Grid>
-						<TextBox Text="{Binding ExternalGeneratorSandboxResponse, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}">
-							<Interaction.Behaviors>
-								<behaviors:TextBoxUppercaseBehavior/>
-							</Interaction.Behaviors>
-						</TextBox>
-					</StackPanel>
-				</StackPanel>
+			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="410" MaxHeight="410">
+                <ScrollViewer AllowAutoHide="False" Margin="0,0,-10,0" VerticalScrollBarVisibility="Visible">
+                    <ScrollViewer.Styles>
+                        <Style Selector="ScrollBar">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+                    </ScrollViewer.Styles>
+                    <StackPanel Orientation="Vertical" Spacing="5">
+                        <StackPanel Spacing="5">
+						    <TextBlock Text="Text ATIS URL:" ToolTip.Tip="The URL used for generating the text ATIS."/>
+						    <TextBox Text="{Binding ExternalGeneratorTextUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <Interaction.Behaviors>
+								    <behaviors:SelectAllTextOnFocusBehavior/>
+							    </Interaction.Behaviors>
+						    </TextBox>
+					    </StackPanel>
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Voice ATIS URL:" ToolTip.Tip="The URL used for generating the voice ATIS."/>
+                            <TextBox Text="{Binding ExternalGeneratorVoiceUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+                                <Interaction.Behaviors>
+                                    <behaviors:SelectAllTextOnFocusBehavior/>
+                                </Interaction.Behaviors>
+                            </TextBox>
+                        </StackPanel>
+					    <Grid ColumnDefinitions="*,5,*" RowDefinitions="*,10,*">
+						    <StackPanel Spacing="5" Grid.Column="0">
+							    <TextBlock Text="Arrival Runways:"/>
+							    <TextBox Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								    <Interaction.Behaviors>
+									    <behaviors:TextBoxUppercaseBehavior/>
+									    <behaviors:SelectAllTextOnFocusBehavior/>
+								    </Interaction.Behaviors>
+							    </TextBox>
+						    </StackPanel>
+						    <StackPanel Spacing="5" Grid.Row="0" Grid.Column="2">
+							    <TextBlock Text="Departure Runways:"/>
+							    <TextBox Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								    <Interaction.Behaviors>
+									    <behaviors:TextBoxUppercaseBehavior/>
+									    <behaviors:SelectAllTextOnFocusBehavior/>
+								    </Interaction.Behaviors>
+							    </TextBox>
+						    </StackPanel>
+						    <StackPanel Spacing="5" Grid.Column="0" Grid.Row="2">
+							    <TextBlock Text="Approaches In Use:"/>
+							    <TextBox Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								    <Interaction.Behaviors>
+									    <behaviors:TextBoxUppercaseBehavior/>
+									    <behaviors:SelectAllTextOnFocusBehavior/>
+								    </Interaction.Behaviors>
+							    </TextBox>
+						    </StackPanel>
+						    <StackPanel Spacing="5" Grid.Column="2" Grid.Row="2">
+							    <TextBlock Text="Remarks:"/>
+							    <TextBox Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+								    <Interaction.Behaviors>
+									    <behaviors:TextBoxUppercaseBehavior/>
+									    <behaviors:SelectAllTextOnFocusBehavior/>
+								    </Interaction.Behaviors>
+							    </TextBox>
+						    </StackPanel>
+					    </Grid>
+					    <StackPanel Orientation="Vertical" Spacing="5">
+						    <TextBlock Text="Sandbox:"/>
+						    <Grid ColumnDefinitions="100*,5,15*">
+							    <TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:PresetsViewModel}">
+								    <Interaction.Behaviors>
+									    <behaviors:TextBoxUppercaseBehavior/>
+								    </Interaction.Behaviors>
+							    </TextBox>
+							    <Button Grid.Column="2" Theme="{StaticResource Dark}" Content="Fetch" Command="{Binding FetchSandboxMetarCommand, DataType=vm:PresetsViewModel}"/>
+						    </Grid>
+                            <Grid ColumnDefinitions="*,5,*" Margin="0,0,5,0">
+                                <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="5">
+                                    <TextBlock>Text ATIS</TextBlock>
+                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseText, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
+                                        <Interaction.Behaviors>
+                                            <behaviors:TextBoxUppercaseBehavior/>
+                                        </Interaction.Behaviors>
+                                    </TextBox>
+                                    <Button Theme="{StaticResource Dark}" Content="Refresh ATIS" Command="{Binding GenerateSandboxAtisCommand, DataType=vm:PresetsViewModel}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="5">
+                                    <TextBlock>Voice ATIS</TextBlock>
+                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseVoice, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
+                                        <Interaction.Behaviors>
+                                            <behaviors:TextBoxUppercaseBehavior/>
+                                        </Interaction.Behaviors>
+                                    </TextBox>
+                                    <Button Theme="{StaticResource Dark}" Command="{Binding PlaySandboxVoiceAtisCommand, DataType=vm:PresetsViewModel}" Content="{Binding IsSandboxPlaybackActive, DataType=vm:PresetsViewModel, Converter={StaticResource PlaybackLabelConverter}, FallbackValue=Listen}"/>
+                                </StackPanel>
+                            </Grid>
+					    </StackPanel>
+				    </StackPanel>
+                </ScrollViewer>
 			</groupBox:GroupBoxControl>
 		</StackPanel>
 	</Border>

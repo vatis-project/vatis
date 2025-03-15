@@ -1,4 +1,4 @@
-// <copyright file="RecordAtisListenButtonLabelConverter.cs" company="Justin Shannon">
+// <copyright file="AtisPlaybackButtonLabelConverter.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -13,7 +13,7 @@ namespace Vatsim.Vatis.Ui.Converters;
 /// Converts a boolean value to a specific string label for audio playback button.
 /// Implements the <see cref="Avalonia.Data.Converters.IValueConverter"/> interface.
 /// </summary>
-public class RecordAtisListenButtonLabelConverter : IValueConverter
+public class AtisPlaybackButtonLabelConverter : IValueConverter
 {
     /// <inheritdoc/>
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

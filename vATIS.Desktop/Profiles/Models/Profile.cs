@@ -21,13 +21,6 @@ public class Profile
     public const int CurrentVersion = 2;
 
     /// <summary>
-    /// Gets or sets the version of the profile.
-    /// </summary>
-    [DefaultValue(0)]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public int Version { get; set; } = CurrentVersion;
-
-    /// <summary>
     /// Gets or sets the name of the profile.
     /// </summary>
     public string Name { get; set; } = string.Empty;
@@ -63,6 +56,13 @@ public class Profile
         get => null;
         set => Stations = value;
     }
+
+    /// <summary>
+    /// Gets or sets the version of the profile.
+    /// </summary>
+    [DefaultValue(0)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int Version { get; set; } = CurrentVersion;
 
     /// <inheritdoc/>
     public override string ToString()

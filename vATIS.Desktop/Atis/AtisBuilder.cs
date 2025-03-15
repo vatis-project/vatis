@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Serilog;
 using Vatsim.Network;
 using Vatsim.Vatis.Atis.Extensions;
@@ -26,6 +27,7 @@ using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Utils;
 using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder.Entity;
+using Visibility = Vatsim.Vatis.Weather.Decoder.Entity.Visibility;
 
 namespace Vatsim.Vatis.Atis;
 
@@ -69,6 +71,15 @@ public class AtisBuilder : IAtisBuilder
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentNullException.ThrowIfNull(decodedMetar);
 
+        // If the preset is set to use an external ATIS generator,
+        // generate the ATIS using the external generator.
+        if (preset.ExternalGenerator is { Enabled: true })
+        {
+            return await GetExternalVoiceAtis(station, preset, currentAtisLetter.ToString(),
+                             decodedMetar.RawMetar, cancellationToken) ??
+                         throw new AtisBuilderException("Failed to generate voice ATIS from external source.");
+        }
+
         var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
                           throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
 
@@ -90,12 +101,52 @@ public class AtisBuilder : IAtisBuilder
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentNullException.ThrowIfNull(decodedMetar);
 
+        // If the preset is set to use an external ATIS generator,
+        // generate the ATIS using the external generator.
+        if (preset.ExternalGenerator is { Enabled: true })
+        {
+            return await GetExternalTextAtis(station, preset, currentAtisLetter.ToString(), decodedMetar.RawMetar) ??
+                   throw new AtisBuilderException("Failed to generate text ATIS from external source.");
+        }
+
         var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
                           throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
 
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
         return await CreateTextAtis(station, preset, currentAtisLetter, variables);
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GetExternalTextAtis(AtisStation station, AtisPreset preset, string currentAtisLetter,
+        string? rawMetar)
+    {
+        var result = await GetExternalAtis(preset.ExternalGenerator?.TextUrl, currentAtisLetter, rawMetar,
+            preset.ExternalGenerator);
+
+        return result ?? null;
+    }
+
+    /// <inheritdoc />
+    public async Task<AtisBuilderVoiceAtisResponse?> GetExternalVoiceAtis(AtisStation station, AtisPreset preset,
+        string currentAtisLetter, string? rawMetar, CancellationToken cancellationToken)
+    {
+        if (_textToSpeechService == null)
+            return null;
+
+        var result = await GetExternalAtis(preset.ExternalGenerator?.VoiceUrl, currentAtisLetter, rawMetar,
+            preset.ExternalGenerator);
+
+        if (result == null)
+        {
+            return null;
+        }
+
+        // Format for text-to-speech (replace text parsing characters, etc).
+        result = FormatForTextToSpeech(result, station);
+
+        var audioBytes = await _textToSpeechService.RequestAudio(result, station, cancellationToken);
+        return audioBytes != null ? new AtisBuilderVoiceAtisResponse(result, audioBytes) : null;
     }
 
     /// <inheritdoc/>
@@ -178,6 +229,40 @@ public class AtisBuilder : IAtisBuilder
         text = Regex.Replace(text, @"(?<![\w\d])\^((?:0?[1-9]|[1-2][0-9]|3[0-6])(?:[LRC]?))(?![\w\d])", "$1");
 
         return text;
+    }
+
+    private async Task<string?> GetExternalAtis(string? url, string currentAtisLetter, string? rawMetar,
+        ExternalGenerator? externalGenerator)
+    {
+        if (_downloader == null || string.IsNullOrEmpty(url))
+            return null;
+
+        if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+        {
+            url = "http://" + url;
+        }
+
+        url = url.Replace("$metar", HttpUtility.UrlEncode(rawMetar))
+            .Replace("$arrrwy", externalGenerator?.Arrival)
+            .Replace("$deprwy", externalGenerator?.Departure)
+            .Replace("$app", externalGenerator?.Approaches)
+            .Replace("$remarks", externalGenerator?.Remarks)
+            .Replace("$atiscode", currentAtisLetter);
+
+        var response = await _downloader.DownloadStringAsync(url);
+
+        // clean-up response
+        response = Regex.Replace(response, @"\[(.*?)\]", " $1 ");
+        response = Regex.Replace(response, @"\s+", " ");
+
+        // Replace <br> and <br/> tags with \n
+        response = Regex.Replace(response, @"<br\s*/?>", "\n");
+
+        // Split the string into lines, trim each line, and join back with \n
+        var result = string.Join("\n",
+            response.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        return result.Trim();
     }
 
     private async Task<(string? SpokenText, byte[]? AudioBytes)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
@@ -640,6 +725,7 @@ public class AtisBuilder : IAtisBuilder
         input = Regex.Replace(input, @"\s\,", ",");
         input = Regex.Replace(input, @"\&", "and");
         input = Regex.Replace(input, @"\*", "");
+        input = Regex.Replace(input, @"\^", "");
 
         return input.ToUpper();
     }
