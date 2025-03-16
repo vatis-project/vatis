@@ -126,7 +126,7 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+										ToolTip.Tip="The wind speed unit (e.g. 25010KT yields &quot;KT&quot; in the text ATIS and &quot;knots&quot; in the voice ATIS)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__unit}
@@ -177,7 +177,7 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+										ToolTip.Tip="The wind speed unit (e.g. 25010G15KT yields &quot;KT&quot; in the text ATIS and &quot;knots&quot; in the voice ATIS)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__unit}
@@ -207,7 +207,7 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB03KT would yield 03). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+										ToolTip.Tip="The wind speed unit (e.g. VRB03KT yields &quot;KT&quot; in the text ATIS and &quot;knots&quot; in the voice ATIS)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__unit}
@@ -251,7 +251,7 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The wind speed unit of measurement (e.g. VRB08G15KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+										ToolTip.Tip="The wind speed unit (e.g. VRB08G15KT yields &quot;KT&quot; in the text ATIS and &quot;knots&quot; in the voice ATIS)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__unit}
@@ -341,7 +341,7 @@
 										</Button>
 										<Button
 											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The wind speed unit of measurement (e.g. 25010KT would yield &quot;KT&quot; and the spoken value would be &quot;knots&quot;)."
+											ToolTip.Tip="The wind speed unit (e.g. 25010KT yields &quot;KT&quot; in the text ATIS and &quot;knots&quot; in the voice ATIS)."
 											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 											CommandParameter="{Binding $self.Content}">
 											{wind__unit}
