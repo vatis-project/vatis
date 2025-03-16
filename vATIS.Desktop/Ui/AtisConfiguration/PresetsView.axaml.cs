@@ -69,6 +69,8 @@ public partial class PresetsView : UserControl
                         e.Handled = true;
                         return;
                     }
+
+                    model.HasUnsavedChanges = false;
                 }
 
                 if (e.AddedItems.Count > 0 && e.AddedItems[0] is AtisPreset preset)
