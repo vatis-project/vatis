@@ -32,7 +32,7 @@ public class LoadProfileMessage
         /// <summary>
         /// Gets or sets the profile ID.
         /// </summary>
-        [JsonPropertyName("profileId")]
+        [JsonPropertyName("id")]
         public string? ProfileId { get; set; }
     }
 }
