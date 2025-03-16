@@ -1374,7 +1374,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <returns>A task.</returns>
     private async Task PublishAtisToWebsocket(ClientMetadata? session = null)
     {
-        await _websocketService.SendAtisMessage(session,
+        await _websocketService.SendAtisMessageAsync(session,
             new AtisMessage.AtisMessageValue
             {
                 Station = AtisStation.Identifier,

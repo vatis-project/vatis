@@ -135,7 +135,7 @@ public class App : Application
                 Log.Information($"vATIS version {informationalVersion} starting up");
 
                 var websocket = _serviceProvider.GetService<IWebsocketService>();
-                websocket.ApplicationExitRequested += OnApplicationExitRequested;
+                websocket.ExitApplicationReceived += OnExitApplicationReceived;
                 await websocket.StartAsync();
 
                 var appConfig = _serviceProvider.GetService<IAppConfig>();
@@ -375,7 +375,7 @@ public class App : Application
         return parsedArgs;
     }
 
-    private async void OnApplicationExitRequested(object? sender, EventArgs e)
+    private async void OnExitApplicationReceived(object? sender, EventArgs e)
     {
         try
         {

@@ -50,12 +50,12 @@ public interface IWebsocketService
     /// <summary>
     /// Event that is raised by a websocket client to change the active profile.
     /// </summary>
-    public event EventHandler<GetChangeProfileReceived> LoadProfileRequested;
+    public event EventHandler<GetChangeProfileReceived> ChangeProfileReceived;
 
     /// <summary>
     /// Event that is raised by a websocket client to exit the application.
     /// </summary>
-    public event EventHandler ApplicationExitRequested;
+    public event EventHandler ExitApplicationReceived;
 
     /// <summary>
     /// Sends an ATIS message to a specific session, or to all connected clients if session is null.
@@ -63,7 +63,7 @@ public interface IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    Task SendAtisMessage(ClientMetadata? session, AtisMessage.AtisMessageValue value);
+    Task SendAtisMessageAsync(ClientMetadata? session, AtisMessage.AtisMessageValue value);
 
     /// <summary>
     /// Sends a message with a list of ATIS stations to the specific client session,
@@ -72,7 +72,7 @@ public interface IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    Task SendAtisStations(ClientMetadata? session, AtisStationMessage value);
+    Task SendAtisStationsAsync(ClientMetadata? session, AtisStationMessage value);
 
     /// <summary>
     /// Starts the WebSocket server.

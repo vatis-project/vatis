@@ -106,7 +106,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
             .Subscribe(_ => Profiles = sortedProfiles);
         Profiles = sortedProfiles;
 
-        _websocketService.LoadProfileRequested += OnChangeProfileRequested;
+        _websocketService.ChangeProfileReceived += OnChangeProfileReceived;
     }
 
     /// <summary>
@@ -228,7 +228,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         ExitCommand.Dispose();
         OpenReleaseNotesCommand.Dispose();
 
-        _websocketService.LoadProfileRequested -= OnChangeProfileRequested;
+        _websocketService.ChangeProfileReceived -= OnChangeProfileReceived;
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
@@ -449,7 +449,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void OnChangeProfileRequested(object? sender, GetChangeProfileReceived e)
+    private void OnChangeProfileReceived(object? sender, GetChangeProfileReceived e)
     {
         if (e.ProfileId != null)
         {

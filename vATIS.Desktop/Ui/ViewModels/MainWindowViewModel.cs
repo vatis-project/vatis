@@ -83,7 +83,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
 
         _websocketService.GetStationsReceived += OnGetAtisStations;
-        _websocketService.LoadProfileRequested += OnChangeProfileRequested;
+        _websocketService.ChangeProfileReceived += OnChangeProfileReceived;
 
         _disposables.Add(OpenSettingsDialogCommand);
         _disposables.Add(OpenProfileConfigurationWindowCommand);
@@ -369,7 +369,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     public void Dispose()
     {
         _websocketService.GetStationsReceived -= OnGetAtisStations;
-        _websocketService.LoadProfileRequested -= OnChangeProfileRequested;
+        _websocketService.ChangeProfileReceived -= OnChangeProfileReceived;
 
         _dispatcherTimer.Stop();
         _dispatcherTimer.Tick -= DispatcherTimerOnTick;
@@ -397,10 +397,10 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 Presets = [.. station.AtisPresetList.OrderBy(n => n.Ordinal).ThenBy(n => n.Name).Select(n => n.Name)]
             }).ToList();
 
-        _websocketService.SendAtisStations(e.Session, new AtisStationMessage { Stations = [..stations] });
+        _websocketService.SendAtisStationsAsync(e.Session, new AtisStationMessage { Stations = [..stations] });
     }
 
-    private void OnChangeProfileRequested(object? sender, GetChangeProfileReceived e)
+    private void OnChangeProfileReceived(object? sender, GetChangeProfileReceived e)
     {
         if (e.ProfileId == _sessionManager.CurrentProfile?.Id)
             return;

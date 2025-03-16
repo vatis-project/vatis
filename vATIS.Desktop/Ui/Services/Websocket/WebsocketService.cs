@@ -69,10 +69,10 @@ public class WebsocketService : IWebsocketService
     public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived = (_, _) => { };
 
     /// <inheritdoc />
-    public event EventHandler<GetChangeProfileReceived> LoadProfileRequested = (_, _) => { };
+    public event EventHandler<GetChangeProfileReceived> ChangeProfileReceived = (_, _) => { };
 
     /// <inheritdoc />
-    public event EventHandler ApplicationExitRequested = (_, _) => { };
+    public event EventHandler ExitApplicationReceived = (_, _) => { };
 
     /// <summary>
     /// Starts the WebSocket server.
@@ -113,7 +113,7 @@ public class WebsocketService : IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    public async Task SendAtisMessage(ClientMetadata? session, AtisMessage.AtisMessageValue value)
+    public async Task SendAtisMessageAsync(ClientMetadata? session, AtisMessage.AtisMessageValue value)
     {
         var message = new AtisMessage { Value = value, };
 
@@ -129,7 +129,7 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <inheritdoc />
-    public async Task SendAtisStations(ClientMetadata? session, AtisStationMessage value)
+    public async Task SendAtisStationsAsync(ClientMetadata? session, AtisStationMessage value)
     {
         if (session is not null)
         {
@@ -232,7 +232,7 @@ public class WebsocketService : IWebsocketService
                     GetStationsReceived(this, new GetStationListReceived(session));
                     break;
                 case "quit":
-                    ApplicationExitRequested(this, EventArgs.Empty);
+                    ExitApplicationReceived(this, EventArgs.Empty);
                     break;
                 default:
                     throw new ArgumentException($"Invalid request: unknown message type {messageType}");
@@ -247,7 +247,7 @@ public class WebsocketService : IWebsocketService
                     var request = JsonSerializer.Deserialize(root.GetRawText(),
                                       SourceGenerationContext.NewDefault.LoadProfileMessage) ??
                                   throw new ArgumentException("Invalid request: no message value specified");
-                    LoadProfileRequested(this, new GetChangeProfileReceived(session, request.Payload?.ProfileId));
+                    ChangeProfileReceived(this, new GetChangeProfileReceived(session, request.Payload?.ProfileId));
                     break;
                 }
 
