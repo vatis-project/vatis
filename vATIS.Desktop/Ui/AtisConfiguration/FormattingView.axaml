@@ -45,7 +45,14 @@
 							<controls:TemplateVariableTextBox Text="{Binding ObservationTimeVoiceTemplate, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
 						</StackPanel>
 						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="The METAR observation day (e.g. 16)."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {day}
+                            </Button>
+                            <Button
 								Theme="{StaticResource DarkVariable}"
 								ToolTip.Tip="The METAR observation time (e.g. 0153)."
 								Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
