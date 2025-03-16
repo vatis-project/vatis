@@ -261,7 +261,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             Dispatcher.UIThread.Post(() =>
             {
                 if (NetworkConnectionStatus == NetworkConnectionStatus.Observer &&
-                    (sync.Dto.AtisLetter != AtisLetter || sync.Dto.Metar != Metar))
+                    (sync.Dto.AtisLetter != AtisLetter ||
+                     !string.Equals(sync.Dto.Metar, Metar, StringComparison.OrdinalIgnoreCase)))
                 {
                     IsNewAtis = true;
                 }
