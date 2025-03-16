@@ -121,6 +121,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             }
         }
 
+        this.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(x =>
+        {
+            if (PresetsViewModel != null)
+            {
+                PresetsViewModel.HasUnsavedChanges = x;
+            }
+        });
+
         _atisStationSource.Connect()
             .AutoRefresh(x => x.Name)
             .AutoRefresh(x => x.AtisType)
@@ -233,7 +241,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     public bool HasUnsavedChanges
     {
         get => _hasUnsavedChanges;
-        private set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
+        set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
     }
 
     /// <summary>
