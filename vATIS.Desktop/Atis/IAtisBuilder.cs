@@ -34,7 +34,7 @@ public interface IAtisBuilder
     /// <param name="station">The ATIS station.</param>
     /// <param name="preset">The ATIS preset.</param>
     /// <param name="currentAtisLetter">The current ATIS letter.</param>
-    /// <param name="decodedMetar">The raw METAR string.</param>
+    /// <param name="decodedMetar">The decoded METAR.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="string"/> representing the text ATIS message.</returns>
     Task<string?> BuildTextAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
@@ -59,7 +59,7 @@ public interface IAtisBuilder
     /// <param name="currentAtisLetter">The current ATIS letter.</param>
     /// <param name="rawMetar">The raw METAR string.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The voice ATIS string.</returns>
+    /// <returns>An <see cref="AtisBuilderVoiceAtisResponse"/> containing the generated voice ATIS data.</returns>
     Task<AtisBuilderVoiceAtisResponse?> GetExternalVoiceAtis(AtisStation station, AtisPreset preset,
         string currentAtisLetter, string? rawMetar, CancellationToken cancellationToken);
 
