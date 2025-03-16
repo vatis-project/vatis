@@ -236,7 +236,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     public ReadOnlyObservableCollection<AtisStation> AtisStations { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether there are unsaved changes in the current configuration of <see cref="AtisConfigurationWindowViewModel"/>.
+    /// Gets or sets a value indicating whether there are unsaved changes in the current configuration of <see cref="AtisConfigurationWindowViewModel"/>.
     /// </summary>
     public bool HasUnsavedChanges
     {
