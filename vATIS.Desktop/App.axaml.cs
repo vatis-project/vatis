@@ -33,6 +33,7 @@ using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
+using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Ui.Startup;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Updates;
@@ -132,6 +133,10 @@ public class App : Application
                 var informationalVersion = Assembly.GetEntryAssembly()
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                 Log.Information($"vATIS version {informationalVersion} starting up");
+
+                var websocket = _serviceProvider.GetService<IWebsocketService>();
+                websocket.ExitApplicationReceived += OnExitApplicationReceived;
+                await websocket.StartAsync();
 
                 var appConfig = _serviceProvider.GetService<IAppConfig>();
                 try
@@ -368,6 +373,23 @@ public class App : Application
         }
 
         return parsedArgs;
+    }
+
+    private async void OnExitApplicationReceived(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (_serviceProvider != null)
+            {
+                await _serviceProvider.GetService<IWebsocketService>().StopAsync();
+            }
+
+            Shutdown();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "OnApplicationExitRequested Failed");
+        }
     }
 
     private void UIThread_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs ex)

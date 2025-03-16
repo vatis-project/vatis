@@ -86,7 +86,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         ViewModel?.PopulateAtisStations();
         ViewModel?.ConnectToHub();
-        ViewModel?.StartWebsocket();
 
         _initialized = true;
     }
@@ -94,7 +93,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.DisconnectFromHub();
-        ViewModel?.StopWebsocket();
         ViewModel?.Dispose();
     }
 

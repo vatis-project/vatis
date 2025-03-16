@@ -24,12 +24,15 @@ using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
+using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
+using Vatsim.Vatis.Ui.Services.Websocket;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -78,6 +81,9 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
         InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
+
+        _websocketService.GetStationsReceived += OnGetAtisStations;
+        _websocketService.ChangeProfileReceived += OnChangeProfileReceived;
 
         _disposables.Add(OpenSettingsDialogCommand);
         _disposables.Add(OpenProfileConfigurationWindowCommand);
@@ -309,24 +315,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Starts the WebSocket connection using the underlying WebSocket service.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task StartWebsocket()
-    {
-        await _websocketService.StartAsync();
-    }
-
-    /// <summary>
-    /// Stops the WebSocket connection asynchronously.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task StopWebsocket()
-    {
-        await _websocketService.StopAsync();
-    }
-
-    /// <summary>
     /// Connects to the ATIS hub using the provided hub connection.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation of connecting to the ATIS hub.</returns>
@@ -380,8 +368,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        _atisStationSource.Clear();
-        _disposables.Dispose();
+        _websocketService.GetStationsReceived -= OnGetAtisStations;
+        _websocketService.ChangeProfileReceived -= OnChangeProfileReceived;
 
         _dispatcherTimer.Stop();
         _dispatcherTimer.Tick -= DispatcherTimerOnTick;
@@ -391,7 +379,39 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged -= OnWindowCollectionChanged;
         }
 
+        _atisStationSource.Clear();
+        _disposables.Dispose();
+
         GC.SuppressFinalize(this);
+    }
+
+    private void OnGetAtisStations(object? sender, GetStationListReceived e)
+    {
+        var stations = (from station in AtisStations
+            where !string.IsNullOrEmpty(station.Id) && !string.IsNullOrEmpty(station.Identifier)
+            select new AtisStationMessage.AtisStationRecord
+            {
+                Id = station.Id,
+                Name = station.Identifier,
+                AtisType = station.AtisType,
+                Presets = [.. station.AtisPresetList.OrderBy(n => n.Ordinal).ThenBy(n => n.Name).Select(n => n.Name)]
+            }).ToList();
+
+        _websocketService.SendAtisStationsAsync(e.Session, new AtisStationMessage { Stations = [..stations] });
+    }
+
+    private void OnChangeProfileReceived(object? sender, GetChangeProfileReceived e)
+    {
+        if (e.ProfileId == _sessionManager.CurrentProfile?.Id)
+            return;
+
+        Dispatcher.UIThread.Invoke(async () =>
+        {
+            if (e.ProfileId != null)
+            {
+                await _sessionManager.ChangeProfile(e.ProfileId);
+            }
+        });
     }
 
     private async Task OpenProfileConfigurationWindow()

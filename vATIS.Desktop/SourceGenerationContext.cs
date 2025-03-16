@@ -15,7 +15,7 @@ using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.TextToSpeech;
-using Vatsim.Vatis.Ui.Services.WebsocketMessages;
+using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using Vatsim.Vatis.Updates;
 using Vatsim.Vatis.Voice.Dto;
 
@@ -60,6 +60,12 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(AtisMessage))]
 [JsonSerializable(typeof(CommandMessage))]
 [JsonSerializable(typeof(ErrorMessage))]
+[JsonSerializable(typeof(AtisStationMessage))]
+[JsonSerializable(typeof(ConfigureAtisMessage))]
+[JsonSerializable(typeof(ConnectAtisMessage))]
+[JsonSerializable(typeof(DisconnectAtisMessage))]
+[JsonSerializable(typeof(LoadProfileMessage))]
+[JsonSerializable(typeof(InstalledProfilesMessage))]
 [JsonSerializable(typeof(DigitalAtisRequestDto))]
 [JsonSerializable(typeof(List<DigitalAtisResponseDto>))]
 [JsonSerializable(typeof(JsonElement))]
