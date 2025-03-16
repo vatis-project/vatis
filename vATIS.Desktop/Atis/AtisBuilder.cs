@@ -121,10 +121,8 @@ public class AtisBuilder : IAtisBuilder
     public async Task<string?> GetExternalTextAtis(AtisStation station, AtisPreset preset, string currentAtisLetter,
         string? rawMetar)
     {
-        var result = await GetExternalAtis(preset.ExternalGenerator?.TextUrl, currentAtisLetter, rawMetar,
+        return await GetExternalAtis(preset.ExternalGenerator?.TextUrl, currentAtisLetter, rawMetar,
             preset.ExternalGenerator);
-
-        return result ?? null;
     }
 
     /// <inheritdoc />
@@ -243,10 +241,10 @@ public class AtisBuilder : IAtisBuilder
         }
 
         url = url.Replace("$metar", HttpUtility.UrlEncode(rawMetar))
-            .Replace("$arrrwy", externalGenerator?.Arrival)
-            .Replace("$deprwy", externalGenerator?.Departure)
-            .Replace("$app", externalGenerator?.Approaches)
-            .Replace("$remarks", externalGenerator?.Remarks)
+            .Replace("$arrrwy", HttpUtility.UrlEncode(externalGenerator?.Arrival))
+            .Replace("$deprwy", HttpUtility.UrlEncode(externalGenerator?.Departure))
+            .Replace("$app", HttpUtility.UrlEncode(externalGenerator?.Approaches))
+            .Replace("$remarks", HttpUtility.UrlEncode(externalGenerator?.Remarks))
             .Replace("$atiscode", currentAtisLetter);
 
         var response = await _downloader.DownloadStringAsync(url);
