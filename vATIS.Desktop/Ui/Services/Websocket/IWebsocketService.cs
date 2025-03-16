@@ -66,15 +66,6 @@ public interface IWebsocketService
     Task SendAtisMessage(ClientMetadata? session, AtisMessage.AtisMessageValue value);
 
     /// <summary>
-    /// Sends a message to the specific session with the list of ATIS preset names,
-    /// or to all connected clients if session is null.
-    /// </summary>
-    /// <param name="session">The session to send the message to.</param>
-    /// <param name="value">The value to send.</param>
-    /// <returns>A task.</returns>
-    Task SendAtisPresets(ClientMetadata? session, AtisPresetMessage value);
-
-    /// <summary>
     /// Sends a message with a list of ATIS stations to the specific client session,
     /// or to all connected clients if the session is null.
     /// </summary>

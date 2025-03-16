@@ -129,20 +129,6 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <inheritdoc />
-    public async Task SendAtisPresets(ClientMetadata? session, AtisPresetMessage value)
-    {
-        if (session is not null)
-        {
-            await _server.SendAsync(session.Guid,
-                JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetMessage));
-        }
-        else
-        {
-            await SendAsync(JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisPresetMessage));
-        }
-    }
-
-    /// <inheritdoc />
     public async Task SendAtisStations(ClientMetadata? session, AtisStationMessage value)
     {
         if (session is not null)
@@ -302,7 +288,9 @@ public class WebsocketService : IWebsocketService
     {
         var profiles = await _profileRepository.LoadAll();
         var list = profiles.Select(profile =>
-            new InstalledProfilesMessage.ProfileEntity { Id = profile.Id, Name = profile.Name }).ToList();
+                new InstalledProfilesMessage.ProfileEntity { Id = profile.Id, Name = profile.Name })
+            .OrderBy(p => p.Name)
+            .ToList();
 
         var message = new InstalledProfilesMessage { Profiles = [..list] };
 
