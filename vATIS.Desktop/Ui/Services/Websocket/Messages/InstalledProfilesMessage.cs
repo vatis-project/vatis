@@ -17,7 +17,7 @@ public class InstalledProfilesMessage
     /// Gets the string identifying the message type.
     /// </summary>
     [JsonPropertyName("type")]
-    public string MessageType => "getProfiles";
+    public string MessageType => "profiles";
 
     /// <summary>
     /// Gets or sets a list of installed profiles.

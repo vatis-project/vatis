@@ -18,7 +18,7 @@ public class AtisStationMessage
     /// Gets the string identifying the message type.
     /// </summary>
     [JsonPropertyName("type")]
-    public string MessageType => "atisStations";
+    public string MessageType => "stations";
 
     /// <summary>
     /// Gets or sets a list of ATIS preset names.
