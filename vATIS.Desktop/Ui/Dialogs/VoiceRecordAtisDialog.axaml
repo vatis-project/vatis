@@ -18,7 +18,7 @@
         TransparencyLevelHint="Transparent"
         Background="Transparent">
 	<Window.Resources>
-		<converters:RecordAtisListenButtonLabelConverter x:Key="ButtonLabelConverter"/>
+		<converters:AtisPlaybackButtonLabelConverter x:Key="ButtonLabelConverter"/>
 	</Window.Resources>
 	<Window.Styles>
 		<Style Selector="DataValidationErrors">

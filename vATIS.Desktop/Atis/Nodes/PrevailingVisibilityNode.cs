@@ -59,7 +59,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (node.IsCavok)
         {
-            return "CAV-OK";
+            return "CAVOK";
         }
         else
         {

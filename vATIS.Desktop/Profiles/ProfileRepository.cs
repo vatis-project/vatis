@@ -206,25 +206,30 @@ public class ProfileRepository : IProfileRepository
     private void EnsureLatestVersion(Profile profile, out bool wasUpdated)
     {
         wasUpdated = false;
-        if (profile.Version < 3)
+        if (profile.Version < 4)
         {
-            UpdateTo3(profile);
+            UpdateTo4(profile);
             wasUpdated = true;
         }
     }
 
-    private void UpdateTo3(Profile profile)
+    private void UpdateTo4(Profile profile)
     {
-        Log.Information($"Updating profile {profile.Name} to version 3");
+        Log.Information($"Updating profile {profile.Name} to version 4");
 
         if (profile.Stations != null)
         {
             foreach (var station in profile.Stations)
             {
                 station.AtisFormat.PresentWeather.EnsureDefaultWeatherTypes();
+
+                foreach (var preset in station.Presets)
+                {
+                    preset.ExternalGenerator?.MigrateUrl();
+                }
             }
         }
 
-        profile.Version = 3;
+        profile.Version = 4;
     }
 }

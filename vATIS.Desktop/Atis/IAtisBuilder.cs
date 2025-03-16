@@ -41,6 +41,29 @@ public interface IAtisBuilder
         DecodedMetar decodedMetar, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Gets the generated text ATIS from the specified URL in the ATIS preset.
+    /// </summary>
+    /// <param name="station">The ATIS station.</param>
+    /// <param name="preset">The selected ATIS preset.</param>
+    /// <param name="currentAtisLetter">The current ATIS letter.</param>
+    /// <param name="rawMetar">The raw METAR string.</param>
+    /// <returns>The text ATIS string.</returns>
+    Task<string?> GetExternalTextAtis(AtisStation station, AtisPreset preset, string currentAtisLetter,
+        string? rawMetar);
+
+    /// <summary>
+    /// Gets the generated voice ATIS from the specified URL in the ATIS preset.
+    /// </summary>
+    /// <param name="station">The ATIS station.</param>
+    /// <param name="preset">The selected ATIS preset.</param>
+    /// <param name="currentAtisLetter">The current ATIS letter.</param>
+    /// <param name="rawMetar">The raw METAR string.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>An <see cref="AtisBuilderVoiceAtisResponse"/> containing the generated voice ATIS data.</returns>
+    Task<AtisBuilderVoiceAtisResponse?> GetExternalVoiceAtis(AtisStation station, AtisPreset preset,
+        string currentAtisLetter, string? rawMetar, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Updates a remote IDS with the current ATIS information.
     /// </summary>
     /// <param name="station">The ATIS station.</param>

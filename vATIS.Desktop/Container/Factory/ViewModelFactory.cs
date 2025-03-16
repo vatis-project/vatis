@@ -5,7 +5,6 @@
 
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
-using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles;
@@ -96,10 +95,10 @@ internal class ViewModelFactory : IViewModelFactory
     {
         return new PresetsViewModel(
             _provider.GetService<IWindowFactory>(),
-            _provider.GetService<IDownloader>(),
             _provider.GetService<IMetarRepository>(),
             _provider.GetService<IProfileRepository>(),
-            _provider.GetService<ISessionManager>());
+            _provider.GetService<ISessionManager>(),
+            _provider.GetService<IAtisBuilder>());
     }
 
     /// <summary>
