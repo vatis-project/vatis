@@ -18,6 +18,7 @@ using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
+using Serilog;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Events;
@@ -529,33 +530,42 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 
     private async Task HandleGenerateSandboxAtis()
     {
-        if (SelectedStation == null || SelectedPreset == null)
-            return;
-
-        NativeAudio.StopBufferPlayback();
-        AtisBuilderVoiceResponse = null;
-
-        await _externalGeneratorCancellationTokenSource.CancelAsync();
-        _externalGeneratorCancellationTokenSource = new CancellationTokenSource();
-        var localToken = _externalGeneratorCancellationTokenSource;
-
-        ExternalGeneratorSandboxResponseText = "Loading...";
-        ExternalGeneratorSandboxResponseVoice = "Loading...";
-
-        var randomLetter = StringExtensions.RandomLetter();
-
-        if (!string.IsNullOrEmpty(ExternalGeneratorTextUrl))
+        try
         {
-            ExternalGeneratorSandboxResponseText =
-                await _atisBuilder.GetExternalTextAtis(SelectedStation, SelectedPreset, randomLetter, SandboxMetar);
+            if (SelectedStation == null || SelectedPreset == null)
+                return;
+
+            NativeAudio.StopBufferPlayback();
+            AtisBuilderVoiceResponse = null;
+
+            await _externalGeneratorCancellationTokenSource.CancelAsync();
+            _externalGeneratorCancellationTokenSource = new CancellationTokenSource();
+            var localToken = _externalGeneratorCancellationTokenSource;
+
+            ExternalGeneratorSandboxResponseText = "Loading...";
+            ExternalGeneratorSandboxResponseVoice = "Loading...";
+
+            var randomLetter = StringExtensions.RandomLetter();
+
+            if (!string.IsNullOrEmpty(ExternalGeneratorTextUrl))
+            {
+                ExternalGeneratorSandboxResponseText =
+                    await _atisBuilder.GetExternalTextAtis(SelectedStation, SelectedPreset, randomLetter, SandboxMetar);
+            }
+
+            if (!string.IsNullOrEmpty(ExternalGeneratorVoiceUrl))
+            {
+                var voiceAtis = await _atisBuilder.GetExternalVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
+                    SandboxMetar, localToken.Token);
+                ExternalGeneratorSandboxResponseVoice = voiceAtis?.SpokenText;
+                AtisBuilderVoiceResponse = voiceAtis;
+            }
         }
-
-        if (!string.IsNullOrEmpty(ExternalGeneratorVoiceUrl))
+        catch (Exception ex)
         {
-            var voiceAtis = await _atisBuilder.GetExternalVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
-                SandboxMetar, localToken.Token);
-            ExternalGeneratorSandboxResponseVoice = voiceAtis?.SpokenText;
-            AtisBuilderVoiceResponse = voiceAtis;
+            ExternalGeneratorSandboxResponseText = "Error fetching text ATIS. See log for details.";
+            ExternalGeneratorSandboxResponseVoice = "Error fetching voice ATIS. See log for details.";
+            Log.Error(ex, "Failed to generate sandbox ATIS.");
         }
     }
 
