@@ -220,10 +220,13 @@ public class WebsocketService : IWebsocketService
             {
                 case "acknowledgeAtisUpdate":
                     AcknowledgeAtisUpdateReceived(this,
-                        new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
+                        new AcknowledgeAtisUpdateReceived(session, request.Value?.StationId, request.Value?.Station,
+                            request.Value?.AtisType));
                     break;
                 case "getAtis":
-                    GetAtisReceived(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
+                    GetAtisReceived(this,
+                        new GetAtisReceived(session, request.Value?.StationId, request.Value?.Station,
+                            request.Value?.AtisType));
                     break;
                 case "getProfiles":
                     HandleGetInstalledProfiles(session).SafeFireAndForget();

@@ -29,10 +29,18 @@ public class CommandMessage
     /// The values sent with a command, indicating the optional station and
     /// AtisType the command applies to.
     /// </summary>
+    /// <remarks>If both <see cref="StationId"/> and <see cref="Station"/>
+    /// are null, the command will apply to all stations.</remarks>
     public class CommandMessageValue
     {
         /// <summary>
-        /// Gets or sets the station the command is for. If null the command is for all stations.
+        /// Gets or sets the station ID the command is for.
+        /// </summary>
+        [JsonPropertyName("id")]
+        public string? StationId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the station the command is for.
         /// </summary>
         [JsonPropertyName("station")]
         public string? Station { get; set; }

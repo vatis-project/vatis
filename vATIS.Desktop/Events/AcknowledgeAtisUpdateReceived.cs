@@ -12,6 +12,12 @@ namespace Vatsim.Vatis.Events;
 /// Event arguments for the AcknowledgeAtisUpdateReceived event.
 /// </summary>
 /// <param name="Session">The client that requested the ATIS information.</param>
-/// <param name="Station">The station whose update is acknowledged. If null every station was acknowledged.</param>
+/// <param name="StationId">The station ID whose update is acknowledged.</param>
+/// <param name="Station">The station whose update is acknowledged.</param>
 /// <param name="AtisType">The ATIS Type whose update is acknowledged.</param>
-public record AcknowledgeAtisUpdateReceived(ClientMetadata Session, string? Station, AtisType? AtisType = AtisType.Combined) : IEvent;
+/// <remarks>If both <see cref="StationId"/> and <see cref="Station"/> are null, then every station is acknowledged.</remarks>
+public record AcknowledgeAtisUpdateReceived(
+    ClientMetadata Session,
+    string? StationId,
+    string? Station,
+    AtisType? AtisType = AtisType.Combined) : IEvent;

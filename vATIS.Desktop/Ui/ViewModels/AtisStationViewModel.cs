@@ -1802,15 +1802,20 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         try
         {
-            // If a specific station is specified then both the station identifier and the ATIS type
-            // must match to acknowledge the update.
-            // If a specific station isn't specified then the request is for all stations.
+            // If a specific station ID is provided, it must match the current station's ID.
+            if (!string.IsNullOrEmpty(e.StationId) && e.StationId != AtisStation.Id)
+            {
+                return;
+            }
+
+            // If a station identifier is provided, both the identifier and the ATIS type must match.
             if (!string.IsNullOrEmpty(e.Station) &&
                 (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
             {
                 return;
             }
 
+            // If no specific station ID or identifier is provided, the request is treated as a request for all stations.
             await PublishAtisToWebsocket(e.Session);
         }
         catch (Exception ex)
@@ -1821,15 +1826,20 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
     {
-        // If a specific station is specified then both the station identifier and the ATIS type
-        // must match to acknowledge the update.
-        // If a specific station isn't specified then the request is for all stations.
+        // If a specific station ID is provided, it must match the current station's ID.
+        if (!string.IsNullOrEmpty(e.StationId) && e.StationId != AtisStation.Id)
+        {
+            return;
+        }
+
+        // If a station identifier is provided, both the identifier and the ATIS type must match.
         if (!string.IsNullOrEmpty(e.Station) &&
             (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
         {
             return;
         }
 
+        // If no specific station ID or identifier is provided, the request is treated as a request for all stations.
         HandleAcknowledgeAtisUpdate();
     }
 
