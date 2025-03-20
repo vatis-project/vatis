@@ -56,31 +56,38 @@ public class ProfileRepository : IProfileRepository
                     var remoteProfileJson = await response.Content.ReadAsStringAsync();
                     if (!string.IsNullOrEmpty(remoteProfileJson))
                     {
-                        var remoteProfile = JsonSerializer.Deserialize(remoteProfileJson,
-                            SourceGenerationContext.NewDefault.Profile);
-                        if (remoteProfile != null)
+                        try
                         {
-                            if (localProfile.UpdateSerial == null ||
-                                remoteProfile.UpdateSerial > localProfile.UpdateSerial)
+                            var remoteProfile = JsonSerializer.Deserialize(remoteProfileJson,
+                                SourceGenerationContext.NewDefault.Profile);
+                            if (remoteProfile != null)
                             {
-                                Log.Information($"Updating profile {localProfile.Name}: {localProfile.Id}");
-                                var updatedProfile =
-                                    remoteProfile ?? throw new JsonException("Updated profile is null");
-                                updatedProfile.Id = localProfile.Id;
-                                Delete(localProfile);
-                                Save(updatedProfile);
+                                if (localProfile.UpdateSerial == null ||
+                                    remoteProfile.UpdateSerial > localProfile.UpdateSerial)
+                                {
+                                    Log.Information($"Updating profile {localProfile.Name}: {localProfile.Id}");
+                                    var updatedProfile =
+                                        remoteProfile ?? throw new JsonException("Updated profile is null");
+                                    updatedProfile.Id = localProfile.Id;
+                                    Delete(localProfile);
+                                    Save(updatedProfile);
+                                }
                             }
+                        }
+                        catch (JsonException ex)
+                        {
+                            Log.Warning(ex, $"Failed to deserialize profile update response for {localProfile.Id} at {cacheBusterUpdateUrl}.");
                         }
                     }
                 }
                 else if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    Log.Warning($"Profile update URL not found for {localProfile.Id} at {localProfile.UpdateUrl}.");
+                    Log.Warning($"Profile update URL not found for {localProfile.Id} at {cacheBusterUpdateUrl}.");
                 }
                 else
                 {
                     Log.Warning(
-                        $"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {localProfile.UpdateUrl}.");
+                        $"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {cacheBusterUpdateUrl}.");
                 }
             }
             catch (Exception ex)
