@@ -159,6 +159,7 @@ public class WebsocketService : IWebsocketService
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "WebSocket Exception");
             var error = new ErrorMessage { Value = new ErrorMessage.ErrorValue { Message = ex.Message, }, };
             await _server.SendAsync(e.Client.Guid,
                 JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
