@@ -508,7 +508,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
         if (atisText.Contains('\n') || atisText.Contains('\r'))
         {
             // Use existing line breaks
-            return [.. atisText.Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries)];
+            return [.. atisText.Split(["\r\n", "\n", "\r"], StringSplitOptions.None)];
         }
         else
         {
