@@ -983,8 +983,8 @@ public class FsdSession
         {
             try
             {
-                _clientSocket.Shutdown(SocketShutdown.Both);
-                _clientSocket.Close();
+                _clientSocket?.Shutdown(SocketShutdown.Both);
+                _clientSocket?.Close();
             }
             catch (ObjectDisposedException) { }
             catch (SocketException) { }

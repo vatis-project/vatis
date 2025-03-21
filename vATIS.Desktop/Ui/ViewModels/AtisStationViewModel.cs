@@ -336,14 +336,25 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
 
-                    if (AirportConditionsTextDocument != null)
+                    // Populate with the last selected ATIS preset
+                    if (SelectedAtisPreset != null)
                     {
-                        AirportConditionsTextDocument.Text = "";
+                        PopulateAirportConditions();
+                        PopulateNotams();
                     }
 
-                    if (NotamsTextDocument != null)
+                    // Otherwise, just empty the textboxes.
+                    else
                     {
-                        NotamsTextDocument.Text = "";
+                        if (AirportConditionsTextDocument != null)
+                        {
+                            AirportConditionsTextDocument.Text = "";
+                        }
+
+                        if (NotamsTextDocument != null)
+                        {
+                            NotamsTextDocument.Text = "";
+                        }
                     }
                 });
             }
@@ -1230,13 +1241,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         Dispatcher.UIThread.Post(() =>
         {
             NetworkConnectionStatus = NetworkConnectionStatus.Connected;
+            IsNewAtis = false; // Reset to avoid flashing ATIS letter
 
             // Increase connection count by one
             _sessionManager.CurrentConnectionCount++;
         });
     }
 
-    private void OnNetworkDisconnected(object? sender, EventArgs e)
+    private void OnNetworkDisconnected(object? sender, NetworkDisconnectedReceived e)
     {
         _decodedMetar = null;
 
@@ -1251,6 +1263,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             // Decrease the current connection count by one, ensuring it doesn't go below zero
             _sessionManager.CurrentConnectionCount = Math.Max(_sessionManager.CurrentConnectionCount - 1, 0);
+
+            if (e.CallsignInuse)
+            {
+                // Subscribe to ATIS again if we were disconnected due to duplicate callsign
+                _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType));
+            }
         });
     }
 
