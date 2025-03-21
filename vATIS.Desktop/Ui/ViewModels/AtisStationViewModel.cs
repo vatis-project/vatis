@@ -1098,7 +1098,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (_voiceServerConnection != null)
             {
                 await _voiceServerConnection.Connect(_appConfig.UserId, _appConfig.PasswordDecrypted);
-                _sessionManager.CurrentConnectionCount++;
             }
         }
         catch (Exception ex)
@@ -1115,7 +1114,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         try
         {
-            _sessionManager.CurrentConnectionCount = Math.Max(_sessionManager.CurrentConnectionCount - 1, 0);
             await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
             _voiceServerConnection?.Disconnect();
 
@@ -1244,6 +1242,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             NetworkConnectionStatus = NetworkConnectionStatus.Connected;
             IsNewAtis = false; // Reset to avoid flashing ATIS letter
+
+            // Increase connection count by one
+            _sessionManager.CurrentConnectionCount++;
         });
     }
 
@@ -1259,6 +1260,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             ObservationTime = null;
             Altimeter = null;
             IsNewAtis = false;
+
+            // Decrease the current connection count by one, ensuring it doesn't go below zero
+            _sessionManager.CurrentConnectionCount = Math.Max(_sessionManager.CurrentConnectionCount - 1, 0);
 
             if (e.CallsignInuse)
             {

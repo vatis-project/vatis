@@ -37,6 +37,9 @@ public class ProfileRepository : IProfileRepository
         var profiles = await LoadAll();
         foreach (var localProfile in profiles)
         {
+            string cacheBusterUpdateUrl; // The update URL with a cache buster timestamp appended to it.
+            string queryChar; // The character to use to append the cache buster to the URL.
+
             try
             {
                 if (string.IsNullOrEmpty(localProfile.UpdateUrl)) continue;
@@ -45,11 +48,19 @@ public class ProfileRepository : IProfileRepository
                 var baseUri = new Uri(localProfile.UpdateUrl);
 
                 // If the query string is empty, we need to add a "?" to the URL. Otherwise, we need to add an "&".
-                var queryChar = baseUri.Query.Length == 0 ? "?" : "&";
+                queryChar = baseUri.Query.Length == 0 ? "?" : "&";
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Unable to convert {localProfile.UpdateUrl} to an Uri in profile {localProfile.Id}.");
+                return;
+            }
 
-                // Append the current Unix timestamp to the query string.
-                var cacheBusterUpdateUrl = $"{localProfile.UpdateUrl}{queryChar}ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+            // Append the current Unix timestamp to the query string.
+            cacheBusterUpdateUrl = $"{localProfile.UpdateUrl}{queryChar}ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
 
+            try
+            {
                 var response = await _downloader.GetAsync(cacheBusterUpdateUrl);
                 if (response.IsSuccessStatusCode)
                 {
@@ -75,17 +86,17 @@ public class ProfileRepository : IProfileRepository
                 }
                 else if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    Log.Warning($"Profile update URL not found for {localProfile.Id} at {localProfile.UpdateUrl}.");
+                    Log.Warning($"Profile update URL not found for {localProfile.Id} at {cacheBusterUpdateUrl}.");
                 }
                 else
                 {
                     Log.Warning(
-                        $"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {localProfile.UpdateUrl}.");
+                        $"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {cacheBusterUpdateUrl}.");
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Profile update check failed for {localProfile.Id} at {localProfile.UpdateUrl}.");
+                Log.Warning(ex, $"Profile update check failed for {localProfile.Id} at {cacheBusterUpdateUrl}.");
             }
         }
     }
