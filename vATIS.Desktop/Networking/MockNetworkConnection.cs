@@ -61,7 +61,7 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
     public event EventHandler? NetworkConnected = (_, _) => { };
 
     /// <inheritdoc />
-    public event EventHandler? NetworkDisconnected = (_, _) => { };
+    public event EventHandler<NetworkDisconnectedReceived>? NetworkDisconnected = (_, _) => { };
 
     /// <inheritdoc />
     public event EventHandler? NetworkConnectionFailed = (_, _) => { };
@@ -109,7 +109,7 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
         if (!string.IsNullOrEmpty(Station.Identifier))
             _metarRepository.RemoveMetar(Station.Identifier);
 
-        NetworkDisconnected?.Invoke(this, EventArgs.Empty);
+        NetworkDisconnected?.Invoke(this, new NetworkDisconnectedReceived());
         IsConnected = false;
 
         _previousMetar = null;

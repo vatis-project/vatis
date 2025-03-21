@@ -22,7 +22,7 @@ public interface INetworkConnection
     /// <summary>
     /// Occurs when the network connection is terminated or unavailable.
     /// </summary>
-    event EventHandler NetworkDisconnected;
+    event EventHandler<NetworkDisconnectedReceived> NetworkDisconnected;
 
     /// <summary>
     /// Occurs when a network connection attempt fails.

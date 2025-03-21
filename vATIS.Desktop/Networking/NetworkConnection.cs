@@ -54,6 +54,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
     private readonly CompositeDisposable _disposables = [];
     private string? _publicIp;
     private string? _previousMetar;
+    private bool _isCallsignInUse;
     private DecodedMetar? _decodedMetar;
 
     /// <summary>
@@ -148,7 +149,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
     public event EventHandler NetworkConnected = (_, _) => { };
 
     /// <inheritdoc />
-    public event EventHandler NetworkDisconnected = (_, _) => { };
+    public event EventHandler<NetworkDisconnectedReceived> NetworkDisconnected = (_, _) => { };
 
     /// <inheritdoc />
     public event EventHandler NetworkConnectionFailed = (_, _) => { };
@@ -280,7 +281,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
         if (_atisStation?.Identifier != null)
             _metarRepository.RemoveMetar(_atisStation.Identifier);
 
-        NetworkDisconnected(this, EventArgs.Empty);
+        NetworkDisconnected(this, new NetworkDisconnectedReceived(_isCallsignInUse));
         _previousMetar = "";
     }
 
@@ -300,6 +301,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
         switch (e.Pdu.ErrorType)
         {
             case NetworkError.CallsignInUse:
+                _isCallsignInUse = true;
                 NetworkErrorReceived(this, new NetworkErrorReceived("ATIS callsign already in use."));
                 break;
             case NetworkError.UnauthorizedSoftware:
@@ -467,6 +469,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
         // Notify the client that the connection is established, allowing it to proceed with
         // building the ATIS.
         NetworkConnected(this, EventArgs.Empty);
+        _isCallsignInUse = false;
     }
 
     private void OnFsdPositionUpdateTimerElapsed(object? sender, ElapsedEventArgs e)

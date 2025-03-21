@@ -336,14 +336,25 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
 
-                    if (AirportConditionsTextDocument != null)
+                    // Populate with the last selected ATIS preset
+                    if (SelectedAtisPreset != null)
                     {
-                        AirportConditionsTextDocument.Text = "";
+                        PopulateAirportConditions();
+                        PopulateNotams();
                     }
 
-                    if (NotamsTextDocument != null)
+                    // Otherwise, just empty the textboxes.
+                    else
                     {
-                        NotamsTextDocument.Text = "";
+                        if (AirportConditionsTextDocument != null)
+                        {
+                            AirportConditionsTextDocument.Text = "";
+                        }
+
+                        if (NotamsTextDocument != null)
+                        {
+                            NotamsTextDocument.Text = "";
+                        }
                     }
                 });
             }
@@ -1229,10 +1240,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnNetworkConnected(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(() => NetworkConnectionStatus = NetworkConnectionStatus.Connected);
+        Dispatcher.UIThread.Post(() =>
+        {
+            NetworkConnectionStatus = NetworkConnectionStatus.Connected;
+            IsNewAtis = false; // Reset to avoid flashing ATIS letter
+        });
     }
 
-    private void OnNetworkDisconnected(object? sender, EventArgs e)
+    private void OnNetworkDisconnected(object? sender, NetworkDisconnectedReceived e)
     {
         _decodedMetar = null;
 
@@ -1244,6 +1259,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             ObservationTime = null;
             Altimeter = null;
             IsNewAtis = false;
+
+            if (e.CallsignInuse)
+            {
+                // Subscribe to ATIS again if we were disconnected due to duplicate callsign
+                _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType));
+            }
         });
     }
 
