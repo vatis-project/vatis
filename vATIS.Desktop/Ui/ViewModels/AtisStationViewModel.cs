@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
@@ -1823,38 +1824,53 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private async void OnGetAtisReceived(object? sender, GetAtisReceived e)
+    private void OnGetAtisReceived(object? sender, GetAtisReceived e)
     {
-        try
+        // Throw exception to websocket client if both ID and Station are provided.
+        if (!string.IsNullOrEmpty(e.StationId) && !string.IsNullOrEmpty(e.Station))
         {
-            // If a specific station is specified then both the station identifier and the ATIS type
-            // must match to acknowledge the update.
-            // If a specific station isn't specified then the request is for all stations.
-            if (!string.IsNullOrEmpty(e.Station) &&
-                (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
-            {
-                return;
-            }
-
-            await PublishAtisToWebsocket(e.Session);
+            throw new Exception("Cannot provide both Id and Station.");
         }
-        catch (Exception ex)
+
+        // If a specific station ID is provided, it must match the current station's ID.
+        if (!string.IsNullOrEmpty(e.StationId) && e.StationId != AtisStation.Id)
         {
-            Log.Error(ex, "Error in OnGetAtisReceived");
+            return;
         }
-    }
 
-    private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
-    {
-        // If a specific station is specified then both the station identifier and the ATIS type
-        // must match to acknowledge the update.
-        // If a specific station isn't specified then the request is for all stations.
+        // If a station identifier is provided, both the identifier and the ATIS type must match.
         if (!string.IsNullOrEmpty(e.Station) &&
             (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
         {
             return;
         }
 
+        // If no specific station ID or identifier is provided, the request is treated as a request for all stations.
+        PublishAtisToWebsocket(e.Session).SafeFireAndForget();
+    }
+
+    private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
+    {
+        // Throw exception to websocket client if both ID and Station are provided.
+        if (!string.IsNullOrEmpty(e.StationId) && !string.IsNullOrEmpty(e.Station))
+        {
+            throw new Exception("Cannot provide both Id and Station.");
+        }
+
+        // If a specific station ID is provided, it must match the current station's ID.
+        if (!string.IsNullOrEmpty(e.StationId) && e.StationId != AtisStation.Id)
+        {
+            return;
+        }
+
+        // If a station identifier is provided, both the identifier and the ATIS type must match.
+        if (!string.IsNullOrEmpty(e.Station) &&
+            (e.Station != AtisStation.Identifier || e.AtisType != AtisStation.AtisType))
+        {
+            return;
+        }
+
+        // If no specific station ID or identifier is provided, the request is treated as a request for all stations.
         HandleAcknowledgeAtisUpdate();
     }
 
@@ -1862,6 +1878,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         if (e.Payload == null)
             return;
+
+        if (!string.IsNullOrEmpty(e.Payload.Id) && !string.IsNullOrEmpty(e.Payload.Station))
+            throw new Exception("Cannot provide both Id and Station.");
 
         var isMatchingId = !string.IsNullOrEmpty(e.Payload.Id) && AtisStation.Id == e.Payload.Id;
         var isMatchingStation = !string.IsNullOrEmpty(e.Payload.Station) &&
@@ -1881,7 +1900,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             }
             else
             {
-                throw new Exception($"Invalid Preset Name: {e.Payload.Preset}");
+                throw new Exception($"Invalid Preset: {e.Payload.Preset}");
             }
         }
     }
@@ -1910,6 +1929,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (e.Payload == null)
             return;
 
+        if (!string.IsNullOrEmpty(e.Payload.Id) && !string.IsNullOrEmpty(e.Payload.Station))
+            throw new Exception("Cannot provide both Id and Station.");
+
         if (SelectedAtisPreset == null || NetworkConnectionStatus == NetworkConnectionStatus.Connected)
             return;
 
@@ -1927,6 +1949,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private void OnDisconnectAtisReceived(object? sender, GetDisconnectAtisReceived e)
     {
         if (e.Payload == null)
+            return;
+
+        if (!string.IsNullOrEmpty(e.Payload.Id) && !string.IsNullOrEmpty(e.Payload.Station))
+            throw new Exception("Cannot provide both Id and Station.");
+
+        if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
             return;
 
         var isMatchingId = !string.IsNullOrEmpty(e.Payload.Id) && AtisStation.Id == e.Payload.Id;

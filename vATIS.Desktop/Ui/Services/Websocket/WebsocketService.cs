@@ -159,6 +159,7 @@ public class WebsocketService : IWebsocketService
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "WebSocket Exception");
             var error = new ErrorMessage { Value = new ErrorMessage.ErrorValue { Message = ex.Message, }, };
             await _server.SendAsync(e.Client.Guid,
                 JsonSerializer.Serialize(error, SourceGenerationContext.NewDefault.ErrorMessage));
@@ -220,10 +221,13 @@ public class WebsocketService : IWebsocketService
             {
                 case "acknowledgeAtisUpdate":
                     AcknowledgeAtisUpdateReceived(this,
-                        new AcknowledgeAtisUpdateReceived(session, request.Value?.Station, request.Value?.AtisType));
+                        new AcknowledgeAtisUpdateReceived(session, request.Value?.StationId, request.Value?.Station,
+                            request.Value?.AtisType));
                     break;
                 case "getAtis":
-                    GetAtisReceived(this, new GetAtisReceived(session, request.Value?.Station, request.Value?.AtisType));
+                    GetAtisReceived(this,
+                        new GetAtisReceived(session, request.Value?.StationId, request.Value?.Station,
+                            request.Value?.AtisType));
                     break;
                 case "getProfiles":
                     HandleGetInstalledProfiles(session).SafeFireAndForget();

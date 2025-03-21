@@ -12,6 +12,8 @@ namespace Vatsim.Vatis.Events;
 /// Event arguments for the GetAllAtisReceived event.
 /// </summary>
 /// <param name="Session">The client that requested the ATIS.</param>
-/// <param name="Station">The station requested. If null every station was requested.</param>
+/// <param name="StationId">The station ID requested.</param>
+/// <param name="Station">The station requested.</param>
 /// <param name="AtisType">The ATIS type requested.</param>
-public record GetAtisReceived(ClientMetadata Session, string? Station, AtisType? AtisType = AtisType.Combined) : IEvent;
+/// <remarks>If both <see cref="StationId"/> and <see cref="Station"/> are null, then every station is requested.</remarks>
+public record GetAtisReceived(ClientMetadata Session, string? StationId, string? Station, AtisType? AtisType = AtisType.Combined) : IEvent;
