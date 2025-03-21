@@ -120,7 +120,7 @@ public class DecodedMetar
     /// <summary>
     /// Gets or sets the day of this observation.
     /// </summary>
-    public int? Day { get; set; }
+    public int Day { get; set; }
 
     /// <summary>
     /// Gets or sets the time of the observation, as a string.

@@ -21,7 +21,7 @@ public class ObservationTimeNode : BaseNode<string>
     /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
-        Parse(metar.Hour, metar.Minute);
+        Parse(metar.Day, metar.Hour, metar.Minute);
     }
 
     /// <inheritdoc/>
@@ -36,22 +36,23 @@ public class ObservationTimeNode : BaseNode<string>
         throw new NotImplementedException();
     }
 
-    private void Parse(int metarHour, int metarMinute)
+    private void Parse(int metarDay, int metarHour, int metarMinute)
     {
         ArgumentNullException.ThrowIfNull(Station);
 
         _isSpecialAtis = Station.AtisFormat.ObservationTime.StandardUpdateTime != null
                          && !Station.AtisFormat.ObservationTime.StandardUpdateTime.Contains(metarMinute);
 
-        VoiceAtis = ParseVoiceVariables(metarHour, metarMinute, Station.AtisFormat.ObservationTime.Template.Voice);
-        TextAtis = ParseTextVariables(metarHour, metarMinute, Station.AtisFormat.ObservationTime.Template.Text);
+        VoiceAtis = ParseVoiceVariables(metarDay, metarHour, metarMinute, Station.AtisFormat.ObservationTime.Template.Voice);
+        TextAtis = ParseTextVariables(metarDay, metarHour, metarMinute, Station.AtisFormat.ObservationTime.Template.Text);
     }
 
-    private string ParseTextVariables(int metarHour, int metarMinute, string? format)
+    private string ParseTextVariables(int metarDay, int metarHour, int metarMinute, string? format)
     {
         if (format == null)
             return "";
 
+        format = Regex.Replace(format, "{day}", $"{metarDay:00}", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{time}", $"{metarHour:00}{metarMinute:00}", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{hour}", $"{metarHour:00}", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{minute}", $"{metarMinute:00}", RegexOptions.IgnoreCase);
@@ -60,11 +61,12 @@ public class ObservationTimeNode : BaseNode<string>
         return format;
     }
 
-    private string ParseVoiceVariables(int metarHour, int metarMinute, string? format)
+    private string ParseVoiceVariables(int metarDay, int metarHour, int metarMinute, string? format)
     {
         if (format == null)
             return "";
 
+        format = Regex.Replace(format, "{day}", metarDay.ToString("00").ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{time}", $"{metarHour.ToString("00").ToSerialFormat()} {metarMinute.ToString("00").ToSerialFormat()}", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{hour}", metarHour.ToString("00").ToSerialFormat() ?? string.Empty, RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{minute}", metarMinute.ToString("00").ToSerialFormat() ?? string.Empty, RegexOptions.IgnoreCase);
