@@ -1777,10 +1777,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private async Task HandleAtisLetterChanged()
     {
-        await _atisLetterChangedCts.CancelAsync();
-        _atisLetterChangedCts = new CancellationTokenSource();
-        var localToken = _atisLetterChangedCts.Token;
-
         if (!AtisStation.AtisVoice.UseTextToSpeech ||
             NetworkConnectionStatus != NetworkConnectionStatus.Connected ||
             SelectedAtisPreset == null ||
@@ -1790,6 +1786,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             return;
         }
+
+        await _atisLetterChangedCts.CancelAsync();
+        _atisLetterChangedCts = new CancellationTokenSource();
+        var localToken = _atisLetterChangedCts.Token;
 
         try
         {
