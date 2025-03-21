@@ -4,7 +4,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -51,7 +50,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     private readonly IWebsocketService _websocketService;
     private readonly SourceList<AtisStationViewModel> _atisStationSource = new();
     private readonly DispatcherTimer _dispatcherTimer;
-    private List<string> _previousKeys = new();
     private string? _beforeStationSortSelectedStationId;
     private int _selectedTabIndex;
     private string _currentTime = DateTime.UtcNow.ToString("HH:mm/ss", CultureInfo.InvariantCulture);
@@ -104,6 +102,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 .Ascending(i => i.NetworkConnectionStatus switch
                 {
                     NetworkConnectionStatus.Connected => 0,
+                    NetworkConnectionStatus.Connecting => 0,
                     NetworkConnectionStatus.Observer => 1,
                     _ => 2
                 })
@@ -119,16 +118,10 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Bind(out var sortedStations)
             .Subscribe(_ =>
             {
-                // Generate composite keys using Identifier + AtisType + Ordinal
-                var currentKeys = sortedStations.Select(s => $"{s.Identifier}_{s.AtisType}_{s.Ordinal}").ToList();
-                var keysChanged = !_previousKeys.SequenceEqual(currentKeys);
-                _previousKeys = currentKeys;
-
                 AtisStations = sortedStations;
-
-                if (keysChanged || _beforeStationSortSelectedStationId == null || AtisStations.Count == 0)
+                if (_beforeStationSortSelectedStationId == null || AtisStations.Count == 0)
                 {
-                    SelectedTabIndex = 0; // Reset if ordinals change or no valid previous station
+                    SelectedTabIndex = 0; // No valid previous station or empty list
                 }
                 else
                 {
@@ -137,7 +130,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
                     SelectedTabIndex = selectedStation != null
                         ? AtisStations.IndexOf(selectedStation)
-                        : 0; // Default to first tab if no match
+                        : 0; // Default to the first tab if no match
                 }
             }).DisposeWith(_disposables);
 
@@ -363,6 +356,8 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 }
             }
         }
+
+        SelectedTabIndex = 0;
     }
 
     /// <inheritdoc />
