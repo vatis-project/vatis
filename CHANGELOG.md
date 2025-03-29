@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.15
+### Added
+- Added additional WebSocket messages: request profiles, request stations, configure ATIS, connect/disconnect ATIS, and exit application.
+- Added support for defining separate text and voice ATIS generator URLs.
+- Added template variable for METAR observation day of the month.
+### Changed
+- Improved text ATIS formatting to support user-defined line breaks.
+- Enhanced FSD parse error handling by logging errors silently instead of throwing exceptions.
+- Updated profile update logging to include the cache buster URL.
+- Improved selected tab index behavior when network connection status changes.
+### Fixed
+- Fixed ALT+F4 behavior in mini-window mode to prompt for confirmation if ATISes are connected before shutting down the application.
+- Fixed dialog ownership for Airport Conditions and NOTAM dialogs in the ATIS sandbox.
+- Fixed dependency injection memory leaks.
+- Fixed cloud parsing when a cloud layer element is missing.
+- Fixed tooltip display for the `wind_unit` template variable.
+- Fixed an issue where the preset template could be unintentionally cleared.
+- Fixed an issue preventing the maximum ATIS connection count from being enforced correctly.
+- Fixed an issue causing the observed ATIS to disappear when attempting to connect an already connected ATIS.
+- Fixed disposed cancellation token exceptions.
+- Fixed null authentication token exception when connecting to an ATIS.
+
 ## v4.1.0-beta.14
 ### Added
 - Added a confirmation dialog to prompt saving of unsaved airport conditions or NOTAMs free-text when switching presets.
