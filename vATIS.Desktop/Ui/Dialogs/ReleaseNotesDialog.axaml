@@ -48,6 +48,16 @@
                         <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CHyperlink:pointerover">
                             <Setter Property="Foreground" Value="#3574F0" />
                         </Style>
+                        <Style Selector=".Markdown_Avalonia_MarkdownViewer TextBlock.CodeBlock">
+                            <Style.Setters>
+                                <Setter Property="Foreground" Value="White" />
+                            </Style.Setters>
+                        </Style>
+                        <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CCode">
+                            <Style.Setters>
+                                <Setter Property="Foreground" Value="White" />
+                            </Style.Setters>
+                        </Style>
                     </mdxaml:MarkdownScrollViewer.Styles>
                 </mdxaml:MarkdownScrollViewer>
             </Panel>
