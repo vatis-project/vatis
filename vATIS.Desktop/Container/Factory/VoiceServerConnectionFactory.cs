@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Voice.Network;
 
@@ -35,6 +36,6 @@ internal class VoiceServerConnectionFactory : IVoiceServerConnectionFactory
             return new MockVoiceServerConnection();
         }
 
-        return new VoiceServerConnection(_provider.GetService<IDownloader>());
+        return new VoiceServerConnection(_provider.GetService<IDownloader>(), _provider.GetService<IAppConfig>());
     }
 }
