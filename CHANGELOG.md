@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v4.1.0-beta.15
+## v4.1.0-beta.16
 ### Added
 - Added additional WebSocket messages: request profiles, request stations, configure ATIS, connect/disconnect ATIS, and exit application.
 - Added support for defining separate text and voice ATIS generator URLs.
 - Added template variable for METAR observation day of the month.
+- Added ATIS station `id` to `atis` WebSocket message.
 ### Changed
 - Improved text ATIS formatting to support user-defined line breaks.
 - Enhanced FSD parse error handling by logging errors silently instead of throwing exceptions.
@@ -26,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue causing the observed ATIS to disappear when attempting to connect an already connected ATIS.
 - Fixed disposed cancellation token exceptions.
 - Fixed null authentication token exception when connecting to an ATIS.
+- Fixed issue with empty template variables not getting removed from text ATIS.
+
+## v4.1.0-beta.15
+YANKED
 
 ## v4.1.0-beta.14
 ### Added
