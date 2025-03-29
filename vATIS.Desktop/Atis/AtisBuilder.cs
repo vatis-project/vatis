@@ -373,11 +373,16 @@ public class AtisBuilder : IAtisBuilder
 
             foreach (var (placeholder, replacement) in replacements)
             {
-                if (string.IsNullOrWhiteSpace(replacement))
+                if (string.IsNullOrEmpty(replacement))
                 {
-                    // If the replacement is empty, remove the entire line containing this placeholder
-                    template = Regex.Replace(template, $@"^\s*{Regex.Escape(placeholder)}\s*$[\r\n]*", "",
+                    // Remove line if it ONLY contains this placeholder (ignoring whitespace)
+                    template = Regex.Replace(template,
+                        $@"^[^\S\r\n]*{Regex.Escape(placeholder)}[^\S\r\n]*\r?\n",
+                        "",
                         RegexOptions.Multiline);
+
+                    // Also remove inline occurrences
+                    template = template.Replace(placeholder, "");
                 }
                 else
                 {
@@ -401,10 +406,16 @@ public class AtisBuilder : IAtisBuilder
 
                     foreach (var (aliasPlaceholder, aliasReplacement) in aliasReplacements)
                     {
-                        if (string.IsNullOrWhiteSpace(aliasReplacement))
+                        if (string.IsNullOrEmpty(aliasReplacement))
                         {
-                            template = Regex.Replace(template, $@"^\s*{Regex.Escape(aliasPlaceholder)}\s*$[\r\n]*", "",
+                            // Remove line if it ONLY contains this placeholder (ignoring whitespace)
+                            template = Regex.Replace(template,
+                                $@"^[^\S\r\n]*{Regex.Escape(aliasPlaceholder)}[^\S\r\n]*\r?\n",
+                                "",
                                 RegexOptions.Multiline);
+
+                            // Also remove inline occurrences
+                            template = template.Replace(aliasPlaceholder, "");
                         }
                         else
                         {
