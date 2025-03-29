@@ -33,6 +33,11 @@ public class AtisMessage
     public class AtisMessageValue
     {
         /// <summary>
+        /// Gets or sets the unique ID of the ATIS station.
+        /// </summary>
+        public string? Id { get; set; }
+
+        /// <summary>
         /// Gets or sets the network connection status.
         /// </summary>
         [JsonPropertyName("networkConnectionStatus")]

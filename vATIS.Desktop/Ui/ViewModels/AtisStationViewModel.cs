@@ -1403,6 +1403,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         await _websocketService.SendAtisMessageAsync(session,
             new AtisMessage.AtisMessageValue
             {
+                Id = AtisStation.Id,
                 Station = AtisStation.Identifier,
                 AtisType = AtisStation.AtisType,
                 AtisLetter = AtisLetter,
