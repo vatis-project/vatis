@@ -15,7 +15,7 @@ namespace Vatsim.Vatis.Voice.Network;
 public class MockVoiceServerConnection : IVoiceServerConnection
 {
     /// <inheritdoc />
-    public Task Connect(string username, string password)
+    public Task Connect()
     {
         return Task.CompletedTask;
     }

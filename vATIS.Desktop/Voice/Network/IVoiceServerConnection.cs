@@ -16,12 +16,10 @@ namespace Vatsim.Vatis.Voice.Network;
 public interface IVoiceServerConnection
 {
     /// <summary>
-    /// Establishes a connection to the voice server using the specified username and password.
+    /// Establishes a connection to the voice server.
     /// </summary>
-    /// <param name="username">The username for authentication.</param>
-    /// <param name="password">The password for authentication.</param>
     /// <returns>A task that represents the asynchronous connection operation.</returns>
-    Task Connect(string username, string password);
+    Task Connect();
 
     /// <summary>
     /// Terminates the current connection to the voice server and clears any associated session state.

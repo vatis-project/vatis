@@ -370,9 +370,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
                     AtisLetter));
+
+                _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
             }
 
-            _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
             _voiceServerConnection.Disconnect();
             _networkConnection.Disconnect();
         }));
@@ -1098,7 +1099,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             if (_voiceServerConnection != null)
             {
-                await _voiceServerConnection.Connect(_appConfig.UserId, _appConfig.PasswordDecrypted);
+                await _voiceServerConnection.Connect();
             }
         }
         catch (Exception ex)
@@ -1115,14 +1116,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         try
         {
-            await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
-            _voiceServerConnection?.Disconnect();
-
             if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
             {
+                await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
+
                 await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
                     AtisLetter));
             }
+
+            _voiceServerConnection?.Disconnect();
 
             // Dispose of the ATIS publish timer to stop further publishing.
             if (_publishAtisTimer != null)
