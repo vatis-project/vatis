@@ -70,6 +70,9 @@ public class VoiceServerConnection : IVoiceServerConnection
         try
         {
             if (_jwtToken == null)
+                await Authenticate();
+
+            if (_jwtToken == null)
                 throw new AtisBuilderException("AddOrUpdateBot failed because the authentication token is null.");
 
             // Remove existing bot
@@ -94,6 +97,9 @@ public class VoiceServerConnection : IVoiceServerConnection
     /// <inheritdoc />
     public async Task RemoveBot(string callsign, CancellationToken? cancellationToken = null)
     {
+        if (_jwtToken == null)
+            await Authenticate();
+
         if (_jwtToken == null)
             return;
 
