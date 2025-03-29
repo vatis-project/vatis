@@ -35,22 +35,8 @@ public class AtisMessage
         /// <summary>
         /// Gets or sets the unique ID of the ATIS station.
         /// </summary>
+        [JsonPropertyName("id")]
         public string? Id { get; set; }
-
-        /// <summary>
-        /// Gets or sets the network connection status.
-        /// </summary>
-        [JsonPropertyName("networkConnectionStatus")]
-        [JsonConverter(typeof(JsonStringEnumConverter<NetworkConnectionStatus>))]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public NetworkConnectionStatus? NetworkConnectionStatus { get; set; }
-
-        /// <summary>
-        /// Gets or sets the ATIS message text.
-        /// </summary>
-        [JsonPropertyName("textAtis")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? TextAtis { get; set; }
 
         /// <summary>
         /// Gets or sets the station ID of the ATIS message.
@@ -68,11 +54,33 @@ public class AtisMessage
         public AtisType? AtisType { get; set; }
 
         /// <summary>
+        /// Gets or sets the network connection status.
+        /// </summary>
+        [JsonPropertyName("networkConnectionStatus")]
+        [JsonConverter(typeof(JsonStringEnumConverter<NetworkConnectionStatus>))]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public NetworkConnectionStatus? NetworkConnectionStatus { get; set; }
+
+        /// <summary>
         /// Gets or sets the ATIS letter.
         /// </summary>
         [JsonPropertyName("atisLetter")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public char? AtisLetter { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ATIS message text.
+        /// </summary>
+        [JsonPropertyName("textAtis")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? TextAtis { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the ATIS message is new.
+        /// </summary>
+        [JsonPropertyName("isNewAtis")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public bool? IsNewAtis { get; set; }
 
         /// <summary>
         /// Gets or sets the METAR used to create the ATIS.
@@ -101,13 +109,6 @@ public class AtisMessage
         [JsonPropertyName("pressure")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Value? Pressure { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the ATIS message is new.
-        /// </summary>
-        [JsonPropertyName("isNewAtis")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public bool? IsNewAtis { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating the current ceiling at the station. If there is no ceiling
