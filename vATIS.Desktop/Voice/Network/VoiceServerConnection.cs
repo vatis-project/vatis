@@ -98,6 +98,9 @@ public class VoiceServerConnection : IVoiceServerConnection
     public async Task RemoveBot(string callsign, CancellationToken? cancellationToken = null)
     {
         if (_jwtToken == null)
+            await Authenticate();
+
+        if (_jwtToken == null)
             return;
 
         try
