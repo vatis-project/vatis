@@ -79,6 +79,8 @@ public class VoiceServerConnection : IVoiceServerConnection
             var response = await _downloader.PutJson(VoiceServerUrl + "/api/v1/bots/" + callsign, request, _jwtToken,
                 cancellationToken);
             response.EnsureSuccessStatusCode();
+
+            Log.Information($"AddOrUpdateBot successful for {callsign}.");
         }
         catch (OperationCanceledException)
         {
@@ -103,6 +105,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         try
         {
             await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken, cancellationToken);
+            Log.Information($"RemoveBot successful for {callsign}.");
         }
         catch (Exception ex)
         {
@@ -113,13 +116,13 @@ public class VoiceServerConnection : IVoiceServerConnection
 
     private async Task Authenticate()
     {
-        if (string.IsNullOrEmpty(_appConfig.UserId) || string.IsNullOrEmpty(_appConfig.Password))
+        if (string.IsNullOrEmpty(_appConfig.UserId) || string.IsNullOrEmpty(_appConfig.PasswordDecrypted))
         {
-            Log.Warning("Failed to authenticate to voice server: UserID or Password are null.");
-            return;
+            throw new AtisBuilderException("Voice server authentication failed: UserID or Password are null.");
         }
 
-        var dto = JsonSerializer.Serialize(new PostUserRequestDto(_appConfig.UserId, _appConfig.Password, ClientName),
+        var dto = JsonSerializer.Serialize(
+            new PostUserRequestDto(_appConfig.UserId, _appConfig.PasswordDecrypted, ClientName),
             SourceGenerationContext.NewDefault.PostUserRequestDto);
         var response = await _downloader.PostJsonResponse(VoiceServerUrl + "/api/v1/auth", dto);
 
@@ -131,7 +134,7 @@ public class VoiceServerConnection : IVoiceServerConnection
 
     private async Task RefreshToken()
     {
-        if (string.IsNullOrEmpty(_appConfig.UserId) || string.IsNullOrEmpty(_appConfig.Password))
+        if (string.IsNullOrEmpty(_appConfig.UserId) || string.IsNullOrEmpty(_appConfig.PasswordDecrypted))
         {
             throw new AtisBuilderException("Cannot refresh token: UserID or Password are not set.");
         }
