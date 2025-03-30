@@ -36,7 +36,7 @@ public partial class PresetsView : UserControl
             if (!AtisTemplate.TextArea.IsFocused)
                 return;
 
-            model.HasUnsavedChanges = true;
+            model.HasUnsavedChanges = ((AtisPreset)SelectedPreset.SelectedItem).Template != AtisTemplate.Text;
         }
     }
 

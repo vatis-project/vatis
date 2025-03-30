@@ -419,7 +419,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     {
         if (SelectedPreset == null)
         {
-            return true;
+            return false;
         }
 
         IsSandboxPlaybackActive = false;
@@ -478,8 +478,12 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        HasUnsavedChanges = false;
+        if (!HasUnsavedChanges)
+        {
+            return false;
+        }
 
+        HasUnsavedChanges = false;
         return true;
     }
 

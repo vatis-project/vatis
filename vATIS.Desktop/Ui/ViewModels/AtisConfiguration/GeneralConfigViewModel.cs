@@ -312,7 +312,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     {
         if (SelectedStation == null)
         {
-            return true;
+            return false;
         }
 
         ClearAllErrors();
@@ -412,6 +412,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         if (_sessionManager.CurrentProfile != null)
         {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+        }
+
+        if (!HasUnsavedChanges)
+        {
+            return false;
         }
 
         HasUnsavedChanges = false;

@@ -16,6 +16,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
+using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Profiles.Models;
@@ -33,10 +34,10 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly CompositeDisposable _disposables = [];
-    private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
+    private readonly Dictionary<string, (object? OriginalValue, object? CurrentValue)> _fieldHistory;
     private ObservableCollection<string>? _formattingOptions;
     private AtisStation? _selectedStation;
     private bool _hasUnsavedChanges;
@@ -131,11 +132,13 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _profileRepository = profileRepository;
         _sessionManager = sessionManager;
 
+        _fieldHistory = [];
+
         FormattingOptions = [];
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
-        CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEditEndingEventArgs>(HandleCellEditEnding);
+        CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEndEditEventArgEx>(HandleCellEditEnding);
         AddTransitionLevelCommand = ReactiveCommand.CreateFromTask(HandleAddTransitionLevel);
         DeleteTransitionLevelCommand =
             ReactiveCommand.CreateFromTask<TransitionLevelMeta>(HandleDeleteTransitionLevel);
@@ -165,7 +168,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the command executed when cell editing ends in a data grid.
     /// </summary>
-    public ReactiveCommand<DataGridCellEditEndingEventArgs, Unit> CellEditEndingCommand { get; }
+    public ReactiveCommand<DataGridCellEndEditEventArgEx, Unit> CellEditEndingCommand { get; }
 
     /// <summary>
     /// Gets the command used to add a transition level in the view model.
@@ -222,10 +225,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _routineObservationTime, value);
-            if (!_initializedProperties.Add(nameof(RoutineObservationTime)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(RoutineObservationTime), value);
         }
     }
 
@@ -238,10 +238,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _observationTimeTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(ObservationTimeTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ObservationTimeTextTemplate), value);
         }
     }
 
@@ -254,10 +251,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _observationTimeVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(ObservationTimeVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ObservationTimeVoiceTemplate), value);
         }
     }
 
@@ -270,10 +264,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _speakWindSpeedLeadingZero, value);
-            if (!_initializedProperties.Add(nameof(SpeakWindSpeedLeadingZero)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(SpeakWindSpeedLeadingZero), value);
         }
     }
 
@@ -286,10 +277,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _magneticVariationEnabled, value);
-            if (!_initializedProperties.Add(nameof(MagneticVariationEnabled)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(MagneticVariationEnabled), value);
         }
     }
 
@@ -302,10 +290,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _magneticVariationValue, value);
-            if (!_initializedProperties.Add(nameof(MagneticVariationValue)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(MagneticVariationValue), value);
         }
     }
 
@@ -318,10 +303,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardWindTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(StandardWindTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(StandardWindTextTemplate), value);
         }
     }
 
@@ -334,10 +316,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardWindVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(StandardWindVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(StandardWindVoiceTemplate), value);
         }
     }
 
@@ -350,10 +329,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardGustWindTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(StandardGustWindTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(StandardGustWindTextTemplate), value);
         }
     }
 
@@ -366,10 +342,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardGustWindVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(StandardGustWindVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(StandardGustWindVoiceTemplate), value);
         }
     }
 
@@ -382,10 +355,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableWindTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(VariableWindTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VariableWindTextTemplate), value);
         }
     }
 
@@ -398,10 +368,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableWindVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(VariableWindVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VariableWindVoiceTemplate), value);
         }
     }
 
@@ -414,10 +381,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableGustWindTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(VariableGustWindTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VariableGustWindTextTemplate), value);
         }
     }
 
@@ -430,10 +394,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableGustWindVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(VariableGustWindVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VariableGustWindVoiceTemplate), value);
         }
     }
 
@@ -446,10 +407,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableDirectionWindTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(VariableDirectionWindTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VariableDirectionWindTextTemplate), value);
         }
     }
 
@@ -462,10 +420,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableDirectionWindVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(VariableDirectionWindVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VariableDirectionWindVoiceTemplate), value);
         }
     }
 
@@ -478,10 +433,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _calmWindTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(CalmWindTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CalmWindTextTemplate), value);
         }
     }
 
@@ -494,10 +446,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _calmWindVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(CalmWindVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CalmWindVoiceTemplate), value);
         }
     }
 
@@ -510,10 +459,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _calmWindSpeed, value);
-            if (!_initializedProperties.Add(nameof(CalmWindSpeed)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CalmWindSpeed), value);
         }
     }
 
@@ -526,10 +472,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(VisibilityTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityTextTemplate), value);
         }
     }
 
@@ -542,10 +485,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(VisibilityVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityVoiceTemplate), value);
         }
     }
 
@@ -558,10 +498,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _presentWeatherTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(PresentWeatherTextTemplate), value);
         }
     }
 
@@ -574,10 +511,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _presentWeatherVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(PresentWeatherVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(PresentWeatherVoiceTemplate), value);
         }
     }
 
@@ -590,10 +524,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _recentWeatherTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(RecentWeatherTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(RecentWeatherTextTemplate), value);
         }
     }
 
@@ -606,10 +537,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _recentWeatherVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(RecentWeatherVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(RecentWeatherVoiceTemplate), value);
         }
     }
 
@@ -622,10 +550,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(CloudsTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CloudsTextTemplate), value);
         }
     }
 
@@ -638,10 +563,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(CloudsVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CloudsVoiceTemplate), value);
         }
     }
 
@@ -654,10 +576,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(TemperatureTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(TemperatureTextTemplate), value);
         }
     }
 
@@ -670,10 +589,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(TemperatureVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(TemperatureVoiceTemplate), value);
         }
     }
 
@@ -686,10 +602,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(DewpointTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(DewpointTextTemplate), value);
         }
     }
 
@@ -702,10 +615,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(DewpointVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(DewpointVoiceTemplate), value);
         }
     }
 
@@ -718,10 +628,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _altimeterTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(AltimeterTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(AltimeterTextTemplate), value);
         }
     }
 
@@ -734,10 +641,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _altimeterVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(AltimeterVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(AltimeterVoiceTemplate), value);
         }
     }
 
@@ -750,10 +654,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _closingStatementTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(ClosingStatementTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ClosingStatementTextTemplate), value);
         }
     }
 
@@ -766,10 +667,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _closingStatementVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(ClosingStatementVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ClosingStatementVoiceTemplate), value);
         }
     }
 
@@ -782,10 +680,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _notamsTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(NotamsTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(NotamsTextTemplate), value);
         }
     }
 
@@ -798,10 +693,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _notamsVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(NotamsVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(NotamsVoiceTemplate), value);
         }
     }
 
@@ -814,10 +706,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityNorth, value);
-            if (!_initializedProperties.Add(nameof(VisibilityNorth)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityNorth), value);
         }
     }
 
@@ -830,10 +719,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityNorthEast, value);
-            if (!_initializedProperties.Add(nameof(VisibilityNorthEast)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityNorthEast), value);
         }
     }
 
@@ -846,10 +732,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityEast, value);
-            if (!_initializedProperties.Add(nameof(VisibilityEast)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityEast), value);
         }
     }
 
@@ -862,10 +745,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilitySouthEast, value);
-            if (!_initializedProperties.Add(nameof(VisibilitySouthEast)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilitySouthEast), value);
         }
     }
 
@@ -878,10 +758,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilitySouth, value);
-            if (!_initializedProperties.Add(nameof(VisibilitySouth)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilitySouth), value);
         }
     }
 
@@ -894,10 +771,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilitySouthWest, value);
-            if (!_initializedProperties.Add(nameof(VisibilitySouthWest)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilitySouthWest), value);
         }
     }
 
@@ -910,10 +784,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityWest, value);
-            if (!_initializedProperties.Add(nameof(VisibilityWest)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityWest), value);
         }
     }
 
@@ -926,10 +797,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityNorthWest, value);
-            if (!_initializedProperties.Add(nameof(VisibilityNorthWest)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityNorthWest), value);
         }
     }
 
@@ -942,10 +810,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityVoice, value);
-            if (!_initializedProperties.Add(nameof(VisibilityUnlimitedVisibilityVoice)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityUnlimitedVisibilityVoice), value);
         }
     }
 
@@ -958,10 +823,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityText, value);
-            if (!_initializedProperties.Add(nameof(VisibilityUnlimitedVisibilityText)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityUnlimitedVisibilityText), value);
         }
     }
 
@@ -974,10 +836,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityIncludeVisibilitySuffix, value);
-            if (!_initializedProperties.Add(nameof(VisibilityIncludeVisibilitySuffix)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityIncludeVisibilitySuffix), value);
         }
     }
 
@@ -990,10 +849,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityMetersCutoff, value);
-            if (!_initializedProperties.Add(nameof(VisibilityMetersCutoff)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(VisibilityMetersCutoff), value);
         }
     }
 
@@ -1006,10 +862,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsIdentifyCeilingLayer, value);
-            if (!_initializedProperties.Add(nameof(CloudsIdentifyCeilingLayer)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CloudsIdentifyCeilingLayer), value);
         }
     }
 
@@ -1022,10 +875,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsConvertToMetric, value);
-            if (!_initializedProperties.Add(nameof(CloudsConvertToMetric)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CloudsConvertToMetric), value);
         }
     }
 
@@ -1038,10 +888,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _undeterminedLayerAltitudeText, value);
-            if (!_initializedProperties.Add(nameof(UndeterminedLayerAltitudeText)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(UndeterminedLayerAltitudeText), value);
         }
     }
 
@@ -1054,10 +901,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _undeterminedLayerAltitudeVoice, value);
-            if (!_initializedProperties.Add(nameof(UndeterminedLayerAltitudeVoice)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(UndeterminedLayerAltitudeVoice), value);
         }
     }
 
@@ -1070,10 +914,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _automaticCbDetectionText, value);
-            if (!_initializedProperties.Add(nameof(AutomaticCbDetectionText)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(AutomaticCbDetectionText), value);
         }
     }
 
@@ -1086,10 +927,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _automaticCbDetectionVoice, value);
-            if (!_initializedProperties.Add(nameof(AutomaticCbDetectionVoice)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(AutomaticCbDetectionVoice), value);
         }
     }
 
@@ -1102,10 +940,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudHeightAltitudeInHundreds, value);
-            if (!_initializedProperties.Add(nameof(CloudHeightAltitudeInHundreds)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CloudHeightAltitudeInHundreds), value);
         }
     }
 
@@ -1118,10 +953,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureUsePlusPrefix, value);
-            if (!_initializedProperties.Add(nameof(TemperatureUsePlusPrefix)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(TemperatureUsePlusPrefix), value);
         }
     }
 
@@ -1134,10 +966,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureSpeakLeadingZero, value);
-            if (!_initializedProperties.Add(nameof(TemperatureSpeakLeadingZero)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(TemperatureSpeakLeadingZero), value);
         }
     }
 
@@ -1150,10 +979,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointUsePlusPrefix, value);
-            if (!_initializedProperties.Add(nameof(DewpointUsePlusPrefix)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(DewpointUsePlusPrefix), value);
         }
     }
 
@@ -1166,10 +992,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointSpeakLeadingZero, value);
-            if (!_initializedProperties.Add(nameof(DewpointSpeakLeadingZero)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(DewpointSpeakLeadingZero), value);
         }
     }
 
@@ -1182,10 +1005,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _altimeterSpeakDecimal, value);
-            if (!_initializedProperties.Add(nameof(AltimeterSpeakDecimal)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(AltimeterSpeakDecimal), value);
         }
     }
 
@@ -1198,10 +1018,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _closingStatementAutoIncludeClosingStatement, value);
-            if (!_initializedProperties.Add(nameof(ClosingStatementAutoIncludeClosingStatement)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ClosingStatementAutoIncludeClosingStatement), value);
         }
     }
 
@@ -1211,14 +1028,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     public ObservableCollection<TransitionLevelMeta>? TransitionLevels
     {
         get => _transitionLevelMetas;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _transitionLevelMetas, value);
-            if (!_initializedProperties.Add(nameof(TransitionLevels)))
-            {
-                HasUnsavedChanges = true;
-            }
-        }
+        set => this.RaiseAndSetIfChanged(ref _transitionLevelMetas, value);
     }
 
     /// <summary>
@@ -1230,10 +1040,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _transitionLevelTextTemplate, value);
-            if (!_initializedProperties.Add(nameof(TransitionLevelTextTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(TransitionLevelTextTemplate), value);
         }
     }
 
@@ -1246,10 +1053,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _transitionLevelVoiceTemplate, value);
-            if (!_initializedProperties.Add(nameof(TransitionLevelVoiceTemplate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(TransitionLevelVoiceTemplate), value);
         }
     }
 
@@ -1365,7 +1169,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     {
         if (SelectedStation == null)
         {
-            return true;
+            return false;
         }
 
         ClearAllErrors();
@@ -1784,7 +1588,23 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        HasUnsavedChanges = false;
+        // Check if there are unsaved changes before saving
+        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
+
+        // If there are unsaved changes, mark as applied and reset HasUnsavedChanges
+        if (anyChanges)
+        {
+            // Apply changes and reset HasUnsavedChanges
+            foreach (var key in _fieldHistory.Keys.ToList())
+            {
+                var (_, currentValue) = _fieldHistory[key];
+
+                // After applying changes, set the original value to the current value (the saved value)
+                _fieldHistory[key] = (currentValue, currentValue);
+            }
+
+            HasUnsavedChanges = false;
+        }
 
         return true;
     }
@@ -1898,10 +1718,14 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             station.AtisFormat.ClosingStatement.AutoIncludeClosingStatement;
 
         PresentWeatherTypes = [];
-        foreach (var kvp in station.AtisFormat.PresentWeather.PresentWeatherTypes)
+        foreach (var kvp in station.AtisFormat.PresentWeather.PresentWeatherTypes.OrderBy(n => n.Key))
         {
             PresentWeatherTypes.Add(new PresentWeatherMeta(kvp.Key, kvp.Value.Text, kvp.Value.Spoken));
         }
+
+        // Track initial PresentWeatherTypes.
+        TrackChanges(nameof(PresentWeatherTypes), PresentWeatherTypes?.Select(item =>
+            new PresentWeatherMeta(item.Key, item.Text, item.Spoken)).ToList());
 
         CloudTypes = [];
         foreach (var item in station.AtisFormat.Clouds.Types)
@@ -1909,11 +1733,19 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             CloudTypes.Add(new CloudTypeMeta(item.Key, item.Value.Voice, item.Value.Text));
         }
 
+        // Track initial CloudTypes.
+        TrackChanges(nameof(CloudTypes), CloudTypes?.Select(item =>
+            new CloudTypeMeta(item.Acronym, item.Spoken, item.Text)).ToList());
+
         ConvectiveCloudTypes = [];
         foreach (var item in station.AtisFormat.Clouds.ConvectiveTypes)
         {
             ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(item.Key, item.Value));
         }
+
+        // Track initial ConvectiveCloudTypes.
+        TrackChanges(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
+            new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
 
         TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
         TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
@@ -1923,6 +1755,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             TransitionLevels.Add(item);
         }
+
+        // Track initial TransitionLevels.
+        TrackChanges(nameof(TransitionLevels), TransitionLevels?.Select(item =>
+            new TransitionLevelMeta(item.Low, item.High, item.Altitude)).ToList());
 
         ContractionCompletionData = [];
         foreach (var contraction in station.Contractions)
@@ -2055,11 +1891,29 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void HandleCellEditEnding(DataGridCellEditEndingEventArgs e)
+    private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
     {
-        if (e.EditAction == DataGridEditAction.Commit)
+        if (e.Args.EditAction == DataGridEditAction.Commit)
         {
-            HasUnsavedChanges = true;
+            switch (e.DataGridName)
+            {
+                case nameof(PresentWeatherTypes):
+                    TrackChanges(nameof(PresentWeatherTypes), PresentWeatherTypes?.Select(item =>
+                        new PresentWeatherMeta(item.Key, item.Text, item.Spoken)).ToList());
+                    break;
+                case nameof(CloudTypes):
+                    TrackChanges(nameof(CloudTypes), CloudTypes?.Select(item =>
+                        new CloudTypeMeta(item.Acronym, item.Spoken, item.Text)).ToList());
+                    break;
+                case nameof(ConvectiveCloudTypes):
+                    TrackChanges(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
+                        new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
+                    break;
+                case nameof(TransitionLevels):
+                    TrackChanges(nameof(TransitionLevels), TransitionLevels?.Select(item =>
+                        new TransitionLevelMeta(item.Low, item.High, item.Altitude)).ToList());
+                    break;
+            }
         }
     }
 
@@ -2114,5 +1968,76 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         return (PresentWeatherFilterAcronym && weather.Key.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
                (PresentWeatherFilterText && weather.Text.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
                (PresentWeatherFilterSpoken && weather.Spoken.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private void TrackChanges(string propertyName, object? currentValue)
+    {
+        if (_fieldHistory.TryGetValue(propertyName, out var value))
+        {
+            var (originalValue, _) = value;
+
+            // If the property has been set before, update the current value
+            _fieldHistory[propertyName] = (originalValue, currentValue);
+
+            // Check for unsaved changes after the update
+            CheckForUnsavedChanges();
+        }
+        else
+        {
+            // If this is the first time setting the value, initialize the original value
+            _fieldHistory[propertyName] = (currentValue, currentValue);
+
+            // Check for unsaved changes after the update
+            CheckForUnsavedChanges();
+        }
+    }
+
+    private bool AreValuesEqual(object? originalValue, object? currentValue)
+    {
+        // If both are null, consider them equal
+        if (originalValue == null && currentValue == null)
+            return true;
+
+        // If one is null and the other is not, they are not equal
+        if (originalValue == null || currentValue == null)
+            return false;
+
+        // Handle comparison for nullable types like int?, string?, bool? etc.
+        if (originalValue is string originalStr && currentValue is string currentStr)
+        {
+            return originalStr == currentStr;
+        }
+
+        // Compare nullable int (int?)
+        if (originalValue is int originalInt && currentValue is int currentInt)
+        {
+            return originalInt == currentInt;
+        }
+
+        // Compare nullable bool (bool?)
+        if (originalValue is bool originalBool && currentValue is bool currentBool)
+        {
+            return originalBool == currentBool;
+        }
+
+        if (originalValue is IEnumerable<object> originalEnumerable &&
+            currentValue is IEnumerable<object> currentEnumerable)
+        {
+            return AreListsEqual(originalEnumerable, currentEnumerable);
+        }
+
+        // For non-nullable types (or if types are not specifically handled above), use Equals
+        return originalValue.Equals(currentValue);
+    }
+
+    private bool AreListsEqual(IEnumerable<object> list1, IEnumerable<object> list2)
+    {
+        return list1.SequenceEqual(list2);
+    }
+
+    private void CheckForUnsavedChanges()
+    {
+        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
+        HasUnsavedChanges = anyChanges;
     }
 }

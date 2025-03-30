@@ -52,6 +52,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     private readonly CompositeDisposable _disposables = [];
     private readonly SourceList<AtisStation> _atisStationSource = new();
     private bool _hasUnsavedChanges;
+    private bool _requiresDisconnect;
     private bool _showOverlay;
     private int _selectedTabControlTabIndex;
     private AtisStation? _selectedAtisStation;
@@ -127,6 +128,8 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             {
                 PresetsViewModel.HasUnsavedChanges = x;
             }
+
+            RequiresDisconnect = HasUnsavedChanges;
         });
 
         _atisStationSource.Connect()
@@ -242,6 +245,15 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     {
         get => _hasUnsavedChanges;
         set => this.RaiseAndSetIfChanged(ref _hasUnsavedChanges, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the ATIS needs to be disconnected to apply the changes.
+    /// </summary>
+    public bool RequiresDisconnect
+    {
+        get => _requiresDisconnect;
+        set => this.RaiseAndSetIfChanged(ref _requiresDisconnect, value);
     }
 
     /// <summary>
@@ -791,23 +803,39 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
     private void HandleSaveAndClose(ICloseable? window)
     {
+        if (SelectedAtisStation == null)
+        {
+            window?.Close();
+            return;
+        }
+
         var general = GeneralConfigViewModel?.ApplyConfig();
         var presets = PresetsViewModel?.ApplyConfig();
         var formatting = FormattingViewModel?.ApplyChanges();
-        var sandbox = SandboxViewModel?.ApplyConfig();
 
-        if (general != null && presets != null && formatting != null && sandbox != null)
+        if ((general.HasValue && general.Value) || (presets.HasValue && presets.Value) ||
+            (formatting.HasValue && formatting.Value))
         {
-            if (general.Value && presets.Value && formatting.Value && sandbox.Value)
-            {
-                if (SelectedAtisStation != null)
-                {
-                    EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
-                }
-
-                window?.Close();
-            }
+            EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
         }
+
+        window?.Close();
+
+        // var general = GeneralConfigViewModel?.ApplyConfig();
+        // var presets = PresetsViewModel?.ApplyConfig();
+        // var formatting = FormattingViewModel?.ApplyChanges();
+        // var sandbox = SandboxViewModel?.ApplyConfig();
+        //
+        // if (general != null && presets != null && formatting != null && sandbox != null && general.Value &&
+        //     presets.Value && formatting.Value && sandbox.Value)
+        // {
+        //     if (SelectedAtisStation != null && (HasUnsavedChanges || RequiresDisconnect))
+        //     {
+        //         EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
+        //     }
+        //
+        //     window?.Close();
+        // }
     }
 
     private void HandleApplyChanges()
@@ -816,6 +844,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         PresetsViewModel?.ApplyConfig();
         FormattingViewModel?.ApplyChanges();
         SandboxViewModel?.ApplyConfig();
+        RequiresDisconnect = true;
     }
 
     private void HandleSelectedAtisStationChanged(AtisStation? station)

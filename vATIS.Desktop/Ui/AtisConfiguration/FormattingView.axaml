@@ -498,7 +498,7 @@
                             </Grid>
                             <DataGrid Name="WeatherDescriptors" MaxHeight="315" SelectionMode="Extended" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding FilteredPresentWeatherTypes, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
-									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
+									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="PresentWeatherTypes"/>
 								</Interaction.Behaviors>
 								<DataGrid.Styles>
 									<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
@@ -557,7 +557,7 @@
 					<TabItem Header="Cloud Types">
 						<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding CloudTypes, DataType=vm:FormattingViewModel}">
 							<Interaction.Behaviors>
-								<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
+								<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="CloudTypes"/>
 							</Interaction.Behaviors>
 							<DataGrid.Styles>
 								<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
@@ -575,7 +575,7 @@
                         <StackPanel Orientation="Vertical" Spacing="10">
                             <DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding ConvectiveCloudTypes, DataType=vm:FormattingViewModel}">
 							    <Interaction.Behaviors>
-								    <behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
+								    <behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="ConvectiveCloudTypes"/>
 							    </Interaction.Behaviors>
 							    <DataGrid.Styles>
 								    <Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
@@ -762,7 +762,7 @@
 						<StackPanel Orientation="Vertical" Spacing="10">
 							<DataGrid Name="TransitionLevels" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding TransitionLevels, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
-									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}"/>
+									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="TransitionLevels"/>
 								</Interaction.Behaviors>
 								<DataGrid.Styles>
 									<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
