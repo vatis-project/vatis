@@ -28,9 +28,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
     private static readonly int[] s_allowedSpeechRates = [120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
     private readonly CompositeDisposable _disposables = [];
-    private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
+    private readonly Dictionary<string, (object? OriginalValue, object? CurrentValue)> _fieldHistory;
     private bool _hasUnsavedChanges;
     private int _selectedTabIndex;
     private AtisStation? _selectedStation;
@@ -56,6 +56,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     {
         _sessionManager = sessionManager;
         _profileRepository = profileRepository;
+        _fieldHistory = [];
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
 
@@ -116,10 +117,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _frequency, value);
-            if (!_initializedProperties.Add(nameof(Frequency)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(Frequency), value);
         }
     }
 
@@ -132,10 +130,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _atisType, value);
-            if (!_initializedProperties.Add(nameof(AtisType)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(AtisType), value);
         }
     }
 
@@ -148,10 +143,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _codeRangeLow, value);
-            if (!_initializedProperties.Add(nameof(CodeRangeLow)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CodeRangeLow), value);
         }
     }
 
@@ -164,10 +156,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _codeRangeHigh, value);
-            if (!_initializedProperties.Add(nameof(CodeRangeHigh)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(CodeRangeHigh), value);
         }
     }
 
@@ -180,10 +169,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useTextToSpeech, value);
-            if (!_initializedProperties.Add(nameof(UseTextToSpeech)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(UseTextToSpeech), value);
         }
     }
 
@@ -201,10 +187,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             }
 
             this.RaiseAndSetIfChanged(ref _textToSpeechVoice, value);
-            if (!_initializedProperties.Add(nameof(TextToSpeechVoice)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(TextToSpeechVoice), value);
         }
     }
 
@@ -217,10 +200,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useDecimalTerminology, value);
-            if (!_initializedProperties.Add(nameof(UseDecimalTerminology)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(UseDecimalTerminology), value);
         }
     }
 
@@ -233,10 +213,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _idsEndpoint, value);
-            if (!_initializedProperties.Add(nameof(IdsEndpoint)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(IdsEndpoint), value);
         }
     }
 
@@ -263,10 +240,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedSpeechRate, value);
-            if (!_initializedProperties.Add(nameof(SelectedSpeechRate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(SelectedSpeechRate), value);
         }
     }
 
@@ -414,12 +388,24 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        if (!HasUnsavedChanges)
+        // Check if there are unsaved changes before saving
+        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
+
+        // If there are unsaved changes, mark as applied and reset HasUnsavedChanges
+        if (anyChanges)
         {
-            return false;
+            // Apply changes and reset HasUnsavedChanges
+            foreach (var key in _fieldHistory.Keys.ToList())
+            {
+                var (_, currentValue) = _fieldHistory[key];
+
+                // After applying changes, set the original value to the current value (the saved value)
+                _fieldHistory[key] = (currentValue, currentValue);
+            }
+
+            HasUnsavedChanges = false;
         }
 
-        HasUnsavedChanges = false;
         return true;
     }
 
@@ -429,8 +415,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         {
             return;
         }
-
-        _initializedProperties.Clear();
 
         SelectedTabIndex = -1;
         SelectedStation = station;
@@ -451,5 +435,76 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             : 180; // Fallback to default speech rate value.
 
         HasUnsavedChanges = false;
+    }
+
+    private void TrackChanges(string propertyName, object? currentValue)
+    {
+        if (_fieldHistory.TryGetValue(propertyName, out var value))
+        {
+            var (originalValue, _) = value;
+
+            // If the property has been set before, update the current value
+            _fieldHistory[propertyName] = (originalValue, currentValue);
+
+            // Check for unsaved changes after the update
+            CheckForUnsavedChanges();
+        }
+        else
+        {
+            // If this is the first time setting the value, initialize the original value
+            _fieldHistory[propertyName] = (currentValue, currentValue);
+
+            // Check for unsaved changes after the update
+            CheckForUnsavedChanges();
+        }
+    }
+
+    private bool AreValuesEqual(object? originalValue, object? currentValue)
+    {
+        // If both are null, consider them equal
+        if (originalValue == null && currentValue == null)
+            return true;
+
+        // If one is null and the other is not, they are not equal
+        if (originalValue == null || currentValue == null)
+            return false;
+
+        // Handle comparison for nullable types like int?, string?, bool? etc.
+        if (originalValue is string originalStr && currentValue is string currentStr)
+        {
+            return originalStr == currentStr;
+        }
+
+        // Compare nullable int (int?)
+        if (originalValue is int originalInt && currentValue is int currentInt)
+        {
+            return originalInt == currentInt;
+        }
+
+        // Compare nullable bool (bool?)
+        if (originalValue is bool originalBool && currentValue is bool currentBool)
+        {
+            return originalBool == currentBool;
+        }
+
+        if (originalValue is IEnumerable<object> originalEnumerable &&
+            currentValue is IEnumerable<object> currentEnumerable)
+        {
+            return AreListsEqual(originalEnumerable, currentEnumerable);
+        }
+
+        // For non-nullable types (or if types are not specifically handled above), use Equals
+        return originalValue.Equals(currentValue);
+    }
+
+    private bool AreListsEqual(IEnumerable<object> list1, IEnumerable<object> list2)
+    {
+        return list1.SequenceEqual(list2);
+    }
+
+    private void CheckForUnsavedChanges()
+    {
+        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
+        HasUnsavedChanges = anyChanges;
     }
 }

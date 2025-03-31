@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
-             xmlns:profiles="using:Vatsim.Vatis.Profiles"
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.ContractionsView">

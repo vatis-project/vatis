@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
@@ -24,7 +23,6 @@ using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Controls;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
-using Vatsim.Vatis.Ui.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -110,7 +108,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<PresentWeatherMeta>? _presentWeatherTypes;
     private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
-    private List<ICompletionData> _contractionCompletionData = new();
     private string _presentWeatherSearchTerm = string.Empty;
     private ObservableCollection<PresentWeatherMeta>? _filteredPresentWeatherTypes;
     private bool _presentWeatherFilterAcronym = true;
@@ -1145,15 +1142,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _convectiveCloudTypes, value);
     }
 
-    /// <summary>
-    /// Gets or sets the contraction completion data.
-    /// </summary>
-    public List<ICompletionData> ContractionCompletionData
-    {
-        get => _contractionCompletionData;
-        set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
-    }
-
     /// <inheritdoc />
     public void Dispose()
     {
@@ -1759,15 +1747,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         // Track initial TransitionLevels.
         TrackChanges(nameof(TransitionLevels), TransitionLevels?.Select(item =>
             new TransitionLevelMeta(item.Low, item.High, item.Altitude)).ToList());
-
-        ContractionCompletionData = [];
-        foreach (var contraction in station.Contractions)
-        {
-            if (!string.IsNullOrEmpty(contraction.VariableName) && !string.IsNullOrEmpty(contraction.Voice))
-            {
-                ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
-            }
-        }
 
         if (PresentWeatherTypes != null)
         {
