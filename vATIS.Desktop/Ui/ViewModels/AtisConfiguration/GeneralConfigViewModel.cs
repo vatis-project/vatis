@@ -404,9 +404,10 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             }
 
             HasUnsavedChanges = false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     private void HandleUpdateProperties(AtisStation? station)

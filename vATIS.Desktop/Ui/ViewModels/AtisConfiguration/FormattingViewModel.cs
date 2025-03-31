@@ -1592,9 +1592,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             }
 
             HasUnsavedChanges = false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     private void HandleAtisStationChanged(AtisStation? station)
