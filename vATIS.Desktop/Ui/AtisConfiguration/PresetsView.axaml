@@ -41,10 +41,11 @@
 			<CheckBox Name="UseExternalAtisGenerator" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
 			<StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !#UseExternalAtisGenerator.IsChecked}">
 				<TextBlock Text="ATIS Template:"/>
-				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" Document="{Binding AtisTemplateTextDocument, DataType=vm:PresetsViewModel}" WordWrap="True" Height="300" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8" TextChanged="AtisTemplate_OnTextChanged">
+				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" WordWrap="True" Height="300" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:PresetsViewModel}"/>
+                        <behaviors:DocumentTextBindingBehavior Text="{Binding AtisTemplateText, DataType=vm:PresetsViewModel, Mode=TwoWay}"/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>
 				<WrapPanel Orientation="Horizontal" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">

@@ -15,7 +15,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using AvaloniaEdit.CodeCompletion;
-using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
 using Serilog;
@@ -53,18 +52,18 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     private AtisStation? _selectedStation;
     private AtisPreset? _selectedPreset;
     private bool _useExternalAtisGenerator;
-    private string? _externalGeneratorTextUrl;
-    private string? _externalGeneratorVoiceUrl;
-    private string? _externalGeneratorArrivalRunways;
-    private string? _externalGeneratorDepartureRunways;
-    private string? _externalGeneratorApproaches;
-    private string? _externalGeneratorRemarks;
+    private string _externalGeneratorTextUrl = string.Empty;
+    private string _externalGeneratorVoiceUrl = string.Empty;
+    private string _externalGeneratorArrivalRunways = string.Empty;
+    private string _externalGeneratorDepartureRunways = string.Empty;
+    private string _externalGeneratorApproaches = string.Empty;
+    private string _externalGeneratorRemarks = string.Empty;
     private string? _externalGeneratorSandboxResponseText;
     private string? _externalGeneratorSandboxResponseVoice;
     private bool _isSandboxPlaybackActive;
     private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceResponse;
     private CancellationTokenSource _externalGeneratorCancellationTokenSource = new();
-    private TextDocument? _atisTemplateTextDocument = new();
+    private string _atisTemplateText = string.Empty;
     private string? _sandboxMetar;
 
     /// <summary>
@@ -244,7 +243,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets or sets the URL for generating the text ATIS string.
     /// </summary>
-    public string? ExternalGeneratorTextUrl
+    public string ExternalGeneratorTextUrl
     {
         get => _externalGeneratorTextUrl;
         set
@@ -257,7 +256,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets or sets the URL for generating the voice ATIS string.
     /// </summary>
-    public string? ExternalGeneratorVoiceUrl
+    public string ExternalGeneratorVoiceUrl
     {
         get => _externalGeneratorVoiceUrl;
         set
@@ -270,7 +269,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets or sets the external generator arrival runways.
     /// </summary>
-    public string? ExternalGeneratorArrivalRunways
+    public string ExternalGeneratorArrivalRunways
     {
         get => _externalGeneratorArrivalRunways;
         set
@@ -283,7 +282,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets or sets the external generator departure runways.
     /// </summary>
-    public string? ExternalGeneratorDepartureRunways
+    public string ExternalGeneratorDepartureRunways
     {
         get => _externalGeneratorDepartureRunways;
         set
@@ -296,7 +295,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets or sets the external generator approaches.
     /// </summary>
-    public string? ExternalGeneratorApproaches
+    public string ExternalGeneratorApproaches
     {
         get => _externalGeneratorApproaches;
         set
@@ -309,7 +308,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets or sets the external generator remarks.
     /// </summary>
-    public string? ExternalGeneratorRemarks
+    public string ExternalGeneratorRemarks
     {
         get => _externalGeneratorRemarks;
         set
@@ -338,21 +337,16 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the ATIS template text.
+    /// Gets or sets the ATIS template text document.
     /// </summary>
     public string AtisTemplateText
     {
-        get => _atisTemplateTextDocument?.Text ?? string.Empty;
-        set => AtisTemplateTextDocument = new TextDocument(value);
-    }
-
-    /// <summary>
-    /// Gets or sets the ATIS template text document.
-    /// </summary>
-    public TextDocument? AtisTemplateTextDocument
-    {
-        get => _atisTemplateTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _atisTemplateTextDocument, value);
+        get => _atisTemplateText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _atisTemplateText, value);
+            TrackChanges(nameof(AtisTemplateText), value);
+        }
     }
 
     /// <summary>
@@ -798,6 +792,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
+        _fieldHistory.Clear();
+
         SelectedPreset = preset;
         ExternalGeneratorSandboxResponseText = null;
         AtisTemplateText = SelectedPreset?.Template ?? string.Empty;
@@ -805,12 +801,12 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedPreset?.ExternalGenerator != null)
         {
             UseExternalAtisGenerator = SelectedPreset.ExternalGenerator.Enabled;
-            ExternalGeneratorVoiceUrl = SelectedPreset.ExternalGenerator.VoiceUrl;
-            ExternalGeneratorTextUrl = SelectedPreset.ExternalGenerator.TextUrl;
-            ExternalGeneratorArrivalRunways = SelectedPreset.ExternalGenerator.Arrival;
-            ExternalGeneratorDepartureRunways = SelectedPreset.ExternalGenerator.Departure;
-            ExternalGeneratorApproaches = SelectedPreset.ExternalGenerator.Approaches;
-            ExternalGeneratorRemarks = SelectedPreset.ExternalGenerator.Remarks;
+            ExternalGeneratorVoiceUrl = SelectedPreset.ExternalGenerator.VoiceUrl ?? "";
+            ExternalGeneratorTextUrl = SelectedPreset.ExternalGenerator.TextUrl ?? "";
+            ExternalGeneratorArrivalRunways = SelectedPreset.ExternalGenerator.Arrival ?? "";
+            ExternalGeneratorDepartureRunways = SelectedPreset.ExternalGenerator.Departure ?? "";
+            ExternalGeneratorApproaches = SelectedPreset.ExternalGenerator.Approaches ?? "";
+            ExternalGeneratorRemarks = SelectedPreset.ExternalGenerator.Remarks ?? "";
         }
 
         HasUnsavedChanges = false;
@@ -915,14 +911,14 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         Presets = new ObservableCollection<AtisPreset>(station.Presets);
         UseExternalAtisGenerator = false;
         SandboxMetar = null;
-        ExternalGeneratorTextUrl = null;
-        ExternalGeneratorArrivalRunways = null;
-        ExternalGeneratorDepartureRunways = null;
-        ExternalGeneratorApproaches = null;
-        ExternalGeneratorRemarks = null;
+        AtisTemplateText = "";
+        ExternalGeneratorTextUrl = "";
+        ExternalGeneratorArrivalRunways = "";
+        ExternalGeneratorDepartureRunways = "";
+        ExternalGeneratorApproaches = "";
+        ExternalGeneratorRemarks = "";
         ExternalGeneratorSandboxResponseText = null;
         ExternalGeneratorSandboxResponseVoice = null;
-        AtisTemplateText = string.Empty;
 
         IsSandboxPlaybackActive = false;
         NativeAudio.StopBufferPlayback();
