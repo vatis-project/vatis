@@ -799,14 +799,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         }
 
         SelectedPreset = preset;
-
-        UseExternalAtisGenerator = false;
-        ExternalGeneratorTextUrl = null;
-        ExternalGeneratorVoiceUrl = null;
-        ExternalGeneratorArrivalRunways = null;
-        ExternalGeneratorDepartureRunways = null;
-        ExternalGeneratorApproaches = null;
-        ExternalGeneratorRemarks = null;
         ExternalGeneratorSandboxResponseText = null;
         AtisTemplateText = SelectedPreset?.Template ?? string.Empty;
 
@@ -907,6 +899,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             AtisTemplateText = string.Empty;
             Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
             EventBus.Instance.Publish(new StationPresetsChanged(SelectedStation.Id));
+            _fieldHistory.Clear();
             HasUnsavedChanges = false;
         }
     }
@@ -936,6 +929,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 
         PopulateContractions();
 
+        _fieldHistory.Clear();
         HasUnsavedChanges = false;
     }
 

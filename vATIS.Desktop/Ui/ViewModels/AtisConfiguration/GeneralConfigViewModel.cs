@@ -417,6 +417,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
+        _fieldHistory.Clear();
+
         SelectedTabIndex = -1;
         SelectedStation = station;
         Frequency = station.Frequency > 0
