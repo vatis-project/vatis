@@ -40,13 +40,13 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// </summary>
 public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly HashSet<string> _initializedProperties = [];
     private readonly IMetarRepository _metarRepository;
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly IAtisBuilder _atisBuilder;
     private readonly CompositeDisposable _disposables = [];
+    private readonly Dictionary<string, (object? OriginalValue, object? CurrentValue)> _fieldHistory;
     private bool _hasUnsavedChanges;
     private ObservableCollection<AtisPreset>? _presets;
     private List<ICompletionData> _contractionCompletionData = new();
@@ -87,6 +87,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         _profileRepository = profileRepository;
         _sessionManager = sessionManager;
         _atisBuilder = atisBuilder;
+        _fieldHistory = [];
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
         SelectedPresetChanged = ReactiveCommand.Create<AtisPreset>(HandleSelectedPresetChanged);
@@ -236,10 +237,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useExternalAtisGenerator, value);
-            if (!_initializedProperties.Add(nameof(UseExternalAtisGenerator)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(UseExternalAtisGenerator), value);
         }
     }
 
@@ -252,10 +250,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorTextUrl, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorTextUrl)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ExternalGeneratorTextUrl), value);
         }
     }
 
@@ -268,10 +263,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorVoiceUrl, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorVoiceUrl)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ExternalGeneratorVoiceUrl), value);
         }
     }
 
@@ -284,10 +276,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorArrivalRunways, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorArrivalRunways)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ExternalGeneratorArrivalRunways), value);
         }
     }
 
@@ -300,10 +289,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorDepartureRunways, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorDepartureRunways)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ExternalGeneratorDepartureRunways), value);
         }
     }
 
@@ -316,10 +302,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorApproaches, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorApproaches)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ExternalGeneratorApproaches), value);
         }
     }
 
@@ -332,10 +315,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorRemarks, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorRemarks)))
-            {
-                HasUnsavedChanges = true;
-            }
+            TrackChanges(nameof(ExternalGeneratorRemarks), value);
         }
     }
 
@@ -478,13 +458,26 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        if (!HasUnsavedChanges)
+        // Check if there are unsaved changes before saving
+        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
+
+        // If there are unsaved changes, mark as applied and reset HasUnsavedChanges
+        if (anyChanges)
         {
-            return false;
+            // Apply changes and reset HasUnsavedChanges
+            foreach (var key in _fieldHistory.Keys.ToList())
+            {
+                var (_, currentValue) = _fieldHistory[key];
+
+                // After applying changes, set the original value to the current value (the saved value)
+                _fieldHistory[key] = (currentValue, currentValue);
+            }
+
+            HasUnsavedChanges = false;
+            return true;
         }
 
-        HasUnsavedChanges = false;
-        return true;
+        return false;
     }
 
     private static void HandleTemplateVariableClicked(string? variable)
@@ -525,10 +518,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        var metar = await _metarRepository.GetMetar(
-            SelectedStation.Identifier,
-            false,
-            false);
+        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, false, false);
         SandboxMetar = metar?.RawMetar;
     }
 
@@ -962,5 +952,76 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
+    }
+
+    private void TrackChanges(string propertyName, object? currentValue)
+    {
+        if (_fieldHistory.TryGetValue(propertyName, out var value))
+        {
+            var (originalValue, _) = value;
+
+            // If the property has been set before, update the current value
+            _fieldHistory[propertyName] = (originalValue, currentValue);
+
+            // Check for unsaved changes after the update
+            CheckForUnsavedChanges();
+        }
+        else
+        {
+            // If this is the first time setting the value, initialize the original value
+            _fieldHistory[propertyName] = (currentValue, currentValue);
+
+            // Check for unsaved changes after the update
+            CheckForUnsavedChanges();
+        }
+    }
+
+    private bool AreValuesEqual(object? originalValue, object? currentValue)
+    {
+        // If both are null, consider them equal
+        if (originalValue == null && currentValue == null)
+            return true;
+
+        // If one is null and the other is not, they are not equal
+        if (originalValue == null || currentValue == null)
+            return false;
+
+        // Handle comparison for nullable types like int?, string?, bool? etc.
+        if (originalValue is string originalStr && currentValue is string currentStr)
+        {
+            return originalStr == currentStr;
+        }
+
+        // Compare nullable int (int?)
+        if (originalValue is int originalInt && currentValue is int currentInt)
+        {
+            return originalInt == currentInt;
+        }
+
+        // Compare nullable bool (bool?)
+        if (originalValue is bool originalBool && currentValue is bool currentBool)
+        {
+            return originalBool == currentBool;
+        }
+
+        if (originalValue is IEnumerable<object> originalEnumerable &&
+            currentValue is IEnumerable<object> currentEnumerable)
+        {
+            return AreListsEqual(originalEnumerable, currentEnumerable);
+        }
+
+        // For non-nullable types (or if types are not specifically handled above), use Equals
+        return originalValue.Equals(currentValue);
+    }
+
+    private bool AreListsEqual(IEnumerable<object> list1, IEnumerable<object> list2)
+    {
+        return list1.SequenceEqual(list2);
+    }
+
+    private void CheckForUnsavedChanges()
+    {
+        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
+        HasUnsavedChanges = anyChanges;
     }
 }
