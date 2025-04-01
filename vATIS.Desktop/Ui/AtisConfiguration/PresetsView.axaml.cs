@@ -29,17 +29,6 @@ public partial class PresetsView : UserControl
         InitializeComponent();
     }
 
-    private void AtisTemplate_OnTextChanged(object? sender, EventArgs e)
-    {
-        if (DataContext is PresetsViewModel model)
-        {
-            if (!AtisTemplate.TextArea.IsFocused)
-                return;
-
-            model.HasUnsavedChanges = ((AtisPreset)SelectedPreset.SelectedItem).Template != AtisTemplate.Text;
-        }
-    }
-
     private async void SelectedPreset_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         try
