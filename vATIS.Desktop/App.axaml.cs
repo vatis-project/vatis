@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reactive;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
@@ -145,6 +146,11 @@ public class App : Application
                 }
                 catch (FileNotFoundException)
                 {
+                    appConfig.SaveConfig();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Unable to load app config, using default: {ex.Message}");
                     appConfig.SaveConfig();
                 }
 
