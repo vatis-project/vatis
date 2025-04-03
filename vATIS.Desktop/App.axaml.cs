@@ -147,6 +147,11 @@ public class App : Application
                 {
                     appConfig.SaveConfig();
                 }
+                catch (Exception ex)
+                {
+                    Log.Error($"Unable to load app config, using default: {ex.Message}");
+                    appConfig.SaveConfig();
+                }
 
                 TopMostViewModel.Instance.Initialize(appConfig);
                 CompactWindowTopMostViewModel.Instance.Initialize(appConfig);
