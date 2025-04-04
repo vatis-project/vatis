@@ -1402,6 +1402,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <returns>A task.</returns>
     private async Task PublishAtisToWebsocket(ClientMetadata? session = null)
     {
+        var airportConditions = await Dispatcher.UIThread.InvokeAsync(() => AirportConditionsTextDocument?.Text);
+        var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
+
         await _websocketService.SendAtisMessageAsync(session,
             new AtisMessage.AtisMessageValue
             {
@@ -1413,6 +1416,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = Wind?.Trim(),
                 Altimeter = Altimeter?.Trim(),
                 TextAtis = AtisStation.TextAtis,
+                AirportConditions = airportConditions?.Trim(),
+                Notams = notams?.Trim(),
                 IsNewAtis = IsNewAtis,
                 NetworkConnectionStatus = NetworkConnectionStatus,
                 Pressure = _decodedMetar?.Pressure?.Value ?? null,

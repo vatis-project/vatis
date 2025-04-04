@@ -76,6 +76,20 @@ public class AtisMessage
         public string? TextAtis { get; set; }
 
         /// <summary>
+        /// Gets or sets the airport conditions text.
+        /// </summary>
+        [JsonPropertyName("airportConditions")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? AirportConditions { get; set; }
+
+        /// <summary>
+        /// Gets or sets the NOTAMs text.
+        /// </summary>
+        [JsonPropertyName("notams")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Notams { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the ATIS message is new.
         /// </summary>
         [JsonPropertyName("isNewAtis")]
