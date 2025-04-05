@@ -133,7 +133,7 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
         {
             if (await MessageBox.ShowDialog((Window)_dialogOwner,
                     "You still have active ATIS connections. Are you sure you want to exit?", "Confirm",
-                    MessageBoxButton.YesNo, MessageBoxIcon.Warning) == MessageBoxResult.No)
+                    MessageBoxButton.YesNo, MessageBoxIcon.Warning, centerWindow: true) == MessageBoxResult.No)
             {
                 return false;
             }
