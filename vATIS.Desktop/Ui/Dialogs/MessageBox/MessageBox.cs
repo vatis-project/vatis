@@ -91,15 +91,17 @@ public static class MessageBox
     /// <param name="caption">The title of the message box.</param>
     /// <param name="button">The buttons to display in the message box. This parameter is of type <see cref="MessageBoxButton"/>.</param>
     /// <param name="icon">The icon to display in the message box. This parameter is of type <see cref="MessageBoxIcon"/>.</param>
+    /// <param name="centerWindow">A value indicating whether the dialog should be centered on the screen.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation, the result of which contains the <see cref="MessageBoxResult"/> selected by the user.</returns>
     public static async Task<MessageBoxResult> ShowDialog(
         Window owner,
         string messageBoxText,
         string caption,
         MessageBoxButton button,
-        MessageBoxIcon icon)
+        MessageBoxIcon icon,
+        bool centerWindow = false)
     {
-        return await ShowDialogCore(owner, messageBoxText, caption, button, icon);
+        return await ShowDialogCore(owner, messageBoxText, caption, button, icon, centerWindow);
     }
 
     private static Task<MessageBoxResult> ShowCore(
@@ -136,7 +138,8 @@ public static class MessageBox
         string messageBoxText,
         string caption,
         MessageBoxButton button,
-        MessageBoxIcon icon)
+        MessageBoxIcon icon,
+        bool centerWindow = false)
     {
         var viewModel = new MessageBoxViewModel
         {
@@ -145,6 +148,7 @@ public static class MessageBox
             Button = button,
             Icon = icon,
             Owner = owner,
+            CenterWindowOnScreen = centerWindow
         };
 
         var window = new MessageBoxView
