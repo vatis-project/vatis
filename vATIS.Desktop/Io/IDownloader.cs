@@ -21,7 +21,7 @@ public interface IDownloader
     /// </summary>
     /// <param name="url">The URL to request.</param>
     /// <returns>A task representing the asynchronous operation, containing the HTTP response message.</returns>
-    Task<HttpResponseMessage> GetAsync(string url);
+    Task<HttpResponseMessage> GetAsync(string url, string? jwtToken = null);
 
     /// <summary>
     /// Downloads the content of the specified URL as a string.

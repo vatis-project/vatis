@@ -64,8 +64,15 @@ public class Downloader : IDownloader
     }
 
     /// <inheritdoc />
-    public Task<HttpResponseMessage> GetAsync(string url)
+    public Task<HttpResponseMessage> GetAsync(string url, string? jwtToken = null)
     {
+        _httpClient.DefaultRequestHeaders.Authorization = null;
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+
         return _httpClient.GetAsync(url);
     }
 
