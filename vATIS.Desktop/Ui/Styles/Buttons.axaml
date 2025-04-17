@@ -21,8 +21,9 @@
 					<Button Theme="{StaticResource MinimizeButton}"/>
 					<Button Theme="{StaticResource CompactViewButton}"/>
 					<Button Theme="{StaticResource CloseButton}"/>
-					<Button Theme="{StaticResource SaveButton}"/>
 					<ToggleButton Theme="{StaticResource PinButton}"/>
+                    <Button Theme="{StaticResource CompactViewButtonSmall}"/>
+                    <ToggleButton Theme="{StaticResource PinButtonSmall}"/>
 				</StackPanel>
 			</StackPanel>
 		</Border>
@@ -383,20 +384,21 @@
 	</ControlTheme>
 
     <ControlTheme x:Key="PinButtonSmall" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
-        <Setter Property="Padding" Value="4"/>
         <Setter Property="Height" Value="19"/>
         <Setter Property="MinHeight" Value="19"/>
+        <Setter Property="Width" Value="19"/>
         <Setter Property="CornerRadius" Value="3"/>
         <Setter Property="Content">
             <Template>
-                <Viewbox UseLayoutRounding="True">
-                    <Path x:Name="Glyph"
-                          Stretch="UniformToFill"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          FlowDirection="LeftToRight"
-                          Fill="White"
-                          Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z"/>
+                <Viewbox Stretch="Uniform" Width="19" Height="19">
+                    <Canvas Width="24" Height="24">
+                        <Path Fill="White"
+                              Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z">
+                            <Path.RenderTransform>
+                                <TranslateTransform X="0.5" Y="2.5"/>
+                            </Path.RenderTransform>
+                        </Path>
+                    </Canvas>
                 </Viewbox>
             </Template>
         </Setter>
@@ -409,18 +411,18 @@
 	<ControlTheme x:Key="PinButton" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
-		<Setter Property="Padding" Value="0"/>
 		<Setter Property="CornerRadius" Value="20"/>
 		<Setter Property="Content">
 			<Template>
-				<Viewbox UseLayoutRounding="True" Margin="4">
-					<Path x:Name="Glyph"
-						  Stretch="UniformToFill"
-						  HorizontalAlignment="Center"
-						  VerticalAlignment="Center"
-						  FlowDirection="LeftToRight"
-						  Fill="White"
-						  Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z"/>
+				<Viewbox Stretch="Uniform" Width="23" Height="19">
+                    <Canvas Width="24" Height="24">
+                        <Path Fill="White"
+                              Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z">
+                            <Path.RenderTransform>
+                                <TranslateTransform X="3" Y="2.5"/>
+                            </Path.RenderTransform>
+                        </Path>
+                    </Canvas>
 				</Viewbox>
 			</Template>
 		</Setter>
@@ -437,32 +439,27 @@
 		<Setter Property="CornerRadius" Value="20"/>
 		<Setter Property="Content">
 			<Template>
-				<Viewbox UseLayoutRounding="True" Margin="4">
-					<Path x:Name="Glyph"
-					      Stretch="UniformToFill"
-					      HorizontalAlignment="Center"
-					      VerticalAlignment="Center"
-					      Fill="White"
-					      Data="M 5.7474 345.3495 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -64.2463 0 l 156.7472 -156.7458 l -0.0007 64.2456 c 0 1.9898 0.7898 3.8969 2.197 5.304 c 1.4064 1.4064 3.3135 2.1963 5.304 2.197 l 20.0012 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 125.7483 128.8554 C 125.7483 126.8656 124.9578 124.9578 123.5514 123.5514 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 L 1.7508 121.3551 c -1.9891 0.0007 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.304 l 0.0007 20.0005 c 0 2.0704 0.84 3.9457 2.197 5.3026 c 1.3569 1.3569 3.2322 2.197 5.304 2.197 l 64.247 -0.0007 l -156.7472 156.7458 l 0.0007 -64.2456 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -20.0012 0 c -1.9884 0 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.3026 l 0 116.4944 c 0.0007 2.0711 0.84 3.9471 2.197 5.304 c 1.3569 1.3569 3.2329 2.1963 5.304 2.197 l 116.4958 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 5.7474 345.3495 z"/>
-				</Viewbox>
+                <Viewbox Width="13" Height="13" Stretch="Uniform">
+                    <Canvas Width="251.496" Height="251.496">
+                        <Path Fill="White" Data="M243.996,0H127.5c-4.143,0-7.5,3.358-7.5,7.5v20c0,4.142,3.357,7.5,7.5,7.5h64.246L35,191.746 v-64.245c0-4.142-3.358-7.5-7.5-7.5h-20c-4.143,0-7.5,3.358-7.5,7.5v116.494c0,4.142,3.357,7.5,7.5,7.5h116.496 c4.143,0,7.5-3.358,7.5-7.5v-20c0-4.142-3.357-7.5-7.5-7.5H59.75L216.496,59.749v64.246c0,4.142,3.357,7.5,7.5,7.5h20 c4.143,0,7.5-3.358,7.5-7.5V7.5C251.496,3.358,248.139,0,243.996,0z"/>
+                    </Canvas>
+                </Viewbox>
 			</Template>
 		</Setter>
 	</ControlTheme>
 
     <ControlTheme x:Key="CompactViewButtonSmall" BasedOn="{StaticResource Dark}" TargetType="Button">
-        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Padding" Value="2"/>
         <Setter Property="Height" Value="19"/>
         <Setter Property="MinHeight" Value="19"/>
+        <Setter Property="Width" Value="19"/>
         <Setter Property="CornerRadius" Value="3"/>
         <Setter Property="Content">
             <Template>
-                <Viewbox UseLayoutRounding="True">
-                    <Path x:Name="Glyph"
-                          Stretch="UniformToFill"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          Fill="White"
-                          Data="M 5.7474 345.3495 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -64.2463 0 l 156.7472 -156.7458 l -0.0007 64.2456 c 0 1.9898 0.7898 3.8969 2.197 5.304 c 1.4064 1.4064 3.3135 2.1963 5.304 2.197 l 20.0012 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 125.7483 128.8554 C 125.7483 126.8656 124.9578 124.9578 123.5514 123.5514 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 L 1.7508 121.3551 c -1.9891 0.0007 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.304 l 0.0007 20.0005 c 0 2.0704 0.84 3.9457 2.197 5.3026 c 1.3569 1.3569 3.2322 2.197 5.304 2.197 l 64.247 -0.0007 l -156.7472 156.7458 l 0.0007 -64.2456 c -0 -1.9898 -0.7898 -3.8969 -2.197 -5.304 c -1.4064 -1.4064 -3.3135 -2.1963 -5.304 -2.197 l -20.0012 0 c -1.9884 0 -3.8962 0.7905 -5.3026 2.197 c -1.4064 1.4064 -2.197 3.3142 -2.197 5.3026 l 0 116.4944 c 0.0007 2.0711 0.84 3.9471 2.197 5.304 c 1.3569 1.3569 3.2329 2.1963 5.304 2.197 l 116.4958 -0 c 1.9884 -0 3.8962 -0.7905 5.3026 -2.197 c 1.4064 -1.4064 2.197 -3.3142 2.197 -5.3026 L 5.7474 345.3495 z"/>
+                <Viewbox Width="13" Height="13" Stretch="Uniform">
+                    <Canvas Width="251.496" Height="251.496">
+                        <Path Fill="White" Data="M243.996,0H127.5c-4.143,0-7.5,3.358-7.5,7.5v20c0,4.142,3.357,7.5,7.5,7.5h64.246L35,191.746 v-64.245c0-4.142-3.358-7.5-7.5-7.5h-20c-4.143,0-7.5,3.358-7.5,7.5v116.494c0,4.142,3.357,7.5,7.5,7.5h116.496 c4.143,0,7.5-3.358,7.5-7.5v-20c0-4.142-3.357-7.5-7.5-7.5H59.75L216.496,59.749v64.246c0,4.142,3.357,7.5,7.5,7.5h20 c4.143,0,7.5-3.358,7.5-7.5V7.5C251.496,3.358,248.139,0,243.996,0z"/>
+                    </Canvas>
                 </Viewbox>
             </Template>
         </Setter>
