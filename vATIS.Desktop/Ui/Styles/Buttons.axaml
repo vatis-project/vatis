@@ -21,8 +21,8 @@
 					<Button Theme="{StaticResource MinimizeButton}"/>
 					<Button Theme="{StaticResource CompactViewButton}"/>
 					<Button Theme="{StaticResource CloseButton}"/>
-					<Button Theme="{StaticResource SaveButton}"/>
 					<ToggleButton Theme="{StaticResource PinButton}"/>
+                    <ToggleButton Theme="{StaticResource ActionToggle}"/>
 				</StackPanel>
 			</StackPanel>
 		</Border>
@@ -381,6 +381,28 @@
 			<Setter Property="BorderBrush" Value="#dc6d62"/>
 		</Style>
 	</ControlTheme>
+
+    <ControlTheme x:Key="ActionToggle" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Height" Value="19"/>
+        <Setter Property="MinHeight" Value="19"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Width" Value="19"/>
+        <Setter Property="Content">
+            <Template>
+                <Viewbox Width="19" Height="19" Stretch="Uniform">
+                    <Canvas Width="256" Height="256">
+                        <Path Stroke="Transparent" Fill="White"
+                              Data="M156,128a28,28,0,1,1-28-28A28.02769,28.02769,0,0,1,156,128ZM48,100a28,28,0,1,0,28,28A28.02769,28.02769,0,0,0,48,100Zm160,0a28,28,0,1,0,28,28A28.02769,28.02769,0,0,0,208,100Z" />
+                    </Canvas>
+                </Viewbox>
+            </Template>
+        </Setter>
+        <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#C0392B"/>
+            <Setter Property="BorderBrush" Value="#C0392B"/>
+        </Style>
+    </ControlTheme>
 
     <ControlTheme x:Key="PinButtonSmall" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
         <Setter Property="Padding" Value="4"/>
