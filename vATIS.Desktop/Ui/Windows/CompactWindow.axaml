@@ -9,6 +9,11 @@
         mc:Ignorable="d"
         x:Name="Window"
         x:Class="Vatsim.Vatis.Ui.Windows.CompactWindow"
+        KeyDown="OnKeyDown"
+        KeyUp="OnKeyUp"
+        PointerEntered="OnPointerEntered"
+        PointerExited="OnPointerExited"
+        PointerPressed="OnPointerPressed"
         MinHeight="30"
         MinWidth="90"
         MaxWidth="400"
@@ -45,10 +50,7 @@
             BorderBrush="Black"
             BorderThickness="1"
             Background="#323232"
-            ClipToBounds="True"
-            PointerEntered="OnPointerEntered"
-            PointerExited="OnPointerExited"
-            PointerPressed="OnPointerPressed">
+            ClipToBounds="True">
         <Panel ClipToBounds="True">
             <StackPanel Name="WindowControls" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Spacing="3" ZIndex="1" Margin="3" IsVisible="{Binding IsControlsVisible, DataType=vm:CompactWindowViewModel}">
                 <ToggleButton Theme="{StaticResource ActionToggle}" Command="{Binding ToggleMetarDetails, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" IsChecked="{Binding ShowMetarDetails, DataType=vm:CompactWindowTopMostViewModel, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" />
