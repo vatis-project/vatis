@@ -568,6 +568,9 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             // Save changes
                             _sessionManager.CurrentProfile.Stations = updatedStations;
                             _profileRepository.Save(_sessionManager.CurrentProfile);
+
+                            ResetFields();
+                            SelectedAtisStation = null;
                         }
                         catch (Exception ex)
                         {
@@ -679,9 +682,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         }
                         else
                         {
-                            SelectedAtisStation.Name = context.UserValue.Trim();
-                            _profileRepository.Save(_sessionManager.CurrentProfile);
-                            _atisStationSource.Replace(SelectedAtisStation, SelectedAtisStation);
+                            var existing = _atisStationSource.Items.FirstOrDefault(x => x == SelectedAtisStation);
+                            if (existing != null)
+                            {
+                                existing.Name = context.UserValue.Trim();
+                                _profileRepository.Save(_sessionManager.CurrentProfile);
+                                ResetFields();
+                                SelectedAtisStation = null;
+                            }
                         }
                     }
                 };
@@ -853,22 +861,6 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         }
 
         window?.Close();
-
-        // var general = GeneralConfigViewModel?.ApplyConfig();
-        // var presets = PresetsViewModel?.ApplyConfig();
-        // var formatting = FormattingViewModel?.ApplyChanges();
-        // var sandbox = SandboxViewModel?.ApplyConfig();
-        //
-        // if (general != null && presets != null && formatting != null && sandbox != null && general.Value &&
-        //     presets.Value && formatting.Value && sandbox.Value)
-        // {
-        //     if (SelectedAtisStation != null && (HasUnsavedChanges || RequiresDisconnect))
-        //     {
-        //         EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
-        //     }
-        //
-        //     window?.Close();
-        // }
     }
 
     private void HandleApplyChanges()
