@@ -86,6 +86,10 @@ public class SessionManager : ISessionManager
     {
         try
         {
+            var profile = (await _profileRepository.LoadAll()).Find(p => p.Id == profileId);
+            if (profile == null)
+                return;
+
             EndSession();
             await StartSession(profileId);
         }

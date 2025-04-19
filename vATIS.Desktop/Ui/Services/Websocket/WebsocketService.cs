@@ -10,11 +10,12 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using AsyncAwaitBestPractices;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
 using Vatsim.Vatis.Profiles;
+using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using WatsonWebsocket;
 
@@ -26,6 +27,7 @@ namespace Vatsim.Vatis.Ui.Services.Websocket;
 public class WebsocketService : IWebsocketService
 {
     private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
 
     // The websocket server.
     private readonly WatsonWsServer _server;
@@ -37,9 +39,11 @@ public class WebsocketService : IWebsocketService
     /// Initializes a new instance of the <see cref="WebsocketService"/> class.
     /// </summary>
     /// <param name="profileRepository">The profile repository service.</param>
-    public WebsocketService(IProfileRepository profileRepository)
+    /// <param name="sessionManager">The session manager service.</param>
+    public WebsocketService(IProfileRepository profileRepository, ISessionManager sessionManager)
     {
         _profileRepository = profileRepository;
+        _sessionManager = sessionManager;
 
         // The loopback address is used to avoid Windows prompting for firewall permissions
         // when vATIS runs.
@@ -108,7 +112,7 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <summary>
-    /// Sends an ATIS message to a specific session, or to all connected clients if session is null.
+    /// Sends an ATIS message to a specific session or to all connected clients if the session is null.
     /// </summary>
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
@@ -151,7 +155,7 @@ public class WebsocketService : IWebsocketService
     {
         try
         {
-            HandleRequest(e.Client, e.Data);
+            await HandleRequest(e.Client, e.Data);
         }
         catch (TaskCanceledException)
         {
@@ -187,13 +191,13 @@ public class WebsocketService : IWebsocketService
     }
 
     /// <summary>
-    /// Handles a request from a client. Looks at the type property to determine the message type
+    /// Handles a request from a client. It looks at the type property to determine the message type,
     /// then fires the appropriate event with the session and station as parameters.
     /// </summary>
     /// <param name="session">The client that sent the message.</param>
     /// <param name="message">The message.</param>
     /// <exception cref="ArgumentException">Thrown if the type is missing or invalid.</exception>
-    private void HandleRequest(ClientMetadata session, ArraySegment<byte> message)
+    private async Task HandleRequest(ClientMetadata session, ArraySegment<byte> message)
     {
         using var doc = JsonDocument.Parse(message);
         var root = doc.RootElement;
@@ -208,7 +212,13 @@ public class WebsocketService : IWebsocketService
 
         var commandMessageTypes = new HashSet<string>
         {
-            "acknowledgeAtisUpdate", "getAtis", "getProfiles", "getStations", "quit"
+            "acknowledgeAtisUpdate",
+            "getAtis",
+            "getProfiles",
+            "getStations",
+            "getActiveProfile",
+            "getContractions",
+            "quit"
         };
 
         if (commandMessageTypes.Contains(messageType))
@@ -230,10 +240,17 @@ public class WebsocketService : IWebsocketService
                             request.Value?.AtisType));
                     break;
                 case "getProfiles":
-                    HandleGetInstalledProfiles(session).SafeFireAndForget();
+                    await HandleGetInstalledProfiles(session);
                     break;
                 case "getStations":
                     GetStationsReceived(this, new GetStationListReceived(session));
+                    break;
+                case "getActiveProfile":
+                    await HandleGetActiveProfile(session);
+                    break;
+                case "getContractions":
+                    await HandleGetContractions(session, request.Value?.StationId, request.Value?.Station,
+                        request.Value?.AtisType);
                     break;
                 case "quit":
                     ExitApplicationReceived(this, EventArgs.Empty);
@@ -288,6 +305,94 @@ public class WebsocketService : IWebsocketService
         }
     }
 
+    private async Task HandleGetContractions(ClientMetadata? session, string? stationId, string? station,
+        AtisType? atisType)
+    {
+        var currentProfile = _sessionManager.CurrentProfile ?? throw new Exception("No active profile.");
+        if (!string.IsNullOrEmpty(stationId) && !string.IsNullOrEmpty(station))
+            throw new Exception("Cannot provide both Id and Station.");
+
+        var stationsList = currentProfile.Stations;
+        if (stationsList == null)
+            return;
+
+        var resultMessage = new ContractionsResponseMessage { Stations = [] };
+
+        // Case 1: Request for all stations
+        if (string.IsNullOrEmpty(stationId) && string.IsNullOrEmpty(station))
+        {
+            foreach (var s in stationsList)
+            {
+                var contractionsDict = s.Contractions
+                    .Where(c => !string.IsNullOrWhiteSpace(c.VariableName))
+                    .ToDictionary(
+                        c => c.VariableName!,
+                        c => new ContractionsResponseMessage.StationContractions.ContractionDetail
+                        {
+                            Text = c.Text, Voice = c.Voice
+                        });
+
+                resultMessage.Stations.Add(new ContractionsResponseMessage.StationContractions
+                {
+                    Id = s.Id, Name = s.Name, AtisType = s.AtisType, Contractions = contractionsDict
+                });
+            }
+        }
+
+        // Case 2: Request for a specific station
+        else
+        {
+            var targetStation = stationsList.FirstOrDefault(x =>
+                x.Id == stationId ||
+                (x.Identifier.Equals(station, StringComparison.InvariantCultureIgnoreCase) && x.AtisType == atisType));
+
+            if (targetStation == null)
+                return;
+
+            var contractionsDict = targetStation.Contractions
+                .Where(c => !string.IsNullOrWhiteSpace(c.VariableName))
+                .ToDictionary(
+                    c => c.VariableName!,
+                    c => new ContractionsResponseMessage.StationContractions.ContractionDetail
+                    {
+                        Text = c.Text, Voice = c.Voice
+                    });
+
+            resultMessage.Stations.Add(new ContractionsResponseMessage.StationContractions
+            {
+                Id = targetStation.Id,
+                Name = targetStation.Name,
+                AtisType = targetStation.AtisType,
+                Contractions = contractionsDict
+            });
+        }
+
+        var serialized = JsonSerializer.Serialize(resultMessage,
+            SourceGenerationContext.NewDefault.ContractionsResponseMessage);
+
+        if (session is not null)
+            await _server.SendAsync(session.Guid, serialized);
+        else
+            await SendAsync(serialized);
+    }
+
+    private async Task HandleGetActiveProfile(ClientMetadata? session)
+    {
+        var currentProfile = _sessionManager.CurrentProfile ?? throw new Exception("No active profile.");
+        var message = new ActiveProfileMessage { Id = currentProfile.Id, Name = currentProfile.Name };
+
+        if (session is not null)
+        {
+            await _server.SendAsync(session.Guid,
+                JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.ActiveProfileMessage));
+        }
+        else
+        {
+            await SendAsync(JsonSerializer.Serialize(message,
+                SourceGenerationContext.NewDefault.ActiveProfileMessage));
+        }
+    }
+
     private async Task HandleGetInstalledProfiles(ClientMetadata? session)
     {
         var profiles = await _profileRepository.LoadAll();
@@ -328,7 +433,7 @@ public class WebsocketService : IWebsocketService
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"Error closing session {session.Guid}");
+                    Log.Error(ex, "Error closing session {SessionGuid}", session.Guid);
                 }
 
                 return Task.CompletedTask;
@@ -358,7 +463,7 @@ public class WebsocketService : IWebsocketService
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"Error sending message to session {session.Guid}");
+                    Log.Error(ex, "Error sending message to session {SessionGuid}", session.Guid);
                 }
             }));
         }

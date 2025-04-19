@@ -66,6 +66,8 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(DisconnectAtisMessage))]
 [JsonSerializable(typeof(LoadProfileMessage))]
 [JsonSerializable(typeof(InstalledProfilesMessage))]
+[JsonSerializable(typeof(ActiveProfileMessage))]
+[JsonSerializable(typeof(List<ContractionsResponseMessage>))]
 [JsonSerializable(typeof(DigitalAtisRequestDto))]
 [JsonSerializable(typeof(List<DigitalAtisResponseDto>))]
 [JsonSerializable(typeof(JsonElement))]
