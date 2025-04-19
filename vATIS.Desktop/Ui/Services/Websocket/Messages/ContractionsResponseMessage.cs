@@ -10,7 +10,7 @@ using Vatsim.Vatis.Profiles.Models;
 namespace Vatsim.Vatis.Ui.Services.Websocket.Messages;
 
 /// <summary>
-/// Represents a websocket message that returns the contractions for a specific ATIS station.
+/// Represents a websocket message that returns the contractions for ATIS stations.
 /// </summary>
 public class ContractionsResponseMessage
 {
@@ -50,7 +50,7 @@ public class ContractionsResponseMessage
         public AtisType? AtisType { get; set; }
 
         /// <summary>
-        /// Gets or sets the list of contractions.
+        /// Gets or sets the dictionary of contractions, where the key is the contraction identifier.
         /// </summary>
         [JsonPropertyName("contractions")]
         public Dictionary<string, ContractionDetail>? Contractions { get; set; }
