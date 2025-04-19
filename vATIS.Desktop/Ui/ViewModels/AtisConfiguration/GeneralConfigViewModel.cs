@@ -4,12 +4,12 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -17,6 +17,7 @@ using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Utils;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
@@ -28,10 +29,10 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
     private static readonly int[] s_allowedSpeechRates = [120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
+    private readonly ChangeTracker _changeTracker = new();
     private readonly CompositeDisposable _disposables = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
-    private readonly Dictionary<string, (object? OriginalValue, object? CurrentValue)> _fieldHistory;
     private bool _hasUnsavedChanges;
     private int _selectedTabIndex;
     private AtisStation? _selectedStation;
@@ -57,9 +58,13 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     {
         _sessionManager = sessionManager;
         _profileRepository = profileRepository;
-        _fieldHistory = [];
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
+
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        {
+            HasUnsavedChanges = hasUnsavedChanges;
+        }).DisposeWith(_disposables);
 
         _disposables.Add(AtisStationChanged);
 
@@ -69,11 +74,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets the command that is triggered when the ATIS station changes.
+    /// Gets the command triggered when the ATIS station changes.
     /// </summary>
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
 
-     /// <summary>
+    /// <summary>
     /// Gets a value indicating whether there are unsaved changes.
     /// </summary>
     public bool HasUnsavedChanges
@@ -118,7 +123,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _frequency, value);
-            TrackChanges(nameof(Frequency), value);
+            _changeTracker.TrackChange(nameof(Frequency), value);
         }
     }
 
@@ -131,7 +136,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _atisType, value);
-            TrackChanges(nameof(AtisType), value);
+            _changeTracker.TrackChange(nameof(AtisType), value);
         }
     }
 
@@ -144,7 +149,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _codeRangeLow, value);
-            TrackChanges(nameof(CodeRangeLow), value);
+            _changeTracker.TrackChange(nameof(CodeRangeLow), value);
         }
     }
 
@@ -157,7 +162,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _codeRangeHigh, value);
-            TrackChanges(nameof(CodeRangeHigh), value);
+            _changeTracker.TrackChange(nameof(CodeRangeHigh), value);
         }
     }
 
@@ -170,7 +175,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useTextToSpeech, value);
-            TrackChanges(nameof(UseTextToSpeech), value);
+            _changeTracker.TrackChange(nameof(UseTextToSpeech), value);
         }
     }
 
@@ -188,7 +193,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             }
 
             this.RaiseAndSetIfChanged(ref _textToSpeechVoice, value);
-            TrackChanges(nameof(TextToSpeechVoice), value);
+            _changeTracker.TrackChange(nameof(TextToSpeechVoice), value);
         }
     }
 
@@ -201,7 +206,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useDecimalTerminology, value);
-            TrackChanges(nameof(UseDecimalTerminology), value);
+            _changeTracker.TrackChange(nameof(UseDecimalTerminology), value);
         }
     }
 
@@ -214,7 +219,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _idsEndpoint, value);
-            TrackChanges(nameof(IdsEndpoint), value);
+            _changeTracker.TrackChange(nameof(IdsEndpoint), value);
         }
     }
 
@@ -241,12 +246,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedSpeechRate, value);
-            TrackChanges(nameof(SelectedSpeechRate), value);
+            _changeTracker.TrackChange(nameof(SelectedSpeechRate), value);
         }
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to show duplicate ATIS type error.
+    /// Gets or sets a value indicating whether to show a duplicate ATIS type error.
     /// </summary>
     public bool ShowDuplicateAtisTypeError
     {
@@ -274,7 +279,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         UseDecimalTerminology = false;
         UseTextToSpeech = true;
         IdsEndpoint = null;
-        HasUnsavedChanges = false;
+        _changeTracker.ResetChanges();
     }
 
     /// <summary>
@@ -320,10 +325,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedStation.AtisType != AtisType)
         {
             if (_sessionManager.CurrentProfile?.Stations != null &&
-                _sessionManager.CurrentProfile.Stations.Any(
-                    x =>
-                        x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
-                        x.AtisType == AtisType))
+                _sessionManager.CurrentProfile.Stations.Any(x =>
+                    x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
+                    x.AtisType == AtisType))
             {
                 ShowDuplicateAtisTypeError = true;
             }
@@ -388,26 +392,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        // Check if there are unsaved changes before saving
-        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
-
-        // If there are unsaved changes, mark as applied and reset HasUnsavedChanges
-        if (anyChanges)
-        {
-            // Apply changes and reset HasUnsavedChanges
-            foreach (var key in _fieldHistory.Keys.ToList())
-            {
-                var (_, currentValue) = _fieldHistory[key];
-
-                // After applying changes, set the original value to the current value (the saved value)
-                _fieldHistory[key] = (currentValue, currentValue);
-            }
-
-            HasUnsavedChanges = false;
-            return true;
-        }
-
-        return false;
+        return _changeTracker.ApplyChangesIfNeeded();
     }
 
     private void HandleUpdateProperties(AtisStation? station)
@@ -420,7 +405,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         ClearAllErrors();
         ShowDuplicateAtisTypeError = false;
 
-        _fieldHistory.Clear();
+        _changeTracker.ResetChanges();
 
         SelectedTabIndex = -1;
         SelectedStation = station;
@@ -439,78 +424,5 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         SelectedSpeechRate = s_allowedSpeechRates.Contains(station.AtisVoice.SpeechRate)
             ? station.AtisVoice.SpeechRate
             : 180; // Fallback to default speech rate value.
-
-        HasUnsavedChanges = false;
-    }
-
-    private void TrackChanges(string propertyName, object? currentValue)
-    {
-        if (_fieldHistory.TryGetValue(propertyName, out var value))
-        {
-            var (originalValue, _) = value;
-
-            // If the property has been set before, update the current value
-            _fieldHistory[propertyName] = (originalValue, currentValue);
-
-            // Check for unsaved changes after the update
-            CheckForUnsavedChanges();
-        }
-        else
-        {
-            // If this is the first time setting the value, initialize the original value
-            _fieldHistory[propertyName] = (currentValue, currentValue);
-
-            // Check for unsaved changes after the update
-            CheckForUnsavedChanges();
-        }
-    }
-
-    private bool AreValuesEqual(object? originalValue, object? currentValue)
-    {
-        // If both are null, consider them equal
-        if (originalValue == null && currentValue == null)
-            return true;
-
-        // If one is null and the other is not, they are not equal
-        if (originalValue == null || currentValue == null)
-            return false;
-
-        // Handle comparison for nullable types like int?, string?, bool? etc.
-        if (originalValue is string originalStr && currentValue is string currentStr)
-        {
-            return originalStr == currentStr;
-        }
-
-        // Compare nullable int (int?)
-        if (originalValue is int originalInt && currentValue is int currentInt)
-        {
-            return originalInt == currentInt;
-        }
-
-        // Compare nullable bool (bool?)
-        if (originalValue is bool originalBool && currentValue is bool currentBool)
-        {
-            return originalBool == currentBool;
-        }
-
-        if (originalValue is IEnumerable<object> originalEnumerable &&
-            currentValue is IEnumerable<object> currentEnumerable)
-        {
-            return AreListsEqual(originalEnumerable, currentEnumerable);
-        }
-
-        // For non-nullable types (or if types are not specifically handled above), use Equals
-        return originalValue.Equals(currentValue);
-    }
-
-    private bool AreListsEqual(IEnumerable<object> list1, IEnumerable<object> list2)
-    {
-        return list1.SequenceEqual(list2);
-    }
-
-    private void CheckForUnsavedChanges()
-    {
-        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
-        HasUnsavedChanges = anyChanges;
     }
 }

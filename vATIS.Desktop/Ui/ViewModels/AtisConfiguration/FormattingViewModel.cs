@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -20,6 +21,7 @@ using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Controls;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -35,7 +37,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
-    private readonly Dictionary<string, (object? OriginalValue, object? CurrentValue)> _fieldHistory;
+    private readonly ChangeTracker _changeTracker = new();
     private ObservableCollection<string>? _formattingOptions;
     private AtisStation? _selectedStation;
     private bool _hasUnsavedChanges;
@@ -129,8 +131,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _profileRepository = profileRepository;
         _sessionManager = sessionManager;
 
-        _fieldHistory = [];
-
         FormattingOptions = [];
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
@@ -139,6 +139,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         AddTransitionLevelCommand = ReactiveCommand.CreateFromTask(HandleAddTransitionLevel);
         DeleteTransitionLevelCommand =
             ReactiveCommand.CreateFromTask<TransitionLevelMeta>(HandleDeleteTransitionLevel);
+
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        {
+            HasUnsavedChanges = hasUnsavedChanges;
+        }).DisposeWith(_disposables);
 
         _disposables.Add(AtisStationChanged);
         _disposables.Add(TemplateVariableClicked);
@@ -222,7 +227,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _routineObservationTime, value);
-            TrackChanges(nameof(RoutineObservationTime), value);
+            _changeTracker.TrackChange(nameof(RoutineObservationTime), value);
         }
     }
 
@@ -235,7 +240,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _observationTimeTextTemplate, value);
-            TrackChanges(nameof(ObservationTimeTextTemplate), value);
+            _changeTracker.TrackChange(nameof(ObservationTimeTextTemplate), value);
         }
     }
 
@@ -248,7 +253,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _observationTimeVoiceTemplate, value);
-            TrackChanges(nameof(ObservationTimeVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(ObservationTimeVoiceTemplate), value);
         }
     }
 
@@ -261,7 +266,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _speakWindSpeedLeadingZero, value);
-            TrackChanges(nameof(SpeakWindSpeedLeadingZero), value);
+            _changeTracker.TrackChange(nameof(SpeakWindSpeedLeadingZero), value);
         }
     }
 
@@ -274,7 +279,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _magneticVariationEnabled, value);
-            TrackChanges(nameof(MagneticVariationEnabled), value);
+            _changeTracker.TrackChange(nameof(MagneticVariationEnabled), value);
         }
     }
 
@@ -287,7 +292,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _magneticVariationValue, value);
-            TrackChanges(nameof(MagneticVariationValue), value);
+            _changeTracker.TrackChange(nameof(MagneticVariationValue), value);
         }
     }
 
@@ -300,7 +305,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardWindTextTemplate, value);
-            TrackChanges(nameof(StandardWindTextTemplate), value);
+            _changeTracker.TrackChange(nameof(StandardWindTextTemplate), value);
         }
     }
 
@@ -313,7 +318,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardWindVoiceTemplate, value);
-            TrackChanges(nameof(StandardWindVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(StandardWindVoiceTemplate), value);
         }
     }
 
@@ -326,7 +331,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardGustWindTextTemplate, value);
-            TrackChanges(nameof(StandardGustWindTextTemplate), value);
+            _changeTracker.TrackChange(nameof(StandardGustWindTextTemplate), value);
         }
     }
 
@@ -339,7 +344,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _standardGustWindVoiceTemplate, value);
-            TrackChanges(nameof(StandardGustWindVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(StandardGustWindVoiceTemplate), value);
         }
     }
 
@@ -352,7 +357,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableWindTextTemplate, value);
-            TrackChanges(nameof(VariableWindTextTemplate), value);
+            _changeTracker.TrackChange(nameof(VariableWindTextTemplate), value);
         }
     }
 
@@ -365,7 +370,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableWindVoiceTemplate, value);
-            TrackChanges(nameof(VariableWindVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(VariableWindVoiceTemplate), value);
         }
     }
 
@@ -378,7 +383,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableGustWindTextTemplate, value);
-            TrackChanges(nameof(VariableGustWindTextTemplate), value);
+            _changeTracker.TrackChange(nameof(VariableGustWindTextTemplate), value);
         }
     }
 
@@ -391,7 +396,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableGustWindVoiceTemplate, value);
-            TrackChanges(nameof(VariableGustWindVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(VariableGustWindVoiceTemplate), value);
         }
     }
 
@@ -404,7 +409,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableDirectionWindTextTemplate, value);
-            TrackChanges(nameof(VariableDirectionWindTextTemplate), value);
+            _changeTracker.TrackChange(nameof(VariableDirectionWindTextTemplate), value);
         }
     }
 
@@ -417,7 +422,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _variableDirectionWindVoiceTemplate, value);
-            TrackChanges(nameof(VariableDirectionWindVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(VariableDirectionWindVoiceTemplate), value);
         }
     }
 
@@ -430,7 +435,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _calmWindTextTemplate, value);
-            TrackChanges(nameof(CalmWindTextTemplate), value);
+            _changeTracker.TrackChange(nameof(CalmWindTextTemplate), value);
         }
     }
 
@@ -443,7 +448,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _calmWindVoiceTemplate, value);
-            TrackChanges(nameof(CalmWindVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(CalmWindVoiceTemplate), value);
         }
     }
 
@@ -456,7 +461,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _calmWindSpeed, value);
-            TrackChanges(nameof(CalmWindSpeed), value);
+            _changeTracker.TrackChange(nameof(CalmWindSpeed), value);
         }
     }
 
@@ -469,7 +474,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityTextTemplate, value);
-            TrackChanges(nameof(VisibilityTextTemplate), value);
+            _changeTracker.TrackChange(nameof(VisibilityTextTemplate), value);
         }
     }
 
@@ -482,7 +487,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityVoiceTemplate, value);
-            TrackChanges(nameof(VisibilityVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(VisibilityVoiceTemplate), value);
         }
     }
 
@@ -495,7 +500,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _presentWeatherTextTemplate, value);
-            TrackChanges(nameof(PresentWeatherTextTemplate), value);
+            _changeTracker.TrackChange(nameof(PresentWeatherTextTemplate), value);
         }
     }
 
@@ -508,7 +513,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _presentWeatherVoiceTemplate, value);
-            TrackChanges(nameof(PresentWeatherVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(PresentWeatherVoiceTemplate), value);
         }
     }
 
@@ -521,7 +526,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _recentWeatherTextTemplate, value);
-            TrackChanges(nameof(RecentWeatherTextTemplate), value);
+            _changeTracker.TrackChange(nameof(RecentWeatherTextTemplate), value);
         }
     }
 
@@ -534,7 +539,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _recentWeatherVoiceTemplate, value);
-            TrackChanges(nameof(RecentWeatherVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(RecentWeatherVoiceTemplate), value);
         }
     }
 
@@ -547,7 +552,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsTextTemplate, value);
-            TrackChanges(nameof(CloudsTextTemplate), value);
+            _changeTracker.TrackChange(nameof(CloudsTextTemplate), value);
         }
     }
 
@@ -560,7 +565,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsVoiceTemplate, value);
-            TrackChanges(nameof(CloudsVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(CloudsVoiceTemplate), value);
         }
     }
 
@@ -573,7 +578,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureTextTemplate, value);
-            TrackChanges(nameof(TemperatureTextTemplate), value);
+            _changeTracker.TrackChange(nameof(TemperatureTextTemplate), value);
         }
     }
 
@@ -586,7 +591,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureVoiceTemplate, value);
-            TrackChanges(nameof(TemperatureVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(TemperatureVoiceTemplate), value);
         }
     }
 
@@ -599,7 +604,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointTextTemplate, value);
-            TrackChanges(nameof(DewpointTextTemplate), value);
+            _changeTracker.TrackChange(nameof(DewpointTextTemplate), value);
         }
     }
 
@@ -612,7 +617,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointVoiceTemplate, value);
-            TrackChanges(nameof(DewpointVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(DewpointVoiceTemplate), value);
         }
     }
 
@@ -625,7 +630,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _altimeterTextTemplate, value);
-            TrackChanges(nameof(AltimeterTextTemplate), value);
+            _changeTracker.TrackChange(nameof(AltimeterTextTemplate), value);
         }
     }
 
@@ -638,7 +643,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _altimeterVoiceTemplate, value);
-            TrackChanges(nameof(AltimeterVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(AltimeterVoiceTemplate), value);
         }
     }
 
@@ -651,7 +656,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _closingStatementTextTemplate, value);
-            TrackChanges(nameof(ClosingStatementTextTemplate), value);
+            _changeTracker.TrackChange(nameof(ClosingStatementTextTemplate), value);
         }
     }
 
@@ -664,7 +669,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _closingStatementVoiceTemplate, value);
-            TrackChanges(nameof(ClosingStatementVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(ClosingStatementVoiceTemplate), value);
         }
     }
 
@@ -677,7 +682,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _notamsTextTemplate, value);
-            TrackChanges(nameof(NotamsTextTemplate), value);
+            _changeTracker.TrackChange(nameof(NotamsTextTemplate), value);
         }
     }
 
@@ -690,7 +695,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _notamsVoiceTemplate, value);
-            TrackChanges(nameof(NotamsVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(NotamsVoiceTemplate), value);
         }
     }
 
@@ -703,7 +708,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityNorth, value);
-            TrackChanges(nameof(VisibilityNorth), value);
+            _changeTracker.TrackChange(nameof(VisibilityNorth), value);
         }
     }
 
@@ -716,7 +721,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityNorthEast, value);
-            TrackChanges(nameof(VisibilityNorthEast), value);
+            _changeTracker.TrackChange(nameof(VisibilityNorthEast), value);
         }
     }
 
@@ -729,7 +734,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityEast, value);
-            TrackChanges(nameof(VisibilityEast), value);
+            _changeTracker.TrackChange(nameof(VisibilityEast), value);
         }
     }
 
@@ -742,7 +747,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilitySouthEast, value);
-            TrackChanges(nameof(VisibilitySouthEast), value);
+            _changeTracker.TrackChange(nameof(VisibilitySouthEast), value);
         }
     }
 
@@ -755,7 +760,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilitySouth, value);
-            TrackChanges(nameof(VisibilitySouth), value);
+            _changeTracker.TrackChange(nameof(VisibilitySouth), value);
         }
     }
 
@@ -768,7 +773,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilitySouthWest, value);
-            TrackChanges(nameof(VisibilitySouthWest), value);
+            _changeTracker.TrackChange(nameof(VisibilitySouthWest), value);
         }
     }
 
@@ -781,7 +786,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityWest, value);
-            TrackChanges(nameof(VisibilityWest), value);
+            _changeTracker.TrackChange(nameof(VisibilityWest), value);
         }
     }
 
@@ -794,7 +799,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityNorthWest, value);
-            TrackChanges(nameof(VisibilityNorthWest), value);
+            _changeTracker.TrackChange(nameof(VisibilityNorthWest), value);
         }
     }
 
@@ -807,7 +812,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityVoice, value);
-            TrackChanges(nameof(VisibilityUnlimitedVisibilityVoice), value);
+            _changeTracker.TrackChange(nameof(VisibilityUnlimitedVisibilityVoice), value);
         }
     }
 
@@ -820,7 +825,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityText, value);
-            TrackChanges(nameof(VisibilityUnlimitedVisibilityText), value);
+            _changeTracker.TrackChange(nameof(VisibilityUnlimitedVisibilityText), value);
         }
     }
 
@@ -833,7 +838,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityIncludeVisibilitySuffix, value);
-            TrackChanges(nameof(VisibilityIncludeVisibilitySuffix), value);
+            _changeTracker.TrackChange(nameof(VisibilityIncludeVisibilitySuffix), value);
         }
     }
 
@@ -846,7 +851,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _visibilityMetersCutoff, value);
-            TrackChanges(nameof(VisibilityMetersCutoff), value);
+            _changeTracker.TrackChange(nameof(VisibilityMetersCutoff), value);
         }
     }
 
@@ -859,7 +864,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsIdentifyCeilingLayer, value);
-            TrackChanges(nameof(CloudsIdentifyCeilingLayer), value);
+            _changeTracker.TrackChange(nameof(CloudsIdentifyCeilingLayer), value);
         }
     }
 
@@ -872,7 +877,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudsConvertToMetric, value);
-            TrackChanges(nameof(CloudsConvertToMetric), value);
+            _changeTracker.TrackChange(nameof(CloudsConvertToMetric), value);
         }
     }
 
@@ -885,7 +890,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _undeterminedLayerAltitudeText, value);
-            TrackChanges(nameof(UndeterminedLayerAltitudeText), value);
+            _changeTracker.TrackChange(nameof(UndeterminedLayerAltitudeText), value);
         }
     }
 
@@ -898,7 +903,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _undeterminedLayerAltitudeVoice, value);
-            TrackChanges(nameof(UndeterminedLayerAltitudeVoice), value);
+            _changeTracker.TrackChange(nameof(UndeterminedLayerAltitudeVoice), value);
         }
     }
 
@@ -911,7 +916,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _automaticCbDetectionText, value);
-            TrackChanges(nameof(AutomaticCbDetectionText), value);
+            _changeTracker.TrackChange(nameof(AutomaticCbDetectionText), value);
         }
     }
 
@@ -924,7 +929,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _automaticCbDetectionVoice, value);
-            TrackChanges(nameof(AutomaticCbDetectionVoice), value);
+            _changeTracker.TrackChange(nameof(AutomaticCbDetectionVoice), value);
         }
     }
 
@@ -937,7 +942,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _cloudHeightAltitudeInHundreds, value);
-            TrackChanges(nameof(CloudHeightAltitudeInHundreds), value);
+            _changeTracker.TrackChange(nameof(CloudHeightAltitudeInHundreds), value);
         }
     }
 
@@ -950,7 +955,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureUsePlusPrefix, value);
-            TrackChanges(nameof(TemperatureUsePlusPrefix), value);
+            _changeTracker.TrackChange(nameof(TemperatureUsePlusPrefix), value);
         }
     }
 
@@ -963,7 +968,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _temperatureSpeakLeadingZero, value);
-            TrackChanges(nameof(TemperatureSpeakLeadingZero), value);
+            _changeTracker.TrackChange(nameof(TemperatureSpeakLeadingZero), value);
         }
     }
 
@@ -976,7 +981,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointUsePlusPrefix, value);
-            TrackChanges(nameof(DewpointUsePlusPrefix), value);
+            _changeTracker.TrackChange(nameof(DewpointUsePlusPrefix), value);
         }
     }
 
@@ -989,7 +994,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _dewpointSpeakLeadingZero, value);
-            TrackChanges(nameof(DewpointSpeakLeadingZero), value);
+            _changeTracker.TrackChange(nameof(DewpointSpeakLeadingZero), value);
         }
     }
 
@@ -1002,7 +1007,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _altimeterSpeakDecimal, value);
-            TrackChanges(nameof(AltimeterSpeakDecimal), value);
+            _changeTracker.TrackChange(nameof(AltimeterSpeakDecimal), value);
         }
     }
 
@@ -1015,7 +1020,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _closingStatementAutoIncludeClosingStatement, value);
-            TrackChanges(nameof(ClosingStatementAutoIncludeClosingStatement), value);
+            _changeTracker.TrackChange(nameof(ClosingStatementAutoIncludeClosingStatement), value);
         }
     }
 
@@ -1037,7 +1042,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _transitionLevelTextTemplate, value);
-            TrackChanges(nameof(TransitionLevelTextTemplate), value);
+            _changeTracker.TrackChange(nameof(TransitionLevelTextTemplate), value);
         }
     }
 
@@ -1050,7 +1055,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _transitionLevelVoiceTemplate, value);
-            TrackChanges(nameof(TransitionLevelVoiceTemplate), value);
+            _changeTracker.TrackChange(nameof(TransitionLevelVoiceTemplate), value);
         }
     }
 
@@ -1576,26 +1581,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        // Check if there are unsaved changes before saving
-        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
-
-        // If there are unsaved changes, mark as applied and reset HasUnsavedChanges
-        if (anyChanges)
-        {
-            // Apply changes and reset HasUnsavedChanges
-            foreach (var key in _fieldHistory.Keys.ToList())
-            {
-                var (_, currentValue) = _fieldHistory[key];
-
-                // After applying changes, set the original value to the current value (the saved value)
-                _fieldHistory[key] = (currentValue, currentValue);
-            }
-
-            HasUnsavedChanges = false;
-            return true;
-        }
-
-        return false;
+        return _changeTracker.ApplyChangesIfNeeded();
     }
 
     private void HandleAtisStationChanged(AtisStation? station)
@@ -1713,7 +1699,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Track initial PresentWeatherTypes.
-        TrackChanges(nameof(PresentWeatherTypes), PresentWeatherTypes?.Select(item =>
+        _changeTracker.TrackChange(nameof(PresentWeatherTypes), PresentWeatherTypes?.Select(item =>
             new PresentWeatherMeta(item.Key, item.Text, item.Spoken)).ToList());
 
         CloudTypes = [];
@@ -1723,7 +1709,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Track initial CloudTypes.
-        TrackChanges(nameof(CloudTypes), CloudTypes?.Select(item =>
+        _changeTracker.TrackChange(nameof(CloudTypes), CloudTypes?.Select(item =>
             new CloudTypeMeta(item.Acronym, item.Spoken, item.Text)).ToList());
 
         ConvectiveCloudTypes = [];
@@ -1733,7 +1719,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Track initial ConvectiveCloudTypes.
-        TrackChanges(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
+        _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
             new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
 
         TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
@@ -1746,7 +1732,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
 
         // Track initial TransitionLevels.
-        TrackChanges(nameof(TransitionLevels), TransitionLevels?.Select(item =>
+        _changeTracker.TrackChange(nameof(TransitionLevels), TransitionLevels?.Select(item =>
             new TransitionLevelMeta(item.Low, item.High, item.Altitude)).ToList());
 
         if (PresentWeatherTypes != null)
@@ -1878,19 +1864,19 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             switch (e.DataGridName)
             {
                 case nameof(PresentWeatherTypes):
-                    TrackChanges(nameof(PresentWeatherTypes), PresentWeatherTypes?.Select(item =>
+                    _changeTracker.TrackChange(nameof(PresentWeatherTypes), PresentWeatherTypes?.Select(item =>
                         new PresentWeatherMeta(item.Key, item.Text, item.Spoken)).ToList());
                     break;
                 case nameof(CloudTypes):
-                    TrackChanges(nameof(CloudTypes), CloudTypes?.Select(item =>
+                    _changeTracker.TrackChange(nameof(CloudTypes), CloudTypes?.Select(item =>
                         new CloudTypeMeta(item.Acronym, item.Spoken, item.Text)).ToList());
                     break;
                 case nameof(ConvectiveCloudTypes):
-                    TrackChanges(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
+                    _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
                         new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
                     break;
                 case nameof(TransitionLevels):
-                    TrackChanges(nameof(TransitionLevels), TransitionLevels?.Select(item =>
+                    _changeTracker.TrackChange(nameof(TransitionLevels), TransitionLevels?.Select(item =>
                         new TransitionLevelMeta(item.Low, item.High, item.Altitude)).ToList());
                     break;
             }
@@ -1948,76 +1934,5 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         return (PresentWeatherFilterAcronym && weather.Key.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
                (PresentWeatherFilterText && weather.Text.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
                (PresentWeatherFilterSpoken && weather.Spoken.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase));
-    }
-
-    private void TrackChanges(string propertyName, object? currentValue)
-    {
-        if (_fieldHistory.TryGetValue(propertyName, out var value))
-        {
-            var (originalValue, _) = value;
-
-            // If the property has been set before, update the current value
-            _fieldHistory[propertyName] = (originalValue, currentValue);
-
-            // Check for unsaved changes after the update
-            CheckForUnsavedChanges();
-        }
-        else
-        {
-            // If this is the first time setting the value, initialize the original value
-            _fieldHistory[propertyName] = (currentValue, currentValue);
-
-            // Check for unsaved changes after the update
-            CheckForUnsavedChanges();
-        }
-    }
-
-    private bool AreValuesEqual(object? originalValue, object? currentValue)
-    {
-        // If both are null, consider them equal
-        if (originalValue == null && currentValue == null)
-            return true;
-
-        // If one is null and the other is not, they are not equal
-        if (originalValue == null || currentValue == null)
-            return false;
-
-        // Handle comparison for nullable types like int?, string?, bool? etc.
-        if (originalValue is string originalStr && currentValue is string currentStr)
-        {
-            return originalStr == currentStr;
-        }
-
-        // Compare nullable int (int?)
-        if (originalValue is int originalInt && currentValue is int currentInt)
-        {
-            return originalInt == currentInt;
-        }
-
-        // Compare nullable bool (bool?)
-        if (originalValue is bool originalBool && currentValue is bool currentBool)
-        {
-            return originalBool == currentBool;
-        }
-
-        if (originalValue is IEnumerable<object> originalEnumerable &&
-            currentValue is IEnumerable<object> currentEnumerable)
-        {
-            return AreListsEqual(originalEnumerable, currentEnumerable);
-        }
-
-        // For non-nullable types (or if types are not specifically handled above), use Equals
-        return originalValue.Equals(currentValue);
-    }
-
-    private bool AreListsEqual(IEnumerable<object> list1, IEnumerable<object> list2)
-    {
-        return list1.SequenceEqual(list2);
-    }
-
-    private void CheckForUnsavedChanges()
-    {
-        var anyChanges = _fieldHistory.Any(entry => !AreValuesEqual(entry.Value.OriginalValue, entry.Value.CurrentValue));
-        HasUnsavedChanges = anyChanges;
     }
 }
