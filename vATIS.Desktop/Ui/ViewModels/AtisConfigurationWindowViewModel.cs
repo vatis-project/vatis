@@ -22,7 +22,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using Serilog;
-using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.NavData;
@@ -43,7 +42,6 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly IAppConfig _appConfig;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly INavDataRepository _navDataRepository;
@@ -62,14 +60,13 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisConfigurationWindowViewModel"/> class.
     /// </summary>
-    /// <param name="appConfig">The application configuration data.</param>
     /// <param name="sessionManager">The session manager instance.</param>
     /// <param name="windowFactory">The factory used to create application windows.</param>
     /// <param name="viewModelFactory">The factory used to create view models.</param>
     /// <param name="textToSpeechService">The text-to-speech service for the application.</param>
     /// <param name="navDataRepository">The navigation data repository.</param>
     /// <param name="profileRepository">The profile repository for managing user settings and profiles.</param>
-    public AtisConfigurationWindowViewModel(IAppConfig appConfig,
+    public AtisConfigurationWindowViewModel(
         ISessionManager sessionManager,
         IWindowFactory windowFactory,
         IViewModelFactory viewModelFactory,
@@ -77,7 +74,6 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         INavDataRepository navDataRepository,
         IProfileRepository profileRepository)
     {
-        _appConfig = appConfig;
         _sessionManager = sessionManager;
         _windowFactory = windowFactory;
         _viewModelFactory = viewModelFactory;
