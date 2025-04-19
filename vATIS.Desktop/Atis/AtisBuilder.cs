@@ -214,16 +214,31 @@ public class AtisBuilder : IAtisBuilder
 
     private static string RemoveTextParsingCharacters(string text)
     {
-        text = Regex.Replace(text, @"\+([A-Z0-9]{3,4})", "$1"); // remove airports and navaid identifiers prefix
-        text = Regex.Replace(text, @"\s+", " ");
+        // Remove '+' prefix from airport and navaid identifiers (3-4 uppercase letters/numbers)
+        text = Regex.Replace(text, @"\+([A-Z0-9]{3,4})", "$1");
+
+        // Replace multiple spaces/tabs with a single space (preserving line breaks)
+        text = Regex.Replace(text, @"[^\S\r\n]+", " ");
+
+        // Remove '*' prefix before numeric values (e.g., *123 → 123)
         text = Regex.Replace(text, @"(?<=\*)(-?[\,0-9]+)", "$1");
+
+        // Remove '#' prefix before numeric values (e.g., #456 → 456)
         text = Regex.Replace(text, @"(?<=\#)(-?[\,0-9]+)", "$1");
+
+        // Remove curly braces around numeric values (e.g., {789} → 789)
         text = Regex.Replace(text, @"\{(-?[\,0-9]+)\}", "$1");
+
+        // Remove '+' prefix before 3-letter uppercase identifiers (e.g., +ABC → ABC)
         text = Regex.Replace(text, @"(?<=\+)([A-Z]{3})", "$1");
+
+        // Remove '+' prefix before 4-letter uppercase identifiers (e.g., +ABCD → ABCD)
         text = Regex.Replace(text, @"(?<=\+)([A-Z]{4})", "$1");
+
+        // Remove all asterisk '*' characters
         text = Regex.Replace(text, @"\*", "");
 
-        // strip caret from runway parsing
+        // Remove leading caret '^' from runway identifiers (e.g. ^25L → 25L)
         text = Regex.Replace(text, @"(?<![\w\d])\^((?:0?[1-9]|[1-2][0-9]|3[0-6])(?:[LRC]?))(?![\w\d])", "$1");
 
         return text;
@@ -467,6 +482,9 @@ public class AtisBuilder : IAtisBuilder
             closingTemplate = Regex.Replace(closingTemplate, @"{letter\|word}", currentAtisLetter.ToPhonetic());
             template += closingTemplate;
         }
+
+        // Remove text parsing characters
+        template = RemoveTextParsingCharacters(template);
 
         return template;
     }
