@@ -17,6 +17,7 @@ using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
+using Vatsim.Vatis.Utils;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -292,29 +293,28 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         ClearAllErrors();
         ShowDuplicateAtisTypeError = false;
 
-        if (decimal.TryParse(Frequency, CultureInfo.InvariantCulture, out var parsedFrequency))
-        {
-            parsedFrequency = parsedFrequency * 1000 * 1000;
-            if (parsedFrequency is < 118000000 or > 137000000)
-            {
-                SelectedTabIndex = 0;
-                RaiseError(
-                    nameof(Frequency),
-                    "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
-            }
-
-            if (parsedFrequency is >= 0 and <= uint.MaxValue)
-            {
-                if (parsedFrequency != SelectedStation.Frequency)
-                {
-                    SelectedStation.Frequency = (uint)parsedFrequency;
-                }
-            }
-        }
-        else
+        if (string.IsNullOrEmpty(Frequency))
         {
             SelectedTabIndex = 0;
             RaiseError(nameof(Frequency), "Frequency is required.");
+        }
+        else
+        {
+            if (!FrequencyValidator.TryParseMHz(Frequency, out var parsedFrequency, out var error))
+            {
+                if (error != null)
+                {
+                    SelectedTabIndex = 0;
+                    RaiseError(nameof(Frequency), error);
+                }
+            }
+            else
+            {
+                if (parsedFrequency != SelectedStation.Frequency)
+                {
+                    SelectedStation.Frequency = parsedFrequency;
+                }
+            }
         }
 
         if (SelectedStation.AtisType != AtisType)
