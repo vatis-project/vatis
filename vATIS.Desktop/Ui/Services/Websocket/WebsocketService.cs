@@ -10,7 +10,6 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using AsyncAwaitBestPractices;
 using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.WebSocket;
@@ -156,7 +155,7 @@ public class WebsocketService : IWebsocketService
     {
         try
         {
-            HandleRequest(e.Client, e.Data);
+            await HandleRequest(e.Client, e.Data);
         }
         catch (TaskCanceledException)
         {
@@ -198,7 +197,7 @@ public class WebsocketService : IWebsocketService
     /// <param name="session">The client that sent the message.</param>
     /// <param name="message">The message.</param>
     /// <exception cref="ArgumentException">Thrown if the type is missing or invalid.</exception>
-    private void HandleRequest(ClientMetadata session, ArraySegment<byte> message)
+    private async Task HandleRequest(ClientMetadata session, ArraySegment<byte> message)
     {
         using var doc = JsonDocument.Parse(message);
         var root = doc.RootElement;
@@ -241,17 +240,17 @@ public class WebsocketService : IWebsocketService
                             request.Value?.AtisType));
                     break;
                 case "getProfiles":
-                    HandleGetInstalledProfiles(session).SafeFireAndForget();
+                    await HandleGetInstalledProfiles(session);
                     break;
                 case "getStations":
                     GetStationsReceived(this, new GetStationListReceived(session));
                     break;
                 case "getActiveProfile":
-                    HandleGetActiveProfile(session).SafeFireAndForget();
+                    await HandleGetActiveProfile(session);
                     break;
                 case "getContractions":
-                    HandleGetContractions(session, request.Value?.StationId, request.Value?.Station,
-                        request.Value?.AtisType).SafeFireAndForget();
+                    await HandleGetContractions(session, request.Value?.StationId, request.Value?.Station,
+                        request.Value?.AtisType);
                     break;
                 case "quit":
                     ExitApplicationReceived(this, EventArgs.Empty);
@@ -309,10 +308,7 @@ public class WebsocketService : IWebsocketService
     private async Task HandleGetContractions(ClientMetadata? session, string? stationId, string? station,
         AtisType? atisType)
     {
-        var currentProfile = _sessionManager.CurrentProfile;
-        if (currentProfile == null)
-            return;
-
+        var currentProfile = _sessionManager.CurrentProfile ?? throw new Exception("No active profile.");
         if (!string.IsNullOrEmpty(stationId) && !string.IsNullOrEmpty(station))
             throw new Exception("Cannot provide both Id and Station.");
 
@@ -382,21 +378,18 @@ public class WebsocketService : IWebsocketService
 
     private async Task HandleGetActiveProfile(ClientMetadata? session)
     {
-        var currentProfile = _sessionManager.CurrentProfile;
-        if (currentProfile != null)
-        {
-            var message = new ActiveProfileMessage { Id = currentProfile.Id, Name = currentProfile.Name };
+        var currentProfile = _sessionManager.CurrentProfile ?? throw new Exception("No active profile.");
+        var message = new ActiveProfileMessage { Id = currentProfile.Id, Name = currentProfile.Name };
 
-            if (session is not null)
-            {
-                await _server.SendAsync(session.Guid,
-                    JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.ActiveProfileMessage));
-            }
-            else
-            {
-                await SendAsync(JsonSerializer.Serialize(message,
-                    SourceGenerationContext.NewDefault.ActiveProfileMessage));
-            }
+        if (session is not null)
+        {
+            await _server.SendAsync(session.Guid,
+                JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.ActiveProfileMessage));
+        }
+        else
+        {
+            await SendAsync(JsonSerializer.Serialize(message,
+                SourceGenerationContext.NewDefault.ActiveProfileMessage));
         }
     }
 
