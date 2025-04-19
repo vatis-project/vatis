@@ -7,6 +7,7 @@ using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
 using Serilog;
 using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
@@ -23,10 +24,12 @@ public class VoiceServerConnection : IVoiceServerConnection
     private const string ClientName = "vATIS";
     private const string VoiceServerUrl = "https://voice1.vatsim.net";
     private static readonly TimeSpan s_tokenRefreshInterval = TimeSpan.FromMinutes(55);
+    private static readonly TimeSpan s_heartbeatInterval = TimeSpan.FromSeconds(30);
 
     private readonly IDownloader _downloader;
     private readonly IAppConfig _appConfig;
     private Timer? _refreshTokenTimer;
+    private Timer? _heartbeatTimer;
     private string? _jwtToken;
 
     /// <summary>
@@ -80,7 +83,14 @@ public class VoiceServerConnection : IVoiceServerConnection
                 cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            Log.Information($"AddOrUpdateBot successful for {callsign}.");
+            if (_heartbeatTimer != null)
+            {
+                await _heartbeatTimer.DisposeAsync();
+            }
+
+            _heartbeatTimer = new Timer(HeartbeatTimerCallback, callsign, s_heartbeatInterval, s_heartbeatInterval);
+
+            Log.Information("AddOrUpdateBot: {Callsign}", callsign);
         }
         catch (OperationCanceledException)
         {
@@ -88,8 +98,8 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "AddOrUpdateBot failed for callsign {Callsign}", callsign);
-            throw new AtisBuilderException("AddOrUpdateBot action failed: " + ex.Message);
+            Log.Error(ex, "AddOrUpdateBot Failed: {Callsign}", callsign);
+            throw new AtisBuilderException("AddOrUpdateBot Failed: " + ex.Message);
         }
     }
 
@@ -105,12 +115,55 @@ public class VoiceServerConnection : IVoiceServerConnection
         try
         {
             await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken, cancellationToken);
-            Log.Information($"RemoveBot successful for {callsign}.");
+            Log.Information("RemoveBot: {Callsign}", callsign);
+
+            if (_heartbeatTimer != null)
+            {
+                await _heartbeatTimer.DisposeAsync();
+                _heartbeatTimer = null;
+            }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "RemoveBot failed for callsign {Callsign}", callsign);
-            throw new AtisBuilderException("RemoveBot action failed: " + ex.Message);
+            Log.Error(ex, "RemoveBot Failed: {Callsign}", callsign);
+            throw new AtisBuilderException("RemoveBot Failed: " + ex.Message);
+        }
+    }
+
+    private void HeartbeatTimerCallback(object? state)
+    {
+        if (state is string callsign)
+        {
+            SendHeartbeatAsync(callsign).SafeFireAndForget(onException: exception =>
+            {
+                Log.Error(exception, "SendHeartbeatAsync failed");
+            });
+        }
+    }
+
+    private async Task SendHeartbeatAsync(string callsign)
+    {
+        if (_jwtToken == null)
+            await Authenticate();
+
+        if (_jwtToken == null)
+            return;
+
+        try
+        {
+            var response = await _downloader.GetAsync($"{VoiceServerUrl}/api/v1/bots/{callsign}/heartbeat", _jwtToken);
+            if (response.IsSuccessStatusCode)
+            {
+                Log.Information("Heartbeat: {Callsign}", callsign);
+            }
+            else
+            {
+                Log.Warning("Heartbeat failed for {Callsign} – {StatusCode}", callsign, response.StatusCode);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "SendHeartbeatAsync failed for callsign {Callsign}", callsign);
         }
     }
 
@@ -144,17 +197,17 @@ public class VoiceServerConnection : IVoiceServerConnection
 
     private void RefreshTokenCallback(object? state)
     {
-        _ = Task.Run(async () =>
+        try
         {
-            try
+            RefreshToken().SafeFireAndForget(onException: exception =>
             {
-                await RefreshToken();
-                Log.Debug("Voice server token refreshed.");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to refresh voice server token.");
-            }
-        });
+                Log.Error(exception, "RefreshToken Failed");
+            });
+            Log.Information("Voice server auth token refreshed.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to refresh voice server auth token.");
+        }
     }
 }

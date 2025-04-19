@@ -20,8 +20,10 @@ public interface IDownloader
     /// Performs an HTTP GET request to the specified URL.
     /// </summary>
     /// <param name="url">The URL to request.</param>
+    /// <param name="jwtToken">Optional JWT bearer token that will be sent as an <c>Authorized</c> header.
+    /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <returns>A task representing the asynchronous operation, containing the HTTP response message.</returns>
-    Task<HttpResponseMessage> GetAsync(string url);
+    Task<HttpResponseMessage> GetAsync(string url, string? jwtToken = null);
 
     /// <summary>
     /// Downloads the content of the specified URL as a string.
@@ -52,7 +54,8 @@ public interface IDownloader
     /// </summary>
     /// <param name="url">The URL to download.</param>
     /// <param name="jsonContent">The JSON content to post.</param>
-    /// <param name="jwtToken">The JWT token to include in the request header.</param>
+    /// <param name="jwtToken">Optional JWT bearer token that will be sent as an <c>Authorized</c> header.
+    /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation, containing the downloaded stream.</returns>
     Task<HttpResponseMessage> PostJsonResponse(
@@ -67,7 +70,8 @@ public interface IDownloader
     /// </summary>
     /// <param name="url">The URL to download.</param>
     /// <param name="jsonContent">The JSON content to post.</param>
-    /// <param name="jwtToken">The JWT token to include in the request header.</param>
+    /// <param name="jwtToken">Optional JWT bearer token that will be sent as an <c>Authorized</c> header.
+    /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation, containing the downloaded stream.</returns>
     Task PostJson(string url, string jsonContent, string? jwtToken = null, CancellationToken? cancellationToken = null);
@@ -76,7 +80,8 @@ public interface IDownloader
     /// Send a DELETE request to the specified URL.
     /// </summary>
     /// <param name="url">The URL to request.</param>
-    /// <param name="jwtToken">The JWT token to include in the request header.</param>
+    /// <param name="jwtToken">Optional JWT bearer token that will be sent as an <c>Authorized</c> header.
+    /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task Delete(string url, string? jwtToken = null, CancellationToken? cancellationToken = null);
@@ -86,7 +91,8 @@ public interface IDownloader
     /// </summary>
     /// <param name="url">The URL to request.</param>
     /// <param name="jsonContent">The JSON content to send.</param>
-    /// <param name="jwtToken">The JWT token to include in the request header.</param>
+    /// <param name="jwtToken">Optional JWT bearer token that will be sent as an <c>Authorized</c> header.
+    /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task<HttpResponseMessage> PutJson(
