@@ -83,6 +83,11 @@ public class VoiceServerConnection : IVoiceServerConnection
                 cancellationToken);
             response.EnsureSuccessStatusCode();
 
+            if (_heartbeatTimer != null)
+            {
+                await _heartbeatTimer.DisposeAsync();
+            }
+
             _heartbeatTimer = new Timer(HeartbeatTimerCallback, callsign, s_heartbeatInterval, s_heartbeatInterval);
 
             Log.Information($"AddOrUpdateBot: {callsign}");
