@@ -651,6 +651,9 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         if (SelectedAtisStation == null)
             return;
 
+        if (_sessionManager.CurrentProfile == null)
+            return;
+
         if (_dialogOwner == null)
             return;
 
@@ -681,15 +684,8 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         else
                         {
                             SelectedAtisStation.Name = context.UserValue.Trim();
-                            _appConfig.SaveConfig();
-                            _atisStationSource.Edit(list =>
-                            {
-                                var item = list.FirstOrDefault(x => x.Id == SelectedAtisStation.Id);
-                                if (item != null)
-                                {
-                                    item.Name = context.UserValue.Trim();
-                                }
-                            });
+                            _profileRepository.Save(_sessionManager.CurrentProfile);
+                            _atisStationSource.Replace(SelectedAtisStation, SelectedAtisStation);
                         }
                     }
                 };
