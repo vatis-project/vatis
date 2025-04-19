@@ -854,9 +854,8 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             (formatting.HasValue && formatting.Value))
         {
             EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
+            window?.Close();
         }
-
-        window?.Close();
     }
 
     private void HandleApplyChanges()
