@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -748,6 +749,21 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             context.RaiseError("StationName", "Name is required.");
                         }
 
+                        decimal parsedFrequency = 0;
+                        if (string.IsNullOrEmpty(context.Frequency))
+                        {
+                            context.RaiseError("Frequency", "Frequency is required.");
+                        }
+                        else if (decimal.TryParse(context.Frequency, CultureInfo.InvariantCulture, out parsedFrequency))
+                        {
+                            parsedFrequency = parsedFrequency * 1000 * 1000;
+                            if (parsedFrequency is < 118000000 or > 137000000)
+                            {
+                                context.RaiseError("Frequency",
+                                    "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
+                            }
+                        }
+
                         if (context.HasErrors) return;
 
                         if (_atisStationSource.Items.Any(x =>
@@ -784,6 +800,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             {
                                 Identifier = context.AirportIdentifier,
                                 Name = context.StationName,
+                                Frequency = (uint)parsedFrequency,
                                 AtisType = context.AtisType
                             };
                             _sessionManager.CurrentProfile.Stations.Add(station);

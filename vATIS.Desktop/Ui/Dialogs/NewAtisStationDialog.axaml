@@ -3,8 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
-		xmlns:profiles="using:Vatsim.Vatis.Profiles"
-		xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
 		xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
 		xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
 		mc:Ignorable="d"
@@ -80,6 +79,15 @@
 						</Interaction.Behaviors>
 					</TextBox>
 				</StackPanel>
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Frequency:"/>
+                    <TextBox Name="Frequency" Text="{Binding Frequency, DataType=vm:NewAtisStationDialogViewModel}" Theme="{StaticResource DarkTextBox}">
+                        <Interaction.Behaviors>
+                            <behaviors:VhfFrequencyFormatBehavior/>
+                            <behaviors:SelectAllTextOnFocusBehavior/>
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </StackPanel>
 				<StackPanel Spacing="5">
 					<TextBlock Text="ATIS Type:"/>
 					<StackPanel Orientation="Horizontal" Spacing="15">
