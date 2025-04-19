@@ -90,7 +90,7 @@ public class VoiceServerConnection : IVoiceServerConnection
 
             _heartbeatTimer = new Timer(HeartbeatTimerCallback, callsign, s_heartbeatInterval, s_heartbeatInterval);
 
-            Log.Information($"AddOrUpdateBot: {callsign}");
+            Log.Information("AddOrUpdateBot: {Callsign}", callsign);
         }
         catch (OperationCanceledException)
         {
@@ -98,7 +98,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"AddOrUpdateBot Failed: {callsign}");
+            Log.Error(ex, "AddOrUpdateBot Failed: {Callsign}", callsign);
             throw new AtisBuilderException("AddOrUpdateBot Failed: " + ex.Message);
         }
     }
@@ -115,7 +115,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         try
         {
             await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken, cancellationToken);
-            Log.Information($"RemoveBot: {callsign}");
+            Log.Information("RemoveBot: {Callsign}", callsign);
 
             if (_heartbeatTimer != null)
             {
@@ -125,7 +125,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"RemoveBot Failed: {callsign}");
+            Log.Error(ex, "RemoveBot Failed: {Callsign}", callsign);
             throw new AtisBuilderException("RemoveBot Failed: " + ex.Message);
         }
     }
@@ -163,7 +163,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"SendHeartbeatAsync failed for callsign {callsign}");
+            Log.Error(ex, "SendHeartbeatAsync failed for callsign {Callsign}", callsign);
         }
     }
 
