@@ -723,6 +723,9 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         if (_dialogOwner == null)
             return;
 
+        if (_sessionManager.CurrentProfile == null)
+            return;
+
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             if (lifetime.MainWindow == null)
@@ -799,9 +802,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                                 context.ClearErrors("Duplicate");
                                 context.OkButtonCommand.Execute(dialog).Subscribe();
 
-                                _sessionManager.CurrentProfile?.Stations?.RemoveAll(x =>
+                                var existing = _sessionManager.CurrentProfile.Stations?.FirstOrDefault(x =>
                                     x.Identifier == context.AirportIdentifier && x.AtisType == context.AtisType);
-                                _appConfig.SaveConfig();
+                                if (existing != null)
+                                {
+                                    _atisStationSource.Remove(existing);
+                                    _sessionManager.CurrentProfile.Stations?.Remove(existing);
+                                    EventBus.Instance.Publish(new AtisStationDeleted(existing.Id));
+                                }
                             }
                             else
                             {
@@ -809,23 +817,20 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             }
                         }
 
-                        if (_sessionManager.CurrentProfile?.Stations != null)
+                        var station = new AtisStation()
                         {
-                            var station = new AtisStation()
-                            {
-                                Identifier = context.AirportIdentifier,
-                                Name = context.StationName,
-                                Frequency = (uint)parsedFrequency,
-                                AtisType = context.AtisType
-                            };
-                            _sessionManager.CurrentProfile.Stations.Add(station);
-                            _profileRepository.Save(_sessionManager.CurrentProfile);
+                            Identifier = context.AirportIdentifier,
+                            Name = context.StationName,
+                            Frequency = (uint)parsedFrequency,
+                            AtisType = context.AtisType
+                        };
+                        _sessionManager.CurrentProfile.Stations?.Add(station);
+                        _profileRepository.Save(_sessionManager.CurrentProfile);
 
-                            _atisStationSource.Add(station);
-                            SelectedAtisStation = station;
+                        _atisStationSource.Add(station);
+                        SelectedAtisStation = station;
 
-                            EventBus.Instance.Publish(new AtisStationAdded(station.Id));
-                        }
+                        EventBus.Instance.Publish(new AtisStationAdded(station.Id));
                     }
                 };
                 await dialog.ShowDialog((Window)_dialogOwner);
