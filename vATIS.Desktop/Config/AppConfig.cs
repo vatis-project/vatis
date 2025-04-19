@@ -41,6 +41,9 @@ public class AppConfig : IAppConfig
     public bool CompactWindowAlwaysOnTop { get; set; }
 
     /// <inheritdoc />
+    public bool CompactWindowShowMetarDetails { get; set; }
+
+    /// <inheritdoc />
     public WindowPosition? MainWindowPosition { get; set; }
 
     /// <inheritdoc />
@@ -97,6 +100,7 @@ public class AppConfig : IAppConfig
             SuppressNotificationSound = config.SuppressNotificationSound;
             AlwaysOnTop = config.AlwaysOnTop;
             CompactWindowAlwaysOnTop = config.CompactWindowAlwaysOnTop;
+            CompactWindowShowMetarDetails = config.CompactWindowShowMetarDetails;
             MainWindowPosition = config.MainWindowPosition;
             CompactWindowPosition = config.CompactWindowPosition;
             ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;

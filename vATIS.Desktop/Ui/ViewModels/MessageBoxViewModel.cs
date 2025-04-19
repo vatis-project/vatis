@@ -26,6 +26,7 @@ public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
     private bool _isYesVisible;
     private bool _isNoVisible;
     private bool _isCancelVisible;
+    private bool _centerWindowOnScreen;
     private string? _iconPath;
 
     /// <summary>
@@ -162,6 +163,15 @@ public class MessageBoxViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _iconPath;
         set => this.RaiseAndSetIfChanged(ref _iconPath, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the dialog show be centered on the screen.
+    /// </summary>
+    public bool CenterWindowOnScreen
+    {
+        get => _centerWindowOnScreen;
+        set => this.RaiseAndSetIfChanged(ref _centerWindowOnScreen, value);
     }
 
     /// <inheritdoc />

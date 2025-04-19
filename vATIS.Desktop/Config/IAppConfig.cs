@@ -53,6 +53,11 @@ public interface IAppConfig
     bool CompactWindowAlwaysOnTop { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the compact window should show the full METAR details.
+    /// </summary>
+    bool CompactWindowShowMetarDetails { get; set; }
+
+    /// <summary>
     /// Gets a value indicating whether the configuration is required.
     /// </summary>
     bool ConfigRequired { get; }

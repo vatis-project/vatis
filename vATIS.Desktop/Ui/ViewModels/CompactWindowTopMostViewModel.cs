@@ -20,10 +20,12 @@ public class CompactWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
 
     private IAppConfig? _appConfig;
     private bool _isTopMost;
+    private bool _showMetarDetails;
 
     private CompactWindowTopMostViewModel()
     {
         ToggleIsTopMost = ReactiveCommand.Create(HandleToggleIsTopMost);
+        ToggleMetarDetails = ReactiveCommand.Create(HandleToggleMetarDetails);
     }
 
     /// <summary>
@@ -37,12 +39,27 @@ public class CompactWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<Unit, Unit> ToggleIsTopMost { get; private set; }
 
     /// <summary>
+    /// Gets the command that toggles the display of the METAR details (wind and altimeter) in the compact window.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ToggleMetarDetails { get; private set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the compact window is displayed as the topmost window.
     /// </summary>
     public bool IsTopMost
     {
         get => _isTopMost;
         set => this.RaiseAndSetIfChanged(ref _isTopMost, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the METAR details (wind and altimeter) are displayed in
+    /// the compact window. If false, only the station ID and ATIS letter are shown.
+    /// </summary>
+    public bool ShowMetarDetails
+    {
+        get => _showMetarDetails;
+        set => this.RaiseAndSetIfChanged(ref _showMetarDetails, value);
     }
 
     /// <summary>
@@ -53,12 +70,14 @@ public class CompactWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
     {
         _appConfig = appConfig;
         IsTopMost = _appConfig.CompactWindowAlwaysOnTop;
+        ShowMetarDetails = _appConfig.CompactWindowShowMetarDetails;
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        ToggleIsTopMost?.Dispose();
+        ToggleIsTopMost.Dispose();
+        ToggleMetarDetails.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -70,6 +89,17 @@ public class CompactWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
         if (_appConfig != null)
         {
             _appConfig.CompactWindowAlwaysOnTop = IsTopMost;
+            _appConfig.SaveConfig();
+        }
+    }
+
+    private void HandleToggleMetarDetails()
+    {
+        ShowMetarDetails = !ShowMetarDetails;
+
+        if (_appConfig != null)
+        {
+            _appConfig.CompactWindowShowMetarDetails = ShowMetarDetails;
             _appConfig.SaveConfig();
         }
     }

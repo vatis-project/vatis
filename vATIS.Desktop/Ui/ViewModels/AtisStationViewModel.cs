@@ -362,7 +362,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }));
         _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ =>
         {
-            _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType));
+            SubscribeToAtis();
         }));
         _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ =>
         {
@@ -725,6 +725,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         // Set network connection status as disconnected
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+    }
+
+    /// <summary>
+    /// Subscribes to ATIS on hub server.
+    /// </summary>
+    public void SubscribeToAtis()
+    {
+        _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType));
     }
 
     /// <inheritdoc />
@@ -1270,7 +1278,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (e.CallsignInuse)
             {
                 // Subscribe to ATIS again if we were disconnected due to duplicate callsign
-                _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType));
+                SubscribeToAtis();
             }
         });
     }
@@ -1402,6 +1410,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <returns>A task.</returns>
     private async Task PublishAtisToWebsocket(ClientMetadata? session = null)
     {
+        var airportConditions = await Dispatcher.UIThread.InvokeAsync(() => AirportConditionsTextDocument?.Text);
+        var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
+
         await _websocketService.SendAtisMessageAsync(session,
             new AtisMessage.AtisMessageValue
             {
@@ -1413,6 +1424,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Wind = Wind?.Trim(),
                 Altimeter = Altimeter?.Trim(),
                 TextAtis = AtisStation.TextAtis,
+                AirportConditions = airportConditions?.Trim(),
+                Notams = notams?.Trim(),
                 IsNewAtis = IsNewAtis,
                 NetworkConnectionStatus = NetworkConnectionStatus,
                 Pressure = _decodedMetar?.Pressure?.Value ?? null,
