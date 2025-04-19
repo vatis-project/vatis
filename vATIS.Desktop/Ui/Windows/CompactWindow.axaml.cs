@@ -20,6 +20,8 @@ namespace Vatsim.Vatis.Ui.Windows;
 /// </summary>
 public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICloseable, IDialogOwner
 {
+    private bool _isPointerInside;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CompactWindow"/> class with the specified view model.
     /// </summary>
@@ -120,20 +122,40 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
         }
         else
         {
-            // Keep default alignment when fully visible
+            // Keep the default alignment when fully visible
             WindowControls.HorizontalAlignment = HorizontalAlignment.Right;
         }
     }
 
     private void OnPointerEntered(object? sender, PointerEventArgs e)
     {
-        if (ViewModel != null)
+        _isPointerInside = true;
+
+        if (ViewModel != null && e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             ViewModel.IsControlsVisible = true;
         }
     }
 
     private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        _isPointerInside = false;
+
+        if (ViewModel != null)
+        {
+            ViewModel.IsControlsVisible = false;
+        }
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (ViewModel != null && e.KeyModifiers.HasFlag(KeyModifiers.Control) && _isPointerInside)
+        {
+            ViewModel.IsControlsVisible = true;
+        }
+    }
+
+    private void OnKeyUp(object? sender, KeyEventArgs e)
     {
         if (ViewModel != null)
         {
