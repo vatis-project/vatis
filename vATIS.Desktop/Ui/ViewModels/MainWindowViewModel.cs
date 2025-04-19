@@ -13,6 +13,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -176,7 +177,10 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             var station = _atisStationSource.Items.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null)
             {
-                _ = station.Disconnect();
+                if (station.NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+                {
+                    station.Disconnect().SafeFireAndForget();
+                }
 
                 _disposables.Remove(station);
                 _atisStationSource.Remove(station);
@@ -185,6 +189,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 if (updatedStation != null)
                 {
                     var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(updatedStation);
+                    atisStationViewModel.SubscribeToAtis();
                     _disposables.Add(atisStationViewModel);
                     _atisStationSource.Add(atisStationViewModel);
                 }
