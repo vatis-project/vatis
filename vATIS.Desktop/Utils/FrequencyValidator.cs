@@ -7,6 +7,11 @@ namespace Vatsim.Vatis.Utils;
 /// </summary>
 public static class FrequencyValidator
 {
+    private const string InvalidFormatError = "Invalid frequency format.";
+
+    private const string InvalidRangeError =
+        "Invalid frequency format. The accepted frequency range is 118.000–137.000 MHz.";
+
     /// <summary>
     /// Tries to parse a frequency string in MHz and validate it falls within the VHF aviation range.
     /// </summary>
@@ -21,7 +26,7 @@ public static class FrequencyValidator
 
         if (!decimal.TryParse(input, CultureInfo.InvariantCulture, out var mhz))
         {
-            error = "Invalid frequency format.";
+            error = InvalidFormatError;
             return false;
         }
 
@@ -29,7 +34,7 @@ public static class FrequencyValidator
 
         if (parsedHz is < 118_000_000 or > 137_000_000)
         {
-            error = "Invalid frequency format. The accepted frequency range is 118.000–137.000 MHz.";
+            error = InvalidRangeError;
             return false;
         }
 
