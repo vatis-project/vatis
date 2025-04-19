@@ -151,8 +151,15 @@ public class VoiceServerConnection : IVoiceServerConnection
 
         try
         {
-            await _downloader.GetAsync($"{VoiceServerUrl}/api/v1/bots/{callsign}/heartbeat", _jwtToken);
-            Log.Information($"Heartbeat: {callsign}");
+            var response = await _downloader.GetAsync($"{VoiceServerUrl}/api/v1/bots/{callsign}/heartbeat", _jwtToken);
+            if (response.IsSuccessStatusCode)
+            {
+                Log.Information("Heartbeat: {Callsign}", callsign);
+            }
+            else
+            {
+                Log.Warning("Heartbeat failed for {Callsign} – {StatusCode}", callsign, response.StatusCode);
+            }
         }
         catch (Exception ex)
         {
