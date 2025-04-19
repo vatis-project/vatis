@@ -417,6 +417,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
+        ClearAllErrors();
+        ShowDuplicateAtisTypeError = false;
+
         _fieldHistory.Clear();
 
         SelectedTabIndex = -1;
