@@ -598,6 +598,9 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             if (_dialogOwner == null)
                 return;
 
+            if (_sessionManager.CurrentProfile == null)
+                return;
+
             var filters = new List<FilePickerFileType> { new("ATIS Station (*.station)") { Patterns = ["*.station"] } };
             var files = await FilePickerExtensions.OpenFilePickerAsync(filters, "Import ATIS Station");
 
@@ -621,7 +624,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                                 "Confirm",
                                 MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
                         {
-                            _sessionManager.CurrentProfile?.Stations?.RemoveAll(x =>
+                            _sessionManager.CurrentProfile.Stations.RemoveAll(x =>
                                 x.Identifier == station.Identifier && x.AtisType == station.AtisType);
                         }
                         else
@@ -630,8 +633,8 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         }
                     }
 
-                    _sessionManager.CurrentProfile?.Stations?.Add(station);
-                    _appConfig.SaveConfig();
+                    _sessionManager.CurrentProfile.Stations.Add(station);
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
                     _atisStationSource.Add(station);
                     EventBus.Instance.Publish(new AtisStationAdded(station.Id));
                 }
