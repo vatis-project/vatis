@@ -285,13 +285,13 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Applies the general configuration settings for the current session and validates the input data.
     /// </summary>
-    /// <returns>
-    /// A boolean value indicating whether the configuration was successfully applied.
-    /// </returns>
-    public bool ApplyConfig()
+    /// <param name="hasErrors">A value indicating whether there are errors.</param>
+    /// <returns>A boolean value indicating whether the configuration was successfully applied.</returns>
+    public bool ApplyConfig(out bool hasErrors)
     {
         if (SelectedStation == null)
         {
+            hasErrors = false;
             return false;
         }
 
@@ -384,6 +384,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 
         if (HasErrors || ShowDuplicateAtisTypeError)
         {
+            hasErrors = true;
             return false;
         }
 
@@ -392,6 +393,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
+        hasErrors = false;
         return _changeTracker.ApplyChangesIfNeeded();
     }
 

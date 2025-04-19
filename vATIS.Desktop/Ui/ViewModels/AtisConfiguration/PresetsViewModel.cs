@@ -392,13 +392,13 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Applies the configuration changes for the currently selected preset and updates the session profile if applicable.
     /// </summary>
-    /// <returns>
-    /// A boolean value indicating whether the configuration was successfully applied. Returns true if successful; otherwise, false.
-    /// </returns>
-    public bool ApplyConfig()
+    /// <param name="hasErrors">A value indicating whether there are errors.</param>
+    /// <returns>A boolean value indicating whether the configuration was successfully applied.</returns>
+    public bool ApplyConfig(out bool hasErrors)
     {
         if (SelectedPreset == null)
         {
+            hasErrors = false;
             return false;
         }
 
@@ -450,6 +450,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 
         if (HasErrors)
         {
+            hasErrors = true;
             return false;
         }
 
@@ -458,6 +459,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
+        hasErrors = false;
         return _changeTracker.ApplyChangesIfNeeded();
     }
 

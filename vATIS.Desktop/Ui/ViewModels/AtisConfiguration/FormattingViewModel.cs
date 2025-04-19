@@ -1154,14 +1154,14 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Applies pending, unsaved changes.
-    /// </summary>
+    /// <summary>Applies pending, unsaved changes.</summary>
+    /// <param name="hasErrors">A value indicating whether there are errors.</param>
     /// <returns>A value indicating whether changes are applied.</returns>
-    public bool ApplyChanges()
+    public bool ApplyChanges(out bool hasErrors)
     {
         if (SelectedStation == null)
         {
+            hasErrors = false;
             return false;
         }
 
@@ -1176,17 +1176,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 {
                     if (value < 0 || value > 59)
                     {
-                        RaiseError(
-                            nameof(RoutineObservationTime),
+                        RaiseError(nameof(RoutineObservationTime),
                             "Invalid routine observation time. Time values must between 0 and 59.");
+                        hasErrors = true;
                         return false;
                     }
 
                     if (observationTimes.Contains(value))
                     {
-                        RaiseError(
-                            nameof(RoutineObservationTime),
-                            "Duplicate routine observation time values.");
+                        RaiseError(nameof(RoutineObservationTime), "Duplicate routine observation time values.");
+                        hasErrors = true;
                         return false;
                     }
 
@@ -1573,6 +1572,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
         if (HasErrors)
         {
+            hasErrors = true;
             return false;
         }
 
@@ -1581,6 +1581,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
+        hasErrors = false;
         return _changeTracker.ApplyChangesIfNeeded();
     }
 

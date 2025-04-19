@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -846,23 +845,30 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             return;
         }
 
-        var general = GeneralConfigViewModel?.ApplyConfig();
-        var presets = PresetsViewModel?.ApplyConfig();
-        var formatting = FormattingViewModel?.ApplyChanges();
+        var hasGeneralErrors = false;
+        var hasPresetsErrors = false;
+        var hasFormattingErrors = false;
+        var general = GeneralConfigViewModel?.ApplyConfig(out hasGeneralErrors);
+        var presets = PresetsViewModel?.ApplyConfig(out hasPresetsErrors);
+        var formatting = FormattingViewModel?.ApplyChanges(out hasFormattingErrors);
 
         if ((general.HasValue && general.Value) || (presets.HasValue && presets.Value) ||
             (formatting.HasValue && formatting.Value))
         {
             EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
+        }
+
+        if (!hasGeneralErrors && !hasPresetsErrors && !hasFormattingErrors)
+        {
             window?.Close();
         }
     }
 
     private void HandleApplyChanges()
     {
-        GeneralConfigViewModel?.ApplyConfig();
-        PresetsViewModel?.ApplyConfig();
-        FormattingViewModel?.ApplyChanges();
+        GeneralConfigViewModel?.ApplyConfig(out _);
+        PresetsViewModel?.ApplyConfig(out _);
+        FormattingViewModel?.ApplyChanges(out _);
         SandboxViewModel?.ApplyConfig();
         RequiresDisconnect = true;
     }
