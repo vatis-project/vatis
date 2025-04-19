@@ -52,6 +52,19 @@ public partial class MessageBoxView : Window, ICloseable
     {
         if (DataContext is MessageBoxViewModel { Owner: not null } viewModel)
         {
+            if (viewModel.CenterWindowOnScreen)
+            {
+                var screen = Screens.ScreenFromVisual(this) ?? Screens.Primary;
+                if (screen != null)
+                {
+                    var screenBounds = screen.WorkingArea;
+                    Position = new PixelPoint(
+                        (int)(screenBounds.X + ((screenBounds.Width - Width) / 2)),
+                        (int)(screenBounds.Y + ((screenBounds.Height - Height) / 2)));
+                    return;
+                }
+            }
+
             var owner = viewModel.Owner;
             var ownerPosition = owner.Position;
 
