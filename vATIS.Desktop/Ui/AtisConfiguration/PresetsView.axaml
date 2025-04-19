@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
-             xmlns:controls="using:Vatsim.Vatis.Ui.Controls"
              xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
              xmlns:converters="clr-namespace:Vatsim.Vatis.Ui.Converters"
@@ -211,7 +210,7 @@
                     </ScrollViewer.Styles>
                     <StackPanel Orientation="Vertical" Spacing="5">
                         <StackPanel Spacing="5">
-						    <TextBlock Text="Text ATIS URL:" ToolTip.Tip="The URL used for generating the text ATIS."/>
+						    <TextBlock Text="Text ATIS URL:" ToolTip.Tip="The URL used to generate the text ATIS."/>
 						    <TextBox Text="{Binding ExternalGeneratorTextUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 							    <Interaction.Behaviors>
 								    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -219,7 +218,7 @@
 						    </TextBox>
 					    </StackPanel>
                         <StackPanel Spacing="5">
-                            <TextBlock Text="Voice ATIS URL:" ToolTip.Tip="The URL used for generating the voice ATIS."/>
+                            <TextBlock Text="Voice ATIS URL:" ToolTip.Tip="The URL used to generate the voice ATIS. If you don't have a separate URL, use the same URL as the text ATIS."/>
                             <TextBox Text="{Binding ExternalGeneratorVoiceUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
                                 <Interaction.Behaviors>
                                     <behaviors:SelectAllTextOnFocusBehavior/>
