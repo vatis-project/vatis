@@ -7,6 +7,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
+using Vatsim.Vatis.Events;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
@@ -23,12 +24,27 @@ public class DataGridCellEndEditBehavior : Behavior<DataGrid>
         AvaloniaProperty.Register<DataGridCellEndEditBehavior, ICommand?>(nameof(Command));
 
     /// <summary>
+    /// Identifies the name of the DataGrid from which this command is executed from.
+    /// </summary>
+    public static readonly StyledProperty<string> DataGridNameProperty =
+        AvaloniaProperty.Register<DataGridCellEndEditBehavior, string>(nameof(DataGridName));
+
+    /// <summary>
     /// Gets or sets the command to be executed when cell editing ends in a DataGrid control.
     /// </summary>
     public ICommand? Command
     {
         get => GetValue(CommandProperty);
         set => SetValue(CommandProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the name of the DataGrid.
+    /// </summary>
+    public string DataGridName
+    {
+        get => GetValue(DataGridNameProperty);
+        set => SetValue(DataGridNameProperty, value);
     }
 
     /// <inheritdoc/>
@@ -55,6 +71,7 @@ public class DataGridCellEndEditBehavior : Behavior<DataGrid>
 
     private void AssociatedObjectOnCellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
     {
-        Command?.Execute(e);
+        var args = new DataGridCellEndEditEventArgEx(DataGridName, e);
+        Command?.Execute(args);
     }
 }

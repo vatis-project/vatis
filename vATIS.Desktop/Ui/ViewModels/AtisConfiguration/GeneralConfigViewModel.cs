@@ -4,12 +4,12 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -17,6 +17,8 @@ using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
+using Vatsim.Vatis.Ui.Common;
+using Vatsim.Vatis.Utils;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -27,8 +29,8 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 {
     private static readonly int[] s_allowedSpeechRates = [120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
+    private readonly ChangeTracker _changeTracker = new();
     private readonly CompositeDisposable _disposables = [];
-    private readonly HashSet<string> _initializedProperties = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private bool _hasUnsavedChanges;
@@ -59,6 +61,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
 
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        {
+            HasUnsavedChanges = hasUnsavedChanges;
+        }).DisposeWith(_disposables);
+
         _disposables.Add(AtisStationChanged);
 
         ProfileSerialNumber = _sessionManager.CurrentProfile?.UpdateSerial != null
@@ -67,11 +74,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets the command that is triggered when the ATIS station changes.
+    /// Gets the command triggered when the ATIS station changes.
     /// </summary>
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
 
-     /// <summary>
+    /// <summary>
     /// Gets a value indicating whether there are unsaved changes.
     /// </summary>
     public bool HasUnsavedChanges
@@ -116,10 +123,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _frequency, value);
-            if (!_initializedProperties.Add(nameof(Frequency)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(Frequency), value);
         }
     }
 
@@ -132,10 +136,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _atisType, value);
-            if (!_initializedProperties.Add(nameof(AtisType)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(AtisType), value);
         }
     }
 
@@ -148,10 +149,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _codeRangeLow, value);
-            if (!_initializedProperties.Add(nameof(CodeRangeLow)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(CodeRangeLow), value);
         }
     }
 
@@ -164,10 +162,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _codeRangeHigh, value);
-            if (!_initializedProperties.Add(nameof(CodeRangeHigh)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(CodeRangeHigh), value);
         }
     }
 
@@ -180,10 +175,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useTextToSpeech, value);
-            if (!_initializedProperties.Add(nameof(UseTextToSpeech)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(UseTextToSpeech), value);
         }
     }
 
@@ -201,10 +193,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             }
 
             this.RaiseAndSetIfChanged(ref _textToSpeechVoice, value);
-            if (!_initializedProperties.Add(nameof(TextToSpeechVoice)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(TextToSpeechVoice), value);
         }
     }
 
@@ -217,10 +206,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useDecimalTerminology, value);
-            if (!_initializedProperties.Add(nameof(UseDecimalTerminology)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(UseDecimalTerminology), value);
         }
     }
 
@@ -233,10 +219,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _idsEndpoint, value);
-            if (!_initializedProperties.Add(nameof(IdsEndpoint)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(IdsEndpoint), value);
         }
     }
 
@@ -263,15 +246,12 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedSpeechRate, value);
-            if (!_initializedProperties.Add(nameof(SelectedSpeechRate)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(SelectedSpeechRate), value);
         }
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to show duplicate ATIS type error.
+    /// Gets or sets a value indicating whether to show a duplicate ATIS type error.
     /// </summary>
     public bool ShowDuplicateAtisTypeError
     {
@@ -299,57 +279,55 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         UseDecimalTerminology = false;
         UseTextToSpeech = true;
         IdsEndpoint = null;
-        HasUnsavedChanges = false;
+        _changeTracker.ResetChanges();
     }
 
     /// <summary>
     /// Applies the general configuration settings for the current session and validates the input data.
     /// </summary>
-    /// <returns>
-    /// A boolean value indicating whether the configuration was successfully applied.
-    /// </returns>
-    public bool ApplyConfig()
+    /// <param name="hasErrors">A value indicating whether there are errors.</param>
+    /// <returns>A boolean value indicating whether the configuration was successfully applied.</returns>
+    public bool ApplyConfig(out bool hasErrors)
     {
         if (SelectedStation == null)
         {
-            return true;
+            hasErrors = false;
+            return false;
         }
 
         ClearAllErrors();
         ShowDuplicateAtisTypeError = false;
 
-        if (decimal.TryParse(Frequency, CultureInfo.InvariantCulture, out var parsedFrequency))
-        {
-            parsedFrequency = parsedFrequency * 1000 * 1000;
-            if (parsedFrequency is < 118000000 or > 137000000)
-            {
-                SelectedTabIndex = 0;
-                RaiseError(
-                    nameof(Frequency),
-                    "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
-            }
-
-            if (parsedFrequency is >= 0 and <= uint.MaxValue)
-            {
-                if (parsedFrequency != SelectedStation.Frequency)
-                {
-                    SelectedStation.Frequency = (uint)parsedFrequency;
-                }
-            }
-        }
-        else
+        if (string.IsNullOrEmpty(Frequency))
         {
             SelectedTabIndex = 0;
             RaiseError(nameof(Frequency), "Frequency is required.");
+        }
+        else
+        {
+            if (!FrequencyValidator.TryParseMHz(Frequency, out var parsedFrequency, out var error))
+            {
+                if (error != null)
+                {
+                    SelectedTabIndex = 0;
+                    RaiseError(nameof(Frequency), error);
+                }
+            }
+            else
+            {
+                if (parsedFrequency != SelectedStation.Frequency)
+                {
+                    SelectedStation.Frequency = parsedFrequency;
+                }
+            }
         }
 
         if (SelectedStation.AtisType != AtisType)
         {
             if (_sessionManager.CurrentProfile?.Stations != null &&
-                _sessionManager.CurrentProfile.Stations.Any(
-                    x =>
-                        x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
-                        x.AtisType == AtisType))
+                _sessionManager.CurrentProfile.Stations.Any(x =>
+                    x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
+                    x.AtisType == AtisType))
             {
                 ShowDuplicateAtisTypeError = true;
             }
@@ -406,6 +384,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 
         if (HasErrors || ShowDuplicateAtisTypeError)
         {
+            hasErrors = true;
             return false;
         }
 
@@ -414,8 +393,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        HasUnsavedChanges = false;
-        return true;
+        hasErrors = false;
+        return _changeTracker.ApplyChangesIfNeeded();
     }
 
     private void HandleUpdateProperties(AtisStation? station)
@@ -425,7 +404,10 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        _initializedProperties.Clear();
+        ClearAllErrors();
+        ShowDuplicateAtisTypeError = false;
+
+        _changeTracker.ResetChanges();
 
         SelectedTabIndex = -1;
         SelectedStation = station;
@@ -444,7 +426,5 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         SelectedSpeechRate = s_allowedSpeechRates.Contains(station.AtisVoice.SpeechRate)
             ? station.AtisVoice.SpeechRate
             : 180; // Fallback to default speech rate value.
-
-        HasUnsavedChanges = false;
     }
 }

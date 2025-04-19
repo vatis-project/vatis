@@ -709,15 +709,15 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         }
         else
         {
-            if (!string.IsNullOrEmpty(_previousFreeTextNotams))
+            var freeText = !string.IsNullOrEmpty(_previousFreeTextNotams)
+                ? _previousFreeTextNotams.Trim()
+                : SelectedPreset.Notams?.Trim();
+
+            if (!string.IsNullOrEmpty(freeText))
             {
-                NotamsTextDocument.Insert(0, _previousFreeTextNotams.Trim() + " ");
-                _notamFreeTextOffset = _previousFreeTextNotams.Trim().Length + 1;
-            }
-            else if (!string.IsNullOrEmpty(SelectedPreset.Notams))
-            {
-                NotamsTextDocument.Insert(0, SelectedPreset.Notams.Trim() + " ");
-                _notamFreeTextOffset = SelectedPreset.Notams.Trim().Length + 1;
+                var addSpace = staticDefinitions.Count > 0;
+                NotamsTextDocument.Insert(0, freeText + (addSpace ? " " : ""));
+                _notamFreeTextOffset = freeText.Length + (addSpace ? 1 : 0);
             }
 
             // Insert static definitions after free-text
@@ -801,15 +801,15 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         }
         else
         {
-            if (!string.IsNullOrEmpty(_previousFreeTextAirportConditions))
+            var freeText = !string.IsNullOrEmpty(_previousFreeTextAirportConditions)
+                ? _previousFreeTextAirportConditions.Trim()
+                : SelectedPreset.AirportConditions?.Trim();
+
+            if (!string.IsNullOrEmpty(freeText))
             {
-                AirportConditionsTextDocument.Insert(0, _previousFreeTextAirportConditions.Trim() + " ");
-                _airportConditionsFreeTextOffset = _previousFreeTextAirportConditions.Trim().Length + 1;
-            }
-            else if (!string.IsNullOrEmpty(SelectedPreset.AirportConditions))
-            {
-                AirportConditionsTextDocument.Insert(0, SelectedPreset.AirportConditions.Trim() + " ");
-                _airportConditionsFreeTextOffset = SelectedPreset.AirportConditions.Trim().Length + 1;
+                var addSpace = staticDefinitions.Count > 0;
+                AirportConditionsTextDocument.Insert(0, freeText + (addSpace ? " " : ""));
+                _airportConditionsFreeTextOffset = freeText.Length + (addSpace ? 1 : 0);
             }
 
             // Insert static definitions after free-text

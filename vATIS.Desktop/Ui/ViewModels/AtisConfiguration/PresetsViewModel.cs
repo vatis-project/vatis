@@ -9,13 +9,13 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using AvaloniaEdit.CodeCompletion;
-using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
 using Serilog;
@@ -26,6 +26,7 @@ using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Controls;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -40,31 +41,31 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// </summary>
 public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 {
-    private readonly HashSet<string> _initializedProperties = [];
     private readonly IMetarRepository _metarRepository;
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly IAtisBuilder _atisBuilder;
     private readonly CompositeDisposable _disposables = [];
+    private readonly ChangeTracker _changeTracker = new();
     private bool _hasUnsavedChanges;
     private ObservableCollection<AtisPreset>? _presets;
     private List<ICompletionData> _contractionCompletionData = new();
     private AtisStation? _selectedStation;
     private AtisPreset? _selectedPreset;
     private bool _useExternalAtisGenerator;
-    private string? _externalGeneratorTextUrl;
-    private string? _externalGeneratorVoiceUrl;
-    private string? _externalGeneratorArrivalRunways;
-    private string? _externalGeneratorDepartureRunways;
-    private string? _externalGeneratorApproaches;
-    private string? _externalGeneratorRemarks;
+    private string _externalGeneratorTextUrl = string.Empty;
+    private string _externalGeneratorVoiceUrl = string.Empty;
+    private string _externalGeneratorArrivalRunways = string.Empty;
+    private string _externalGeneratorDepartureRunways = string.Empty;
+    private string _externalGeneratorApproaches = string.Empty;
+    private string _externalGeneratorRemarks = string.Empty;
     private string? _externalGeneratorSandboxResponseText;
     private string? _externalGeneratorSandboxResponseVoice;
     private bool _isSandboxPlaybackActive;
     private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceResponse;
     private CancellationTokenSource _externalGeneratorCancellationTokenSource = new();
-    private TextDocument? _atisTemplateTextDocument = new();
+    private string _atisTemplateText = string.Empty;
     private string? _sandboxMetar;
 
     /// <summary>
@@ -101,6 +102,11 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         GenerateSandboxAtisCommand = ReactiveCommand.CreateFromTask(HandleGenerateSandboxAtis);
         PlaySandboxVoiceAtisCommand = ReactiveCommand.Create(HandlePlaySandboxVoiceAtis, this.WhenAnyValue(
             x => x.AtisBuilderVoiceResponse, resp => resp?.AudioBytes != null));
+
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        {
+            HasUnsavedChanges = hasUnsavedChanges;
+        }).DisposeWith(_disposables);
 
         _disposables.Add(AtisStationChanged);
         _disposables.Add(SelectedPresetChanged);
@@ -236,106 +242,85 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useExternalAtisGenerator, value);
-            if (!_initializedProperties.Add(nameof(UseExternalAtisGenerator)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(UseExternalAtisGenerator), value);
         }
     }
 
     /// <summary>
     /// Gets or sets the URL for generating the text ATIS string.
     /// </summary>
-    public string? ExternalGeneratorTextUrl
+    public string ExternalGeneratorTextUrl
     {
         get => _externalGeneratorTextUrl;
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorTextUrl, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorTextUrl)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(ExternalGeneratorTextUrl), value);
         }
     }
 
     /// <summary>
     /// Gets or sets the URL for generating the voice ATIS string.
     /// </summary>
-    public string? ExternalGeneratorVoiceUrl
+    public string ExternalGeneratorVoiceUrl
     {
         get => _externalGeneratorVoiceUrl;
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorVoiceUrl, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorVoiceUrl)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(ExternalGeneratorVoiceUrl), value);
         }
     }
 
     /// <summary>
     /// Gets or sets the external generator arrival runways.
     /// </summary>
-    public string? ExternalGeneratorArrivalRunways
+    public string ExternalGeneratorArrivalRunways
     {
         get => _externalGeneratorArrivalRunways;
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorArrivalRunways, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorArrivalRunways)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(ExternalGeneratorArrivalRunways), value);
         }
     }
 
     /// <summary>
     /// Gets or sets the external generator departure runways.
     /// </summary>
-    public string? ExternalGeneratorDepartureRunways
+    public string ExternalGeneratorDepartureRunways
     {
         get => _externalGeneratorDepartureRunways;
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorDepartureRunways, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorDepartureRunways)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(ExternalGeneratorDepartureRunways), value);
         }
     }
 
     /// <summary>
     /// Gets or sets the external generator approaches.
     /// </summary>
-    public string? ExternalGeneratorApproaches
+    public string ExternalGeneratorApproaches
     {
         get => _externalGeneratorApproaches;
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorApproaches, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorApproaches)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(ExternalGeneratorApproaches), value);
         }
     }
 
     /// <summary>
     /// Gets or sets the external generator remarks.
     /// </summary>
-    public string? ExternalGeneratorRemarks
+    public string ExternalGeneratorRemarks
     {
         get => _externalGeneratorRemarks;
         set
         {
             this.RaiseAndSetIfChanged(ref _externalGeneratorRemarks, value);
-            if (!_initializedProperties.Add(nameof(ExternalGeneratorRemarks)))
-            {
-                HasUnsavedChanges = true;
-            }
+            _changeTracker.TrackChange(nameof(ExternalGeneratorRemarks), value);
         }
     }
 
@@ -358,21 +343,16 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the ATIS template text.
+    /// Gets or sets the ATIS template text document.
     /// </summary>
     public string AtisTemplateText
     {
-        get => _atisTemplateTextDocument?.Text ?? string.Empty;
-        set => AtisTemplateTextDocument = new TextDocument(value);
-    }
-
-    /// <summary>
-    /// Gets or sets the ATIS template text document.
-    /// </summary>
-    public TextDocument? AtisTemplateTextDocument
-    {
-        get => _atisTemplateTextDocument;
-        set => this.RaiseAndSetIfChanged(ref _atisTemplateTextDocument, value);
+        get => _atisTemplateText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _atisTemplateText, value);
+            _changeTracker.TrackChange(nameof(AtisTemplateText), value);
+        }
     }
 
     /// <summary>
@@ -412,14 +392,14 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Applies the configuration changes for the currently selected preset and updates the session profile if applicable.
     /// </summary>
-    /// <returns>
-    /// A boolean value indicating whether the configuration was successfully applied. Returns true if successful; otherwise, false.
-    /// </returns>
-    public bool ApplyConfig()
+    /// <param name="hasErrors">A value indicating whether there are errors.</param>
+    /// <returns>A boolean value indicating whether the configuration was successfully applied.</returns>
+    public bool ApplyConfig(out bool hasErrors)
     {
         if (SelectedPreset == null)
         {
-            return true;
+            hasErrors = false;
+            return false;
         }
 
         IsSandboxPlaybackActive = false;
@@ -470,6 +450,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
 
         if (HasErrors)
         {
+            hasErrors = true;
             return false;
         }
 
@@ -478,9 +459,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        HasUnsavedChanges = false;
-
-        return true;
+        hasErrors = false;
+        return _changeTracker.ApplyChangesIfNeeded();
     }
 
     private static void HandleTemplateVariableClicked(string? variable)
@@ -521,10 +501,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        var metar = await _metarRepository.GetMetar(
-            SelectedStation.Identifier,
-            false,
-            false);
+        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, false, false);
         SandboxMetar = metar?.RawMetar;
     }
 
@@ -539,6 +516,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             AtisBuilderVoiceResponse = null;
 
             await _externalGeneratorCancellationTokenSource.CancelAsync();
+            _externalGeneratorCancellationTokenSource.Dispose();
             _externalGeneratorCancellationTokenSource = new CancellationTokenSource();
             var localToken = _externalGeneratorCancellationTokenSource;
 
@@ -771,8 +749,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
                         }
                         else
                         {
-                            if (SelectedStation.Presets.Any(
-                                    x => x.Name == context.UserValue && x != SelectedPreset))
+                            if (SelectedStation.Presets.Any(x => x.Name == context.UserValue && x != SelectedPreset))
                             {
                                 context.SetError(
                                     "Another preset already exists with that name. Please choose a new name.");
@@ -804,27 +781,21 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        SelectedPreset = preset;
+        _changeTracker.ResetChanges();
 
-        UseExternalAtisGenerator = false;
-        ExternalGeneratorTextUrl = null;
-        ExternalGeneratorVoiceUrl = null;
-        ExternalGeneratorArrivalRunways = null;
-        ExternalGeneratorDepartureRunways = null;
-        ExternalGeneratorApproaches = null;
-        ExternalGeneratorRemarks = null;
+        SelectedPreset = preset;
         ExternalGeneratorSandboxResponseText = null;
         AtisTemplateText = SelectedPreset?.Template ?? string.Empty;
 
         if (SelectedPreset?.ExternalGenerator != null)
         {
             UseExternalAtisGenerator = SelectedPreset.ExternalGenerator.Enabled;
-            ExternalGeneratorVoiceUrl = SelectedPreset.ExternalGenerator.VoiceUrl;
-            ExternalGeneratorTextUrl = SelectedPreset.ExternalGenerator.TextUrl;
-            ExternalGeneratorArrivalRunways = SelectedPreset.ExternalGenerator.Arrival;
-            ExternalGeneratorDepartureRunways = SelectedPreset.ExternalGenerator.Departure;
-            ExternalGeneratorApproaches = SelectedPreset.ExternalGenerator.Approaches;
-            ExternalGeneratorRemarks = SelectedPreset.ExternalGenerator.Remarks;
+            ExternalGeneratorVoiceUrl = SelectedPreset.ExternalGenerator.VoiceUrl ?? "";
+            ExternalGeneratorTextUrl = SelectedPreset.ExternalGenerator.TextUrl ?? "";
+            ExternalGeneratorArrivalRunways = SelectedPreset.ExternalGenerator.Arrival ?? "";
+            ExternalGeneratorDepartureRunways = SelectedPreset.ExternalGenerator.Departure ?? "";
+            ExternalGeneratorApproaches = SelectedPreset.ExternalGenerator.Approaches ?? "";
+            ExternalGeneratorRemarks = SelectedPreset.ExternalGenerator.Remarks ?? "";
         }
 
         HasUnsavedChanges = false;
@@ -913,7 +884,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             AtisTemplateText = string.Empty;
             Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
             EventBus.Instance.Publish(new StationPresetsChanged(SelectedStation.Id));
-            HasUnsavedChanges = false;
+            _changeTracker.ResetChanges();
         }
     }
 
@@ -928,21 +899,21 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         Presets = new ObservableCollection<AtisPreset>(station.Presets);
         UseExternalAtisGenerator = false;
         SandboxMetar = null;
-        ExternalGeneratorTextUrl = null;
-        ExternalGeneratorArrivalRunways = null;
-        ExternalGeneratorDepartureRunways = null;
-        ExternalGeneratorApproaches = null;
-        ExternalGeneratorRemarks = null;
+        AtisTemplateText = "";
+        ExternalGeneratorTextUrl = "";
+        ExternalGeneratorArrivalRunways = "";
+        ExternalGeneratorDepartureRunways = "";
+        ExternalGeneratorApproaches = "";
+        ExternalGeneratorRemarks = "";
         ExternalGeneratorSandboxResponseText = null;
         ExternalGeneratorSandboxResponseVoice = null;
-        AtisTemplateText = string.Empty;
 
         IsSandboxPlaybackActive = false;
         NativeAudio.StopBufferPlayback();
 
         PopulateContractions();
 
-        HasUnsavedChanges = false;
+        _changeTracker.ResetChanges();
     }
 
     private void PopulateContractions()

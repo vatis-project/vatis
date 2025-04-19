@@ -47,7 +47,7 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         _appConfig = appConfig;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
-        CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEditEndingEventArgs>(HandleCellEditEnding);
+        CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEndEditEventArgEx>(HandleCellEditEnding);
         NewContractionCommand = ReactiveCommand.CreateFromTask(HandleNewContraction);
         DeleteContractionCommand = ReactiveCommand.CreateFromTask<ContractionMeta>(HandleDeleteContraction);
 
@@ -70,7 +70,7 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the command executed when a cell edit operation is ending in the data grid.
     /// </summary>
-    public ReactiveCommand<DataGridCellEditEndingEventArgs, Unit> CellEditEndingCommand { get; }
+    public ReactiveCommand<DataGridCellEndEditEventArgEx, Unit> CellEditEndingCommand { get; }
 
     /// <summary>
     /// Gets the command used to add a new contraction.
@@ -245,11 +245,14 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void HandleCellEditEnding(DataGridCellEditEndingEventArgs e)
+    private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
     {
-        if (e.EditAction == DataGridEditAction.Commit)
+        if (SelectedStation == null)
+            return;
+
+        if (e.Args.EditAction == DataGridEditAction.Commit)
         {
-            HasUnsavedChanges = true;
+            EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
         }
     }
 }

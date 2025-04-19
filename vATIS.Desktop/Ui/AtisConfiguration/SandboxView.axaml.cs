@@ -138,7 +138,22 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
             if (!AirportConditions.TextArea.IsFocused)
                 return;
 
-            vm.HasUnsavedAirportConditions = true;
+            var readonlySegment = vm.ReadOnlyAirportConditions.FirstSegment;
+            string userText;
+
+            if (readonlySegment != null)
+            {
+                userText = readonlySegment.StartOffset == 0
+                    ? AirportConditions.Text[readonlySegment.EndOffset..].TrimEnd()
+                    : AirportConditions.Text[..readonlySegment.StartOffset].TrimEnd();
+            }
+            else
+            {
+                userText = AirportConditions.Text.TrimEnd();
+            }
+
+            var presetText = vm.SelectedPreset.AirportConditions?.TrimEnd() ?? "";
+            vm.HasUnsavedAirportConditions = !string.Equals(presetText, userText, StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -152,7 +167,22 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
             if (!NotamFreeText.TextArea.IsFocused)
                 return;
 
-            vm.HasUnsavedNotams = true;
+            var readonlySegment = vm.ReadOnlyNotams.FirstSegment;
+            string userText;
+
+            if (readonlySegment != null)
+            {
+                userText = readonlySegment.StartOffset == 0
+                    ? NotamFreeText.Text[readonlySegment.EndOffset..].TrimEnd()
+                    : NotamFreeText.Text[..readonlySegment.StartOffset].TrimEnd();
+            }
+            else
+            {
+                userText = NotamFreeText.Text.TrimEnd();
+            }
+
+            var presetText = vm.SelectedPreset.Notams?.TrimEnd() ?? "";
+            vm.HasUnsavedNotams = !string.Equals(presetText, userText, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

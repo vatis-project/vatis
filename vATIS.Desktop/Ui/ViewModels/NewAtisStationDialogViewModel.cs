@@ -19,6 +19,7 @@ public class NewAtisStationDialogViewModel : ReactiveViewModelBase, IDisposable
     private DialogResult _dialogResult;
     private string? _airportIdentifier;
     private string? _stationName;
+    private string? _frequency;
     private AtisType _atisType = AtisType.Combined;
 
     /// <summary>
@@ -70,6 +71,15 @@ public class NewAtisStationDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _stationName;
         set => this.RaiseAndSetIfChanged(ref _stationName, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the frequency of the ATIS station.
+    /// </summary>
+    public string? Frequency
+    {
+        get => _frequency;
+        set => this.RaiseAndSetIfChanged(ref _frequency, value);
     }
 
     /// <summary>
