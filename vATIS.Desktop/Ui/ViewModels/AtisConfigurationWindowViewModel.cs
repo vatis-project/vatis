@@ -402,7 +402,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
             EventBus.Instance.Publish(new AtisStationDeleted(SelectedAtisStation.Id));
             _sessionManager.CurrentProfile.Stations.Remove(SelectedAtisStation);
-            _appConfig.SaveConfig();
+            _profileRepository.Save(_sessionManager.CurrentProfile);
             _atisStationSource.Remove(SelectedAtisStation);
             SelectedAtisStation = null;
             ResetFields();
