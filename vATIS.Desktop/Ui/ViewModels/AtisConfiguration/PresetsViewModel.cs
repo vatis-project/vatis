@@ -516,6 +516,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             AtisBuilderVoiceResponse = null;
 
             await _externalGeneratorCancellationTokenSource.CancelAsync();
+            _externalGeneratorCancellationTokenSource.Dispose();
             _externalGeneratorCancellationTokenSource = new CancellationTokenSource();
             var localToken = _externalGeneratorCancellationTokenSource;
 
