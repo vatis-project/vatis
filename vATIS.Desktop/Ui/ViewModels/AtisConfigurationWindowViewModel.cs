@@ -455,18 +455,16 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             context.RaiseError("StationName", "Name is required.");
                         }
 
-                        decimal parsedFrequency = 0;
+                        uint parsedFrequency = 0;
                         if (string.IsNullOrEmpty(context.Frequency))
                         {
                             context.RaiseError("Frequency", "Frequency is required.");
                         }
-                        else if (decimal.TryParse(context.Frequency, CultureInfo.InvariantCulture, out parsedFrequency))
+                        else if (!FrequencyValidator.TryParseMHz(context.Frequency, out parsedFrequency, out var error))
                         {
-                            parsedFrequency = parsedFrequency * 1000 * 1000;
-                            if (parsedFrequency is < 118000000 or > 137000000)
+                            if (error != null)
                             {
-                                context.RaiseError("Frequency",
-                                    "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
+                                context.RaiseError("Frequency", error);
                             }
                         }
 
@@ -491,7 +489,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             clone.Identifier = context.AirportIdentifier;
                             clone.Name = context.StationName;
                             clone.AtisType = context.AtisType;
-                            clone.Frequency = (uint)parsedFrequency;
+                            clone.Frequency = parsedFrequency;
 
                             _sessionManager.CurrentProfile.Stations.Add(clone);
                             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -771,18 +769,16 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                             context.RaiseError("StationName", "Name is required.");
                         }
 
-                        decimal parsedFrequency = 0;
+                        uint parsedFrequency = 0;
                         if (string.IsNullOrEmpty(context.Frequency))
                         {
                             context.RaiseError("Frequency", "Frequency is required.");
                         }
-                        else if (decimal.TryParse(context.Frequency, CultureInfo.InvariantCulture, out parsedFrequency))
+                        else if (!FrequencyValidator.TryParseMHz(context.Frequency, out parsedFrequency, out var error))
                         {
-                            parsedFrequency = parsedFrequency * 1000 * 1000;
-                            if (parsedFrequency is < 118000000 or > 137000000)
+                            if (error != null)
                             {
-                                context.RaiseError("Frequency",
-                                    "Invalid frequency format. The accepted frequency range is 118.000-137.000 MHz.");
+                                context.RaiseError("Frequency", error);
                             }
                         }
 
@@ -825,7 +821,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         {
                             Identifier = context.AirportIdentifier,
                             Name = context.StationName,
-                            Frequency = (uint)parsedFrequency,
+                            Frequency = parsedFrequency,
                             AtisType = context.AtisType
                         };
                         _sessionManager.CurrentProfile.Stations?.Add(station);
