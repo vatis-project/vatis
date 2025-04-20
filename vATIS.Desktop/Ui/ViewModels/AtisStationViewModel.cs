@@ -901,8 +901,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         await dlg.ShowDialog(lifetime.MainWindow);
 
-        // Update the free-form text area after the dialog is closed
-        PopulateNotams();
+        if (NetworkConnectionStatus != NetworkConnectionStatus.Observer)
+        {
+            // Update the free-form text area after the dialog is closed
+            PopulateNotams();
+        }
     }
 
     private async Task HandleOpenAirportConditionsDialog()
@@ -954,8 +957,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         await dlg.ShowDialog(lifetime.MainWindow);
 
-        // Update the free-form text area after the dialog is closed
-        PopulateAirportConditions();
+        if (NetworkConnectionStatus != NetworkConnectionStatus.Observer)
+        {
+            // Update the free-form text area after the dialog is closed
+            PopulateAirportConditions();
+        }
     }
 
     private void OnKillRequestedReceived(object? sender, KillRequestReceived e)
@@ -1254,6 +1260,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             NetworkConnectionStatus = NetworkConnectionStatus.Connected;
             IsNewAtis = false; // Reset to avoid flashing ATIS letter
 
+            PopulateAirportConditions(true);
+            PopulateNotams(true);
+
             // Increase connection count by one
             _sessionManager.CurrentConnectionCount++;
         });
@@ -1513,6 +1522,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                 SelectedAtisPreset = preset;
                 _previousAtisPreset = preset;
+
+                if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+                    return;
 
                 PopulateAirportConditions(presetChanged: true);
                 PopulateNotams(presetChanged: true);
