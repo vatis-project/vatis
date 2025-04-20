@@ -1263,6 +1263,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             if (e.CallsignInuse)
             {
+                // Reset selected preset
+                _previousAtisPreset = null;
+                SelectedAtisPreset = null;
+
                 // Subscribe to ATIS again if we were disconnected due to duplicate callsign
                 SubscribeToAtis();
             }
