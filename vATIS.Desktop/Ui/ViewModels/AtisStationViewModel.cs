@@ -1301,7 +1301,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (SelectedAtisPreset == null)
                 return;
 
-            if (NetworkConnectionStatus is NetworkConnectionStatus.Observer or NetworkConnectionStatus.Disconnected)
+            if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
                 return;
 
             // Cancel previous request
