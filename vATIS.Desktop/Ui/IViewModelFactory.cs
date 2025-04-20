@@ -4,6 +4,7 @@
 // </copyright>
 
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Ui.Controls.Notification;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -18,8 +19,10 @@ public interface IViewModelFactory
     /// Creates an instance of <see cref="AtisStationViewModel"/> for a given ATIS station.
     /// </summary>
     /// <param name="station">The ATIS station for which the view model is to be created.</param>
+    /// <param name="windowNotificationManager">The notification manager for the window.</param>
     /// <returns>An instance of <see cref="AtisStationViewModel"/> that corresponds to the given station.</returns>
-    AtisStationViewModel CreateAtisStationViewModel(AtisStation station);
+    AtisStationViewModel CreateAtisStationViewModel(AtisStation station,
+        WindowNotificationManager? windowNotificationManager);
 
     /// <summary>
     /// Creates an instance of <see cref="ContractionsViewModel"/> for managing contractions in the ATIS configuration.

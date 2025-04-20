@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
@@ -45,6 +46,8 @@ using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using WatsonWebsocket;
+using Notification = Vatsim.Vatis.Ui.Controls.Notification.Notification;
+using WindowNotificationManager = Vatsim.Vatis.Ui.Controls.Notification.WindowNotificationManager;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -92,7 +95,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private bool _isCombinedAtis;
     private ObservableCollection<AtisPreset> _atisPresetList = [];
     private AtisPreset? _selectedAtisPreset;
-    private string? _errorMessage;
     private TextDocument? _airportConditionsTextDocument = new();
     private TextDocument? _notamsTextDocument = new();
     private bool _useTexToSpeech;
@@ -109,6 +111,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="station">
     /// The ATIS station instance associated with this view model.
     /// </param>
+    /// <param name="windowNotificationManager">The notification manager used for displaying notifications.</param>
     /// <param name="connectionFactory">
     /// The network connection factory used to manage network connections.
     /// </param>
@@ -139,10 +142,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="websocketService">
     /// The websocket service for handling websocket communications.
     /// </param>
-    public AtisStationViewModel(AtisStation station, INetworkConnectionFactory connectionFactory,
-        IVoiceServerConnectionFactory voiceServerConnectionFactory, IAppConfig appConfig, IAtisBuilder atisBuilder,
-        IWindowFactory windowFactory, INavDataRepository navDataRepository, IAtisHubConnection hubConnection,
-        ISessionManager sessionManager, IProfileRepository profileRepository, IWebsocketService websocketService)
+    public AtisStationViewModel(AtisStation station, WindowNotificationManager? windowNotificationManager,
+        INetworkConnectionFactory connectionFactory, IVoiceServerConnectionFactory voiceServerConnectionFactory,
+        IAppConfig appConfig, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
+        INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
+        IProfileRepository profileRepository, IWebsocketService websocketService)
     {
         Id = station.Id;
         Identifier = station.Identifier;
@@ -162,6 +166,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         ReadOnlyAirportConditions = new TextSegmentCollection<TextSegment>(AirportConditionsTextDocument);
         ReadOnlyNotams = new TextSegmentCollection<TextSegment>(NotamsTextDocument);
+        NotificationManager = windowNotificationManager;
 
         switch (station.AtisType)
         {
@@ -360,10 +365,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 });
             }
         }));
-        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ =>
-        {
-            SubscribeToAtis();
-        }));
+        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ => { SubscribeToAtis(); }));
         _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ =>
         {
             if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
@@ -397,6 +399,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             .Concat()
             .Subscribe(_ => { }, ex => Log.Error(ex, "Error in HandleNetworkStatusChanged"));
     }
+
+    /// <summary>
+    /// Gets the notification manager.
+    /// </summary>
+    public WindowNotificationManager? NotificationManager { get; }
 
     /// <summary>
     /// Gets or sets the collection of read-only airport condition text segments.
@@ -597,15 +604,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _selectedAtisPreset;
         private set => this.RaiseAndSetIfChanged(ref _selectedAtisPreset, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the error message associated with the current operation or state.
-    /// </summary>
-    public string? ErrorMessage
-    {
-        get => _errorMessage;
-        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
     }
 
     /// <summary>
@@ -968,9 +966,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             Altimeter = null;
             Metar = null;
             ObservationTime = null;
-            ErrorMessage = string.IsNullOrEmpty(e.Reason)
-                ? "Forcefully disconnected from network."
-                : $"Forcefully disconnected from network: {e.Reason}";
+
+            NotificationManager?.Show(
+                new Notification("Disconnected", string.IsNullOrEmpty(e.Reason)
+                    ? $"{_networkConnection?.Callsign} forcefully disconnected from the network."
+                    : $"{_networkConnection?.Callsign} forcefully disconnected from network.\nReason: {e.Reason}"),
+                type: NotificationType.Error,
+                expiration: TimeSpan.Zero
+            );
         });
     }
 
@@ -1033,7 +1036,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                         catch (Exception ex)
                         {
                             Log.Error(ex, "Error in voice ATIS update");
-                            ErrorMessage = ex.Message;
+
+                            NotificationManager?.Show(
+                                new Notification("Voice ATIS Error", ex.Message),
+                                type: NotificationType.Error,
+                                expiration: TimeSpan.Zero
+                            );
+
                             await Disconnect();
                             NativeAudio.EmitSound(SoundType.Error);
                         }
@@ -1054,7 +1063,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                ErrorMessage = e.Message;
+
+                NotificationManager?.Show(
+                    new Notification("Voice Record ATIS Error", e.Message),
+                    type: NotificationType.Error,
+                    expiration: TimeSpan.Zero
+                );
             });
         }
     }
@@ -1096,7 +1110,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                ErrorMessage = e.Message;
+
+                NotificationManager?.Show(
+                    new Notification("Error", e.Message),
+                    type: NotificationType.Error,
+                    expiration: TimeSpan.Zero
+                );
             });
         }
     }
@@ -1113,7 +1132,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "HandleConnectedStatus Exception");
-            ErrorMessage = ex.Message;
+            NotificationManager?.Show(
+                new Notification("Error", ex.Message),
+                type: NotificationType.Error,
+                expiration: TimeSpan.Zero
+            );
         }
     }
 
@@ -1145,7 +1168,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Error disconnecting from voice server");
-            ErrorMessage = ex.Message;
+            NotificationManager?.Show(
+                new Notification("Voice Server Error", ex.Message),
+                type: NotificationType.Error,
+                expiration: TimeSpan.Zero
+            );
         }
     }
 
@@ -1153,8 +1180,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         try
         {
-            ErrorMessage = null;
-
             if (_appConfig.ConfigRequired)
             {
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
@@ -1186,7 +1211,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 if (_sessionManager.CurrentConnectionCount >= _sessionManager.MaxConnectionCount)
                 {
-                    ErrorMessage = "Maximum ATIS connections exceeded.";
+                    NotificationManager?.Show(
+                        new Notification("Too Many ATIS Connections", "You've exceeded the maximum number of allowed ATIS connections."),
+                        type: NotificationType.Warning,
+                        expiration: TimeSpan.FromSeconds(15)
+                    );
                     NativeAudio.EmitSound(SoundType.Error);
                     return;
                 }
@@ -1210,7 +1239,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 Log.Error(e, "HandleNetworkConnect Exception");
                 NativeAudio.EmitSound(SoundType.Error);
-                ErrorMessage = e.Message;
+                NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
                 await Disconnect();
             }
         }
@@ -1223,7 +1252,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                ErrorMessage = e.Message;
+                NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
             });
         }
     }
@@ -1243,7 +1272,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnNetworkErrorReceived(object? sender, NetworkErrorReceived e)
     {
-        Dispatcher.UIThread.Post(() => { ErrorMessage = e.Error; });
+        Dispatcher.UIThread.Post(() =>
+        {
+            NotificationManager?.Show(new Notification("Network Error", e.Error), NotificationType.Error);
+        });
         NativeAudio.EmitSound(SoundType.Error);
     }
 
@@ -1383,7 +1415,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 catch (Exception ex)
                 {
                     Log.Error(ex, "OnMetarResponseReceived Exception");
-                    ErrorMessage = ex.Message;
+                    NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
                     await Disconnect();
                     NativeAudio.EmitSound(SoundType.Error);
                 }
@@ -1398,7 +1430,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                ErrorMessage = ex.Message;
+                NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
             });
         }
     }
@@ -1554,7 +1586,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                ErrorMessage = e.Message;
+                NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
             });
         }
     }
@@ -1835,7 +1867,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                ErrorMessage = ex.Message;
+                NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
             });
         }
     }
