@@ -292,28 +292,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 }
                 else
                 {
-                    // If the ATIS is offline, then populate the airport conditions
-                    // and notams for the selected preset.
-                    if (SelectedAtisPreset != null)
+                    // Clear Airport Conditions and NOTAMs
+                    if (AirportConditionsTextDocument != null)
                     {
-                        PopulateAirportConditions();
-                        PopulateNotams();
+                        AirportConditionsTextDocument.Text = "";
                     }
 
-                    // Otherwise, just empty the textboxes.
-                    // This makes it appear as the offline state.
-                    // Only the ATIS letter is still synced for a short period.
-                    else
+                    if (NotamsTextDocument != null)
                     {
-                        if (AirportConditionsTextDocument != null)
-                        {
-                            AirportConditionsTextDocument.Text = "";
-                        }
-
-                        if (NotamsTextDocument != null)
-                        {
-                            NotamsTextDocument.Text = "";
-                        }
+                        NotamsTextDocument.Text = "";
                     }
                 }
             });
@@ -337,25 +324,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
 
-                    // Populate with the last selected ATIS preset
-                    if (SelectedAtisPreset != null)
+                    // Clear Airport Conditions and NOTAMs
+                    if (AirportConditionsTextDocument != null)
                     {
-                        PopulateAirportConditions();
-                        PopulateNotams();
+                        AirportConditionsTextDocument.Text = "";
                     }
 
-                    // Otherwise, just empty the textboxes.
-                    else
+                    if (NotamsTextDocument != null)
                     {
-                        if (AirportConditionsTextDocument != null)
-                        {
-                            AirportConditionsTextDocument.Text = "";
-                        }
-
-                        if (NotamsTextDocument != null)
-                        {
-                            NotamsTextDocument.Text = "";
-                        }
+                        NotamsTextDocument.Text = "";
                     }
                 });
             }
