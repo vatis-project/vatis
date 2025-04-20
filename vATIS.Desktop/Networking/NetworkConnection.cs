@@ -208,7 +208,6 @@ public class NetworkConnection : INetworkConnection, IDisposable
         }
 
         ArgumentNullException.ThrowIfNull(_atisStation.Identifier);
-        await _metarRepository.GetMetar(_atisStation.Identifier, monitor: true);
     }
 
     /// <inheritdoc />
@@ -470,6 +469,12 @@ public class NetworkConnection : INetworkConnection, IDisposable
         // building the ATIS.
         NetworkConnected(this, EventArgs.Empty);
         _isCallsignInUse = false;
+
+        // Wait until we have established FSD connection to request METAR.
+        if (_atisStation != null)
+        {
+            _metarRepository.GetMetar(_atisStation.Identifier, monitor: true);
+        }
     }
 
     private void OnFsdPositionUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
