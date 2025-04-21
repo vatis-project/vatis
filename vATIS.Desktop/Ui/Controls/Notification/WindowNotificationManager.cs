@@ -63,6 +63,7 @@ public class WindowNotificationManager : WindowMessageManager
             NotificationPosition.TopRight);
 
     private int _hoveredCards;
+    private bool _isWindowActivated;
 
     /// <summary>
     /// Initializes static members of the <see cref="WindowNotificationManager"/> class.
@@ -84,6 +85,11 @@ public class WindowNotificationManager : WindowMessageManager
         if (host is not null)
         {
             InstallFromTopLevel(host);
+            if (host is Window window)
+            {
+                window.Activated += (_, _) => _isWindowActivated = true;
+                window.Deactivated += (_, _) => _isWindowActivated = false;
+            }
         }
     }
 
@@ -118,7 +124,7 @@ public class WindowNotificationManager : WindowMessageManager
         set => SetValue(PositionProperty, value);
     }
 
-    private bool ShouldPause => _hoveredCards > 0;
+    private bool ShouldPause => _hoveredCards > 0 || !_isWindowActivated;
 
     /// <summary>
     /// Tries to get the <see cref="WindowNotificationManager"/> from a <see cref="Visual"/>.
