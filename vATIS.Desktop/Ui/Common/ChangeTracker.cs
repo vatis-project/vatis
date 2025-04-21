@@ -55,7 +55,7 @@ public class ChangeTracker : ReactiveObject
             }
         }
 
-        HasUnsavedChanges = false;
+        CheckForUnsavedChanges();
         return true;
     }
 
