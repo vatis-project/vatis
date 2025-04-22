@@ -159,8 +159,6 @@ public class WindowNotificationManager : WindowMessageManager
         Action? onClose = null,
         string[]? classes = null)
     {
-        Dispatcher.UIThread.VerifyAccess();
-
         var notificationControl = new NotificationCard
         {
             Content = content,

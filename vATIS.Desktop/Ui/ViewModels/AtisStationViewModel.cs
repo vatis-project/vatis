@@ -960,20 +960,20 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         NativeAudio.EmitSound(SoundType.Error);
 
+        NotificationManager?.Show(
+            new Notification("Disconnected", string.IsNullOrEmpty(e.Reason)
+                ? $"{_networkConnection?.Callsign} forcefully disconnected from the network."
+                : $"{_networkConnection?.Callsign} forcefully disconnected from network.\nReason: {e.Reason}"),
+            type: NotificationType.Error,
+            expiration: TimeSpan.Zero
+        );
+
         Dispatcher.UIThread.Post(() =>
         {
             Wind = null;
             Altimeter = null;
             Metar = null;
             ObservationTime = null;
-
-            NotificationManager?.Show(
-                new Notification("Disconnected", string.IsNullOrEmpty(e.Reason)
-                    ? $"{_networkConnection?.Callsign} forcefully disconnected from the network."
-                    : $"{_networkConnection?.Callsign} forcefully disconnected from network.\nReason: {e.Reason}"),
-                type: NotificationType.Error,
-                expiration: TimeSpan.Zero
-            );
         });
     }
 
@@ -1057,18 +1057,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception e)
         {
             Log.Error(e, "HandleVoiceRecordAtisCommand Exception");
+
+            NotificationManager?.Show(
+                new Notification("Voice Record ATIS Error", e.Message),
+                type: NotificationType.Error,
+                expiration: TimeSpan.Zero
+            );
+
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-
-                NotificationManager?.Show(
-                    new Notification("Voice Record ATIS Error", e.Message),
-                    type: NotificationType.Error,
-                    expiration: TimeSpan.Zero
-                );
             });
         }
     }
@@ -1104,18 +1105,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception e)
         {
             Log.Error(e, "HandleNetworkStatusChanged Exception");
+
+            NotificationManager?.Show(
+                new Notification("Error", e.Message),
+                type: NotificationType.Error,
+                expiration: TimeSpan.Zero
+            );
+
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-
-                NotificationManager?.Show(
-                    new Notification("Error", e.Message),
-                    type: NotificationType.Error,
-                    expiration: TimeSpan.Zero
-                );
             });
         }
     }
@@ -1212,7 +1214,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 if (_sessionManager.CurrentConnectionCount >= _sessionManager.MaxConnectionCount)
                 {
                     NotificationManager?.Show(
-                        new Notification("Too Many ATIS Connections", "You've exceeded the maximum number of allowed ATIS connections."),
+                        new Notification("Too Many ATIS Connections",
+                            "You've exceeded the maximum number of allowed ATIS connections."),
                         type: NotificationType.Warning,
                         expiration: TimeSpan.FromSeconds(15)
                     );
@@ -1246,13 +1249,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception e)
         {
             Log.Error(e, "HandleNetworkConnect Exception");
+            NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
             });
         }
     }
@@ -1272,10 +1275,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnNetworkErrorReceived(object? sender, NetworkErrorReceived e)
     {
-        Dispatcher.UIThread.Post(() =>
-        {
-            NotificationManager?.Show(new Notification("Network Error", e.Error), NotificationType.Error);
-        });
+        NotificationManager?.Show(new Notification("Network Error", e.Error), NotificationType.Error);
         NativeAudio.EmitSound(SoundType.Error);
     }
 
@@ -1424,13 +1424,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "OnMetarResponseReceived Exception");
+            NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
             });
         }
     }
@@ -1580,13 +1580,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception e)
         {
             Log.Error(e, "HandleSelectedAtisPresetChanged Exception");
+            NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
             });
         }
     }
@@ -1861,13 +1861,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "HandleAtisLetterChanged Exception");
+            NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
             Dispatcher.UIThread.Post(() =>
             {
                 Wind = null;
                 Altimeter = null;
                 Metar = null;
                 ObservationTime = null;
-                NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
             });
         }
     }
