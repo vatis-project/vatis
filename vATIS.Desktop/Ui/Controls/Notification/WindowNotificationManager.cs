@@ -4,7 +4,6 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -153,7 +152,7 @@ public class WindowNotificationManager : WindowMessageManager
     /// <param name="onClose">An action to be run when the notification is closed.</param>
     /// <param name="classes">Style classes to apply.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    public async Task Show(
+    public Task Show(
         object content,
         NotificationType type,
         TimeSpan? expiration = null,
@@ -192,10 +191,8 @@ public class WindowNotificationManager : WindowMessageManager
             Items?.Remove(sender);
         };
 
-        notificationControl.PointerPressed += (_, _) => { onClick?.Invoke(); };
-
-        notificationControl.PointerEntered += (_, _) => { _hoveredCards++; };
-
+        notificationControl.PointerPressed += (_, _) => onClick?.Invoke();
+        notificationControl.PointerEntered += (_, _) => _hoveredCards++;
         notificationControl.PointerExited += (_, _) =>
         {
             if (_hoveredCards > 0)
@@ -212,41 +209,34 @@ public class WindowNotificationManager : WindowMessageManager
             }
         });
 
-        if (expiration == TimeSpan.Zero)
+        if (expiration != TimeSpan.Zero)
         {
-            return;
-        }
+            var updateInterval = TimeSpan.FromMilliseconds(16); // ~60fps
+            var totalMs = (expiration ?? TimeSpan.FromSeconds(15)).TotalMilliseconds;
+            var elapsed = 0.0;
 
-        var totalMs = (expiration ?? TimeSpan.FromSeconds(15)).TotalMilliseconds;
-        var sw = Stopwatch.StartNew();
-        double elapsedWhileRunning = 0;
-
-        while (elapsedWhileRunning < totalMs)
-        {
-            if (!ShouldPause)
+            var timer = new DispatcherTimer(updateInterval, DispatcherPriority.Normal, (s, _) =>
             {
-                var frameStart = sw.ElapsedMilliseconds;
+                if (ShouldPause)
+                {
+                    return;
+                }
 
-                // Wait one frame (~60 FPS)
-                await Task.Delay(16);
-
-                var frameEnd = sw.ElapsedMilliseconds;
-                var frameElapsed = frameEnd - frameStart;
-
-                elapsedWhileRunning += frameElapsed;
-
-                var progress = 100 - (elapsedWhileRunning / totalMs * 100);
+                elapsed += updateInterval.TotalMilliseconds;
+                var progress = 100 - (elapsed / totalMs * 100);
                 notificationControl.Progress = progress;
-            }
-            else
-            {
-                // Wait a bit before checking again, but don't count this time
-                await Task.Delay(50);
-                sw.Restart(); // prevent Stopwatch from accumulating pause time
-            }
+
+                if (elapsed >= totalMs)
+                {
+                    ((DispatcherTimer)s!).Stop();
+                    notificationControl.Close();
+                }
+            });
+
+            timer.Start();
         }
 
-        notificationControl.Close();
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
