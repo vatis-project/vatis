@@ -40,7 +40,13 @@ public class NotificationCard : MessageCard
     public NotificationPosition Position
     {
         get => _position;
-        set => SetAndRaise(PositionProperty, ref _position, value);
+        set
+        {
+            if (SetAndRaise(PositionProperty, ref _position, value))
+            {
+                UpdatePseudoClasses(value);
+            }
+        }
     }
 
     /// <inheritdoc />
