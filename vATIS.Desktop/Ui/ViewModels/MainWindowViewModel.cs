@@ -28,11 +28,11 @@ using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Controls.Notification;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Ui.Services.Websocket.Messages;
-using WindowNotificationManager = Vatsim.Vatis.Ui.Controls.Notification.WindowNotificationManager;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
