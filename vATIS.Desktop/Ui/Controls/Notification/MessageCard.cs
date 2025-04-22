@@ -260,23 +260,20 @@ public abstract class MessageCard : ContentControl
 
     private void UpdateNotificationType()
     {
-        switch (NotificationType)
+        // Clear all notification pseudo classes
+        PseudoClasses.Remove(StyleInformation);
+        PseudoClasses.Remove(StyleSuccess);
+        PseudoClasses.Remove(StyleWarning);
+        PseudoClasses.Remove(StyleError);
+
+        var cls = NotificationType switch
         {
-            case NotificationType.Error:
-                PseudoClasses.Add(StyleError);
-                break;
-
-            case NotificationType.Information:
-                PseudoClasses.Add(StyleInformation);
-                break;
-
-            case NotificationType.Success:
-                PseudoClasses.Add(StyleSuccess);
-                break;
-
-            case NotificationType.Warning:
-                PseudoClasses.Add(StyleWarning);
-                break;
-        }
+            NotificationType.Error => StyleError,
+            NotificationType.Information => StyleInformation,
+            NotificationType.Success => StyleSuccess,
+            NotificationType.Warning => StyleWarning,
+            _ => throw new ArgumentOutOfRangeException(nameof(NotificationType)),
+        };
+        PseudoClasses.Add(cls);
     }
 }
