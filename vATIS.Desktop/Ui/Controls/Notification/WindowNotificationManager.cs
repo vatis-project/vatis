@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
@@ -143,17 +142,15 @@ public class WindowNotificationManager : WindowMessageManager
     /// <param name="content">The content of the notification.</param>
     /// <param name="type">The type of the notification.</param>
     /// <param name="expiration">
-    /// The expiration time of the notification, after which it will automatically close.
-    /// If the value is <see cref="TimeSpan.Zero"/>, the notification will remain open until the user closes it.
+    ///     The expiration time of the notification, after which it will automatically close.
+    ///     If the value is <see cref="TimeSpan.Zero"/>, the notification will remain open until the user closes it.
     /// </param>
     /// <param name="showIcon">Whether to show the icon.</param>
     /// <param name="showClose">Whether to show the close button.</param>
     /// <param name="onClick">An action to be run when the notification is clicked.</param>
     /// <param name="onClose">An action to be run when the notification is closed.</param>
     /// <param name="classes">Style classes to apply.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    public Task Show(
-        object content,
+    public void Show(object content,
         NotificationType type,
         TimeSpan? expiration = null,
         bool showIcon = true,
@@ -235,8 +232,6 @@ public class WindowNotificationManager : WindowMessageManager
 
             timer.Start();
         }
-
-        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
