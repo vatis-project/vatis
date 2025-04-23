@@ -10,6 +10,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Serilog;
+using Vatsim.Vatis.Ui.Controls.Notification;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;
@@ -29,6 +30,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         InitializeComponent();
 
+        NotificationManager = new WindowNotificationManager(this) { MaxItems = 4 };
+
         ViewModel = viewModel;
         ViewModel.Owner = this;
 
@@ -44,6 +47,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         InitializeComponent();
     }
+
+    /// <summary>
+    /// Gets the notification manager.
+    /// </summary>
+    public WindowNotificationManager? NotificationManager { get; }
 
     /// <inheritdoc />
     protected override void OnLoaded(RoutedEventArgs e)
@@ -83,6 +91,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         if (_initialized)
             return;
+
+        WindowNotificationManager.TryGetNotificationManager(this, out var manager);
+        if (manager != null)
+        {
+            if (ViewModel != null)
+            {
+                manager.Position = Avalonia.Controls.Notifications.NotificationPosition.TopLeft;
+                ViewModel.NotificationManager = manager;
+            }
+        }
 
         ViewModel?.PopulateAtisStations();
         ViewModel?.ConnectToHub();

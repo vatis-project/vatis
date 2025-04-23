@@ -6,7 +6,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
@@ -29,6 +28,7 @@ using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Controls.Notification;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Ui.Services.Websocket;
@@ -167,7 +167,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             var station = _sessionManager.CurrentProfile?.Stations.FirstOrDefault(x => x.Id == evt.Id);
             if (station != null && _atisStationSource.Items.All(x => x.Id != station.Id))
             {
-                var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(station);
+                var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(station, NotificationManager);
                 _disposables.Add(atisStationViewModel);
                 _atisStationSource.Add(atisStationViewModel);
             }
@@ -188,7 +188,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 var updatedStation = _sessionManager.CurrentProfile?.Stations?.FirstOrDefault(x => x.Id == evt.Id);
                 if (updatedStation != null)
                 {
-                    var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(updatedStation);
+                    var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(updatedStation, NotificationManager);
                     atisStationViewModel.SubscribeToAtis();
                     _disposables.Add(atisStationViewModel);
                     _atisStationSource.Add(atisStationViewModel);
@@ -210,10 +210,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             {
                 station.Ordinal = evt.NewOrdinal;
             }
-        }));
-        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(_ =>
-        {
-            Debug.WriteLine("GeneralSettingsUpdated");
         }));
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
@@ -260,6 +256,11 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     /// Gets the command to invoke the compact view mode.
     /// </summary>
     public ReactiveCommand<Unit, Unit> InvokeCompactViewCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the notification manager.
+    /// </summary>
+    public WindowNotificationManager? NotificationManager { get; set; }
 
     /// <summary>
     /// Gets or sets the index of the currently selected tab in the tab control.
@@ -346,7 +347,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             {
                 if (_atisStationSource.Items.FirstOrDefault(x => x.Id == station.Id) == null)
                 {
-                    var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(station);
+                    var atisStationViewModel = _viewModelFactory.CreateAtisStationViewModel(station, NotificationManager);
                     _disposables.Add(atisStationViewModel);
                     _atisStationSource.Add(atisStationViewModel);
                 }

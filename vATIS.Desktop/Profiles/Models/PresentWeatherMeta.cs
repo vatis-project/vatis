@@ -4,7 +4,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using ReactiveUI;
 
 namespace Vatsim.Vatis.Profiles.Models;

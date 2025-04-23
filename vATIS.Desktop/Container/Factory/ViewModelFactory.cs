@@ -11,6 +11,7 @@ using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui;
+using Vatsim.Vatis.Ui.Controls.Notification;
 using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
@@ -38,11 +39,14 @@ internal class ViewModelFactory : IViewModelFactory
     /// Creates a new instance of the <see cref="AtisStationViewModel"/> class.
     /// </summary>
     /// <param name="station">The ATIS station.</param>
+    /// <param name="windowNotificationManager">The window notification manager.</param>
     /// <returns>A new <see cref="AtisStationViewModel"/> instance.</returns>
-    public AtisStationViewModel CreateAtisStationViewModel(AtisStation station)
+    public AtisStationViewModel CreateAtisStationViewModel(AtisStation station,
+        WindowNotificationManager? windowNotificationManager)
     {
         return new AtisStationViewModel(
             station,
+            windowNotificationManager,
             _provider.GetService<INetworkConnectionFactory>(),
             _provider.GetService<IVoiceServerConnectionFactory>(),
             _provider.GetService<IAppConfig>(),

@@ -30,14 +30,9 @@
 					<behaviors:TextBoxUppercaseBehavior/>
 				</Interaction.Behaviors>
 			</TextBox>
-			<!--Metar/Error-->
-			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10" IsVisible="{Binding ErrorMessage, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+			<!--Metar-->
+			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10">
 				<TextBlock FontFamily="{DynamicResource Monospace}" TextWrapping="Wrap" Foreground="White" FontSize="16" Text="{Binding Metar, DataType=vm:AtisStationViewModel}"/>
-			</Border>
-			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10" IsVisible="{Binding ErrorMessage, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-				<ScrollViewer VerticalScrollBarVisibility="Auto">
-					<TextBlock TextWrapping="Wrap" Foreground="#CF480C" FontSize="20" Text="{Binding ErrorMessage, DataType=vm:AtisStationViewModel}"/>
-				</ScrollViewer>
 			</Border>
 			<!--Wind/Altimeter-->
 			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="2" Grid.Row="0" Margin="10,0,0,0">
