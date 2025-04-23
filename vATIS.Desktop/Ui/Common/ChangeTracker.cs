@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -17,7 +18,7 @@ namespace Vatsim.Vatis.Ui.Common;
 /// </summary>
 public class ChangeTracker : ReactiveObject
 {
-    private readonly Dictionary<string, (object? OriginalValue, object? CurrentValue)> _fieldHistory = [];
+    private readonly ConcurrentDictionary<string, (object? OriginalValue, object? CurrentValue)> _fieldHistory = [];
     private readonly BehaviorSubject<bool> _hasUnsavedChangesSubject = new(false);
     private bool _hasUnsavedChanges;
 
@@ -48,11 +49,13 @@ public class ChangeTracker : ReactiveObject
 
         foreach (var key in _fieldHistory.Keys.ToList())
         {
-            var (_, currentValue) = _fieldHistory[key];
-            _fieldHistory[key] = (currentValue, currentValue);
+            if (_fieldHistory.TryGetValue(key, out var entry))
+            {
+                _fieldHistory[key] = (entry.CurrentValue, entry.CurrentValue);
+            }
         }
 
-        HasUnsavedChanges = false;
+        CheckForUnsavedChanges();
         return true;
     }
 
@@ -63,15 +66,11 @@ public class ChangeTracker : ReactiveObject
     /// <param name="currentValue">The current value of the property.</param>
     public void TrackChange(string propertyName, object? currentValue)
     {
-        if (_fieldHistory.TryGetValue(propertyName, out var value))
-        {
-            var (originalValue, _) = value;
-            _fieldHistory[propertyName] = (originalValue, currentValue);
-        }
-        else
-        {
-            _fieldHistory[propertyName] = (currentValue, currentValue);
-        }
+        _fieldHistory.AddOrUpdate(
+            propertyName,
+            (currentValue, currentValue), // Value if the key doesn't exist
+            (_, existing) => (existing.OriginalValue, currentValue) // Value if the key already exists
+        );
 
         CheckForUnsavedChanges();
     }

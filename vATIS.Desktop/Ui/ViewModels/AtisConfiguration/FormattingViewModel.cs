@@ -1592,6 +1592,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
+        _changeTracker.ResetChanges();
+
         SelectedStation = station;
 
         FormattingOptions = [];
@@ -1741,8 +1743,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             FilteredPresentWeatherTypes = new ObservableCollection<PresentWeatherMeta>(PresentWeatherTypes);
             FilterPresentWeatherTypes();
         }
-
-        HasUnsavedChanges = false;
     }
 
     private async Task HandleAddTransitionLevel()

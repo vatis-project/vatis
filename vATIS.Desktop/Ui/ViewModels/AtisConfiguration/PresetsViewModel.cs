@@ -797,8 +797,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             ExternalGeneratorApproaches = SelectedPreset.ExternalGenerator.Approaches ?? "";
             ExternalGeneratorRemarks = SelectedPreset.ExternalGenerator.Remarks ?? "";
         }
-
-        HasUnsavedChanges = false;
     }
 
     private async Task HandleNewPreset()
