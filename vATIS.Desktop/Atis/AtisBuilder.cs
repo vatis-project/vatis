@@ -654,21 +654,19 @@ public class AtisBuilder : IAtisBuilder
         var closingTextTemplate = station.AtisFormat.ClosingStatement.Template.Text;
         var closingVoiceTemplate = station.AtisFormat.ClosingStatement.Template.Voice;
 
-        if (!string.IsNullOrEmpty(closingTextTemplate) && !string.IsNullOrEmpty(closingVoiceTemplate))
+        if (!string.IsNullOrEmpty(closingTextTemplate))
         {
             closingTextTemplate = Regex.Replace(closingTextTemplate, @"{letter}", currentAtisLetter.ToString());
             closingTextTemplate = Regex.Replace(closingTextTemplate, @"{letter\|word}", currentAtisLetter.ToPhonetic());
-
-            closingVoiceTemplate = Regex.Replace(closingVoiceTemplate, @"{letter}", currentAtisLetter.ToString());
-            closingVoiceTemplate =
-                Regex.Replace(closingVoiceTemplate, @"{letter\|word}", currentAtisLetter.ToPhonetic());
-
-            variables.Add(new AtisVariable("CLOSING", closingTextTemplate, closingVoiceTemplate));
         }
-        else
+
+        if (!string.IsNullOrEmpty(closingVoiceTemplate))
         {
-            variables.Add(new AtisVariable("CLOSING", "", ""));
+            closingVoiceTemplate = Regex.Replace(closingVoiceTemplate, @"{letter}", currentAtisLetter.ToString());
+            closingVoiceTemplate = Regex.Replace(closingVoiceTemplate, @"{letter\|word}", currentAtisLetter.ToPhonetic());
         }
+
+        variables.Add(new AtisVariable("CLOSING", closingTextTemplate ?? "", closingVoiceTemplate ?? ""));
 
         return variables;
     }
