@@ -617,7 +617,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the collection of contraction completion data utilized for auto-completion.
+    /// Gets or sets the collection of contraction completion data used for auto-completion.
     /// </summary>
     public List<ICompletionData> ContractionCompletionData
     {
@@ -1442,7 +1442,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Publishes the current ATIS information to connected websocket clients.
     /// </summary>
-    /// <param name="session">The connected client to publish the data to. If omitted or null the data is broadcast to all connected clients.</param>
+    /// <param name="session">The connected client to publish the data to.
+    /// If omitted or null, the data is broadcast to all connected clients.</param>
     /// <returns>A task.</returns>
     private async Task PublishAtisToWebsocket(ClientMetadata? session = null)
     {
@@ -1892,7 +1893,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnGetAtisReceived(object? sender, GetAtisReceived e)
     {
-        // Throw exception to websocket client if both ID and Station are provided.
+        // Throw exception to the websocket client if both ID and Station are provided.
         if (!string.IsNullOrEmpty(e.StationId) && !string.IsNullOrEmpty(e.Station))
         {
             throw new Exception("Cannot provide both Id and Station.");
@@ -1917,7 +1918,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnAcknowledgeAtisUpdateReceived(object? sender, AcknowledgeAtisUpdateReceived e)
     {
-        // Throw exception to websocket client if both ID and Station are provided.
+        // Throw exception to the websocket client if both ID and Station are provided.
         if (!string.IsNullOrEmpty(e.StationId) && !string.IsNullOrEmpty(e.Station))
         {
             throw new Exception("Cannot provide both Id and Station.");
