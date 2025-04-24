@@ -70,6 +70,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly MetarDecoder _metarDecoder = new();
     private readonly CompositeDisposable _disposables = [];
     private readonly SemaphoreSlim _voiceRequestLock = new(1, 1);
+    private readonly string? _identifier;
     private CancellationTokenSource _voiceRequestCts = new();
     private CancellationTokenSource _selectedPresetCts = new();
     private CancellationTokenSource _voiceRecordAtisCts = new();
@@ -81,7 +82,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
     private string? _id;
-    private string? _identifier;
     private string? _tabText;
     private int _ordinal;
     private char _atisLetter;
@@ -378,11 +378,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets the notification manager.
-    /// </summary>
-    public WindowNotificationManager? NotificationManager { get; }
-
-    /// <summary>
     /// Gets or sets the collection of read-only airport condition text segments.
     /// </summary>
     public TextSegmentCollection<TextSegment> ReadOnlyAirportConditions { get; set; }
@@ -441,10 +436,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<bool, Unit> ApplyAirportConditionsCommand { get; }
 
     /// <summary>
-    /// Gets the command that sets the ATIS letter. Used with fetching real-world D-ATIS letter.
     /// Gets the command that updates the ATIS with the changed NOTAMs.
     /// </summary>
-    public ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
     /// <remarks>
     /// Pass <c>true</c> to save the changes to the profile; <c>false</c> to apply them temporarily.
     /// </remarks>
@@ -465,12 +458,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the identifier associated with the ATIS station.
+    /// Gets the identifier associated with the ATIS station.
     /// </summary>
     public string? Identifier
     {
         get => _identifier;
-        set => this.RaiseAndSetIfChanged(ref _identifier, value);
+        private init => this.RaiseAndSetIfChanged(ref _identifier, value);
     }
 
     /// <summary>
@@ -615,15 +608,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether text-to-speech functionality is enabled.
-    /// </summary>
-    public bool UseTexToSpeech
-    {
-        get => _useTexToSpeech;
-        set => this.RaiseAndSetIfChanged(ref _useTexToSpeech, value);
-    }
-
-    /// <summary>
     /// Gets or sets the network connection status of the ATIS station.
     /// </summary>
     public NetworkConnectionStatus NetworkConnectionStatus
@@ -671,6 +655,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _ordinal;
         set => this.RaiseAndSetIfChanged(ref _ordinal, value);
+    }
+
+    private ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
+
+    private WindowNotificationManager? NotificationManager { get; }
+
+    private bool UseTexToSpeech
+    {
+        get => _useTexToSpeech;
+        set => this.RaiseAndSetIfChanged(ref _useTexToSpeech, value);
     }
 
     /// <summary>
