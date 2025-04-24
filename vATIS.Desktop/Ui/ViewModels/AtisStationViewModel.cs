@@ -193,8 +193,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
 
         SetAtisLetterCommand = ReactiveCommand.Create<char>(HandleSetAtisLetter);
-        SaveAirportConditionsText = ReactiveCommand.Create(HandleSaveAirportConditionsText);
-        SaveNotamsText = ReactiveCommand.Create(HandleSaveNotamsText);
+        ApplyAirportConditionsCommand = ReactiveCommand.Create<bool>(HandleApplyAirportConditions);
+        ApplyNotamsCommand = ReactiveCommand.Create<bool>(HandleApplyNotams);
         SelectedPresetChangedCommand = ReactiveCommand.CreateFromTask<AtisPreset>(HandleSelectedAtisPresetChanged);
         AcknowledgeAtisUpdateCommand = ReactiveCommand.Create(HandleAcknowledgeAtisUpdate);
         DecrementAtisLetterCommand = ReactiveCommand.Create(DecrementAtisLetter);
@@ -433,19 +433,22 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
 
     /// <summary>
-    /// Gets the command to save the airport condition free-form text.
+    /// Gets the command that updates the ATIS with the changed airport conditions.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> SaveAirportConditionsText { get; }
-
-    /// <summary>
-    /// Gets the command to save NOTAMs free-form text.
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> SaveNotamsText { get; }
+    /// <remarks>
+    /// Pass <c>true</c> to save the changes to the profile; <c>false</c> to apply them temporarily.
+    /// </remarks>
+    public ReactiveCommand<bool, Unit> ApplyAirportConditionsCommand { get; }
 
     /// <summary>
     /// Gets the command that sets the ATIS letter. Used with fetching real-world D-ATIS letter.
+    /// Gets the command that updates the ATIS with the changed NOTAMs.
     /// </summary>
     public ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
+    /// <remarks>
+    /// Pass <c>true</c> to save the changes to the profile; <c>false</c> to apply them temporarily.
+    /// </remarks>
+    public ReactiveCommand<bool, Unit> ApplyNotamsCommand { get; }
 
     /// <summary>
     /// Gets the ATIS station.
@@ -743,8 +746,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         OpenStaticAirportConditionsDialogCommand.Dispose();
         OpenStaticNotamsDialogCommand.Dispose();
         SelectedPresetChangedCommand.Dispose();
-        SaveAirportConditionsText.Dispose();
-        SaveNotamsText.Dispose();
+        ApplyAirportConditionsCommand.Dispose();
+        ApplyNotamsCommand.Dispose();
 
         // Dispose cancellation tokens
         _processMetarCts.Dispose();
@@ -762,7 +765,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         AtisLetter = letter;
     }
 
-    private void HandleSaveNotamsText()
+    private void HandleApplyAirportConditions(bool saveToProfile)
+    {
+        ApplyAirportConditions(saveToProfile);
+        HasUnsavedAirportConditions = !saveToProfile;
+    }
+
+    private void HandleApplyNotams(bool saveToProfile)
+    {
+        ApplyNotams(saveToProfile);
+        HasUnsavedNotams = !saveToProfile;
+    }
+
+    private void ApplyNotams(bool saveToProfile)
     {
         if (SelectedAtisPreset == null)
             return;
@@ -783,13 +798,23 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         SelectedAtisPreset.Notams = freeText?.Trim();
 
-        if (_sessionManager.CurrentProfile != null)
+        if (saveToProfile && _sessionManager.CurrentProfile != null)
+        {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+        }
 
-        HasUnsavedNotams = false;
+        BuildAtis(CancellationToken.None, notifySubscribers: false).SafeFireAndForget(onException: exception =>
+        {
+            NotificationManager?.Show(
+                new Notification("Error Building ATIS", "See log for details: " + exception.Message),
+                NotificationType.Error,
+                expiration: TimeSpan.Zero
+            );
+            Log.Error(exception, "BuildAtis Exception");
+        });
     }
 
-    private void HandleSaveAirportConditionsText()
+    private void ApplyAirportConditions(bool saveToProfile)
     {
         if (SelectedAtisPreset == null)
             return;
@@ -810,10 +835,20 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         SelectedAtisPreset.AirportConditions = freeText?.Trim();
 
-        if (_sessionManager.CurrentProfile != null)
+        if (saveToProfile && _sessionManager.CurrentProfile != null)
+        {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+        }
 
-        HasUnsavedAirportConditions = false;
+        BuildAtis(CancellationToken.None, notifySubscribers: false).SafeFireAndForget(onException: exception =>
+        {
+            NotificationManager?.Show(
+                new Notification("Error Building ATIS", "See log for details: " + exception.Message),
+                NotificationType.Error,
+                expiration: TimeSpan.Zero
+            );
+            Log.Error(exception, "BuildAtis Exception");
+        });
     }
 
     private void LoadContractionData()
@@ -1379,24 +1414,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 try
                 {
-                    var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-                        e.Metar, localToken.Token);
-
-                    AtisStation.TextAtis = textAtis?.ToUpperInvariant();
-                    AtisStation.AtisLetter = AtisLetter;
-
-                    await PublishAtisToWebsocket();
-                    await PublishAtisToHub();
-                    await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, localToken.Token);
-
-                    if (!e.IsNewMetar)
-                    {
-                        // Prevent duplicate subscriber notifications.
-                        // Send notification only when the initial METAR is received upon first connection.
-                        _networkConnection?.SendSubscriberNotification(AtisLetter);
-                    }
-
-                    await RequestVoiceAtis();
+                    // Prevent duplicate subscriber notifications.
+                    // Send notification only when the initial METAR is received upon first connection.
+                    await BuildAtis(localToken.Token, notifySubscribers: !e.IsNewMetar);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1527,8 +1547,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                                 "You have unsaved Airport Conditions or NOTAMs. Would you like to save them first?",
                                 "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
                         {
-                            SaveNotamsText.Execute().Subscribe();
-                            SaveAirportConditionsText.Execute().Subscribe();
+                            ApplyAirportConditionsCommand.Execute(true).Subscribe();
+                            ApplyNotamsCommand.Execute(true).Subscribe();
                         }
                     }
                 }
@@ -1551,19 +1571,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 if (_decodedMetar == null)
                     return;
 
-                var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-                    _decodedMetar, localToken.Token);
-
-                AtisStation.TextAtis = textAtis?.ToUpperInvariant();
-                AtisStation.AtisLetter = AtisLetter;
-
-                await PublishAtisToHub();
-
-                await PublishAtisToWebsocket();
-
-                await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, localToken.Token);
-
-                await RequestVoiceAtis();
+                await BuildAtis(localToken.Token, notifySubscribers: false);
             }
         }
         catch (OperationCanceledException)
@@ -1835,21 +1843,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         try
         {
-            var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-                _decodedMetar, localToken);
-
-            AtisStation.TextAtis = textAtis?.ToUpperInvariant();
-            AtisStation.AtisLetter = AtisLetter;
-
-            await PublishAtisToHub();
-
-            await PublishAtisToWebsocket();
-
-            _networkConnection?.SendSubscriberNotification(AtisLetter);
-
-            await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, localToken);
-
-            await RequestVoiceAtis();
+            await BuildAtis(localToken);
         }
         catch (Exception ex)
         {
@@ -1863,6 +1857,43 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 ObservationTime = null;
             });
         }
+    }
+
+    private async Task BuildAtis(CancellationToken cancelToken, bool notifySubscribers = true)
+    {
+        if (SelectedAtisPreset == null || _decodedMetar == null)
+            return;
+
+        if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+            return;
+
+        // Builds the textual ATIS
+        var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
+            _decodedMetar, cancelToken);
+
+        // Sets the textual ATIS
+        AtisStation.TextAtis = textAtis?.ToUpperInvariant();
+
+        // Sets the ATIS letter
+        AtisStation.AtisLetter = AtisLetter;
+
+        // Publishes the ATIS to the hub server
+        await PublishAtisToHub();
+
+        // Publishes the ATIS to connected websocket clients
+        await PublishAtisToWebsocket();
+
+        if (notifySubscribers)
+        {
+            // Notifies subscribed VATSIM clients
+            _networkConnection?.SendSubscriberNotification(AtisLetter);
+        }
+
+        // Posts an update to the configured IDS endpoint URL
+        await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, cancelToken);
+
+        // Requests a new voice ATIS
+        await RequestVoiceAtis();
     }
 
     private void OnGetAtisReceived(object? sender, GetAtisReceived e)
