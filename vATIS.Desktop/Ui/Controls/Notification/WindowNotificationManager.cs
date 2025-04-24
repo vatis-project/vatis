@@ -159,6 +159,13 @@ public class WindowNotificationManager : WindowMessageManager
         Action? onClose = null,
         string[]? classes = null)
     {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() =>
+                Show(content, type, expiration, showIcon, showClose, onClick, onClose, classes));
+            return;
+        }
+
         var notificationControl = new NotificationCard
         {
             Content = content,
@@ -194,15 +201,14 @@ public class WindowNotificationManager : WindowMessageManager
                 _hoveredCards--;
         };
 
-        Dispatcher.UIThread.Post(() =>
-        {
-            Items?.Add(notificationControl);
 
-            if (Items?.OfType<NotificationCard>().Count(i => !i.IsClosing) > MaxItems)
-            {
-                Items.OfType<NotificationCard>().First(i => !i.IsClosing).Close();
-            }
-        });
+        Items?.Add(notificationControl);
+
+        if (Items?.OfType<NotificationCard>().Count(i => !i.IsClosing) > MaxItems)
+        {
+            Items.OfType<NotificationCard>().First(i => !i.IsClosing).Close();
+        }
+
 
         if (expiration != TimeSpan.Zero)
         {
