@@ -70,8 +70,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly MetarDecoder _metarDecoder = new();
     private readonly CompositeDisposable _disposables = [];
     private readonly SemaphoreSlim _voiceRequestLock = new(1, 1);
+    private readonly SemaphoreSlim _buildAtisLock = new(1, 1);
     private readonly string? _identifier;
-    private CancellationTokenSource _voiceRequestCts = new();
+    private CancellationTokenSource _buildAtisCts = new();
     private CancellationTokenSource _selectedPresetCts = new();
     private CancellationTokenSource _voiceRecordAtisCts = new();
     private CancellationTokenSource _processMetarCts = new();
@@ -748,6 +749,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _voiceRecordAtisCts.Dispose();
         _selectedPresetCts.Dispose();
         _atisLetterChangedCts.Dispose();
+        _buildAtisCts.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -797,7 +799,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        BuildAtis(CancellationToken.None, notifySubscribers: false).SafeFireAndForget(onException: exception =>
+        // Cancel previous request
+        _buildAtisCts.Cancel();
+        _buildAtisCts = new CancellationTokenSource();
+        var localToken = _buildAtisCts.Token;
+
+        BuildAtis(localToken, notifySubscribers: false).SafeFireAndForget(onException: exception =>
         {
             NotificationManager?.Show(
                 new Notification("Error Building ATIS", "See log for details: " + exception.Message),
@@ -834,7 +841,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
-        BuildAtis(CancellationToken.None, notifySubscribers: false).SafeFireAndForget(onException: exception =>
+        // Cancel previous request
+        _buildAtisCts.Cancel();
+        _buildAtisCts = new CancellationTokenSource();
+        var localToken = _buildAtisCts.Token;
+
+        BuildAtis(localToken, notifySubscribers: false).SafeFireAndForget(onException: exception =>
         {
             NotificationManager?.Show(
                 new Notification("Error Building ATIS", "See log for details: " + exception.Message),
@@ -1587,7 +1599,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private async Task RequestVoiceAtis()
+    private async Task RequestVoiceAtis(CancellationToken cancellationToken)
     {
         if (SelectedAtisPreset == null)
             return;
@@ -1597,26 +1609,20 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         if (AtisStation.AtisVoice.UseTextToSpeech)
         {
-            // Cancel any currently running task
-            await _voiceRequestCts.CancelAsync();
-            _voiceRequestCts = new CancellationTokenSource();
-
-            var localCts = _voiceRequestCts;
-
             await Task.Run(async () =>
             {
-                await _voiceRequestLock.WaitAsync(localCts.Token);
+                await _voiceRequestLock.WaitAsync(cancellationToken);
                 try
                 {
                     var voiceAtis = await _atisBuilder.BuildVoiceAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-                        _decodedMetar, localCts.Token);
+                        _decodedMetar, cancellationToken);
 
                     if (voiceAtis.AudioBytes != null)
                     {
                         var dto = AtisBotUtils.CreateAtisBotDto(voiceAtis.AudioBytes, AtisStation.Frequency,
                             _atisStationAirport.Latitude, _atisStationAirport.Longitude, TransceiverHeightM);
 
-                        await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto, localCts.Token);
+                        await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto, cancellationToken);
                     }
                 }
                 catch (OperationCanceledException)
@@ -1631,7 +1637,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 {
                     _voiceRequestLock.Release();
                 }
-            }, localCts.Token);
+            }, cancellationToken);
         }
     }
 
@@ -1862,33 +1868,54 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
             return;
 
-        // Builds the textual ATIS
-        var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-            _decodedMetar, cancelToken);
-
-        // Sets the textual ATIS
-        AtisStation.TextAtis = textAtis?.ToUpperInvariant();
-
-        // Sets the ATIS letter
-        AtisStation.AtisLetter = AtisLetter;
-
-        // Publishes the ATIS to the hub server
-        await PublishAtisToHub();
-
-        // Publishes the ATIS to connected websocket clients
-        await PublishAtisToWebsocket();
-
-        if (notifySubscribers)
+        try
         {
-            // Notifies subscribed VATSIM clients
-            _networkConnection?.SendSubscriberNotification(AtisLetter);
+            // Only allow one request at a time
+            await _buildAtisLock.WaitAsync(cancelToken);
+
+            try
+            {
+                // Builds the textual ATIS
+                var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
+                    _decodedMetar, cancelToken);
+
+                // Sets the textual ATIS
+                AtisStation.TextAtis = textAtis?.ToUpperInvariant();
+
+                // Sets the ATIS letter
+                AtisStation.AtisLetter = AtisLetter;
+
+                // Publishes the ATIS to the hub server
+                await PublishAtisToHub();
+
+                // Publishes the ATIS to connected websocket clients
+                await PublishAtisToWebsocket();
+
+                if (notifySubscribers)
+                {
+                    // Notifies subscribed VATSIM clients
+                    _networkConnection?.SendSubscriberNotification(AtisLetter);
+                }
+
+                // Posts an update to the configured IDS endpoint URL
+                await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, cancelToken);
+
+                // Requests a new voice ATIS
+                await RequestVoiceAtis(cancelToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore
+            }
+            finally
+            {
+                _buildAtisLock.Release();
+            }
         }
-
-        // Posts an update to the configured IDS endpoint URL
-        await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, cancelToken);
-
-        // Requests a new voice ATIS
-        await RequestVoiceAtis();
+        catch (OperationCanceledException)
+        {
+            // Ignore
+        }
     }
 
     private void OnGetAtisReceived(object? sender, GetAtisReceived e)
