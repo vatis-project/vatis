@@ -201,14 +201,13 @@ public class WindowNotificationManager : WindowMessageManager
                 _hoveredCards--;
         };
 
-
         Items?.Add(notificationControl);
-
-        if (Items?.OfType<NotificationCard>().Count(i => !i.IsClosing) > MaxItems)
+        if (Items is { } collection)
         {
-            Items.OfType<NotificationCard>().First(i => !i.IsClosing).Close();
+            var active = collection.OfType<NotificationCard>().Where(i => !i.IsClosing).ToList();
+            if (active.Count > MaxItems)
+                active.First().Close();
         }
-
 
         if (expiration != TimeSpan.Zero)
         {
