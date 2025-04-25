@@ -33,8 +33,7 @@ public class BlinkingTextBehavior : Behavior<Control>
     /// </summary>
     // ReSharper disable once MemberCanBePrivate.Global
     public static readonly StyledProperty<IBrush> BlinkOnColorProperty =
-        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(BlinkOnColor),
-            new SolidColorBrush(Color.FromRgb(255, 204, 1)));
+        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(BlinkOnColor), Brushes.Gold);
 
     /// <summary>
     /// Identifies the <see cref="BlinkOffColor"/> property.
