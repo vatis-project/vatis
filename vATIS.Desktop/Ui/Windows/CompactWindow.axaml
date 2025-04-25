@@ -38,7 +38,7 @@
                 Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}" Cursor="Hand">
                 <Interaction.Behaviors>
                     <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" SourceInteractive="AtisLetter">
-                        <InvokeCommandAction Command="{Binding AcknowledgeAtisUpdateCommand, DataType=vm:AtisStationViewModel}" />
+                        <InvokeCommandAction Command="{Binding AcknowledgeAtisUpdateCommand, DataType=vm:AtisStationViewModel}" PassEventArgsToCommand="True" />
                     </RoutedEventTriggerBehavior>
                     <behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, Mode=TwoWay}" BlinkOffColor="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectionStatusToBrush}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Connected}}"/>
                 </Interaction.Behaviors>
