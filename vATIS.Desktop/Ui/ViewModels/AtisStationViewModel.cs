@@ -328,6 +328,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     Metar = null;
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                    IsNewAtis = false;
 
                     // Clear Airport Conditions and NOTAMs
                     if (AirportConditionsTextDocument != null)

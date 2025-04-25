@@ -8,6 +8,7 @@
 	<converter:AtisLetterVisibleConverter x:Key="AtisLetterVisibleConverter"/>
     <converter:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
     <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
+    <converter:EnumToBrushConverter x:Key="ConnectionStatusToBrush" Match="Aqua" NoMatch="Coral"/>
 	<ControlTheme x:Key="{x:Type controls:CustomTabItem}" TargetType="controls:CustomTabItem">
 		<Setter Property="Foreground" Value="#848484"/>
 		<Setter Property="Background" Value="#323232"/>
@@ -48,7 +49,7 @@
 								   IsVisible="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterVisibleConverter}}"
 								   Margin="5 0 0 0">
 							<Interaction.Behaviors>
-								<behaviors:BlinkingTextBehavior IsEnabled="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static network:NetworkConnectionStatus.Connected}}" IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}" />
+								<behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, Mode=TwoWay}" BlinkOffColor="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectionStatusToBrush}, ConverterParameter={x:Static network:NetworkConnectionStatus.Connected}}" />
 							</Interaction.Behaviors>
 						</TextBlock>
 					</StackPanel>
