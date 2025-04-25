@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -41,9 +43,17 @@ public class BlinkingTextBehavior : Behavior<Control>
     public static readonly StyledProperty<IBrush> BlinkOffColorProperty =
         AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(BlinkOffColor), Brushes.Aqua);
 
+    /// <summary>
+    /// Identifies the <see cref="BlinkDuration"/> property.
+    /// </summary>
+    // ReSharper disable once MemberCanBePrivate.Global
+    public static readonly StyledProperty<TimeSpan> BlinkDurationProperty =
+        AvaloniaProperty.Register<BlinkingTextBehavior, TimeSpan>(nameof(BlinkDuration), TimeSpan.FromSeconds(30));
+
     private static readonly List<BlinkingTextBehavior> s_instances = [];
     private static bool s_isBlinking;
     private IBrush? _originalBrush;
+    private CancellationTokenSource? _blinkCts;
 
     static BlinkingTextBehavior()
     {
@@ -77,6 +87,16 @@ public class BlinkingTextBehavior : Behavior<Control>
         set => SetValue(BlinkOffColorProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the duration that the control will blink before reverting
+    /// to its original foreground color. The default is 30 seconds.
+    /// </summary>
+    public TimeSpan BlinkDuration
+    {
+        get => GetValue(BlinkDurationProperty);
+        set => SetValue(BlinkDurationProperty, value);
+    }
+
     /// <inheritdoc/>
     protected override void OnAttached()
     {
@@ -87,6 +107,36 @@ public class BlinkingTextBehavior : Behavior<Control>
             // Delay grabbing the original brush until it's actually set by the binding
             AssociatedObject.AttachedToVisualTree += (_, _) => _originalBrush = GetForeground(AssociatedObject);
             s_instances.Add(this);
+
+            this.GetObservable(IsBlinkingProperty).Subscribe(isBlinking =>
+            {
+                if (!isBlinking)
+                {
+                    return;
+                }
+
+                _blinkCts?.Cancel();
+                _blinkCts = new CancellationTokenSource();
+                var token = _blinkCts.Token;
+
+                var weakRef = new WeakReference<BlinkingTextBehavior>(this);
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(BlinkDuration, token);
+
+                        if (!token.IsCancellationRequested && weakRef.TryGetTarget(out var target))
+                        {
+                            Dispatcher.UIThread.Post(() => target.IsBlinking = false);
+                        }
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // Ignore
+                    }
+                }, token);
+            });
         }
     }
 
@@ -94,6 +144,10 @@ public class BlinkingTextBehavior : Behavior<Control>
     protected override void OnDetaching()
     {
         base.OnDetaching();
+
+        _blinkCts?.Cancel();
+        _blinkCts?.Dispose();
+        _blinkCts = null;
 
         if (AssociatedObject is not null)
         {
@@ -108,16 +162,18 @@ public class BlinkingTextBehavior : Behavior<Control>
 
         foreach (var instance in s_instances)
         {
-            if (instance.AssociatedObject is not null && instance.IsEnabled)
+            if (instance.AssociatedObject is null || !instance.IsEnabled)
             {
-                if (instance.IsBlinking)
-                {
-                    SetForeground(instance.AssociatedObject, s_isBlinking ? instance.BlinkOnColor : instance.BlinkOffColor);
-                }
-                else
-                {
-                    SetForeground(instance.AssociatedObject, instance._originalBrush);
-                }
+                continue;
+            }
+
+            if (instance.IsBlinking)
+            {
+                SetForeground(instance.AssociatedObject, s_isBlinking ? instance.BlinkOnColor : instance.BlinkOffColor);
+            }
+            else
+            {
+                SetForeground(instance.AssociatedObject, instance._originalBrush);
             }
         }
 
