@@ -27,6 +27,7 @@
         Title="vATIS">
     <Window.Resources>
         <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
+        <converter:EnumToBrushConverter x:Key="ConnectionStatusToBrush" Match="Aqua" NoMatch="Tomato"/>
         <DataTemplate x:Key="AtisLetterTemplate">
             <TextBlock
                 Name="AtisLetter"
@@ -37,11 +38,9 @@
                 Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}" Cursor="Hand">
                 <Interaction.Behaviors>
                     <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" SourceInteractive="AtisLetter">
-                        <InvokeCommandAction Command="{Binding AcknowledgeAtisUpdateCommand, DataType=vm:AtisStationViewModel}" />
+                        <InvokeCommandAction Command="{Binding AcknowledgeAtisUpdateCommand, DataType=vm:AtisStationViewModel}" PassEventArgsToCommand="True" />
                     </RoutedEventTriggerBehavior>
-                    <behaviors:BlinkingTextBehavior
-                        IsEnabled="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Connected}}"
-                        IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}" />
+                    <behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, Mode=TwoWay}" BlinkOffColor="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectionStatusToBrush}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Connected}}"/>
                 </Interaction.Behaviors>
             </TextBlock>
         </DataTemplate>

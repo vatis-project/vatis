@@ -21,7 +21,7 @@
 			<!--Atis Letter-->
 			<Button Name="AtisLetter" IsVisible="{Binding !IsAtisLetterInputMode, DataType=vm:AtisStationViewModel}" CornerRadius="3" Classes="AtisLetter" Foreground="White" Grid.Column="0" Grid.Row="0" Content="{Binding AtisLetter, DataType=vm:AtisStationViewModel, FallbackValue=A}" IsEnabled="True" FontFamily="{DynamicResource Monospace}">
 				<Interaction.Behaviors>
-					<behaviors:BlinkingTextBehavior IsEnabled="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Connected}}" IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, FallbackValue=False}"/>
+                    <behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, FallbackValue=False, Mode=TwoWay}" BlinkOffColor="White"/>
 				</Interaction.Behaviors>
 			</Button>
 			<TextBox Name="TypeAtisLetter" IsVisible="{Binding IsAtisLetterInputMode, DataType=vm:AtisStationViewModel}" Grid.Column="0" Grid.Row="0" Theme="{StaticResource DarkTextBox}" Height="85" FontSize="60" FontWeight="Medium" FontFamily="{StaticResource Monospace}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MaxLength="1" AcceptsReturn="False" TextWrapping="NoWrap" ScrollViewer.VerticalScrollBarVisibility="Hidden">

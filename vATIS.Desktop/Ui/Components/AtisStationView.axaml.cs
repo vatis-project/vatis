@@ -183,18 +183,24 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             if (ViewModel == null)
                 return;
 
-            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
-                return;
-
-            // If the shift key is held down it likely means the user is trying to
+            // If the shift key is held down, it likely means the user is trying to
             // shift + double click to get into edit mode, so don't advance
             // the letter.
-            if ((e.KeyModifiers & KeyModifiers.Shift) != 0)
+            if ((e.KeyModifiers & KeyModifiers.Shift) != 0 &&
+                ViewModel.NetworkConnectionStatus != NetworkConnectionStatus.Observer)
             {
                 return;
             }
 
-            await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+            if (ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            {
+                await ViewModel.AcknowledgeAtisUpdateCommand.Execute();
+            }
+            else
+            {
+                // Only allow incrementing the ATIS letter for connected station.
+                await ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute();
+            }
         }
         catch (Exception ex)
         {
