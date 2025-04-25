@@ -27,7 +27,7 @@
         Title="vATIS">
     <Window.Resources>
         <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
-        <converter:EnumToBrushConverter x:Key="ConnectionStatusToBrush" Match="Aqua" NoMatch="Coral"/>
+        <converter:EnumToBrushConverter x:Key="ConnectionStatusToBrush" Match="Aqua" NoMatch="Tomato"/>
         <DataTemplate x:Key="AtisLetterTemplate">
             <TextBlock
                 Name="AtisLetter"

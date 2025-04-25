@@ -8,7 +8,7 @@
 	<converter:AtisLetterVisibleConverter x:Key="AtisLetterVisibleConverter"/>
     <converter:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
     <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
-    <converter:EnumToBrushConverter x:Key="ConnectionStatusToBrush" Match="Aqua" NoMatch="Coral"/>
+    <converter:EnumToBrushConverter x:Key="ConnectionStatusToBrush" Match="Aqua" NoMatch="Tomato"/>
 	<ControlTheme x:Key="{x:Type controls:CustomTabItem}" TargetType="controls:CustomTabItem">
 		<Setter Property="Foreground" Value="#848484"/>
 		<Setter Property="Background" Value="#323232"/>
