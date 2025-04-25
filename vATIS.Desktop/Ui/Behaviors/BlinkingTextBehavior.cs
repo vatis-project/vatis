@@ -14,32 +14,32 @@ using Avalonia.Xaml.Interactivity;
 namespace Vatsim.Vatis.Ui.Behaviors;
 
 /// <summary>
-/// Provides a behavior that alternates the foreground color of a control
-/// between two specified colors, creating a blinking effect.
+/// A behavior that enables a blinking text effect on supported Avalonia controls.
+/// The foreground color alternates between <see cref="BlinkOnColor"/> and <see cref="BlinkOffColor"/> while <see cref="IsBlinking"/> is true.
 /// </summary>
 public class BlinkingTextBehavior : Behavior<Control>
 {
     /// <summary>
-    /// Identifies the <see cref="IsBlinkingProperty"/> dependency property, determining whether
-    /// the associated control should have its text alternate between two colors, creating a blinking effect.
+    /// Identifies the <see cref="IsBlinking"/> property.
     /// </summary>
+    // ReSharper disable once MemberCanBePrivate.Global
     public static readonly StyledProperty<bool> IsBlinkingProperty =
         AvaloniaProperty.Register<BlinkingTextBehavior, bool>(nameof(IsBlinking));
 
     /// <summary>
-    /// Identifies the <see cref="Color1Property"/> dependency property, specifying
-    /// the first foreground color used by the associated control when creating a blinking effect.
+    /// Identifies the <see cref="BlinkOnColor"/> property.
     /// </summary>
-    public static readonly StyledProperty<IBrush> Color1Property =
-        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(Color1), Brushes.Aqua);
+    // ReSharper disable once MemberCanBePrivate.Global
+    public static readonly StyledProperty<IBrush> BlinkOnColorProperty =
+        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(BlinkOnColor),
+            new SolidColorBrush(Color.FromRgb(255, 204, 1)));
 
     /// <summary>
-    /// Identifies the <see cref="Color2Property"/> dependency property, specifying
-    /// the second foreground color used by the associated control when creating a blinking effect.
+    /// Identifies the <see cref="BlinkOffColor"/> property.
     /// </summary>
-    public static readonly StyledProperty<IBrush> Color2Property =
-        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(Color2),
-            new SolidColorBrush(Color.FromRgb(255, 204, 1)));
+    // ReSharper disable once MemberCanBePrivate.Global
+    public static readonly StyledProperty<IBrush> BlinkOffColorProperty =
+        AvaloniaProperty.Register<BlinkingTextBehavior, IBrush>(nameof(BlinkOffColor), Brushes.Aqua);
 
     private static readonly List<BlinkingTextBehavior> s_instances = [];
     private static bool s_isBlinking;
@@ -51,8 +51,7 @@ public class BlinkingTextBehavior : Behavior<Control>
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the associated control
-    /// should alternate its text color between two specified colors, creating a blinking effect.
+    /// Gets or sets a value indicating whether the blinking effect is active.
     /// </summary>
     public bool IsBlinking
     {
@@ -61,23 +60,21 @@ public class BlinkingTextBehavior : Behavior<Control>
     }
 
     /// <summary>
-    /// Gets or sets the first foreground color used by the associated control
-    /// when creating a blinking effect.
+    /// Gets or sets the brush used when the text is in the "on" blink state.
     /// </summary>
-    public IBrush Color1
+    public IBrush BlinkOnColor
     {
-        get => GetValue(Color1Property);
-        set => SetValue(Color1Property, value);
+        get => GetValue(BlinkOnColorProperty);
+        set => SetValue(BlinkOnColorProperty, value);
     }
 
     /// <summary>
-    /// Gets or sets the second foreground color used by the associated control
-    /// when creating a blinking effect.
+    /// Gets or sets the brush used when the text is in the "off" blink state.
     /// </summary>
-    public IBrush Color2
+    public IBrush BlinkOffColor
     {
-        get => GetValue(Color2Property);
-        set => SetValue(Color2Property, value);
+        get => GetValue(BlinkOffColorProperty);
+        set => SetValue(BlinkOffColorProperty, value);
     }
 
     /// <inheritdoc/>
@@ -87,7 +84,8 @@ public class BlinkingTextBehavior : Behavior<Control>
 
         if (AssociatedObject is not null)
         {
-            _originalBrush = GetForeground(AssociatedObject);
+            // Delay grabbing the original brush until it's actually set by the binding
+            AssociatedObject.AttachedToVisualTree += (_, _) => _originalBrush = GetForeground(AssociatedObject);
             s_instances.Add(this);
         }
     }
@@ -114,7 +112,7 @@ public class BlinkingTextBehavior : Behavior<Control>
             {
                 if (instance.IsBlinking)
                 {
-                    SetForeground(instance.AssociatedObject, s_isBlinking ? instance.Color1 : instance.Color2);
+                    SetForeground(instance.AssociatedObject, s_isBlinking ? instance.BlinkOnColor : instance.BlinkOffColor);
                 }
                 else
                 {
