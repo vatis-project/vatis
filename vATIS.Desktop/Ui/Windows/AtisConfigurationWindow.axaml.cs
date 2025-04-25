@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -36,24 +37,28 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         ViewModel?.Initialize(this);
         Closed += OnClosed;
 
-        this.WhenAnyValue(x => x.ViewModel!.SelectedAtisStation).Subscribe(station =>
+        this.WhenActivated(disposable =>
         {
-            var index = Stations.Items.IndexOf(station);
-            Stations.SelectedIndex = index;
-            SandboxTab.IsVisible = false;
-        });
+            if (ViewModel == null)
+                return;
 
-        this.WhenAnyValue(x => x.ViewModel!.PresetsViewModel!.SelectedPreset).Subscribe(preset =>
-        {
-            if (preset != null)
+            ViewModel.WhenAnyValue(x => x.SelectedAtisStation).Subscribe(station =>
+            {
+                var index = Stations.Items.IndexOf(station);
+                Stations.SelectedIndex = index;
+                SandboxTab.IsVisible = false;
+            }).DisposeWith(disposable);
+
+            ViewModel.PresetsViewModel?.WhenAnyValue(x => x.SelectedPreset).WhereNotNull().Subscribe(preset =>
             {
                 SandboxTab.IsVisible = preset.ExternalGenerator is { Enabled: false };
-            }
-        });
+            }).DisposeWith(disposable);
 
-        this.WhenAnyValue(x => x.ViewModel!.PresetsViewModel!.UseExternalAtisGenerator)
-            .Skip(1)
-            .Subscribe(useExternalGenerator => { SandboxTab.IsVisible = !useExternalGenerator; });
+            ViewModel.PresetsViewModel?.WhenAnyValue(x => x.UseExternalAtisGenerator).Skip(1).Subscribe(value =>
+            {
+                SandboxTab.IsVisible = !value;
+            }).DisposeWith(disposable);
+        });
     }
 
     /// <summary>
