@@ -48,7 +48,7 @@ public class BlinkingTextBehavior : Behavior<Control>
     /// </summary>
     // ReSharper disable once MemberCanBePrivate.Global
     public static readonly StyledProperty<TimeSpan> BlinkDurationProperty =
-        AvaloniaProperty.Register<BlinkingTextBehavior, TimeSpan>(nameof(BlinkDuration), TimeSpan.FromSeconds(30));
+        AvaloniaProperty.Register<BlinkingTextBehavior, TimeSpan>(nameof(BlinkDuration), TimeSpan.FromSeconds(60));
 
     private static readonly List<BlinkingTextBehavior> s_instances = [];
     private static bool s_isBlinking;
@@ -89,7 +89,7 @@ public class BlinkingTextBehavior : Behavior<Control>
 
     /// <summary>
     /// Gets or sets the duration that the control will blink before reverting
-    /// to its original foreground color. The default is 30 seconds.
+    /// to its original foreground color.
     /// </summary>
     public TimeSpan BlinkDuration
     {
