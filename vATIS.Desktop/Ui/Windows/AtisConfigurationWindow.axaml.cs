@@ -40,7 +40,20 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         {
             var index = Stations.Items.IndexOf(station);
             Stations.SelectedIndex = index;
+            SandboxTab.IsVisible = false;
         });
+
+        this.WhenAnyValue(x => x.ViewModel!.PresetsViewModel!.SelectedPreset).Subscribe(preset =>
+        {
+            if (preset != null)
+            {
+                SandboxTab.IsVisible = preset.ExternalGenerator is { Enabled: false };
+            }
+        });
+
+        this.WhenAnyValue(x => x.ViewModel!.PresetsViewModel!.UseExternalAtisGenerator)
+            .Skip(1)
+            .Subscribe(useExternalGenerator => { SandboxTab.IsVisible = !useExternalGenerator; });
     }
 
     /// <summary>
