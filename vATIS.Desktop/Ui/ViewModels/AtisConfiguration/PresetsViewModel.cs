@@ -893,6 +893,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
+        _changeTracker.ResetChanges();
+
         SelectedStation = station;
         Presets = new ObservableCollection<AtisPreset>(station.Presets);
         UseExternalAtisGenerator = false;
@@ -910,8 +912,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         NativeAudio.StopBufferPlayback();
 
         PopulateContractions();
-
-        _changeTracker.ResetChanges();
     }
 
     private void PopulateContractions()
