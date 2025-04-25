@@ -120,11 +120,15 @@ public class BlinkingTextBehavior : Behavior<Control>
                 var token = _blinkCts.Token;
 
                 var weakRef = new WeakReference<BlinkingTextBehavior>(this);
+
+                // Capture BlinkDuration from UI thread
+                var blinkDuration = BlinkDuration;
+
                 Task.Run(async () =>
                 {
                     try
                     {
-                        await Task.Delay(BlinkDuration, token);
+                        await Task.Delay(blinkDuration, token);
 
                         if (!token.IsCancellationRequested && weakRef.TryGetTarget(out var target))
                         {
