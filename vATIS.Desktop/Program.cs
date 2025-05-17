@@ -4,9 +4,11 @@
 // </copyright>
 
 using System;
+using System.IO;
 using System.Threading;
 using Avalonia;
 using Avalonia.ReactiveUI;
+using NuGet.Versioning;
 using Serilog;
 using Velopack;
 
@@ -18,7 +20,7 @@ namespace Vatsim.Vatis;
 internal static class Program
 {
     /// <summary>
-    /// Gets a value indicating whether the application has been updated and the release notes should be displayed.
+    /// Gets a value indicating whether the application has been updated, and the release notes should be displayed.
     /// </summary>
     public static bool IsUpdated { get; private set; }
 
@@ -32,7 +34,7 @@ internal static class Program
         try
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-            VelopackApp.Build().WithRestarted(_ => IsUpdated = true).Run();
+            VelopackApp.Build().WithFirstRun(OnFirstRun).WithRestarted(OnRestarted).Run();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnExplicitShutdown);
         }
         catch (Exception ex)
@@ -41,6 +43,32 @@ internal static class Program
         }
 
         Log.CloseAndFlush();
+    }
+
+    private static void OnRestarted(SemanticVersion version)
+    {
+        IsUpdated = true;
+    }
+
+    private static void OnFirstRun(SemanticVersion version)
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        try
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var upgradeAssistantPath = Path.Combine(localAppData, "vatis-upgrade-assistant");
+            if (Directory.Exists(upgradeAssistantPath))
+            {
+                Directory.Delete(upgradeAssistantPath, recursive: true);
+                Log.Information("Deleted upgrade assistant directory: {UpgradeAssistantPath}", upgradeAssistantPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete upgrade assistant directory");
+        }
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
