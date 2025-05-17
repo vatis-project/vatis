@@ -760,7 +760,7 @@
 					</TabItem>
 					<TabItem Header="Transition Levels">
 						<StackPanel Orientation="Vertical" Spacing="10">
-							<DataGrid Name="TransitionLevels" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding TransitionLevels, DataType=vm:FormattingViewModel}">
+							<DataGrid x:Name="TransitionLevels" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding TransitionLevels, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="TransitionLevels"/>
 								</Interaction.Behaviors>
