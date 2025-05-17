@@ -94,7 +94,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .AutoRefresh(x => x.Ordinal)
             .Do(_ =>
             {
-                if (AtisStations != null && AtisStations.Count > SelectedTabIndex)
+                if (AtisStations != null && AtisStations.Count != 0 && AtisStations.Count > SelectedTabIndex)
                 {
                     _beforeStationSortSelectedStationId = AtisStations[SelectedTabIndex].Id;
                 }
