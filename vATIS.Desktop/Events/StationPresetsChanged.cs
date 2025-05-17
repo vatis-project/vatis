@@ -6,7 +6,7 @@
 namespace Vatsim.Vatis.Events;
 
 /// <summary>
-/// Represents an event that is raised when station presets are changed.
+/// Represents an event raised when station presets are changed.
 /// </summary>
 /// <param name="Id">The station ID.</param>
 public record StationPresetsChanged(string Id) : IEvent;

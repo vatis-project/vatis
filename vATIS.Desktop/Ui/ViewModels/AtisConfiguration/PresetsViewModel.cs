@@ -459,6 +459,11 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             _profileRepository.Save(_sessionManager.CurrentProfile);
         }
 
+        if (SelectedStation != null)
+        {
+            EventBus.Instance.Publish(new StationPresetsChanged(SelectedStation.Id));
+        }
+
         hasErrors = false;
         return _changeTracker.ApplyChangesIfNeeded();
     }

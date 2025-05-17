@@ -247,7 +247,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             if (evt.Id == AtisStation.Id)
             {
-                AtisPresetList = new ObservableCollection<AtisPreset>(AtisStation.Presets.OrderBy(x => x.Ordinal));
+                AtisPresetList = [.. AtisStation.Presets.OrderBy(x => x.Ordinal)];
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
