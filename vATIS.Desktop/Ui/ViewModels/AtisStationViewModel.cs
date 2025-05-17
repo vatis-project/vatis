@@ -16,6 +16,7 @@ using AsyncAwaitBestPractices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
+using Avalonia.Input;
 using Avalonia.Threading;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
@@ -197,7 +198,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         ApplyAirportConditionsCommand = ReactiveCommand.Create<bool>(HandleApplyAirportConditions);
         ApplyNotamsCommand = ReactiveCommand.Create<bool>(HandleApplyNotams);
         SelectedPresetChangedCommand = ReactiveCommand.CreateFromTask<AtisPreset>(HandleSelectedAtisPresetChanged);
-        AcknowledgeAtisUpdateCommand = ReactiveCommand.Create(HandleAcknowledgeAtisUpdate);
+        AcknowledgeAtisUpdateCommand = ReactiveCommand.Create<PointerPressedEventArgs>(HandleAcknowledgeAtisUpdate);
         DecrementAtisLetterCommand = ReactiveCommand.Create(DecrementAtisLetter);
         AcknowledgeOrIncrementAtisLetterCommand = ReactiveCommand.Create(AcknowledgeOrIncrementAtisLetter);
         NetworkConnectCommand = ReactiveCommand.CreateFromTask(HandleNetworkConnect, this.WhenAnyValue(
@@ -231,6 +232,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _voiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
         UseTexToSpeech = !AtisStation.AtisVoice.UseTextToSpeech;
+        _disposables.Add(EventBus.Instance.Subscribe<AcknowledgeAllAtisUpdates>(_ =>
+        {
+            AcknowledgeAtisUpdateCommand.Execute().Subscribe();
+        }));
         _disposables.Add(EventBus.Instance.Subscribe<AtisVoiceTypeChanged>(evt =>
         {
             if (evt.Id == AtisStation.Id)
@@ -329,6 +334,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     Metar = null;
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+                    IsNewAtis = false;
 
                     // Clear Airport Conditions and NOTAMs
                     if (AirportConditionsTextDocument != null)
@@ -401,7 +407,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the command to acknowledge an ATIS update.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> AcknowledgeAtisUpdateCommand { get; }
+    public ReactiveCommand<PointerPressedEventArgs, Unit> AcknowledgeAtisUpdateCommand { get; }
 
     /// <summary>
     /// Gets the command for initiating a network connection.
@@ -2062,10 +2068,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private void HandleAcknowledgeAtisUpdate()
+    private void HandleAcknowledgeAtisUpdate(PointerPressedEventArgs? args = null)
     {
         if (IsNewAtis)
         {
+            if (args != null)
+            {
+                var point = args.GetCurrentPoint(null);
+                if (point.Properties.IsRightButtonPressed || point.Properties.IsMiddleButtonPressed)
+                {
+                    EventBus.Instance.Publish(new AcknowledgeAllAtisUpdates());
+                }
+            }
+
             IsNewAtis = false;
         }
     }
