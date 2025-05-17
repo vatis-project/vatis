@@ -183,14 +183,18 @@ public class AtisBuilder : IAtisBuilder
             var jsonSerialized = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.IdsUpdateRequest);
             await _downloader.PostJson(station.IdsEndpoint, jsonSerialized, jwt, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            // Ignore
+        }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex.ToString(), "HttpRequestException updating IDS");
+            Log.Error(ex, "HttpRequestException updating IDS");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to update IDS");
-            throw new AtisBuilderException($"Failed to Update IDS: " + ex.Message);
+            throw new AtisBuilderException($"Failed to Update IDS: {ex.Message}");
         }
     }
 
