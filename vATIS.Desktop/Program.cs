@@ -61,12 +61,13 @@ internal static class Program
             var upgradeAssistantPath = Path.Combine(localAppData, "vatis-upgrade-assistant");
             if (Directory.Exists(upgradeAssistantPath))
             {
-                Directory.Delete(upgradeAssistantPath);
+                Directory.Delete(upgradeAssistantPath, recursive: true);
+                Log.Information("Deleted upgrade assistant directory: {UpgradeAssistantPath}", upgradeAssistantPath);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore any failures
+            Log.Warning(ex, "Failed to delete upgrade assistant directory");
         }
     }
 
