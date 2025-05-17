@@ -111,7 +111,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         {
             if (evt.Id == SelectedStation?.Id)
             {
-                Presets = new ObservableCollection<AtisPreset>(SelectedStation.Presets);
+                Presets = [.. SelectedStation.Presets.Where(p => p.ExternalGenerator is not { Enabled: true })];
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
@@ -342,7 +342,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
 
         SelectedPreset = null;
         SelectedStation = station;
-        Presets = new ObservableCollection<AtisPreset>(station.Presets);
+        Presets = [.. station.Presets.Where(p => p.ExternalGenerator is not { Enabled: true })];
         SandboxMetar = "";
         HasUnsavedAirportConditions = false;
         HasUnsavedNotams = false;
