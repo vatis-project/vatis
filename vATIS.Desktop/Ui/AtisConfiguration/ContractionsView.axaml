@@ -9,7 +9,7 @@
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.ContractionsView">
 	<StackPanel Orientation="Vertical" Spacing="10">
 		<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-			<DataGrid Name="Contractions" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="380" ItemsSource="{Binding Contractions, DataType=vm:ContractionsViewModel}" SelectionMode="Extended" LoadingRow="Contractions_OnLoadingRow" CellEditEnding="Contractions_Validate">
+			<DataGrid x:Name="Contractions" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="380" ItemsSource="{Binding Contractions, DataType=vm:ContractionsViewModel}" SelectionMode="Extended" LoadingRow="Contractions_OnLoadingRow" CellEditEnding="Contractions_Validate">
 				<Interaction.Behaviors>
 					<behaviors:DataGridCellEndEditBehavior DataGridName="Contractions" Command="{Binding CellEditEndingCommand, DataType=vm:ContractionsViewModel}"/>
 					<behaviors:DataGridTextUppercaseBehavior/>
