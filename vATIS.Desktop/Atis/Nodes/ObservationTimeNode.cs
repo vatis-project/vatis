@@ -16,6 +16,8 @@ namespace Vatsim.Vatis.Atis.Nodes;
 public class ObservationTimeNode : BaseNode<string>
 {
     private const string SpecialText = "SPECIAL";
+    private const string SpeciText = "SPECI";
+    private const string MetarText = "METAR";
     private bool _isSpecialAtis;
 
     /// <inheritdoc/>
@@ -57,6 +59,7 @@ public class ObservationTimeNode : BaseNode<string>
         format = Regex.Replace(format, "{hour}", $"{metarHour:00}", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{minute}", $"{metarMinute:00}", RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{special}", _isSpecialAtis ? SpecialText : "", RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{type}", _isSpecialAtis ? SpeciText : MetarText, RegexOptions.IgnoreCase);
 
         return format;
     }
