@@ -80,6 +80,13 @@
 								CommandParameter="{Binding $self.Content}">
 								{special}
 							</Button>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="Inserts the word &quot;SPECI&quot; or &quot;METAR&quot; based on whether the observation is considered special (if the observation time is different from the Routine Observation Time). This variable is for the text template only."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {type}
+                            </Button>
 						</StackPanel>
 					</StackPanel>
 				</groupBox:GroupBoxControl>
