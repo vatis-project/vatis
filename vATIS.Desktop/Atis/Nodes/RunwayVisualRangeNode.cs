@@ -87,7 +87,7 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                     var maxVis = int.Parse(match.Groups[6].Value);
 
                     result.Add(match.Groups[3].Value == "M"
-                        ? $"variable from less than {minVis.ToGroupForm()} to greater than{maxVis.ToGroupForm()}"
+                        ? $"variable from less than {minVis.ToGroupForm()} to greater than {maxVis.ToGroupForm()}"
                         : $"{minVis.ToGroupForm()} variable to greater than {maxVis.ToGroupForm()}");
                     break;
                 }
