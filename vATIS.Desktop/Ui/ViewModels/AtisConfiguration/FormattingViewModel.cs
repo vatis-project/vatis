@@ -91,6 +91,9 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _visibilityUnlimitedVisibilityText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
+    private string? _rvrTendencyNeutralText;
+    private string? _rvrTendencyGoingUpText;
+    private string? _rvrTendencyGoingDownText;
     private bool _cloudsIdentifyCeilingLayer;
     private bool _cloudsConvertToMetric;
     private string? _undeterminedLayerAltitudeText;
@@ -856,6 +859,45 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the RVR neutral tendency text template.
+    /// </summary>
+    public string? RvrTendencyNeutralText
+    {
+        get => _rvrTendencyNeutralText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rvrTendencyNeutralText, value);
+            _changeTracker.TrackChange(nameof(RvrTendencyNeutralText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the RVR going up tendency text template.
+    /// </summary>
+    public string? RvrTendencyGoingUpText
+    {
+        get => _rvrTendencyGoingUpText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rvrTendencyGoingUpText, value);
+            _changeTracker.TrackChange(nameof(RvrTendencyGoingUpText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the RVR going down tendency text template.
+    /// </summary>
+    public string? RvrTendencyGoingDownText
+    {
+        get => _rvrTendencyGoingDownText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rvrTendencyGoingDownText, value);
+            _changeTracker.TrackChange(nameof(RvrTendencyGoingDownText), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to identify ceiling layer.
     /// </summary>
     public bool CloudsIdentifyCeilingLayer
@@ -1454,6 +1496,21 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.Visibility.MetersCutoff = VisibilityMetersCutoff;
         }
 
+        if (SelectedStation.AtisFormat.RunwayVisualRange.NeutralTendency != RvrTendencyNeutralText)
+        {
+            SelectedStation.AtisFormat.RunwayVisualRange.NeutralTendency = RvrTendencyNeutralText;
+        }
+
+        if (SelectedStation.AtisFormat.RunwayVisualRange.GoingUpTendency != RvrTendencyGoingUpText)
+        {
+            SelectedStation.AtisFormat.RunwayVisualRange.GoingUpTendency = RvrTendencyGoingUpText;
+        }
+
+        if (SelectedStation.AtisFormat.RunwayVisualRange.GoingDownTendency != RvrTendencyGoingDownText)
+        {
+            SelectedStation.AtisFormat.RunwayVisualRange.GoingDownTendency = RvrTendencyGoingDownText;
+        }
+
         if (PresentWeatherTypes != null && SelectedStation.AtisFormat.PresentWeather.PresentWeatherTypes !=
             PresentWeatherTypes.ToDictionary(
                 x => x.Key,
@@ -1596,40 +1653,28 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
         SelectedStation = station;
 
-        FormattingOptions = [];
-        if (station.IsFaaAtis)
+        var items = new List<string>
         {
-            FormattingOptions =
-            [
-                "Observation Time",
-                "Wind",
-                "Visibility",
-                "Weather",
-                "Clouds",
-                "Temperature",
-                "Dewpoint",
-                "Altimeter",
-                "NOTAMs",
-                "Closing Statement"
-            ];
-        }
-        else
+            "Observation Time",
+            "Wind",
+            "Visibility",
+            "Runway Visual Range",
+            "Weather",
+            "Clouds",
+            "Temperature",
+            "Dewpoint",
+            "Altimeter"
+        };
+
+        if (!station.IsFaaAtis)
         {
-            FormattingOptions =
-            [
-                "Observation Time",
-                "Wind",
-                "Visibility",
-                "Weather",
-                "Clouds",
-                "Temperature",
-                "Dewpoint",
-                "Altimeter",
-                "Transition Level",
-                "NOTAMs",
-                "Closing Statement"
-            ];
+            items.Add("Transition Level");
         }
+
+        items.Add("NOTAMs");
+        items.Add("Closing Statement");
+
+        FormattingOptions = [.. items];
 
         SpeakWindSpeedLeadingZero = station.AtisFormat.SurfaceWind.SpeakLeadingZero;
         MagneticVariationEnabled = station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
@@ -1678,6 +1723,9 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
+        RvrTendencyNeutralText = station.AtisFormat.RunwayVisualRange.NeutralTendency;
+        RvrTendencyGoingUpText = station.AtisFormat.RunwayVisualRange.GoingUpTendency;
+        RvrTendencyGoingDownText = station.AtisFormat.RunwayVisualRange.GoingDownTendency;
         CloudsIdentifyCeilingLayer = station.AtisFormat.Clouds.IdentifyCeilingLayer;
         CloudsConvertToMetric = station.AtisFormat.Clouds.ConvertToMetric;
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
