@@ -28,6 +28,11 @@ public class AtisFormat
     public Visibility Visibility { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the runway visual range component of the ATIS format.
+    /// </summary>
+    public RunwayVisualRange RunwayVisualRange { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the present weather component of the ATIS format.
     /// </summary>
     public PresentWeather PresentWeather { get; set; } = new();
@@ -83,6 +88,7 @@ public class AtisFormat
             ObservationTime = ObservationTime.Clone(),
             SurfaceWind = SurfaceWind.Clone(),
             Visibility = Visibility.Clone(),
+            RunwayVisualRange = RunwayVisualRange.Clone(),
             PresentWeather = PresentWeather.Clone(),
             RecentWeather = RecentWeather.Clone(),
             Clouds = Clouds.Clone(),

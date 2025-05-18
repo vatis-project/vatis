@@ -433,6 +433,27 @@
 					</TabItem>
 				</TabControl>
 			</StackPanel>
+            <!--Runway Visual Range-->
+			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
+				<TabControl Margin="-3">
+					<TabItem Header="Tendencies (Spoken)">
+                        <StackPanel Orientation="Vertical" Spacing="10">
+                            <Grid ColumnDefinitions="130,*">
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is N">Neutral (N):</TextBlock>
+                                <TextBox Grid.Column="1" Text="{Binding RvrTendencyNeutralText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            </Grid>
+                            <Grid ColumnDefinitions="130,*">
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is U">Going Up (U):</TextBlock>
+                                <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingUpText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="130,*">
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is D">Going Down (D):</TextBlock>
+                                <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingDownText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            </Grid>
+                        </StackPanel>
+					</TabItem>
+				</TabControl>
+			</StackPanel>
 			<!--Weather-->
 			<StackPanel Spacing="10" Margin="10,10,0,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
 				<TabControl Margin="-3">
