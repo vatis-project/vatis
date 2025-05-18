@@ -10,12 +10,18 @@ using Avalonia.Input;
 namespace Vatsim.Vatis.Ui.Controls;
 
 /// <summary>
-/// Represents a customized ComboBox that disables navigation using the up and down arrow keys.
+/// Represents a customized ComboBox that disables navigation using the up and down arrow keys and mouse wheel.
 /// </summary>
 public class NonNavigableComboBox : ComboBox
 {
     /// <inheritdoc/>
     protected override Type StyleKeyOverride => typeof(ComboBox);
+
+    /// <inheritdoc />
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        e.Handled = true;
+    }
 
     /// <inheritdoc/>
     protected override void OnKeyDown(KeyEventArgs e)
