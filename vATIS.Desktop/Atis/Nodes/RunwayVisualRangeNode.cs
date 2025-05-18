@@ -121,7 +121,7 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                 _ => ""
             };
 
-            if (tendency != null)
+            if (!string.IsNullOrEmpty(tendency))
             {
                 result.Add(tendency);
             }
