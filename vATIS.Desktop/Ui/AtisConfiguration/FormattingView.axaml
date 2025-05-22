@@ -789,18 +789,23 @@
                         </Grid>
                         <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center">NOSIG</TextBlock>
-                            <TextBox Grid.Column="1" Watermark="Text" Text="{Binding NosigTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            <TextBox Grid.Column="2" Watermark="Voice" Text="{Binding NosigVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="1" Text="{Binding NosigTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding NosigVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                         <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center">BECMG</TextBlock>
-                            <TextBox Grid.Column="1" Watermark="Text" Text="{Binding BecomingTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            <TextBox Grid.Column="2" Watermark="Voice" Text="{Binding BecomingVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="1" Text="{Binding BecomingTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding BecomingVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                         <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center">TEMPO</TextBlock>
-                            <TextBox Grid.Column="1" Watermark="Text" Text="{Binding TemporaryTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            <TextBox Grid.Column="2" Watermark="Voice" Text="{Binding TemporaryVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="1" Text="{Binding TemporaryTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding TemporaryVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Text to print and/or say when the TREND is not available in the METAR">Not Available</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding TrendNotAvailableTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding TrendNotAvailableVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                     </StackPanel>
                 </groupBox:GroupBoxControl>

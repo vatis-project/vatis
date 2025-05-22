@@ -19,7 +19,7 @@ public class TrendNode : BaseNode<TrendForecast>
     /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
-        if (Station == null || metar.TrendForecast == null)
+        if (Station == null)
             return;
 
         var voiceAtis = new List<string>();
@@ -67,8 +67,23 @@ public class TrendNode : BaseNode<TrendForecast>
     private void ProcessTrendForecast(TrendForecast? forecast, DecodedMetar decodedTrend, List<string> voiceAtis,
         List<string> textAtis, bool isFuture = false)
     {
-        if (forecast == null || Station == null)
+        if (Station == null)
             return;
+
+        if (forecast == null)
+        {
+            if (!string.IsNullOrEmpty(Station.AtisFormat.Trend.NotAvailableVoice))
+            {
+                voiceAtis.Add(Station.AtisFormat.Trend.NotAvailableVoice);
+            }
+
+            if (!string.IsNullOrEmpty(Station.AtisFormat.Trend.NotAvailableText))
+            {
+                textAtis.Add(Station.AtisFormat.Trend.NotAvailableText);
+            }
+
+            return;
+        }
 
         if (!isFuture)
         {

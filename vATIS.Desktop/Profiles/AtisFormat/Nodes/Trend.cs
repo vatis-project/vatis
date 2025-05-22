@@ -41,6 +41,16 @@ public class Trend : BaseFormat
     public string? TemporaryVoice { get; set; } = "Temporary";
 
     /// <summary>
+    /// Gets or sets the text value for when the TREND is not available.
+    /// </summary>
+    public string? NotAvailableText { get; set; }
+
+    /// <summary>
+    /// Gets or sets the voice value for when the TREND is not available.
+    /// </summary>
+    public string? NotAvailableVoice { get; set; }
+
+    /// <summary>
     /// Creates a new instance of <see cref="Trend"/> that is a copy of the current instance.
     /// </summary>
     /// <returns>A new <see cref="Trend"/> instance that is a copy of this instance.</returns>
