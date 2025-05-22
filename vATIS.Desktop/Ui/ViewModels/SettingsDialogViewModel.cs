@@ -116,7 +116,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether notification sounds should be suppressed.
+    /// Gets or sets a value indicating whether notification sounds for the user's own ATIS updates should be muted.
     /// </summary>
     public bool MuteOwnAtisUpdateSound
     {
@@ -125,7 +125,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether notification sounds for observed ATIS should be suppressed.
+    /// Gets or sets a value indicating whether notification sounds for shared ATIS updates should be muted.
     /// </summary>
     public bool MuteSharedAtisUpdateSound
     {
