@@ -20,8 +20,8 @@ public class WindShearNode : BaseNode<string>
     {
         if (metar.WindshearAllRunways.HasValue && metar.WindshearAllRunways.Value)
         {
-            TextAtis = "WS ALL RWY";
-            VoiceAtis = "WIND SHEAR ALL RUNWAYS";
+            TextAtis = Station?.AtisFormat.WindShear.AllRunwayText ?? Defaults.AllRunwayText;
+            VoiceAtis = Station?.AtisFormat.WindShear.AllRunwayVoice ?? Defaults.AllRunwayVoice;
         }
         else if (metar.WindshearRunways != null)
         {
@@ -30,7 +30,10 @@ public class WindShearNode : BaseNode<string>
 
             foreach (var runway in metar.WindshearRunways)
             {
-                textResult.Add($"WS R{runway}");
+                var text = Regex.Replace(Station?.AtisFormat?.WindShear.RunwayText ?? Defaults.RunwayTextFormat,
+                    "{Runway}", runway, RegexOptions.IgnoreCase);
+
+                textResult.Add(text);
 
                 var match = Regex.Match(runway, @"(\d{2})([LCR]?)");
                 if (match.Success)
@@ -45,8 +48,10 @@ public class WindShearNode : BaseNode<string>
                             _ => ""
                         };
 
-                        voiceResult.Add(
-                            $"WIND SHEAR RUNWAY {runwayNumber.ToSerialFormat(leadingZero: true)}{runwaySide}");
+                        var voice = Regex.Replace(
+                            Station?.AtisFormat?.WindShear.RunwayVoice ?? Defaults.RunwayVoiceFormat, "{Runway}",
+                            $"{runwayNumber.ToSerialFormat(leadingZero: true)}{runwaySide}", RegexOptions.IgnoreCase);
+                        voiceResult.Add(voice);
                     }
                 }
             }
@@ -63,4 +68,12 @@ public class WindShearNode : BaseNode<string>
     /// <inheritdoc />
     public override string ParseTextVariables(string node, string? format) =>
         throw new System.NotImplementedException();
+
+    private static class Defaults
+    {
+        public const string AllRunwayText = "WS ALL RWY";
+        public const string AllRunwayVoice = "WIND SHEAR ALL RUNWAYS";
+        public const string RunwayTextFormat = "WS R{Runway}";
+        public const string RunwayVoiceFormat = "WIND SHEAR RUNWAY {Runway}";
+    }
 }

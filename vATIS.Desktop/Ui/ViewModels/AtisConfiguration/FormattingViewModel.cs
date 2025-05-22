@@ -106,6 +106,18 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private bool _dewpointUsePlusPrefix;
     private bool _dewpointSpeakLeadingZero;
     private bool _altimeterSpeakDecimal;
+    private string? _nosigTextValue;
+    private string? _nosigVoiceValue;
+    private string? _becomingTextValue;
+    private string? _becomingVoiceValue;
+    private string? _temporaryTextValue;
+    private string? _temporaryVoiceValue;
+    private string? _trendNotAvailableText;
+    private string? _trendNotAvailableVoice;
+    private string? _runwayWindShearText;
+    private string? _runwayWindShearVoice;
+    private string? _allRunwayWindShearText;
+    private string? _allRunwayWindShearVoice;
     private bool _closingStatementAutoIncludeClosingStatement;
     private ObservableCollection<TransitionLevelMeta>? _transitionLevelMetas;
     private string? _transitionLevelTextTemplate;
@@ -1067,6 +1079,162 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the NOSIG text value.
+    /// </summary>
+    public string? NosigTextValue
+    {
+        get => _nosigTextValue;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _nosigTextValue, value);
+            _changeTracker.TrackChange(nameof(NosigTextValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the NOSIG voice value.
+    /// </summary>
+    public string? NosigVoiceValue
+    {
+        get => _nosigVoiceValue;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _nosigVoiceValue, value);
+            _changeTracker.TrackChange(nameof(NosigVoiceValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the BECMG text value.
+    /// </summary>
+    public string? BecomingTextValue
+    {
+        get => _becomingTextValue;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _becomingTextValue, value);
+            _changeTracker.TrackChange(nameof(BecomingTextValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the BECMG voice value.
+    /// </summary>
+    public string? BecomingVoiceValue
+    {
+        get => _becomingVoiceValue;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _becomingVoiceValue, value);
+            _changeTracker.TrackChange(nameof(BecomingVoiceValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the TEMPO text value.
+    /// </summary>
+    public string? TemporaryTextValue
+    {
+        get => _temporaryTextValue;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _temporaryTextValue, value);
+            _changeTracker.TrackChange(nameof(TemporaryTextValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the TEMPO voice value.
+    /// </summary>
+    public string? TemporaryVoiceValue
+    {
+        get => _temporaryVoiceValue;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _temporaryVoiceValue, value);
+            _changeTracker.TrackChange(nameof(TemporaryVoiceValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the text value when TREND is not available.
+    /// </summary>
+    public string? TrendNotAvailableTextValue
+    {
+        get => _trendNotAvailableText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _trendNotAvailableText, value);
+            _changeTracker.TrackChange(nameof(TrendNotAvailableTextValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice value when TREND is not available.
+    /// </summary>
+    public string? TrendNotAvailableVoiceValue
+    {
+        get => _trendNotAvailableVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _trendNotAvailableVoice, value);
+            _changeTracker.TrackChange(nameof(TrendNotAvailableVoiceValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the text value for individual runway wind shear.
+    /// </summary>
+    public string? RunwayWindShearText
+    {
+        get => _runwayWindShearText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayWindShearText, value);
+            _changeTracker.TrackChange(nameof(RunwayWindShearText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice value for individual runway wind shear.
+    /// </summary>
+    public string? RunwayWindShearVoice
+    {
+        get => _runwayWindShearVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayWindShearVoice, value);
+            _changeTracker.TrackChange(nameof(RunwayWindShearVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the text value for all runway wind shear.
+    /// </summary>
+    public string? AllRunwayWindShearText
+    {
+        get => _allRunwayWindShearText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _allRunwayWindShearText, value);
+            _changeTracker.TrackChange(nameof(AllRunwayWindShearText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice value for all runway wind shear.
+    /// </summary>
+    public string? AllRunwayWindShearVoice
+    {
+        get => _allRunwayWindShearVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _allRunwayWindShearVoice, value);
+            _changeTracker.TrackChange(nameof(AllRunwayWindShearVoice), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the transition levels.
     /// </summary>
     public ObservableCollection<TransitionLevelMeta>? TransitionLevels
@@ -1600,6 +1768,66 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.Altimeter.PronounceDecimal = AltimeterSpeakDecimal;
         }
 
+        if (SelectedStation.AtisFormat.Trend.NosigText != NosigTextValue)
+        {
+            SelectedStation.AtisFormat.Trend.NosigText = NosigTextValue;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.NosigVoice != NosigVoiceValue)
+        {
+            SelectedStation.AtisFormat.Trend.NosigVoice = NosigVoiceValue;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.BecomingText != BecomingTextValue)
+        {
+            SelectedStation.AtisFormat.Trend.BecomingText = BecomingTextValue;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.BecomingVoice != BecomingVoiceValue)
+        {
+            SelectedStation.AtisFormat.Trend.BecomingVoice = BecomingVoiceValue;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.TemporaryText != TemporaryTextValue)
+        {
+            SelectedStation.AtisFormat.Trend.TemporaryText = TemporaryTextValue;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.TemporaryVoice != TemporaryVoiceValue)
+        {
+            SelectedStation.AtisFormat.Trend.TemporaryVoice = TemporaryVoiceValue;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.NotAvailableText != TrendNotAvailableTextValue)
+        {
+            SelectedStation.AtisFormat.Trend.NotAvailableText = TrendNotAvailableTextValue;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.NotAvailableVoice != TrendNotAvailableVoiceValue)
+        {
+            SelectedStation.AtisFormat.Trend.NotAvailableVoice = TrendNotAvailableVoiceValue;
+        }
+
+        if (SelectedStation.AtisFormat.WindShear.RunwayText != RunwayWindShearText)
+        {
+            SelectedStation.AtisFormat.WindShear.RunwayText = RunwayWindShearText;
+        }
+
+        if (SelectedStation.AtisFormat.WindShear.RunwayVoice != RunwayWindShearVoice)
+        {
+            SelectedStation.AtisFormat.WindShear.RunwayVoice = RunwayWindShearVoice;
+        }
+
+        if (SelectedStation.AtisFormat.WindShear.AllRunwayText != AllRunwayWindShearText)
+        {
+            SelectedStation.AtisFormat.WindShear.AllRunwayText = AllRunwayWindShearText;
+        }
+
+        if (SelectedStation.AtisFormat.WindShear.AllRunwayVoice != AllRunwayWindShearVoice)
+        {
+            SelectedStation.AtisFormat.WindShear.AllRunwayVoice = AllRunwayWindShearVoice;
+        }
+
         if (SelectedStation.AtisFormat.ClosingStatement.AutoIncludeClosingStatement !=
             ClosingStatementAutoIncludeClosingStatement)
         {
@@ -1668,6 +1896,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
         if (!station.IsFaaAtis)
         {
+            items.Add("Wind Shear");
+            items.Add("Trend Forecast");
             items.Add("Transition Level");
         }
 
@@ -1738,6 +1968,18 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         DewpointUsePlusPrefix = station.AtisFormat.Dewpoint.UsePlusPrefix;
         DewpointSpeakLeadingZero = station.AtisFormat.Dewpoint.SpeakLeadingZero;
         AltimeterSpeakDecimal = station.AtisFormat.Altimeter.PronounceDecimal;
+        NosigTextValue = station.AtisFormat.Trend.NosigText;
+        NosigVoiceValue = station.AtisFormat.Trend.NosigVoice;
+        BecomingTextValue = station.AtisFormat.Trend.BecomingText;
+        BecomingVoiceValue = station.AtisFormat.Trend.BecomingVoice;
+        TemporaryTextValue = station.AtisFormat.Trend.TemporaryText;
+        TemporaryVoiceValue = station.AtisFormat.Trend.TemporaryVoice;
+        TrendNotAvailableTextValue = station.AtisFormat.Trend.NotAvailableText;
+        TrendNotAvailableVoiceValue = station.AtisFormat.Trend.NotAvailableVoice;
+        RunwayWindShearText = station.AtisFormat.WindShear.RunwayText;
+        RunwayWindShearVoice = station.AtisFormat.WindShear.RunwayVoice;
+        AllRunwayWindShearText = station.AtisFormat.WindShear.AllRunwayText;
+        AllRunwayWindShearVoice = station.AtisFormat.WindShear.AllRunwayVoice;
         NotamsTextTemplate = station.AtisFormat.Notams.Template.Text;
         NotamsVoiceTemplate = station.AtisFormat.Notams.Template.Voice;
         ClosingStatementAutoIncludeClosingStatement =

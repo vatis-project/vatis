@@ -63,6 +63,16 @@ public class AtisFormat
     public Altimeter Altimeter { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the formatting for the TREND component.
+    /// </summary>
+    public Trend Trend { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the formatting for the WS component.
+    /// </summary>
+    public WindShear WindShear { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the transition level component of the ATIS format.
     /// </summary>
     public TransitionLevel TransitionLevel { get; set; } = new();
@@ -95,6 +105,8 @@ public class AtisFormat
             Temperature = Temperature.Clone(),
             Dewpoint = Dewpoint.Clone(),
             Altimeter = Altimeter.Clone(),
+            Trend = Trend.Clone(),
+            WindShear = WindShear.Clone(),
             TransitionLevel = TransitionLevel.Clone(),
             Notams = Notams.Clone(),
             ClosingStatement = ClosingStatement.Clone(),

@@ -441,25 +441,23 @@
 				</TabControl>
 			</StackPanel>
             <!--Runway Visual Range-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
-				<TabControl Margin="-3">
-					<TabItem Header="Tendencies (Spoken)">
-                        <StackPanel Orientation="Vertical" Spacing="10">
-                            <Grid ColumnDefinitions="130,*">
-                                <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is N">Neutral (N):</TextBlock>
-                                <TextBox Grid.Column="1" Text="{Binding RvrTendencyNeutralText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            </Grid>
-                            <Grid ColumnDefinitions="130,*">
-                                <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is U">Going Up (U):</TextBlock>
-                                <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingUpText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
-                            </Grid>
-                            <Grid ColumnDefinitions="130,*">
-                                <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is D">Going Down (D):</TextBlock>
-                                <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingDownText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            </Grid>
-                        </StackPanel>
-					</TabItem>
-				</TabControl>
+			<StackPanel Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
+                <groupBox:GroupBoxControl Header="Tendencies (Spoken)" Theme="{StaticResource GroupBoxClassic}">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <Grid ColumnDefinitions="130,*">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is N">Neutral (N):</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding RvrTendencyNeutralText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                        </Grid>
+                        <Grid ColumnDefinitions="130,*">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is U">Going Up (U):</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingUpText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="130,*">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is D">Going Down (D):</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingDownText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                        </Grid>
+                    </StackPanel>
+				</groupBox:GroupBoxControl>
 			</StackPanel>
 			<!--Weather-->
 			<StackPanel Spacing="10" Margin="10,10,0,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
@@ -753,6 +751,65 @@
 					</StackPanel>
 				</groupBox:GroupBoxControl>
 			</StackPanel>
+            <!--Wind Shear-->
+			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind Shear'}">
+                <StackPanel Orientation="Vertical" Spacing="10">
+                    <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                        <TextBlock Grid.Column="1">Text</TextBlock>
+                        <TextBlock Grid.Column="2">Voice</TextBlock>
+                    </Grid>
+                    <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">Runway Specific</TextBlock>
+                        <controls:TemplateVariableTextBox Grid.Column="1" Watermark="Text" Text="{Binding RunwayWindShearText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Voice" Text="{Binding RunwayWindShearVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">All Runways</TextBlock>
+                        <controls:TemplateVariableTextBox Grid.Column="1" Watermark="Text" Text="{Binding AllRunwayWindShearText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Voice" Text="{Binding AllRunwayWindShearVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                    <WrapPanel>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,0,0"
+                            ToolTip.Tip="This will be replaced by the runway identifier (e.g. 04R)."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {Runway}
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
+            </StackPanel>
+            <!--Trend Forecast-->
+            <StackPanel Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Trend Forecast'}">
+                <groupBox:GroupBoxControl Header="Change Indicator" Theme="{StaticResource GroupBoxClassic}">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                            <TextBlock Grid.Column="1">Text</TextBlock>
+                            <TextBlock Grid.Column="2">Voice</TextBlock>
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center">NOSIG</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding NosigTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding NosigVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center">BECMG</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding BecomingTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding BecomingVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center">TEMPO</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding TemporaryTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding TemporaryVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Text to print and/or say when the TREND is not available in the METAR">Not Available</TextBlock>
+                            <TextBox Grid.Column="1" Text="{Binding TrendNotAvailableTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox Grid.Column="2" Text="{Binding TrendNotAvailableVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                        </Grid>
+                    </StackPanel>
+                </groupBox:GroupBoxControl>
+            </StackPanel>
 			<!--Transition Level-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Transition Level'}">
 				<TabControl Margin="-3">

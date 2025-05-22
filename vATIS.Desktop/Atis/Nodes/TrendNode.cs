@@ -19,7 +19,7 @@ public class TrendNode : BaseNode<TrendForecast>
     /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
-        if (Station == null || metar.TrendForecast == null)
+        if (Station == null)
             return;
 
         var voiceAtis = new List<string>();
@@ -67,8 +67,23 @@ public class TrendNode : BaseNode<TrendForecast>
     private void ProcessTrendForecast(TrendForecast? forecast, DecodedMetar decodedTrend, List<string> voiceAtis,
         List<string> textAtis, bool isFuture = false)
     {
-        if (forecast == null || Station == null)
+        if (Station == null)
             return;
+
+        if (forecast == null)
+        {
+            if (!string.IsNullOrEmpty(Station.AtisFormat.Trend.NotAvailableVoice))
+            {
+                voiceAtis.Add(Station.AtisFormat.Trend.NotAvailableVoice);
+            }
+
+            if (!string.IsNullOrEmpty(Station.AtisFormat.Trend.NotAvailableText))
+            {
+                textAtis.Add(Station.AtisFormat.Trend.NotAvailableText);
+            }
+
+            return;
+        }
 
         if (!isFuture)
         {
@@ -78,16 +93,16 @@ public class TrendNode : BaseNode<TrendForecast>
         switch (forecast.ChangeIndicator)
         {
             case TrendForecastType.Becoming:
-                voiceAtis.Add("BECOMING");
-                textAtis.Add("BECMG");
+                voiceAtis.Add(Station.AtisFormat.Trend.BecomingVoice ?? "BECOMING");
+                textAtis.Add(Station.AtisFormat.Trend.BecomingText ?? "BECMG");
                 break;
             case TrendForecastType.Temporary:
-                voiceAtis.Add("TEMPORARY");
-                textAtis.Add("TEMPO");
+                voiceAtis.Add(Station.AtisFormat.Trend.TemporaryVoice ?? "TEMPORARY");
+                textAtis.Add(Station.AtisFormat.Trend.TemporaryText ?? "TEMPO");
                 break;
             case TrendForecastType.NoSignificantChanges:
-                voiceAtis.Add("NO SIGNIFICANT CHANGES");
-                textAtis.Add("NOSIG");
+                voiceAtis.Add(Station.AtisFormat.Trend.NosigVoice ?? "NO SIGNIFICANT CHANGES");
+                textAtis.Add(Station.AtisFormat.Trend.NosigText ?? "NOSIG");
                 break;
         }
 
