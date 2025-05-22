@@ -36,6 +36,15 @@
                 FontWeight="Medium"
                 Text="{Binding AtisLetter, DataType=vm:AtisStationViewModel}"
                 Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}" Cursor="Hand">
+                <ToolTip.Tip>
+                    <TextBlock Text="{Binding AtisStation.TextAtis, DataType=vm:AtisStationViewModel}"
+                               FontFamily="{StaticResource Monospace}" FontSize="14"/>
+                </ToolTip.Tip>
+                <Control.Styles>
+                    <Style Selector="ToolTip">
+                        <Setter Property="IsVisible" Value="{Binding AtisStation.TextAtis, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                    </Style>
+                </Control.Styles>
                 <Interaction.Behaviors>
                     <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" SourceInteractive="AtisLetter">
                         <InvokeCommandAction Command="{Binding AcknowledgeAtisUpdateCommand, DataType=vm:AtisStationViewModel}" PassEventArgsToCommand="True" />
