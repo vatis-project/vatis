@@ -753,7 +753,31 @@
 			</StackPanel>
             <!--Wind Shear-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind Shear'}">
-
+                <StackPanel Orientation="Vertical" Spacing="10">
+                    <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                        <TextBlock Grid.Column="1">Text</TextBlock>
+                        <TextBlock Grid.Column="2">Voice</TextBlock>
+                    </Grid>
+                    <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">Runway Specific</TextBlock>
+                        <controls:TemplateVariableTextBox Grid.Column="1" Watermark="Text" Text="{Binding RunwayWindShearText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Voice" Text="{Binding RunwayWindShearVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="100,*,*" ColumnSpacing="10">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">All Runways</TextBlock>
+                        <controls:TemplateVariableTextBox Grid.Column="1" Watermark="Text" Text="{Binding AllRunwayWindShearText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Voice" Text="{Binding AllRunwayWindShearVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                    <WrapPanel>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,0,0"
+                            ToolTip.Tip="This will be replaced by the runway identifier (e.g. 04R)."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {Runway}
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
             </StackPanel>
             <!--Trend Forecast-->
             <StackPanel Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Trend Forecast'}">
