@@ -63,6 +63,11 @@ public class AtisFormat
     public Altimeter Altimeter { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the formatting for the TREND component.
+    /// </summary>
+    public Trend Trend { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the transition level component of the ATIS format.
     /// </summary>
     public TransitionLevel TransitionLevel { get; set; } = new();

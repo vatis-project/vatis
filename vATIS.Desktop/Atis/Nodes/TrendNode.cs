@@ -78,16 +78,16 @@ public class TrendNode : BaseNode<TrendForecast>
         switch (forecast.ChangeIndicator)
         {
             case TrendForecastType.Becoming:
-                voiceAtis.Add("BECOMING");
-                textAtis.Add("BECMG");
+                voiceAtis.Add(Station.AtisFormat.Trend.BecomingVoice ?? "BECOMING");
+                textAtis.Add(Station.AtisFormat.Trend.BecomingText ?? "BECMG");
                 break;
             case TrendForecastType.Temporary:
-                voiceAtis.Add("TEMPORARY");
-                textAtis.Add("TEMPO");
+                voiceAtis.Add(Station.AtisFormat.Trend.TemporaryVoice ?? "TEMPORARY");
+                textAtis.Add(Station.AtisFormat.Trend.TemporaryText ??"TEMPO");
                 break;
             case TrendForecastType.NoSignificantChanges:
-                voiceAtis.Add("NO SIGNIFICANT CHANGES");
-                textAtis.Add("NOSIG");
+                voiceAtis.Add(Station.AtisFormat.Trend.NosigVoice ??"NO SIGNIFICANT CHANGES");
+                textAtis.Add(Station.AtisFormat.Trend.NosigText ??"NOSIG");
                 break;
         }
 
