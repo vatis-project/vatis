@@ -100,6 +100,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private TextDocument? _airportConditionsTextDocument = new();
     private TextDocument? _notamsTextDocument = new();
     private bool _useTexToSpeech;
+    private RecordedAtisState _recordedAtisState = RecordedAtisState.Disconnected;
     private NetworkConnectionStatus _networkConnectionStatus = NetworkConnectionStatus.Disconnected;
     private List<ICompletionData> _contractionCompletionData = [];
     private bool _hasUnsavedAirportConditions;
@@ -630,6 +631,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the status of a manually recorded ATIS.
+    /// </summary>
+    public RecordedAtisState RecordedAtisState
+    {
+        get => _recordedAtisState;
+        set => this.RaiseAndSetIfChanged(ref _recordedAtisState, value);
+    }
+
+    /// <summary>
     /// Gets or sets the collection of contraction completion data used for auto-completion.
     /// </summary>
     public List<ICompletionData> ContractionCompletionData
@@ -710,6 +720,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         // Set network connection status as disconnected
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
+        RecordedAtisState = RecordedAtisState.Disconnected;
     }
 
     /// <summary>
@@ -1064,6 +1075,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                             // Send the DTO to the voice server
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                                 localToken.Token);
+
+                            RecordedAtisState = RecordedAtisState.Connected;
+                            IsNewAtis = false;
                         }
                         catch (OperationCanceledException)
                         {
@@ -1404,6 +1418,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                 await AcknowledgeOrIncrementAtisLetterCommand.Execute();
                 IsNewAtis = true;
+                RecordedAtisState = RecordedAtisState.Expired;
             }
 
             // Save the decoded metar so its individual properties can be sent to clients
