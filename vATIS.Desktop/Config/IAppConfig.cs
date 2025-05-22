@@ -38,9 +38,14 @@ public interface IAppConfig
     NetworkRating NetworkRating { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether notification sounds are suppressed.
+    /// Gets or sets a value indicating whether to suppress update sound for own ATIS updates.
     /// </summary>
-    bool SuppressNotificationSound { get; set; }
+    bool MuteOwnAtisUpdateSound { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to suppress update sound for shared ATIS updates.
+    /// </summary>
+    bool MuteSharedAtisUpdateSound { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the application's main window should always remain on top of other windows.

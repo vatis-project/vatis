@@ -32,7 +32,10 @@ public class AppConfig : IAppConfig
     public NetworkRating NetworkRating { get; set; } = NetworkRating.Obs;
 
     /// <inheritdoc />
-    public bool SuppressNotificationSound { get; set; }
+    public bool MuteOwnAtisUpdateSound { get; set; }
+
+    /// <inheritdoc />
+    public bool MuteSharedAtisUpdateSound { get; set; }
 
     /// <inheritdoc />
     public bool AlwaysOnTop { get; set; }
@@ -97,7 +100,8 @@ public class AppConfig : IAppConfig
             UserId = config.UserId;
             Password = config.Password;
             NetworkRating = config.NetworkRating;
-            SuppressNotificationSound = config.SuppressNotificationSound;
+            MuteOwnAtisUpdateSound = config.MuteOwnAtisUpdateSound;
+            MuteSharedAtisUpdateSound = config.MuteSharedAtisUpdateSound;
             AlwaysOnTop = config.AlwaysOnTop;
             CompactWindowAlwaysOnTop = config.CompactWindowAlwaysOnTop;
             CompactWindowShowMetarDetails = config.CompactWindowShowMetarDetails;
