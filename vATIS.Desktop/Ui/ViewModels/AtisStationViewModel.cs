@@ -277,6 +277,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                      !string.Equals(sync.Dto.Metar, Metar, StringComparison.OrdinalIgnoreCase)))
                 {
                     IsNewAtis = true;
+                    if (!_appConfig.MuteSharedAtisUpdateSound)
+                    {
+                        NativeAudio.EmitSound(SoundType.Notification);
+                    }
                 }
 
                 AtisLetter = sync.Dto.AtisLetter;
@@ -1393,7 +1397,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (e.IsNewMetar)
             {
                 IsNewAtis = false;
-                if (!_appConfig.SuppressNotificationSound)
+                if (!_appConfig.MuteOwnAtisUpdateSound)
                 {
                     NativeAudio.EmitSound(SoundType.Notification);
                 }

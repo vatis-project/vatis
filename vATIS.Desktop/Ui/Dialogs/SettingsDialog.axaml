@@ -44,7 +44,8 @@
 					<ComboBox Classes="Dark" HorizontalAlignment="Stretch" ItemsSource="{Binding NetworkRatings, DataType=vm:SettingsDialogViewModel}" DisplayMemberBinding="{Binding Display, DataType=common:ComboBoxItemMeta}" SelectedValueBinding="{Binding Value, DataType=common:ComboBoxItemMeta}" SelectedValue="{Binding SelectedNetworkRating, DataType=vm:SettingsDialogViewModel}"/>
 				</StackPanel>
 				<StackPanel>
-					<CheckBox Theme="{StaticResource CheckBox}" Content="Suppress ATIS update notification sound" IsChecked="{Binding SuppressNotificationSound, DataType=vm:SettingsDialogViewModel}" />
+					<CheckBox Theme="{StaticResource CheckBox}" Content="Mute own ATIS update sound" IsChecked="{Binding MuteOwnAtisUpdateSound, DataType=vm:SettingsDialogViewModel}" />
+                    <CheckBox Theme="{StaticResource CheckBox}" Content="Mute shared ATIS update sound" IsChecked="{Binding MuteSharedAtisUpdateSound, DataType=vm:SettingsDialogViewModel}" />
 					<CheckBox Theme="{StaticResource CheckBox}" Content="Automatically fetch ATIS letter" ToolTip.Tip="Fetch the real-world ATIS letter for supported stations automatically after connecting to the network." IsChecked="{Binding AutoFetchAtisLetter, DataType=vm:SettingsDialogViewModel}" />
 				</StackPanel>
 				<Grid ColumnDefinitions="1*,5,1*">

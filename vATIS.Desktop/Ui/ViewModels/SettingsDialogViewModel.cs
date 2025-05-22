@@ -26,7 +26,8 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     private string? _password;
     private string? _selectedNetworkRating;
     private ObservableCollection<ComboBoxItemMeta>? _networkRatings;
-    private bool _suppressNotificationSound;
+    private bool _muteOwnAtisUpdateSound;
+    private bool _muteSharedAtisUpdateSound;
     private bool _autoFetchAtisLetter;
 
     /// <summary>
@@ -40,7 +41,8 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         Name = _appConfig.Name;
         UserId = _appConfig.UserId;
         Password = _appConfig.PasswordDecrypted;
-        SuppressNotificationSound = _appConfig.SuppressNotificationSound;
+        MuteOwnAtisUpdateSound = _appConfig.MuteOwnAtisUpdateSound;
+        MuteSharedAtisUpdateSound = _appConfig.MuteSharedAtisUpdateSound;
         SelectedNetworkRating = _appConfig.NetworkRating.ToString();
         AutoFetchAtisLetter = _appConfig.AutoFetchAtisLetter;
 
@@ -114,12 +116,21 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether notification sounds should be suppressed.
+    /// Gets or sets a value indicating whether notification sounds for the user's own ATIS updates should be muted.
     /// </summary>
-    public bool SuppressNotificationSound
+    public bool MuteOwnAtisUpdateSound
     {
-        get => _suppressNotificationSound;
-        set => this.RaiseAndSetIfChanged(ref _suppressNotificationSound, value);
+        get => _muteOwnAtisUpdateSound;
+        set => this.RaiseAndSetIfChanged(ref _muteOwnAtisUpdateSound, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether notification sounds for shared ATIS updates should be muted.
+    /// </summary>
+    public bool MuteSharedAtisUpdateSound
+    {
+        get => _muteSharedAtisUpdateSound;
+        set => this.RaiseAndSetIfChanged(ref _muteSharedAtisUpdateSound, value);
     }
 
     /// <summary>
@@ -144,7 +155,8 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         _appConfig.Name = Name ?? "";
         _appConfig.UserId = UserId?.Trim() ?? "";
         _appConfig.PasswordDecrypted = Password?.Trim() ?? "";
-        _appConfig.SuppressNotificationSound = SuppressNotificationSound;
+        _appConfig.MuteOwnAtisUpdateSound = MuteOwnAtisUpdateSound;
+        _appConfig.MuteSharedAtisUpdateSound = MuteSharedAtisUpdateSound;
         _appConfig.AutoFetchAtisLetter = AutoFetchAtisLetter;
 
         if (Enum.TryParse(SelectedNetworkRating, out NetworkRating selectedNetworkRating))
