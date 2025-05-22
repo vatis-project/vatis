@@ -56,4 +56,9 @@ public class AtisHubDto
     /// Gets or sets the NOTAMs.
     /// </summary>
     public string? Notams { get; set; }
+
+    /// <summary>
+    /// Gets or sets the complete text ATIS string.
+    /// </summary>
+    public string? TextAtis { get; set; }
 }
