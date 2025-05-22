@@ -83,11 +83,11 @@ public class TrendNode : BaseNode<TrendForecast>
                 break;
             case TrendForecastType.Temporary:
                 voiceAtis.Add(Station.AtisFormat.Trend.TemporaryVoice ?? "TEMPORARY");
-                textAtis.Add(Station.AtisFormat.Trend.TemporaryText ??"TEMPO");
+                textAtis.Add(Station.AtisFormat.Trend.TemporaryText ?? "TEMPO");
                 break;
             case TrendForecastType.NoSignificantChanges:
-                voiceAtis.Add(Station.AtisFormat.Trend.NosigVoice ??"NO SIGNIFICANT CHANGES");
-                textAtis.Add(Station.AtisFormat.Trend.NosigText ??"NOSIG");
+                voiceAtis.Add(Station.AtisFormat.Trend.NosigVoice ?? "NO SIGNIFICANT CHANGES");
+                textAtis.Add(Station.AtisFormat.Trend.NosigText ?? "NOSIG");
                 break;
         }
 
