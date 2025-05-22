@@ -284,6 +284,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Altimeter = sync.Dto.Altimeter;
                 Metar = sync.Dto.Metar;
                 ObservationTime = _decodedMetar?.Time.Replace(":", "");
+                AtisStation.TextAtis = sync.Dto.TextAtis;
                 NetworkConnectionStatus = sync.Dto.IsOnline
                     ? NetworkConnectionStatus.Observer
                     : NetworkConnectionStatus.Disconnected;
@@ -335,6 +336,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
                     IsNewAtis = false;
+                    AtisStation.TextAtis = null;
 
                     // Clear Airport Conditions and NOTAMs
                     if (AirportConditionsTextDocument != null)
@@ -1528,7 +1530,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
 
             await _atisHubConnection.PublishAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
-                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions?.Trim(), notams?.Trim()));
+                AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions?.Trim(), notams?.Trim(),
+                AtisStation.TextAtis?.Trim()));
         }
         catch (Exception ex)
         {

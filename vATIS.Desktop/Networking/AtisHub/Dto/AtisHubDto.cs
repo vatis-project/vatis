@@ -18,13 +18,14 @@ public class AtisHubDto
     /// <param name="stationId">The identifier of the station.</param>
     /// <param name="atisType">The type of ATIS.</param>
     /// <param name="atisLetter">The letter associated with the ATIS.</param>
-    /// <param name="metar">The METAR (Meteorological Aerodrome Report) information.</param>
+    /// <param name="metar">The raw METAR string.</param>
     /// <param name="wind">The wind information.</param>
     /// <param name="altimeter">The altimeter setting.</param>
     /// <param name="airportConditions">The airport conditions.</param>
     /// <param name="notams">The NOTAMs.</param>
+    /// <param name="textAtis">The complete text ATIS string.</param>
     public AtisHubDto(string stationId, AtisType atisType, char atisLetter, string? metar = null, string? wind = null,
-        string? altimeter = null, string? airportConditions = null, string? notams = null)
+        string? altimeter = null, string? airportConditions = null, string? notams = null, string? textAtis = null)
     {
         StationId = stationId;
         AtisType = atisType;
@@ -34,6 +35,7 @@ public class AtisHubDto
         Altimeter = altimeter;
         AirportConditions = airportConditions;
         Notams = notams;
+        TextAtis = textAtis;
     }
 
     /// <summary>
@@ -80,4 +82,9 @@ public class AtisHubDto
     /// Gets or sets the NOTAMs.
     /// </summary>
     public string? Notams { get; set; }
+
+    /// <summary>
+    /// Gets or sets the complete text ATIS string.
+    /// </summary>
+    public string? TextAtis { get; set; }
 }
