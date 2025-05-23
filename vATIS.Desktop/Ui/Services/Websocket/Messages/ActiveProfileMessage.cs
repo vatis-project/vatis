@@ -16,7 +16,7 @@ public class ActiveProfileMessage
     /// Gets the string identifying the message type.
     /// </summary>
     [JsonPropertyName("type")]
-    public string MessageType => "getActiveProfile";
+    public string MessageType => "activeProfile";
 
     /// <summary>
     /// Gets or sets the ID of the active profile.
