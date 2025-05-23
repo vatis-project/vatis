@@ -5,9 +5,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
@@ -65,43 +65,6 @@ public class CloudNode : BaseNode<CloudLayer>
         };
     }
 
-    private CloudLayer? GetCeilingLayer(List<CloudLayer> cloudLayers)
-    {
-        if (Station == null)
-            return null;
-
-        var typeMapping = new Dictionary<string, CloudLayer.CloudAmount>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["SCT"] = CloudLayer.CloudAmount.Scattered,
-            ["BKN"] = CloudLayer.CloudAmount.Broken,
-            ["OVC"] = CloudLayer.CloudAmount.Overcast
-        };
-
-        var ceilingTypes = new List<CloudLayer.CloudAmount>();
-
-        if (Station.AtisFormat.Clouds.CloudCeilingLayerTypes.Count == 0)
-        {
-            // Default to BKN and OVC
-            ceilingTypes.Add(CloudLayer.CloudAmount.Broken);
-            ceilingTypes.Add(CloudLayer.CloudAmount.Overcast);
-        }
-        else
-        {
-            foreach (var type in Station.AtisFormat.Clouds.CloudCeilingLayerTypes)
-            {
-                if (typeMapping.TryGetValue(type, out var cloudAmount))
-                {
-                    ceilingTypes.Add(cloudAmount);
-                }
-            }
-        }
-
-        var possibleCeilings = cloudLayers.Where(layer => ceilingTypes.Contains(layer.Amount)).ToList();
-        var ceilingLayer = possibleCeilings.Where(x => x.BaseHeight is { ActualValue: > 0 })
-            .OrderBy(x => x.BaseHeight?.ActualValue).FirstOrDefault();
-        return ceilingLayer;
-    }
-
     private void Parse(List<CloudLayer> cloudLayers)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -109,7 +72,7 @@ public class CloudNode : BaseNode<CloudLayer>
         var voiceAtis = new List<string>();
         var textAtis = new List<string>();
 
-        var ceilingLayer = GetCeilingLayer(cloudLayers);
+        var ceilingLayer = Station.AtisFormat.GetCeilingLayer(cloudLayers);
 
         foreach (var layer in cloudLayers)
         {

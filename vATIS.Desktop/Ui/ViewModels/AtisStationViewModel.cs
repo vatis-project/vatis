@@ -44,6 +44,7 @@ using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
+using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using WatsonWebsocket;
@@ -1473,7 +1474,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         var airportConditions = await Dispatcher.UIThread.InvokeAsync(() => AirportConditionsTextDocument?.Text);
         var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
-        var ceilingLayer = GetCloudCeiling(_decodedMetar?.Clouds);
+        var ceilingLayer = AtisStation.AtisFormat.GetCeilingLayer(_decodedMetar?.Clouds);
 
         await _websocketService.SendAtisMessageAsync(session,
             new AtisMessage.AtisMessageValue
@@ -1494,43 +1495,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Ceiling = ceilingLayer?.BaseHeight ?? null,
                 PrevailingVisibility = _decodedMetar?.Visibility?.PrevailingVisibility ?? null
             });
-    }
-
-    private CloudLayer? GetCloudCeiling(List<CloudLayer>? cloudLayers)
-    {
-        if (cloudLayers == null)
-            return null;
-
-        var typeMapping = new Dictionary<string, CloudLayer.CloudAmount>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["SCT"] = CloudLayer.CloudAmount.Scattered,
-            ["BKN"] = CloudLayer.CloudAmount.Broken,
-            ["OVC"] = CloudLayer.CloudAmount.Overcast
-        };
-
-        var ceilingTypes = new List<CloudLayer.CloudAmount>();
-
-        if (AtisStation.AtisFormat.Clouds.CloudCeilingLayerTypes.Count == 0)
-        {
-            // Default to BKN and OVC
-            ceilingTypes.Add(CloudLayer.CloudAmount.Broken);
-            ceilingTypes.Add(CloudLayer.CloudAmount.Overcast);
-        }
-        else
-        {
-            foreach (var type in AtisStation.AtisFormat.Clouds.CloudCeilingLayerTypes)
-            {
-                if (typeMapping.TryGetValue(type, out var cloudAmount))
-                {
-                    ceilingTypes.Add(cloudAmount);
-                }
-            }
-        }
-
-        var possibleCeilings = cloudLayers.Where(layer => ceilingTypes.Contains(layer.Amount)).ToList();
-        var ceilingLayer = possibleCeilings.Where(x => x.BaseHeight is { ActualValue: > 0 })
-            .OrderBy(x => x.BaseHeight?.ActualValue).FirstOrDefault();
-        return ceilingLayer;
     }
 
     private async Task PublishAtisToHub()
