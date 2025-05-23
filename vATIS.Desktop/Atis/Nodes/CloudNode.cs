@@ -70,6 +70,13 @@ public class CloudNode : BaseNode<CloudLayer>
         if (Station == null)
             return null;
 
+        var typeMapping = new Dictionary<string, CloudLayer.CloudAmount>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["SCT"] = CloudLayer.CloudAmount.Scattered,
+            ["BKN"] = CloudLayer.CloudAmount.Broken,
+            ["OVC"] = CloudLayer.CloudAmount.Overcast
+        };
+
         var ceilingTypes = new List<CloudLayer.CloudAmount>();
 
         if (Station.AtisFormat.Clouds.CloudCeilingLayerTypes.Count == 0)
@@ -82,17 +89,9 @@ public class CloudNode : BaseNode<CloudLayer>
         {
             foreach (var type in Station.AtisFormat.Clouds.CloudCeilingLayerTypes)
             {
-                switch (type)
+                if (typeMapping.TryGetValue(type, out var cloudAmount))
                 {
-                    case "SCT":
-                        ceilingTypes.Add(CloudLayer.CloudAmount.Scattered);
-                        break;
-                    case "BKN":
-                        ceilingTypes.Add(CloudLayer.CloudAmount.Broken);
-                        break;
-                    case "OVC":
-                        ceilingTypes.Add(CloudLayer.CloudAmount.Overcast);
-                        break;
+                    ceilingTypes.Add(cloudAmount);
                 }
             }
         }
