@@ -5,7 +5,6 @@
 // </copyright>
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
@@ -21,7 +20,6 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 /// </remarks>
 public sealed class CloudChunkDecoder : MetarChunkDecoder
 {
-    private const string CeilingParameterName = "Ceiling";
     private const string CloudsParameterName = "Clouds";
     private const string NoCloudRegexPattern = "(NSC|NCD|CLR|SKC)";
     private const string LayerRegexPattern = "(VV|FEW|SCT|BKN|OVC|///)?([0-9]{3}|///)(CB|TCU|///)?";
@@ -111,28 +109,7 @@ public sealed class CloudChunkDecoder : MetarChunkDecoder
             }
         }
 
-        result.Add(CeilingParameterName, CalculateCeiling(layers));
         result.Add(CloudsParameterName, layers);
         return GetResults(newRemainingMetar, result);
-    }
-
-    /// <summary>
-    /// Calculates the ceiling by finding the lowest broken, overcast, or vertical visibility cloud layer.
-    /// </summary>
-    /// <param name="layers">The list of cloud layers to analyze.</param>
-    /// <returns>The lowest broken, overcast, or vertical visibility cloud layer with height > 0 feet, or null if no such layer exists.</returns>
-    private static CloudLayer? CalculateCeiling(List<CloudLayer> layers)
-    {
-        var ceiling = layers
-            .Where(layer =>
-                    layer.BaseHeight != null &&
-                    layer.BaseHeight.ActualValue > 0 &&
-                    (layer.Amount == CloudLayer.CloudAmount.VerticalVisibility ||
-                     layer.Amount == CloudLayer.CloudAmount.Overcast ||
-                     layer.Amount == CloudLayer.CloudAmount.Broken))
-            .OrderBy(layer => layer.BaseHeight?.ActualValue)
-            .FirstOrDefault();
-
-        return ceiling;
     }
 }

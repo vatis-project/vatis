@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -94,6 +95,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _rvrTendencyNeutralText;
     private string? _rvrTendencyGoingUpText;
     private string? _rvrTendencyGoingDownText;
+    private bool _isSelectedCeilingLayersInitialized;
+    private ObservableCollection<string>? _selectedCeilingLayers;
+    private string? _cloudCeilingLayerPrefixTextAtis;
+    private bool _cloudsIdentifyCeilingLayerTextAtis;
     private bool _cloudsIdentifyCeilingLayer;
     private bool _cloudsConvertToMetric;
     private string? _undeterminedLayerAltitudeText;
@@ -923,6 +928,50 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets a value indicating which cloud layers are considered the ceiling.
+    /// </summary>
+    public ObservableCollection<string>? SelectedCeilingLayers
+    {
+        get => _selectedCeilingLayers;
+        set
+        {
+            if (_selectedCeilingLayers != null)
+                _selectedCeilingLayers.CollectionChanged -= OnSelectedCeilingLayersChanged;
+
+            this.RaiseAndSetIfChanged(ref _selectedCeilingLayers, value);
+
+            if (_selectedCeilingLayers != null)
+                _selectedCeilingLayers.CollectionChanged += OnSelectedCeilingLayersChanged;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value used to prefix the ceiling layer in the text ATIS.
+    /// </summary>
+    public string? CloudCeilingLayerPrefixTextAtis
+    {
+        get => _cloudCeilingLayerPrefixTextAtis;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _cloudCeilingLayerPrefixTextAtis, value);
+            _changeTracker.TrackChange(nameof(CloudCeilingLayerPrefixTextAtis), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to identify ceiling layer in the text ATIS.
+    /// </summary>
+    public bool CloudsIdentifyCeilingLayerTextAtis
+    {
+        get => _cloudsIdentifyCeilingLayerTextAtis;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _cloudsIdentifyCeilingLayerTextAtis, value);
+            _changeTracker.TrackChange(nameof(CloudsIdentifyCeilingLayerTextAtis), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to convert clouds to metric.
     /// </summary>
     public bool CloudsConvertToMetric
@@ -1689,9 +1738,26 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 x => new PresentWeather.WeatherDescriptorType(x.Text, x.Spoken));
         }
 
+        if (SelectedCeilingLayers != null &&
+            !SelectedStation.AtisFormat.Clouds.CloudCeilingLayerTypes.SequenceEqual(SelectedCeilingLayers))
+        {
+            SelectedStation.AtisFormat.Clouds.CloudCeilingLayerTypes.Clear();
+            SelectedStation.AtisFormat.Clouds.CloudCeilingLayerTypes.AddRange(SelectedCeilingLayers);
+        }
+
         if (SelectedStation.AtisFormat.Clouds.IdentifyCeilingLayer != CloudsIdentifyCeilingLayer)
         {
             SelectedStation.AtisFormat.Clouds.IdentifyCeilingLayer = CloudsIdentifyCeilingLayer;
+        }
+
+        if (SelectedStation.AtisFormat.Clouds.IdentifyCeilingLayerTextAtis != CloudsIdentifyCeilingLayerTextAtis)
+        {
+            SelectedStation.AtisFormat.Clouds.IdentifyCeilingLayerTextAtis = CloudsIdentifyCeilingLayerTextAtis;
+        }
+
+        if (SelectedStation.AtisFormat.Clouds.TextAtisCeilingPrefix != CloudCeilingLayerPrefixTextAtis)
+        {
+            SelectedStation.AtisFormat.Clouds.TextAtisCeilingPrefix = CloudCeilingLayerPrefixTextAtis;
         }
 
         if (SelectedStation.AtisFormat.Clouds.ConvertToMetric != CloudsConvertToMetric)
@@ -1956,6 +2022,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         RvrTendencyNeutralText = station.AtisFormat.RunwayVisualRange.NeutralTendency;
         RvrTendencyGoingUpText = station.AtisFormat.RunwayVisualRange.GoingUpTendency;
         RvrTendencyGoingDownText = station.AtisFormat.RunwayVisualRange.GoingDownTendency;
+        CloudsIdentifyCeilingLayerTextAtis = station.AtisFormat.Clouds.IdentifyCeilingLayerTextAtis;
+        CloudCeilingLayerPrefixTextAtis = station.AtisFormat.Clouds.TextAtisCeilingPrefix;
         CloudsIdentifyCeilingLayer = station.AtisFormat.Clouds.IdentifyCeilingLayer;
         CloudsConvertToMetric = station.AtisFormat.Clouds.ConvertToMetric;
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
@@ -1994,6 +2062,18 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         // Track initial PresentWeatherTypes.
         _changeTracker.TrackChange(nameof(PresentWeatherTypes), PresentWeatherTypes?.Select(item =>
             new PresentWeatherMeta(item.Key, item.Text, item.Spoken)).ToList());
+
+        _isSelectedCeilingLayersInitialized = false;
+
+        SelectedCeilingLayers = [];
+        foreach (var item in station.AtisFormat.Clouds.CloudCeilingLayerTypes)
+        {
+            SelectedCeilingLayers.Add(item);
+        }
+
+        // Track initial ceiling types
+        _changeTracker.TrackChange(nameof(SelectedCeilingLayers), SelectedCeilingLayers.ToList());
+        _isSelectedCeilingLayersInitialized = true;
 
         CloudTypes = [];
         foreach (var item in station.AtisFormat.Clouds.Types)
@@ -2225,5 +2305,14 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         return (PresentWeatherFilterAcronym && weather.Key.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
                (PresentWeatherFilterText && weather.Text.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase)) ||
                (PresentWeatherFilterSpoken && weather.Spoken.Contains(_presentWeatherSearchTerm, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private void OnSelectedCeilingLayersChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_isSelectedCeilingLayersInitialized)
+            return;
+
+        if (_selectedCeilingLayers != null)
+            _changeTracker.TrackChange(nameof(SelectedCeilingLayers), _selectedCeilingLayers.ToList());
     }
 }

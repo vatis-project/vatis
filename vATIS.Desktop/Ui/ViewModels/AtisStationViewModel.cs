@@ -1473,6 +1473,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         var airportConditions = await Dispatcher.UIThread.InvokeAsync(() => AirportConditionsTextDocument?.Text);
         var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
+        var ceilingLayer = GetCloudCeiling(_decodedMetar?.Clouds);
 
         await _websocketService.SendAtisMessageAsync(session,
             new AtisMessage.AtisMessageValue
@@ -1490,9 +1491,47 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 IsNewAtis = IsNewAtis,
                 NetworkConnectionStatus = NetworkConnectionStatus,
                 Pressure = _decodedMetar?.Pressure?.Value ?? null,
-                Ceiling = _decodedMetar?.Ceiling?.BaseHeight ?? null,
+                Ceiling = ceilingLayer?.BaseHeight ?? null,
                 PrevailingVisibility = _decodedMetar?.Visibility?.PrevailingVisibility ?? null
             });
+    }
+
+    private CloudLayer? GetCloudCeiling(List<CloudLayer>? cloudLayers)
+    {
+        if (cloudLayers == null)
+            return null;
+
+        var ceilingTypes = new List<CloudLayer.CloudAmount>();
+
+        if (AtisStation.AtisFormat.Clouds.CloudCeilingLayerTypes.Count == 0)
+        {
+            // Default to BKN and OVC
+            ceilingTypes.Add(CloudLayer.CloudAmount.Broken);
+            ceilingTypes.Add(CloudLayer.CloudAmount.Overcast);
+        }
+        else
+        {
+            foreach (var type in AtisStation.AtisFormat.Clouds.CloudCeilingLayerTypes)
+            {
+                switch (type)
+                {
+                    case "SCT":
+                        ceilingTypes.Add(CloudLayer.CloudAmount.Scattered);
+                        break;
+                    case "BKN":
+                        ceilingTypes.Add(CloudLayer.CloudAmount.Broken);
+                        break;
+                    case "OVC":
+                        ceilingTypes.Add(CloudLayer.CloudAmount.Overcast);
+                        break;
+                }
+            }
+        }
+
+        var possibleCeilings = cloudLayers.Where(layer => ceilingTypes.Contains(layer.Amount)).ToList();
+        var ceilingLayer = possibleCeilings.Where(x => x.BaseHeight is { ActualValue: > 0 })
+            .OrderBy(x => x.BaseHeight?.ActualValue).FirstOrDefault();
+        return ceilingLayer;
     }
 
     private async Task PublishAtisToHub()

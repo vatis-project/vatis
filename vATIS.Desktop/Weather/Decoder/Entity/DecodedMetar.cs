@@ -173,11 +173,6 @@ public class DecodedMetar
     public List<CloudLayer> Clouds { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets the lowest cloud layer that is broken or overcast.
-    /// </summary>
-    public CloudLayer? Ceiling { get; set; }
-
-    /// <summary>
     /// Gets or sets the air temperature.
     /// </summary>
     /// <seealso cref="Value"/>
