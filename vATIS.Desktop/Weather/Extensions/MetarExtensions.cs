@@ -16,6 +16,14 @@ namespace Vatsim.Vatis.Weather.Extensions;
 /// </summary>
 public static class MetarExtensions
 {
+    private static readonly Dictionary<string, CloudLayer.CloudAmount> s_typeMapping =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["SCT"] = CloudLayer.CloudAmount.Scattered,
+            ["BKN"] = CloudLayer.CloudAmount.Broken,
+            ["OVC"] = CloudLayer.CloudAmount.Overcast
+        };
+
     /// <summary>
     /// Retrieves the ceiling cloud layer from a list of cloud layers based on the specified ATIS format.
     /// </summary>
@@ -29,13 +37,6 @@ public static class MetarExtensions
         if (cloudLayers == null)
             return null;
 
-        var typeMapping = new Dictionary<string, CloudLayer.CloudAmount>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["SCT"] = CloudLayer.CloudAmount.Scattered,
-            ["BKN"] = CloudLayer.CloudAmount.Broken,
-            ["OVC"] = CloudLayer.CloudAmount.Overcast
-        };
-
         var ceilingTypes = new List<CloudLayer.CloudAmount>();
 
         if (atisFormat.Clouds.CloudCeilingLayerTypes.Count == 0)
@@ -48,7 +49,7 @@ public static class MetarExtensions
         {
             foreach (var type in atisFormat.Clouds.CloudCeilingLayerTypes)
             {
-                if (typeMapping.TryGetValue(type, out var cloudAmount))
+                if (s_typeMapping.TryGetValue(type, out var cloudAmount))
                 {
                     ceilingTypes.Add(cloudAmount);
                 }
