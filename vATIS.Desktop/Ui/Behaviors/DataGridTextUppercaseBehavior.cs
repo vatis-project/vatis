@@ -11,7 +11,7 @@ using Avalonia.Xaml.Interactivity;
 namespace Vatsim.Vatis.Ui.Behaviors;
 
 /// <summary>
-/// A behavior for a <see cref="DataGrid"/> that transforms text input into uppercase.
+/// A behavior for a <see cref="o:DataGrid"/> that transforms text input into uppercase.
 /// </summary>
 public class DataGridTextUppercaseBehavior : Behavior<DataGrid>
 {

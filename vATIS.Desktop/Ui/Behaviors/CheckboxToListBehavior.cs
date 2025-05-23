@@ -53,8 +53,9 @@ public class CheckboxToListBehavior : Behavior<CheckBox>
     }
 
     /// <summary>
-    /// Called when the behavior is attached to a <see cref="CheckBox"/>.
-    /// Subscribes to the <see cref="CheckBox.IsCheckedChanged"/> event.
+    /// Called when the behavior is attached to an <see cref="Avalonia.Controls.CheckBox"/>.
+    /// Subscribes to the <c>IsCheckedChanged</c> event and observes the <c>ItemsSource</c> property
+    /// to reactively update the check state.
     /// </summary>
     protected override void OnAttached()
     {

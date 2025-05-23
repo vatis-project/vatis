@@ -18,7 +18,7 @@ public class DataGridCellEndEditEventArgEx : EventArgs
     /// Initializes a new instance of the <see cref="DataGridCellEndEditEventArgEx"/> class.
     /// </summary>
     /// <param name="dataGridName">The name of the DataGrid associated with this event.</param>
-    /// <param name="args">The original <see cref="DataGridCellEditEndingEventArgs"/> passed from the DataGrid event.</param>
+    /// <param name="args">The original <see cref="o:DataGridCellEditEndingEventArgs"/> passed from the DataGrid event.</param>
     public DataGridCellEndEditEventArgEx(string dataGridName, DataGridCellEditEndingEventArgs args)
     {
         DataGridName = dataGridName;
