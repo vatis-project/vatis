@@ -9,7 +9,7 @@ using System.Linq;
 using Vatsim.Vatis.Profiles.AtisFormat;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
-namespace Vatsim.Vatis.Weather;
+namespace Vatsim.Vatis.Weather.Extensions;
 
 /// <summary>
 /// Provides extension methods for processing METAR-related data.

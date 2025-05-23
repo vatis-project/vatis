@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder.Entity;
+using Vatsim.Vatis.Weather.Extensions;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 

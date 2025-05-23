@@ -47,6 +47,7 @@ using Vatsim.Vatis.Voice.Utils;
 using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
+using Vatsim.Vatis.Weather.Extensions;
 using WatsonWebsocket;
 using Notification = Vatsim.Vatis.Ui.Controls.Notification.Notification;
 using WindowNotificationManager = Vatsim.Vatis.Ui.Controls.Notification.WindowNotificationManager;
