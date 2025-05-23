@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.17
+### Added
+- Added airport conditions and NOTAM text to the WebSocket ATIS response message.
+- Added the ability to toggle wind and altimeter display in the mini-window.
+- Added `getActiveProfile` and `getContractions` WebSocket message support.
+- Added voice server heartbeat functionality.
+- Added independent save/apply support for airport conditions and NOTAMs.
+- Added a variable to display ATIS type (SPECI or METAR) in the text ATIS.
+- Added customization options for RVR tendency values in text ATIS.
+- Added tooltip to the ATIS letter in the mini-window that displays the text ATIS.
+- Added support for customizing TREND and WS formatting in text ATIS.
+- Added notification sound for shared ATIS connection updates and a user setting to mute these updates.
+- Added support for prefixing ceiling layers in the text ATIS.
+- Added configuration to define which cloud layer types can be ceiling layers.
+- Added the ability to show/hide individual ATIS stations in the mini-window.
+
+### Changed
+- Updated exit dialog in the mini-window to be centered on screen.
+- Enhanced tooltip descriptions for external ATIS generator URL fields.
+- Improved change tracking logic for ATIS configuration updates.
+- Modified in-app notification display behavior for better user visibility.
+- Updated mini-window controls to appear only when `CTRL` is pressed.
+- Disabled mouse wheel input on the main UI preset dropdown to prevent accidental changes.
+- Enhanced "Record ATIS" button to highlight blue during broadcast and blink when a new recording is needed.
+
+### Fixed
+- Fixed an issue where special parsing characters were not removed from the text ATIS.
+- Fixed a crash caused by an invalid application configuration.
+- Fixed ATIS disconnection behavior during local configuration changes.
+- Fixed a missing closing statement variable when no text was defined.
+
 ## v4.1.0-beta.16
 ### Added
 - Added additional WebSocket messages: request profiles, request stations, configure ATIS, connect/disconnect ATIS, and exit application.
