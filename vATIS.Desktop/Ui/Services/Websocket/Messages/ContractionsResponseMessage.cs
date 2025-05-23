@@ -18,7 +18,7 @@ public class ContractionsResponseMessage
     /// Gets the string identifying the message type.
     /// </summary>
     [JsonPropertyName("type")]
-    public string MessageType => "getContractions";
+    public string MessageType => "contractions";
 
     /// <summary>
     /// Gets or sets a list of stations and their contractions.
