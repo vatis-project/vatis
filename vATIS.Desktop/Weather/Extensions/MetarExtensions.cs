@@ -56,9 +56,8 @@ public static class MetarExtensions
             }
         }
 
-        var possibleCeilings = cloudLayers.Where(layer => ceilingTypes.Contains(layer.Amount)).ToList();
-        var ceilingLayer = possibleCeilings.Where(x => x.BaseHeight is { ActualValue: > 0 })
+        return cloudLayers
+            .Where(layer => ceilingTypes.Contains(layer.Amount) && layer.BaseHeight is { ActualValue: > 0 })
             .OrderBy(x => x.BaseHeight?.ActualValue).FirstOrDefault();
-        return ceilingLayer;
     }
 }
