@@ -44,8 +44,10 @@ using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
+using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
+using Vatsim.Vatis.Weather.Extensions;
 using WatsonWebsocket;
 using Notification = Vatsim.Vatis.Ui.Controls.Notification.Notification;
 using WindowNotificationManager = Vatsim.Vatis.Ui.Controls.Notification.WindowNotificationManager;
@@ -1488,6 +1490,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         var airportConditions = await Dispatcher.UIThread.InvokeAsync(() => AirportConditionsTextDocument?.Text);
         var notams = await Dispatcher.UIThread.InvokeAsync(() => NotamsTextDocument?.Text);
+        var ceilingLayer = AtisStation.AtisFormat.GetCeilingLayer(_decodedMetar?.Clouds);
 
         await _websocketService.SendAtisMessageAsync(session,
             new AtisMessage.AtisMessageValue
@@ -1505,7 +1508,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 IsNewAtis = IsNewAtis,
                 NetworkConnectionStatus = NetworkConnectionStatus,
                 Pressure = _decodedMetar?.Pressure?.Value ?? null,
-                Ceiling = _decodedMetar?.Ceiling?.BaseHeight ?? null,
+                Ceiling = ceilingLayer?.BaseHeight ?? null,
                 PrevailingVisibility = _decodedMetar?.Visibility?.PrevailingVisibility ?? null
             });
     }

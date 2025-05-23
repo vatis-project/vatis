@@ -19,17 +19,28 @@ public class Clouds : BaseFormat
     /// </summary>
     public Clouds()
     {
-        Template = new Template
-        {
-            Text = "{clouds}",
-            Voice = "{clouds}",
-        };
+        Template = new Template { Text = "{clouds}", Voice = "{clouds}", };
     }
 
     /// <summary>
     /// Gets or sets a value indicating whether to identify the ceiling layer.
     /// </summary>
     public bool IdentifyCeilingLayer { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to identify the ceiling layer in the text ATIS.
+    /// </summary>
+    public bool IdentifyCeilingLayerTextAtis { get; set; }
+
+    /// <summary>
+    /// Gets or sets the prefix used to identify the ceiling layer in the text ATIS.
+    /// </summary>
+    public string? TextAtisCeilingPrefix { get; set; } = "CIG";
+
+    /// <summary>
+    /// Gets or sets the cloud type used to determine the ceiling.
+    /// </summary>
+    public List<string> CloudCeilingLayerTypes { get; set; } = ["BKN", "OVC"];
 
     /// <summary>
     /// Gets or sets a value indicating whether to convert cloud heights to metric units.
