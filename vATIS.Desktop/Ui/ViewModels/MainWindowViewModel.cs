@@ -140,8 +140,35 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .AutoRefresh(x => x.Ordinal)
-            .Filter(x =>
-                x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
+            .AutoRefresh(x => x.IsVisibleOnMiniWindow)
+            .Filter(x => x is
+            {
+                IsVisibleOnMiniWindow: true,
+                NetworkConnectionStatus: NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer
+            })
+            .Sort(SortExpressionComparer<AtisStationViewModel>
+                .Ascending(i => i.Ordinal)
+                .ThenBy(i => i.Identifier ?? string.Empty)
+                .ThenBy(i => i.AtisType switch
+                {
+                    AtisType.Combined => 0,
+                    AtisType.Arrival => 1,
+                    AtisType.Departure => 2,
+                    _ => 3
+                }))
+            .Bind(out var filteredConnectedStations)
+            .Subscribe(_ => { FilteredCompactWindowStations = filteredConnectedStations; })
+            .DisposeWith(_disposables);
+
+        FilteredCompactWindowStations = filteredConnectedStations;
+
+        _atisStationSource.Connect()
+            .AutoRefresh(x => x.NetworkConnectionStatus)
+            .AutoRefresh(x => x.Ordinal)
+            .Filter(x => x is
+            {
+                NetworkConnectionStatus: NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer
+            })
             .Sort(SortExpressionComparer<AtisStationViewModel>
                 .Ascending(i => i.Ordinal)
                 .ThenBy(i => i.Identifier ?? string.Empty)
@@ -156,7 +183,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Subscribe(_ => { CompactWindowStations = connectedStations; })
             .DisposeWith(_disposables);
 
-        CompactWindowStations = connectedStations;
+        CompactWindowStations = filteredConnectedStations;
 
         _disposables.Add(EventBus.Instance.Subscribe<OpenGenerateSettingsDialog>(_ => OpenSettingsDialog()));
         _disposables.Add(EventBus.Instance.Subscribe<AtisStationAdded>(evt =>
@@ -233,9 +260,14 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
 
     /// <summary>
-    /// Gets or sets the filtered collection of ATIS stations displayed in the compact window.
+    /// Gets or sets the filtered collection of ATIS stations displayed in the compact window context menu.
     /// </summary>
     public ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
+
+    /// <summary>
+    /// Gets or sets the filtered collection of ATIS stations displayed in the compact window.
+    /// </summary>
+    public ReadOnlyObservableCollection<AtisStationViewModel> FilteredCompactWindowStations { get; set; }
 
     /// <summary>
     /// Gets the command to open the settings dialog.
@@ -439,6 +471,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         if (compactView.DataContext is CompactWindowViewModel context)
         {
             context.Stations = CompactWindowStations;
+            context.FilteredStations = FilteredCompactWindowStations;
         }
 
         compactView.Show();

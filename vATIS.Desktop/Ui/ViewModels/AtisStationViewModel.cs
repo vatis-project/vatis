@@ -109,6 +109,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private bool _hasUnsavedNotams;
     private string? _previousFreeTextNotams;
     private string? _previousFreeTextAirportConditions;
+    private bool _isVisibleOnMiniWindow = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisStationViewModel"/> class.
@@ -280,7 +281,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                      !string.Equals(sync.Dto.Metar, Metar, StringComparison.OrdinalIgnoreCase)))
                 {
                     IsNewAtis = true;
-                    if (!_appConfig.MuteSharedAtisUpdateSound)
+                    if (!_appConfig.MuteSharedAtisUpdateSound && IsVisibleOnMiniWindow)
                     {
                         NativeAudio.EmitSound(SoundType.Notification);
                     }
@@ -666,6 +667,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _hasUnsavedNotams;
         set => this.RaiseAndSetIfChanged(ref _hasUnsavedNotams, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the station is visible on the mini-window.
+    /// </summary>
+    public bool IsVisibleOnMiniWindow
+    {
+        get => _isVisibleOnMiniWindow;
+        set => this.RaiseAndSetIfChanged(ref _isVisibleOnMiniWindow, value);
     }
 
     /// <summary>
@@ -1413,7 +1423,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (e.IsNewMetar)
             {
                 IsNewAtis = false;
-                if (!_appConfig.MuteOwnAtisUpdateSound)
+                if (!_appConfig.MuteOwnAtisUpdateSound && IsVisibleOnMiniWindow)
                 {
                     NativeAudio.EmitSound(SoundType.Notification);
                 }
