@@ -183,7 +183,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
             .Subscribe(_ => { CompactWindowStations = connectedStations; })
             .DisposeWith(_disposables);
 
-        CompactWindowStations = filteredConnectedStations;
+        CompactWindowStations = connectedStations;
 
         _disposables.Add(EventBus.Instance.Subscribe<OpenGenerateSettingsDialog>(_ => OpenSettingsDialog()));
         _disposables.Add(EventBus.Instance.Subscribe<AtisStationAdded>(evt =>
