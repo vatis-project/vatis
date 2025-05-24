@@ -28,6 +28,7 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     private readonly IWindowLocationService _windowLocationService;
     private IDialogOwner? _dialogOwner;
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
+    private ReadOnlyObservableCollection<AtisStationViewModel> _filteredStations = new([]);
     private bool _isControlsVisible;
 
     /// <summary>
@@ -61,6 +62,15 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _stations;
         set => this.RaiseAndSetIfChanged(ref _stations, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the collection of filtered ATIS station view models displayed in the compact window.
+    /// </summary>
+    public ReadOnlyObservableCollection<AtisStationViewModel> FilteredStations
+    {
+        get => _filteredStations;
+        set => this.RaiseAndSetIfChanged(ref _filteredStations, value);
     }
 
     /// <summary>
