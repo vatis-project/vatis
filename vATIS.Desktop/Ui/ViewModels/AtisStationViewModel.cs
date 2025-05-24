@@ -44,7 +44,6 @@ using Vatsim.Vatis.Ui.Services.Websocket.Messages;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Voice.Network;
 using Vatsim.Vatis.Voice.Utils;
-using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Weather.Extensions;
