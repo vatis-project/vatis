@@ -137,27 +137,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
         AtisStations = sortedStations;
 
-        _atisStationSource.Connect()
-            .AutoRefresh(x => x.NetworkConnectionStatus)
-            .AutoRefresh(x => x.Ordinal)
-            .Filter(x =>
-                x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
-            .Sort(SortExpressionComparer<AtisStationViewModel>
-                .Ascending(i => i.Ordinal)
-                .ThenBy(i => i.Identifier ?? string.Empty)
-                .ThenBy(i => i.AtisType switch
-                {
-                    AtisType.Combined => 0,
-                    AtisType.Arrival => 1,
-                    AtisType.Departure => 2,
-                    _ => 3
-                }))
-            .Bind(out var connectedStations)
-            .Subscribe(_ => { CompactWindowStations = connectedStations; })
-            .DisposeWith(_disposables);
-
-        CompactWindowStations = connectedStations;
-
         _disposables.Add(EventBus.Instance.Subscribe<OpenGenerateSettingsDialog>(_ => OpenSettingsDialog()));
         _disposables.Add(EventBus.Instance.Subscribe<AtisStationAdded>(evt =>
         {
@@ -231,11 +210,6 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     /// Gets or sets the collection of ATIS station view models to display in the tab control.
     /// </summary>
     public ReadOnlyObservableCollection<AtisStationViewModel> AtisStations { get; set; }
-
-    /// <summary>
-    /// Gets or sets the filtered collection of ATIS stations displayed in the compact window.
-    /// </summary>
-    public ReadOnlyObservableCollection<AtisStationViewModel> CompactWindowStations { get; set; }
 
     /// <summary>
     /// Gets the command to open the settings dialog.
@@ -438,7 +412,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         var compactView = _windowFactory.CreateCompactWindow();
         if (compactView.DataContext is CompactWindowViewModel context)
         {
-            context.Stations = CompactWindowStations;
+            context.Initialize(_atisStationSource);
         }
 
         compactView.Show();
