@@ -275,14 +275,20 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
             Dispatcher.UIThread.Post(() =>
             {
-                if (NetworkConnectionStatus == NetworkConnectionStatus.Observer &&
-                    (sync.Dto.AtisLetter != AtisLetter ||
-                     !string.Equals(sync.Dto.Metar, Metar, StringComparison.OrdinalIgnoreCase)))
+                if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 {
-                    IsNewAtis = true;
-                    if (!_appConfig.MuteSharedAtisUpdateSound && IsVisibleOnMiniWindow)
+                    var atisLetterChanged = sync.Dto.AtisLetter != AtisLetter;
+                    var metarChanged = !string.IsNullOrEmpty(sync.Dto.Metar) &&
+                                       !string.Equals(sync.Dto.Metar, Metar, StringComparison.OrdinalIgnoreCase);
+
+                    if (atisLetterChanged || metarChanged)
                     {
-                        NativeAudio.EmitSound(SoundType.Notification);
+                        IsNewAtis = true;
+
+                        if (!_appConfig.MuteSharedAtisUpdateSound && IsVisibleOnMiniWindow)
+                        {
+                            NativeAudio.EmitSound(SoundType.Notification);
+                        }
                     }
                 }
 
