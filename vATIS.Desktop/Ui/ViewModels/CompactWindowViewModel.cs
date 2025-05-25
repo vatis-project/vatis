@@ -211,8 +211,6 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
             _filteredStationsSource.Add(station);
         }
 
-        FilteredStations = _filteredStations;
-
         if (!readonlyStations.Any())
         {
             StatusLabel = "NO ATISES ONLINE";
