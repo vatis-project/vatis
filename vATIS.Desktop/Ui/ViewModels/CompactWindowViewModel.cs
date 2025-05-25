@@ -31,8 +31,9 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     private readonly CompositeDisposable _disposables = [];
     private readonly ISessionManager _sessionManager;
     private readonly IWindowLocationService _windowLocationService;
+    private readonly ObservableCollection<AtisStationViewModel> _filteredStationsSource = [];
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
-    private ReadOnlyObservableCollection<AtisStationViewModel> _filteredStations = new([]);
+    private ReadOnlyObservableCollection<AtisStationViewModel> _filteredStations;
     private IDialogOwner? _dialogOwner;
     private bool _isControlsVisible;
     private bool _hasAnyStations;
@@ -48,6 +49,8 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         _sessionManager = sessionManager;
         _windowLocationService = windowLocationService;
+
+        _filteredStations = new ReadOnlyObservableCollection<AtisStationViewModel>(_filteredStationsSource);
 
         InvokeMainWindowCommand = ReactiveCommand.Create<ICloseable>(InvokeMainWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(HandleEndClientSession);
@@ -157,8 +160,13 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
                     .Where(x => x.IsVisibleOnMiniWindow)
                     .ToList();
 
-                FilteredStations = new ReadOnlyObservableCollection<AtisStationViewModel>(
-                    new ObservableCollection<AtisStationViewModel>(filteredOnlineStations));
+                _filteredStationsSource.Clear();
+                foreach (var station in filteredOnlineStations)
+                {
+                    _filteredStationsSource.Add(station);
+                }
+
+                FilteredStations = _filteredStations;
 
                 if (!allOnlineStations.Any())
                 {
