@@ -60,7 +60,7 @@
             Background="#323232"
             ClipToBounds="True">
         <Border.ContextMenu>
-            <ContextMenu ItemsSource="{Binding Stations, DataType=vm:CompactWindowViewModel}" IsVisible="{Binding Stations.Count, DataType=vm:CompactWindowViewModel}">
+            <ContextMenu ItemsSource="{Binding Stations, DataType=vm:CompactWindowViewModel}" IsVisible="{Binding HasAnyStations, DataType=vm:CompactWindowViewModel}">
                 <ContextMenu.ItemTemplate>
                     <DataTemplate>
                         <CheckBox IsChecked="{Binding IsVisibleOnMiniWindow, DataType=vm:AtisStationViewModel}" Content="{Binding TabText, DataType=vm:AtisStationViewModel}" Theme="{StaticResource CheckBox}"/>
@@ -111,10 +111,10 @@
             <TextBlock VerticalAlignment="Center"
                        HorizontalAlignment="Center"
                        Foreground="White"
-                       FontSize="24"
+                       FontSize="20"
                        Margin="10"
-                       IsVisible="{Binding !Stations.Count, DataType=vm:CompactWindowViewModel, FallbackValue=False}"
-                       Text="NOT CONNECTED"/>
+                       IsVisible="{Binding StatusLabelVisible, DataType=vm:CompactWindowViewModel, FallbackValue=False}"
+                       Text="{Binding StatusLabel, DataType=vm:CompactWindowViewModel}"/>
         </Panel>
     </Border>
 </Window>
