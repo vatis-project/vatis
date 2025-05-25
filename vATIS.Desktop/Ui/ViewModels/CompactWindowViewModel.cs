@@ -129,10 +129,12 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="sharedSource">The shared source list containing ATIS station view models.</param>
     public void Initialize(SourceList<AtisStationViewModel> sharedSource)
     {
-        sharedSource.Connect()
+        var connection = sharedSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .AutoRefresh(x => x.Ordinal)
             .AutoRefresh(x => x.IsVisibleOnMiniWindow)
+            .Filter(filter => filter.NetworkConnectionStatus
+                is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer)
             .Sort(SortExpressionComparer<AtisStationViewModel>
                 .Ascending(i => i.Ordinal)
                 .ThenBy(i => i.Identifier ?? string.Empty)
@@ -143,50 +145,13 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
                     AtisType.Departure => 2,
                     _ => 3
                 }))
-            .Bind(out var stations)
-            .Subscribe(_ =>
-            {
-                Stations = stations;
-                HasAnyStations = stations.Any();
+            .Bind(out var stations);
 
-                // All online stations (regardless of user filtering)
-                var allOnlineStations = stations
-                    .Where(x => x.NetworkConnectionStatus is NetworkConnectionStatus.Connected
-                        or NetworkConnectionStatus.Observer)
-                    .ToList();
+        // Immediately assign values from the current state (before Subscribe)
+        UpdateStations(stations);
 
-                // Filtered stations (user-selected visibility + online)
-                var filteredOnlineStations = allOnlineStations
-                    .Where(x => x.IsVisibleOnMiniWindow)
-                    .ToList();
-
-                _filteredStationsSource.Clear();
-                foreach (var station in filteredOnlineStations)
-                {
-                    _filteredStationsSource.Add(station);
-                }
-
-                FilteredStations = _filteredStations;
-
-                if (!allOnlineStations.Any())
-                {
-                    // All ATISes are offline
-                    StatusLabel = "NO ATISES ONLINE";
-                    StatusLabelVisible = true;
-                }
-                else if (!filteredOnlineStations.Any())
-                {
-                    // Some ATISes are online, but user hasn't made any visible
-                    StatusLabel = "NO FILTERED ATISES";
-                    StatusLabelVisible = true;
-                }
-                else
-                {
-                    StatusLabel = string.Empty;
-                    StatusLabelVisible = false;
-                }
-            })
-            .DisposeWith(_disposables);
+        // Now subscribe to future updates
+        connection.Subscribe(_ => UpdateStations(stations)).DisposeWith(_disposables);
     }
 
     /// <summary>
@@ -229,6 +194,38 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
         InvokeMainWindowCommand.Dispose();
         EndClientSessionCommand.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private void UpdateStations(ReadOnlyObservableCollection<AtisStationViewModel> readonlyStations)
+    {
+        Stations = readonlyStations;
+        HasAnyStations = readonlyStations.Any();
+
+        var filteredOnlineStations = readonlyStations
+            .Where(x => x.IsVisibleOnMiniWindow)
+            .ToList();
+
+        _filteredStationsSource.Clear();
+        foreach (var station in filteredOnlineStations)
+        {
+            _filteredStationsSource.Add(station);
+        }
+
+        if (!readonlyStations.Any())
+        {
+            StatusLabel = "NO ATISES ONLINE";
+            StatusLabelVisible = true;
+        }
+        else if (!filteredOnlineStations.Any())
+        {
+            StatusLabel = "NO FILTERED ATISES";
+            StatusLabelVisible = true;
+        }
+        else
+        {
+            StatusLabel = string.Empty;
+            StatusLabelVisible = false;
+        }
     }
 
     private void InvokeMainWindow(ICloseable window)
