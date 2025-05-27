@@ -1211,14 +1211,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private async Task DisconnectFromVoiceServer()
     {
-        if (_voiceServerConnection == null || _networkConnection == null)
+        if (_voiceServerConnection == null)
             return;
 
         try
         {
             if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
             {
-                await _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
+                await _voiceServerConnection.RemoveBot(_networkConnection?.Callsign);
 
                 await _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
                     AtisLetter));

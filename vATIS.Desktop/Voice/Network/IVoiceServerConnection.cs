@@ -34,7 +34,7 @@ public interface IVoiceServerConnection
     /// <param name="dto">The details of the bot, including transceivers and audio settings.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task AddOrUpdateBot(string callsign, PutBotRequestDto dto, CancellationToken cancellationToken);
+    Task AddOrUpdateBot(string? callsign, PutBotRequestDto dto, CancellationToken cancellationToken);
 
     /// <summary>
     /// Removes the bot associated with the specified callsign from the voice server.
@@ -42,5 +42,5 @@ public interface IVoiceServerConnection
     /// <param name="callsign">The callsign of the bot to be removed.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task RemoveBot(string callsign, CancellationToken? cancellationToken = null);
+    Task RemoveBot(string? callsign, CancellationToken? cancellationToken = null);
 }
