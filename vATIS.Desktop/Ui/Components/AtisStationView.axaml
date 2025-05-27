@@ -52,9 +52,7 @@
 					</Interaction.Behaviors>
                     <editor:TextEditor.ContextMenu>
                         <ContextMenu IsEnabled="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel}">
-                            <MenuItem Header="Apply Without Saving" ToolTip.Tip="Temporarily apply changes to the ATIS without saving them to the profile" Command="{Binding ApplyAirportConditionsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:False}"/>
-                            <Separator/>
-                            <MenuItem Header="Save and Apply" ToolTip.Tip="Save changes to the profile and apply them to the ATIS" Command="{Binding ApplyAirportConditionsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
+                            <MenuItem Header="Save Airport Conditions" ToolTip.Tip="Save the airport conditions to the ATIS profile." Command="{Binding ApplyAirportConditionsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
                         </ContextMenu>
                     </editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
@@ -67,9 +65,7 @@
 					</Interaction.Behaviors>
                     <editor:TextEditor.ContextMenu>
                         <ContextMenu IsEnabled="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel}">
-                            <MenuItem Header="Apply Without Saving" ToolTip.Tip="Temporarily apply changes to the ATIS without saving them to the profile" Command="{Binding ApplyNotamsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:False}"/>
-                            <Separator/>
-                            <MenuItem Header="Save and Apply" ToolTip.Tip="Save changes to the profile and apply them to the ATIS" Command="{Binding ApplyNotamsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
+                            <MenuItem Header="Save NOTAMs" ToolTip.Tip="Save the NOTAMs to the ATIS profile." Command="{Binding ApplyNotamsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
                         </ContextMenu>
                     </editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
