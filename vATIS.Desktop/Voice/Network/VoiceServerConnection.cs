@@ -57,13 +57,17 @@ public class VoiceServerConnection : IVoiceServerConnection
     {
         _jwtToken = null;
 
-        // Stop the timer when disconnecting
+        // Stop token refresh timer
         _refreshTokenTimer?.Dispose();
         _refreshTokenTimer = null;
+
+        // Stop heartbeat timer
+        _heartbeatTimer?.Dispose();
+        _heartbeatTimer = null;
     }
 
     /// <inheritdoc />
-    public async Task AddOrUpdateBot(string callsign, PutBotRequestDto dto, CancellationToken cancellationToken)
+    public async Task AddOrUpdateBot(string? callsign, PutBotRequestDto dto, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -74,6 +78,9 @@ public class VoiceServerConnection : IVoiceServerConnection
 
             if (_jwtToken == null)
                 throw new AtisBuilderException("AddOrUpdateBot failed because the authentication token is null.");
+
+            if (string.IsNullOrEmpty(callsign))
+                throw new AtisBuilderException("AddOrUpdateBot failed because the callsign is empty.");
 
             // Remove existing bot
             await RemoveBot(callsign, cancellationToken);
@@ -104,12 +111,15 @@ public class VoiceServerConnection : IVoiceServerConnection
     }
 
     /// <inheritdoc />
-    public async Task RemoveBot(string callsign, CancellationToken? cancellationToken = null)
+    public async Task RemoveBot(string? callsign, CancellationToken? cancellationToken = null)
     {
         if (_jwtToken == null)
             await Authenticate();
 
         if (_jwtToken == null)
+            return;
+
+        if (string.IsNullOrEmpty(callsign))
             return;
 
         try
