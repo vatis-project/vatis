@@ -1435,7 +1435,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                 await AcknowledgeOrIncrementAtisLetterCommand.Execute();
                 IsNewAtis = true;
-                RecordedAtisState = RecordedAtisState.Expired;
+
+                if (!AtisStation.AtisVoice.UseTextToSpeech)
+                {
+                    RecordedAtisState = RecordedAtisState.Expired;
+                }
             }
 
             // Save the decoded metar so its individual properties can be sent to clients
