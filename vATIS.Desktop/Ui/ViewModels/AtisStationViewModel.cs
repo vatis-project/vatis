@@ -1363,8 +1363,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnNetworkDisconnected(object? sender, NetworkDisconnectedReceived e)
     {
-        _decodedMetar = null;
-
         Dispatcher.UIThread.Post(() =>
         {
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
