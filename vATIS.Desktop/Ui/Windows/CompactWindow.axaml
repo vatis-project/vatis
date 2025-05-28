@@ -22,6 +22,7 @@
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         SystemDecorations="None"
+        CanResize="False"
         WindowStartupLocation="CenterScreen"
         Topmost="{Binding IsTopMost, DataType=vm:CompactWindowTopMostViewModel,
         Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
