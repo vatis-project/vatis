@@ -533,7 +533,8 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
                         return;
                     }
 
-                    context.AtisStations = new ObservableCollection<AtisStation>(_atisStationSource.Items);
+                    context.AtisStations =
+                        new ObservableCollection<AtisStation>(_atisStationSource.Items.OrderBy(x => x.Ordinal));
                     context.AtisStations.CollectionChanged += (_, _) =>
                     {
                         try

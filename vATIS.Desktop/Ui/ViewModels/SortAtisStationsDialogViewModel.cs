@@ -75,8 +75,8 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
         get => _stations;
         set
         {
+            Source.Items = value;
             this.RaiseAndSetIfChanged(ref _stations, value);
-            Source.Items = _stations.OrderBy(x => x.Ordinal);
         }
     }
 
