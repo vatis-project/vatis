@@ -14,6 +14,7 @@
         PointerEntered="OnPointerEntered"
         PointerExited="OnPointerExited"
         PointerPressed="OnPointerPressed"
+        DoubleTapped="OnDoubleTapped"
         MinHeight="30"
         MinWidth="90"
         MaxWidth="400"
@@ -54,26 +55,49 @@
             </TextBlock>
         </DataTemplate>
     </Window.Resources>
-    <Border CornerRadius="5"
+    <Border x:Name="Root"
+            CornerRadius="5"
             BorderBrush="Black"
             BorderThickness="1"
             Background="#323232"
             ClipToBounds="True">
         <Border.ContextMenu>
-            <ContextMenu ItemsSource="{Binding Stations, DataType=vm:CompactWindowViewModel}" IsVisible="{Binding HasAnyStations, DataType=vm:CompactWindowViewModel}">
-                <ContextMenu.ItemTemplate>
-                    <DataTemplate>
-                        <CheckBox IsChecked="{Binding IsVisibleOnMiniWindow, DataType=vm:AtisStationViewModel}" Content="{Binding TabText, DataType=vm:AtisStationViewModel}" Theme="{StaticResource CheckBox}"/>
-                    </DataTemplate>
-                </ContextMenu.ItemTemplate>
-                <ContextMenu.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Spacing="-5" />
-                    </ItemsPanelTemplate>
-                </ContextMenu.ItemsPanel>
+            <ContextMenu>
+                <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center" Margin="2,2">
+                    <ToggleButton Theme="{StaticResource ActionToggle}"
+                                  ToolTip.Tip="Toggle Weather Data"
+                                  Command="{Binding ToggleMetarDetails, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
+                                  IsChecked="{Binding ShowMetarDetails, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"/>
+                    <ToggleButton Theme="{StaticResource PinButtonSmall}"
+                                  ToolTip.Tip="Keep Window On Top"
+                                  Command="{Binding ToggleIsTopMost, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
+                                  IsChecked="{Binding IsTopMost, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"/>
+                    <Button ToolTip.Tip="Restore Main Window" Theme="{StaticResource CompactViewButtonSmall}" Command="{Binding InvokeMainWindowCommand, DataType=vm:CompactWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
+                </StackPanel>
+                <Separator IsVisible="{Binding HasAnyStations, DataType=vm:CompactWindowViewModel}" />
+                <ItemsControl ItemsSource="{Binding Stations, DataType=vm:CompactWindowViewModel}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsVisibleOnMiniWindow, DataType=vm:AtisStationViewModel}"
+                                      Content="{Binding TabText, DataType=vm:AtisStationViewModel}"
+                                      Theme="{StaticResource CheckBox}" Margin="10,0,10,0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="-5"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+                <!-- Styles -->
                 <ContextMenu.Styles>
                     <Style Selector="MenuItem">
+                        <Setter Property="Theme" Value="{StaticResource MiniWindow_MenuItem}"/>
                         <Setter Property="Padding" Value="5,0"/>
+                    </Style>
+                    <Style Selector="Separator">
+                        <Setter Property="Theme" Value="{StaticResource MiniWindow_MenuSeparator}"/>
                     </Style>
                     <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
                         <Setter Property="Background" Value="Transparent"/>

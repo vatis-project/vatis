@@ -162,4 +162,12 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
             ViewModel.IsControlsVisible = false;
         }
     }
+
+    private void OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is Border { Name: "Root" })
+        {
+            ViewModel?.InvokeMainWindowCommand.Execute(this).Subscribe();
+        }
+    }
 }
