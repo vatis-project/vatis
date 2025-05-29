@@ -8,7 +8,6 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Layout;
 using Avalonia.ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Ui.ViewModels;
