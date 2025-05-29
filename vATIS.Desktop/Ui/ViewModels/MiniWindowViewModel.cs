@@ -1,4 +1,4 @@
-﻿// <copyright file="CompactWindowViewModel.cs" company="Justin Shannon">
+﻿// <copyright file="MiniWindowViewModel.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -24,9 +24,9 @@ using Vatsim.Vatis.Ui.Services;
 namespace Vatsim.Vatis.Ui.ViewModels;
 
 /// <summary>
-/// Represents the view model for the compact window in the UI.
+/// Represents the view model for the mini-window.
 /// </summary>
-public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
+public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly CompositeDisposable _disposables = [];
     private readonly ISessionManager _sessionManager;
@@ -35,17 +35,16 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
     private ReadOnlyObservableCollection<AtisStationViewModel> _filteredStations;
     private IDialogOwner? _dialogOwner;
-    private bool _isControlsVisible;
     private bool _hasAnyStations;
     private bool _statusLabelVisible;
     private string? _statusLabel;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CompactWindowViewModel"/> class.
+    /// Initializes a new instance of the <see cref="MiniWindowViewModel"/> class.
     /// </summary>
     /// <param name="sessionManager">The session manager service.</param>
     /// <param name="windowLocationService">The service responsible for managing window locations.</param>
-    public CompactWindowViewModel(ISessionManager sessionManager, IWindowLocationService windowLocationService)
+    public MiniWindowViewModel(ISessionManager sessionManager, IWindowLocationService windowLocationService)
     {
         _sessionManager = sessionManager;
         _windowLocationService = windowLocationService;
@@ -109,16 +108,6 @@ public class CompactWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _filteredStations;
         set => this.RaiseAndSetIfChanged(ref _filteredStations, value);
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the window controls (pin and restore) buttons are visible.
-    /// Only visible on mouse hover.
-    /// </summary>
-    public bool IsControlsVisible
-    {
-        get => _isControlsVisible;
-        set => this.RaiseAndSetIfChanged(ref _isControlsVisible, value);
     }
 
     /// <summary>

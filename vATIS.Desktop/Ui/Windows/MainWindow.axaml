@@ -7,13 +7,13 @@
 		xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
 		mc:Ignorable="d"
         x:Class="Vatsim.Vatis.Ui.Windows.MainWindow"
-		Height="380" 
-        Width="850" 
+		Height="380"
+        Width="850"
         SystemDecorations="None"
-		WindowStartupLocation="CenterScreen" 
+		WindowStartupLocation="CenterScreen"
         TransparencyLevelHint="Transparent"
-		CanResize="False" 
-        Background="Transparent" 
+		CanResize="False"
+        Background="Transparent"
         Title="vATIS"
 		Icon="/Assets/MainIcon.ico"
 		Topmost="{Binding IsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}">
@@ -40,7 +40,7 @@
 								   FontFamily="{StaticResource Monospace}"
 								   Text="{Binding CurrentTime, DataType=vm:MainWindowViewModel, FallbackValue=0000/00}"/>
 						<ToggleButton Theme="{StaticResource PinButton}" Margin="5,8" Command="{Binding ToggleIsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, Mode=OneWay, Source={x:Static vm:TopMostViewModel.Instance}}" />
-						<Button Theme="{StaticResource CompactViewButton}" Margin="0,8" Command="{Binding InvokeCompactViewCommand, DataType=vm:MainWindowViewModel}" />
+						<Button Theme="{StaticResource MiniWindowButton}" Margin="0,8" Command="{Binding InvokeMiniWindowCommand, DataType=vm:MainWindowViewModel}" />
 						<Button Theme="{StaticResource MinimizeButton}" Margin="5,8" Click="OnMinimizeWindow" />
 						<Button Theme="{StaticResource CloseButton}" Margin="0,8" Command="{Binding EndClientSessionCommand, DataType=vm:MainWindowViewModel}"/>
 					</StackPanel>

@@ -69,16 +69,16 @@ internal class WindowFactory : IWindowFactory
     }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="CompactWindow"/> class.
+    /// Creates a new instance of the <see cref="MiniWindow"/> class.
     /// </summary>
     /// <returns>
-    /// A new instance of the <see cref="CompactWindow"/> class.
+    /// A new instance of the <see cref="MiniWindow"/> class.
     /// </returns>
-    public CompactWindow CreateCompactWindow()
+    public MiniWindow CreateMiniWindow()
     {
         var scope = _provider.CreateScope();
-        var viewModel = scope.GetService<CompactWindowViewModel>();
-        return new CompactWindow(viewModel);
+        var viewModel = scope.GetService<MiniWindowViewModel>();
+        return new MiniWindow(viewModel);
     }
 
     /// <summary>

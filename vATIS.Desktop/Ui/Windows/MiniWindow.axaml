@@ -8,11 +8,7 @@
         xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
         mc:Ignorable="d"
         x:Name="Window"
-        x:Class="Vatsim.Vatis.Ui.Windows.CompactWindow"
-        KeyDown="OnKeyDown"
-        KeyUp="OnKeyUp"
-        PointerEntered="OnPointerEntered"
-        PointerExited="OnPointerExited"
+        x:Class="Vatsim.Vatis.Ui.Windows.MiniWindow"
         PointerPressed="OnPointerPressed"
         DoubleTapped="OnDoubleTapped"
         MinHeight="30"
@@ -24,8 +20,8 @@
         SystemDecorations="None"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
-        Topmost="{Binding IsTopMost, DataType=vm:CompactWindowTopMostViewModel,
-        Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
+        Topmost="{Binding IsTopMost, DataType=vm:MiniWindowTopMostViewModel,
+        Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
         Title="vATIS">
     <Window.Resources>
         <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
@@ -67,16 +63,16 @@
                 <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center" Margin="2,2">
                     <ToggleButton Theme="{StaticResource ActionToggle}"
                                   ToolTip.Tip="Toggle Weather Data"
-                                  Command="{Binding ToggleMetarDetails, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
-                                  IsChecked="{Binding ShowMetarDetails, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"/>
+                                  Command="{Binding ToggleMetarDetails, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
+                                  IsChecked="{Binding ShowMetarDetails, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"/>
                     <ToggleButton Theme="{StaticResource PinButtonSmall}"
                                   ToolTip.Tip="Keep Window On Top"
-                                  Command="{Binding ToggleIsTopMost, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"
-                                  IsChecked="{Binding IsTopMost, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}"/>
-                    <Button ToolTip.Tip="Restore Main Window" Theme="{StaticResource CompactViewButtonSmall}" Command="{Binding InvokeMainWindowCommand, DataType=vm:CompactWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
+                                  Command="{Binding ToggleIsTopMost, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
+                                  IsChecked="{Binding IsTopMost, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"/>
+                    <Button ToolTip.Tip="Restore Main Window" Theme="{StaticResource MiniWindowButtonSmall}" Command="{Binding InvokeMainWindowCommand, DataType=vm:MiniWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
                 </StackPanel>
-                <Separator IsVisible="{Binding HasAnyStations, DataType=vm:CompactWindowViewModel}" />
-                <ItemsControl ItemsSource="{Binding Stations, DataType=vm:CompactWindowViewModel}">
+                <Separator IsVisible="{Binding HasAnyStations, DataType=vm:MiniWindowViewModel}" />
+                <ItemsControl ItemsSource="{Binding Stations, DataType=vm:MiniWindowViewModel}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <CheckBox IsChecked="{Binding IsVisibleOnMiniWindow, DataType=vm:AtisStationViewModel}"
@@ -107,20 +103,15 @@
             </ContextMenu>
         </Border.ContextMenu>
         <Panel ClipToBounds="True">
-            <StackPanel Name="WindowControls" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Spacing="3" ZIndex="1" Margin="3" IsVisible="{Binding IsControlsVisible, DataType=vm:CompactWindowViewModel}">
-                <ToggleButton Theme="{StaticResource ActionToggle}" Command="{Binding ToggleMetarDetails, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" IsChecked="{Binding ShowMetarDetails, DataType=vm:CompactWindowTopMostViewModel, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" />
-                <ToggleButton Theme="{StaticResource PinButtonSmall}" Command="{Binding ToggleIsTopMost, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, DataType=vm:CompactWindowTopMostViewModel, Mode=OneWay, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}" />
-                <Button Theme="{StaticResource CompactViewButtonSmall}" Command="{Binding InvokeMainWindowCommand, DataType=vm:CompactWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
-            </StackPanel>
-            <ItemsControl ItemsSource="{Binding FilteredStations, DataType=vm:CompactWindowViewModel}" Margin="5" IsVisible="{Binding FilteredStations.Count, DataType=vm:CompactWindowViewModel}" VerticalAlignment="Center">
+            <ItemsControl ItemsSource="{Binding FilteredStations, DataType=vm:MiniWindowViewModel}" Margin="5" IsVisible="{Binding FilteredStations.Count, DataType=vm:MiniWindowViewModel}" VerticalAlignment="Center">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Spacing="5">
-                            <Grid ColumnDefinitions="65,10" IsVisible="{Binding !ShowMetarDetails, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}">
+                            <Grid ColumnDefinitions="65,10" IsVisible="{Binding !ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" />
                                 <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" Grid.Column="1"/>
                             </Grid>
-                            <Grid ColumnDefinitions="65,10,60,10,Auto,15,Auto" IsVisible="{Binding ShowMetarDetails, DataType=vm:CompactWindowTopMostViewModel, Source={x:Static vm:CompactWindowTopMostViewModel.Instance}}">
+                            <Grid ColumnDefinitions="65,10,60,10,Auto,15,Auto" IsVisible="{Binding ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
                                     <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" />
@@ -138,8 +129,8 @@
                        Foreground="White"
                        FontSize="20"
                        Margin="10"
-                       IsVisible="{Binding StatusLabelVisible, DataType=vm:CompactWindowViewModel, FallbackValue=False}"
-                       Text="{Binding StatusLabel, DataType=vm:CompactWindowViewModel}"/>
+                       IsVisible="{Binding StatusLabelVisible, DataType=vm:MiniWindowViewModel, FallbackValue=False}"
+                       Text="{Binding StatusLabel, DataType=vm:MiniWindowViewModel}"/>
         </Panel>
     </Border>
 </Window>

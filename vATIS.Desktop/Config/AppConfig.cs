@@ -41,16 +41,16 @@ public class AppConfig : IAppConfig
     public bool AlwaysOnTop { get; set; }
 
     /// <inheritdoc />
-    public bool CompactWindowAlwaysOnTop { get; set; }
+    public bool MiniWindowAlwaysOnTop { get; set; }
 
     /// <inheritdoc />
-    public bool CompactWindowShowMetarDetails { get; set; }
+    public bool MiniWindowShowMetarDetails { get; set; }
 
     /// <inheritdoc />
     public WindowPosition? MainWindowPosition { get; set; }
 
     /// <inheritdoc />
-    public WindowPosition? CompactWindowPosition { get; set; }
+    public WindowPosition? MiniWindowPosition { get; set; }
 
     /// <inheritdoc />
     public WindowPosition? ProfileListDialogWindowPosition { get; set; }
@@ -103,10 +103,10 @@ public class AppConfig : IAppConfig
             MuteOwnAtisUpdateSound = config.MuteOwnAtisUpdateSound;
             MuteSharedAtisUpdateSound = config.MuteSharedAtisUpdateSound;
             AlwaysOnTop = config.AlwaysOnTop;
-            CompactWindowAlwaysOnTop = config.CompactWindowAlwaysOnTop;
-            CompactWindowShowMetarDetails = config.CompactWindowShowMetarDetails;
+            MiniWindowAlwaysOnTop = config.MiniWindowAlwaysOnTop;
+            MiniWindowShowMetarDetails = config.MiniWindowShowMetarDetails;
             MainWindowPosition = config.MainWindowPosition;
-            CompactWindowPosition = config.CompactWindowPosition;
+            MiniWindowPosition = config.MiniWindowPosition;
             ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;
             VoiceRecordAtisDialogWindowPosition = config.VoiceRecordAtisDialogWindowPosition;
             MicrophoneDevice = config.MicrophoneDevice;
