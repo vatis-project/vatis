@@ -28,6 +28,7 @@
                 <ResourceInclude Source="/Ui/Controls/GroupBox/GroupBoxClassic.axaml"/>
                 <ResourceInclude Source="/Ui/Styles/ScrollBarResources.axaml"/>
                 <ResourceInclude Source="/Ui/Controls/Notification/Notification.axaml"/>
+                <ResourceInclude Source="/Ui/Styles/MiniWindowMenu.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
         <FontFamily x:Key="UiFont">/Assets/Fonts#Nunito</FontFamily>

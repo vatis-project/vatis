@@ -27,13 +27,13 @@ public class MockVoiceServerConnection : IVoiceServerConnection
     }
 
     /// <inheritdoc />
-    public Task AddOrUpdateBot(string callsign, PutBotRequestDto dto, CancellationToken cancellationToken)
+    public Task AddOrUpdateBot(string? callsign, PutBotRequestDto dto, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public Task RemoveBot(string callsign, CancellationToken? cancellationToken = null)
+    public Task RemoveBot(string? callsign, CancellationToken? cancellationToken = null)
     {
         return Task.CompletedTask;
     }
