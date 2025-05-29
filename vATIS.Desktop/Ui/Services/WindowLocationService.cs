@@ -67,9 +67,9 @@ public class WindowLocationService : IWindowLocationService
             _left = _appConfig.MainWindowPosition.X;
             _top = _appConfig.MainWindowPosition.Y;
         }
-        else if (window.GetType() == typeof(CompactWindow))
+        else if (window.GetType() == typeof(MiniWindow))
         {
-            if (_appConfig.CompactWindowPosition == null)
+            if (_appConfig.MiniWindowPosition == null)
             {
                 // No settings found to restore, so center the window on the primary screen.
                 var primaryScreen = window.Screens.Primary;
@@ -86,13 +86,13 @@ public class WindowLocationService : IWindowLocationService
                 _left = centeredLeft;
                 _top = centeredTop;
 
-                _appConfig.CompactWindowPosition = new WindowPosition(centeredLeft, centeredTop);
+                _appConfig.MiniWindowPosition = new WindowPosition(centeredLeft, centeredTop);
                 _appConfig.SaveConfig();
                 return;
             }
 
-            _left = _appConfig.CompactWindowPosition.X;
-            _top = _appConfig.CompactWindowPosition.Y;
+            _left = _appConfig.MiniWindowPosition.X;
+            _top = _appConfig.MiniWindowPosition.Y;
         }
         else if (window.GetType() == typeof(ProfileListDialog))
         {
@@ -194,9 +194,9 @@ public class WindowLocationService : IWindowLocationService
             _appConfig.MainWindowPosition = savedPosition;
             _appConfig.SaveConfig();
         }
-        else if (window.GetType() == typeof(CompactWindow))
+        else if (window.GetType() == typeof(MiniWindow))
         {
-            _appConfig.CompactWindowPosition = savedPosition;
+            _appConfig.MiniWindowPosition = savedPosition;
             _appConfig.SaveConfig();
         }
         else if (window.GetType() == typeof(ProfileListDialog))

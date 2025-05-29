@@ -79,7 +79,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         OpenSettingsDialogCommand = ReactiveCommand.Create(OpenSettingsDialog);
         OpenProfileConfigurationWindowCommand = ReactiveCommand.CreateFromTask(OpenProfileConfigurationWindow);
         EndClientSessionCommand = ReactiveCommand.CreateFromTask(EndClientSession);
-        InvokeCompactViewCommand = ReactiveCommand.Create(InvokeCompactView);
+        InvokeMiniWindowCommand = ReactiveCommand.Create(InvokeMiniWindow);
 
         _websocketService.GetStationsReceived += OnGetAtisStations;
         _websocketService.ChangeProfileReceived += OnChangeProfileReceived;
@@ -87,7 +87,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         _disposables.Add(OpenSettingsDialogCommand);
         _disposables.Add(OpenProfileConfigurationWindowCommand);
         _disposables.Add(EndClientSessionCommand);
-        _disposables.Add(InvokeCompactViewCommand);
+        _disposables.Add(InvokeMiniWindowCommand);
 
         _atisStationSource.Connect()
             .AutoRefresh(x => x.NetworkConnectionStatus)
@@ -227,9 +227,9 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<Unit, bool> EndClientSessionCommand { get; }
 
     /// <summary>
-    /// Gets the command to invoke the compact view mode.
+    /// Gets the command to invoke the mini-window.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> InvokeCompactViewCommand { get; }
+    public ReactiveCommand<Unit, Unit> InvokeMiniWindowCommand { get; }
 
     /// <summary>
     /// Gets or sets the notification manager.
@@ -402,20 +402,20 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
         await window.ShowDialog(lifetime.MainWindow);
     }
 
-    private void InvokeCompactView()
+    private void InvokeMiniWindow()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
             return;
 
         lifetime.MainWindow?.Hide();
 
-        var compactView = _windowFactory.CreateCompactWindow();
-        if (compactView.DataContext is CompactWindowViewModel context)
+        var miniWindow = _windowFactory.CreateMiniWindow();
+        if (miniWindow.DataContext is MiniWindowViewModel context)
         {
             context.Initialize(_atisStationSource);
         }
 
-        compactView.Show();
+        miniWindow.Show();
     }
 
     private void OpenSettingsDialog()

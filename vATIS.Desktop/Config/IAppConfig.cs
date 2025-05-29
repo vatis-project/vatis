@@ -53,14 +53,14 @@ public interface IAppConfig
     bool AlwaysOnTop { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the compact window should always remain on top of other windows.
+    /// Gets or sets a value indicating whether the mini-window should always remain on top of other windows.
     /// </summary>
-    bool CompactWindowAlwaysOnTop { get; set; }
+    bool MiniWindowAlwaysOnTop { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the compact window should show the full METAR details.
+    /// Gets or sets a value indicating whether the mini-window should show the full METAR details.
     /// </summary>
-    bool CompactWindowShowMetarDetails { get; set; }
+    bool MiniWindowShowMetarDetails { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the configuration is required.
@@ -83,9 +83,9 @@ public interface IAppConfig
     WindowPosition? MainWindowPosition { get; set; }
 
     /// <summary>
-    /// Gets or sets the position of the compact window.
+    /// Gets or sets the position of the mini-window.
     /// </summary>
-    WindowPosition? CompactWindowPosition { get; set; }
+    WindowPosition? MiniWindowPosition { get; set; }
 
     /// <summary>
     /// Gets or sets the position of the Profile List Dialog window on the screen.

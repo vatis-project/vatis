@@ -19,10 +19,10 @@
 				</DropDownButton>
 				<StackPanel Orientation="Horizontal" Spacing="5">
 					<Button Theme="{StaticResource MinimizeButton}"/>
-					<Button Theme="{StaticResource CompactViewButton}"/>
+					<Button Theme="{StaticResource MiniWindowButton}"/>
 					<Button Theme="{StaticResource CloseButton}"/>
 					<ToggleButton Theme="{StaticResource PinButton}"/>
-                    <Button Theme="{StaticResource CompactViewButtonSmall}"/>
+                    <Button Theme="{StaticResource MiniWindowButtonSmall}"/>
                     <ToggleButton Theme="{StaticResource PinButtonSmall}"/>
                     <ToggleButton Theme="{StaticResource ActionToggle}"/>
 				</StackPanel>
@@ -455,7 +455,7 @@
 		</Style>
 	</ControlTheme>
 
-	<ControlTheme x:Key="CompactViewButton" BasedOn="{StaticResource Dark}" TargetType="Button">
+	<ControlTheme x:Key="MiniWindowButton" BasedOn="{StaticResource Dark}" TargetType="Button">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
 		<Setter Property="Padding" Value="0"/>
@@ -471,7 +471,7 @@
 		</Setter>
 	</ControlTheme>
 
-    <ControlTheme x:Key="CompactViewButtonSmall" BasedOn="{StaticResource Dark}" TargetType="Button">
+    <ControlTheme x:Key="MiniWindowButtonSmall" BasedOn="{StaticResource Dark}" TargetType="Button">
         <Setter Property="Padding" Value="2"/>
         <Setter Property="Height" Value="19"/>
         <Setter Property="MinHeight" Value="19"/>

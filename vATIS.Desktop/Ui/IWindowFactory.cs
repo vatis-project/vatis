@@ -33,10 +33,10 @@ public interface IWindowFactory
     SettingsDialog CreateSettingsDialog();
 
     /// <summary>
-    /// Creates and initializes a new instance of the <see cref="CompactWindow"/> class.
+    /// Creates and initializes a new instance of the <see cref="MiniWindow"/> class.
     /// </summary>
-    /// <returns>A new instance of the <see cref="CompactWindow"/> class initialized with the associated ViewModel.</returns>
-    CompactWindow CreateCompactWindow();
+    /// <returns>A new instance of the <see cref="MiniWindow"/> class initialized with the associated ViewModel.</returns>
+    MiniWindow CreateMiniWindow();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="AtisConfigurationWindow"/> class.

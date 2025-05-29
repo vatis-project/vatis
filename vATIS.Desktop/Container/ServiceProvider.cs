@@ -59,7 +59,7 @@ namespace Vatsim.Vatis.Container;
 
 // Views
 [Transient(typeof(MainWindow))]
-[Transient(typeof(CompactWindow))]
+[Transient(typeof(MiniWindow))]
 [Transient(typeof(AtisConfigurationWindow))]
 [Transient(typeof(StartupWindow))]
 [Transient(typeof(ProfileListDialog))]
@@ -79,8 +79,7 @@ namespace Vatsim.Vatis.Container;
 // ViewModels
 [Transient(typeof(ProfileListViewModel))]
 [Transient(typeof(StartupWindowViewModel))]
-[Transient(typeof(CompactViewItemViewModel))]
-[Transient(typeof(CompactWindowViewModel))]
+[Transient(typeof(MiniWindowViewModel))]
 [Transient(typeof(MainWindowViewModel))]
 [Transient(typeof(AtisConfigurationWindowViewModel))]
 [Transient(typeof(NewAtisStationDialogViewModel))]

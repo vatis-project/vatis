@@ -1,4 +1,4 @@
-// <copyright file="CompactWindow.axaml.cs" company="Justin Shannon">
+// <copyright file="MiniWindow.axaml.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -16,17 +16,17 @@ using Vatsim.Vatis.Ui.ViewModels;
 namespace Vatsim.Vatis.Ui.Windows;
 
 /// <summary>
-/// Represents a compact window designed as part of the VATSIM user interface.
+/// Represents the mini-window for displaying ATIS information in a compact view.
 /// </summary>
-public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICloseable, IDialogOwner
+public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseable, IDialogOwner
 {
     private bool _isPointerInside;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CompactWindow"/> class with the specified view model.
+    /// Initializes a new instance of the <see cref="MiniWindow"/> class with the specified view model.
     /// </summary>
     /// <param name="viewModel">The view model to be used by the window.</param>
-    public CompactWindow(CompactWindowViewModel viewModel)
+    public MiniWindow(MiniWindowViewModel viewModel)
     {
         InitializeComponent();
 
@@ -38,9 +38,9 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CompactWindow"/> class.
+    /// Initializes a new instance of the <see cref="MiniWindow"/> class.
     /// </summary>
-    public CompactWindow()
+    public MiniWindow()
     {
         InitializeComponent();
     }
@@ -51,7 +51,7 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
         base.OnLoaded(e);
 
         PositionChanged += OnPositionChanged;
-        if (DataContext is CompactWindowViewModel model)
+        if (DataContext is MiniWindowViewModel model)
         {
             model.RestorePosition(this);
         }
@@ -95,7 +95,7 @@ public partial class CompactWindow : ReactiveWindow<CompactWindowViewModel>, ICl
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is CompactWindowViewModel model)
+        if (DataContext is MiniWindowViewModel model)
         {
             model.UpdatePosition(this);
         }
