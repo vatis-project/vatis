@@ -216,6 +216,26 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 (metar, voiceRecord, networkStatus) => !string.IsNullOrEmpty(metar) && voiceRecord &&
                                                        networkStatus == NetworkConnectionStatus.Connected));
 
+        this.WhenAnyValue(x => x.AirportConditionsTextDocument!.Text)
+            .Throttle(TimeSpan.FromSeconds(5))
+            .DistinctUntilChanged()
+            .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+            {
+                // Apply but don't save to profile
+                ApplyAirportConditionsCommand.Execute(false).Subscribe();
+            }, ex => Log.Error(ex, "Error applying airport conditions"))
+            .DisposeWith(_disposables);
+
+        this.WhenAnyValue(x => x.NotamsTextDocument!.Text)
+            .Throttle(TimeSpan.FromSeconds(5))
+            .DistinctUntilChanged()
+            .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+            {
+                // Apply but don't save to profile
+                ApplyNotamsCommand.Execute(false).Subscribe();
+            }, ex => Log.Error(ex, "Error applying NOTAMs"))
+            .DisposeWith(_disposables);
+
         _websocketService.GetAtisReceived += OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
         _websocketService.ConfigureAtisReceived += OnConfigureAtisReceived;
