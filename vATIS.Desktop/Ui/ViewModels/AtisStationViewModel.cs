@@ -219,6 +219,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.AirportConditionsTextDocument!.Text)
             .Throttle(TimeSpan.FromSeconds(5))
             .DistinctUntilChanged()
+            .Skip(1)
             .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
             {
                 // Apply but don't save to profile
@@ -229,6 +230,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.NotamsTextDocument!.Text)
             .Throttle(TimeSpan.FromSeconds(5))
             .DistinctUntilChanged()
+            .Skip(1)
             .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
             {
                 // Apply but don't save to profile
