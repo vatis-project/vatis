@@ -223,7 +223,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 // Apply but don't save to profile
                 ApplyAirportConditionsCommand.Execute(false).Subscribe();
-            });
+            }).DisposeWith(_disposables);
 
         this.WhenAnyValue(x => x.NotamsTextDocument!.Text)
             .Throttle(TimeSpan.FromSeconds(5))
@@ -232,7 +232,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 // Apply but don't save to profile
                 ApplyNotamsCommand.Execute(false).Subscribe();
-            });
+            }).DisposeWith(_disposables);
 
         _websocketService.GetAtisReceived += OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
