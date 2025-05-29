@@ -385,14 +385,14 @@
 	</ControlTheme>
 
     <ControlTheme x:Key="ActionToggle" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
-        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Padding" Value="0"/>
         <Setter Property="Height" Value="19"/>
         <Setter Property="MinHeight" Value="19"/>
         <Setter Property="CornerRadius" Value="3"/>
         <Setter Property="Width" Value="19"/>
         <Setter Property="Content">
             <Template>
-                <Viewbox Width="19" Height="19" Stretch="Uniform">
+                <Viewbox Width="20" Height="20" Stretch="Fill">
                     <Canvas Width="256" Height="256">
                         <Path Stroke="Transparent" Fill="White"
                               Data="M156,128a28,28,0,1,1-28-28A28.02769,28.02769,0,0,1,156,128ZM48,100a28,28,0,1,0,28,28A28.02769,28.02769,0,0,0,48,100Zm160,0a28,28,0,1,0,28,28A28.02769,28.02769,0,0,0,208,100Z" />
