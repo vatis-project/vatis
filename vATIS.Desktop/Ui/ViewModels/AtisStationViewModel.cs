@@ -219,7 +219,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.AirportConditionsTextDocument!.Text)
             .Throttle(TimeSpan.FromSeconds(5))
             .DistinctUntilChanged()
-            .Skip(1)
+            .WhereNotNull()
             .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
             {
                 // Apply but don't save to profile
@@ -230,7 +230,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         this.WhenAnyValue(x => x.NotamsTextDocument!.Text)
             .Throttle(TimeSpan.FromSeconds(5))
             .DistinctUntilChanged()
-            .Skip(1)
+            .WhereNotNull()
             .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
             {
                 // Apply but don't save to profile
@@ -826,13 +826,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private void HandleApplyAirportConditions(bool saveToProfile)
     {
         ApplyAirportConditions(saveToProfile);
-        HasUnsavedAirportConditions = !saveToProfile;
     }
 
     private void HandleApplyNotams(bool saveToProfile)
     {
         ApplyNotams(saveToProfile);
-        HasUnsavedNotams = !saveToProfile;
     }
 
     private void ApplyNotams(bool saveToProfile)
@@ -1607,13 +1605,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (preset == null || _voiceServerConnection == null)
                 return;
 
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+                return;
+
             await _selectedPresetCts.CancelAsync();
             _selectedPresetCts = new CancellationTokenSource();
             var localToken = _selectedPresetCts;
 
             if (preset != _previousAtisPreset)
             {
-                if (HasUnsavedNotams || HasUnsavedAirportConditions)
+                if (_previousAtisPreset != null && (HasUnsavedNotams || HasUnsavedAirportConditions))
                 {
                     if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                     {
@@ -1632,9 +1633,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
                 SelectedAtisPreset = preset;
                 _previousAtisPreset = preset;
-
-                if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
-                    return;
 
                 PopulateAirportConditions(presetChanged: true);
                 PopulateNotams(presetChanged: true);
