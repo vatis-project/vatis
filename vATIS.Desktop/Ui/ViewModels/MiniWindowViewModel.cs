@@ -35,7 +35,6 @@ public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
     private ReadOnlyObservableCollection<AtisStationViewModel> _stations = new([]);
     private ReadOnlyObservableCollection<AtisStationViewModel> _filteredStations;
     private IDialogOwner? _dialogOwner;
-    private bool _isControlsVisible;
     private bool _hasAnyStations;
     private bool _statusLabelVisible;
     private string? _statusLabel;
@@ -109,16 +108,6 @@ public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _filteredStations;
         set => this.RaiseAndSetIfChanged(ref _filteredStations, value);
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the window controls (pin and restore) buttons are visible.
-    /// Only visible on mouse hover.
-    /// </summary>
-    public bool IsControlsVisible
-    {
-        get => _isControlsVisible;
-        set => this.RaiseAndSetIfChanged(ref _isControlsVisible, value);
     }
 
     /// <summary>

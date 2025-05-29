@@ -20,8 +20,6 @@ namespace Vatsim.Vatis.Ui.Windows;
 /// </summary>
 public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseable, IDialogOwner
 {
-    private bool _isPointerInside;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="MiniWindow"/> class with the specified view model.
     /// </summary>
@@ -51,10 +49,7 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
         base.OnLoaded(e);
 
         PositionChanged += OnPositionChanged;
-        if (DataContext is MiniWindowViewModel model)
-        {
-            model.RestorePosition(this);
-        }
+        ViewModel?.RestorePosition(this);
     }
 
     private void OnClosed(object? sender, EventArgs e)
@@ -95,72 +90,7 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is MiniWindowViewModel model)
-        {
-            model.UpdatePosition(this);
-        }
-
-        // Get the screen the window is currently on
-        var currentScreen = Screens.ScreenFromPoint(Position);
-        if (currentScreen == null) return;
-
-        var screenBounds = currentScreen.WorkingArea;
-        var windowLeft = Position.X;
-        var windowRight = windowLeft + (int)Width;
-
-        var isRightOffScreen = windowRight > screenBounds.X + screenBounds.Width;
-        var isLeftOffScreen = windowLeft < screenBounds.X;
-
-        // Adjust alignment based on visibility
-        if (isRightOffScreen)
-        {
-            WindowControls.HorizontalAlignment = HorizontalAlignment.Left;
-        }
-        else if (isLeftOffScreen)
-        {
-            WindowControls.HorizontalAlignment = HorizontalAlignment.Right;
-        }
-        else
-        {
-            // Keep the default alignment when fully visible
-            WindowControls.HorizontalAlignment = HorizontalAlignment.Right;
-        }
-    }
-
-    private void OnPointerEntered(object? sender, PointerEventArgs e)
-    {
-        _isPointerInside = true;
-
-        if (ViewModel != null && e.KeyModifiers.HasFlag(KeyModifiers.Control))
-        {
-            ViewModel.IsControlsVisible = true;
-        }
-    }
-
-    private void OnPointerExited(object? sender, PointerEventArgs e)
-    {
-        _isPointerInside = false;
-
-        if (ViewModel != null)
-        {
-            ViewModel.IsControlsVisible = false;
-        }
-    }
-
-    private void OnKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (ViewModel != null && e.KeyModifiers.HasFlag(KeyModifiers.Control) && _isPointerInside)
-        {
-            ViewModel.IsControlsVisible = true;
-        }
-    }
-
-    private void OnKeyUp(object? sender, KeyEventArgs e)
-    {
-        if (ViewModel != null)
-        {
-            ViewModel.IsControlsVisible = false;
-        }
+        ViewModel?.UpdatePosition(this);
     }
 
     private void OnDoubleTapped(object? sender, TappedEventArgs e)

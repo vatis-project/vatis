@@ -9,10 +9,6 @@
         mc:Ignorable="d"
         x:Name="Window"
         x:Class="Vatsim.Vatis.Ui.Windows.MiniWindow"
-        KeyDown="OnKeyDown"
-        KeyUp="OnKeyUp"
-        PointerEntered="OnPointerEntered"
-        PointerExited="OnPointerExited"
         PointerPressed="OnPointerPressed"
         DoubleTapped="OnDoubleTapped"
         MinHeight="30"
@@ -107,11 +103,6 @@
             </ContextMenu>
         </Border.ContextMenu>
         <Panel ClipToBounds="True">
-            <StackPanel Name="WindowControls" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Spacing="3" ZIndex="1" Margin="3" IsVisible="{Binding IsControlsVisible, DataType=vm:MiniWindowViewModel}">
-                <ToggleButton Theme="{StaticResource ActionToggle}" Command="{Binding ToggleMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}" IsChecked="{Binding ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}" />
-                <ToggleButton Theme="{StaticResource PinButtonSmall}" Command="{Binding ToggleIsTopMost, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, DataType=vm:MiniWindowTopMostViewModel, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}" />
-                <Button Theme="{StaticResource MiniWindowButtonSmall}" Command="{Binding InvokeMainWindowCommand, DataType=vm:MiniWindowViewModel}" CommandParameter="{Binding ElementName=Window}" />
-            </StackPanel>
             <ItemsControl ItemsSource="{Binding FilteredStations, DataType=vm:MiniWindowViewModel}" Margin="5" IsVisible="{Binding FilteredStations.Count, DataType=vm:MiniWindowViewModel}" VerticalAlignment="Center">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
