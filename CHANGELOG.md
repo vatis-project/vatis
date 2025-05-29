@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.18
+### Added
+- Added support for double-tapping the mini-window to quickly open the main UI.
+- Added a right-click menu option to save updates made to the airport conditions and NOTAMs text to the ATIS profile.
+### Changed
+- Updated mini-window controls to be accessible via a right-click context menu instead of requiring the CTRL key.
+- Changed the behavior of the airport conditions and NOTAMs text boxes to automatically sync with the connected ATIS.
+### Fixed
+- Fixed an issue where the voice server heartbeat timer continued running after ATIS was disconnected.
+- Temporarily resolved DPI scaling issues on Windows by downgrading Avalonia.
+- Fixed a bug where the Record ATIS button remained in a blinking state.
+- Fixed a "value cannot be null" exception triggered when connecting or disconnecting ATIS.
+- Fixed an issue in ATIS station sorting logic that caused ordinals to be calculated incorrectly.
+
 ## v4.1.0-beta.17
 ### Added
 - Added airport conditions and NOTAM text to the WebSocket ATIS response message.
@@ -20,7 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for prefixing ceiling layers in the text ATIS.
 - Added configuration to define which cloud layer types can be ceiling layers.
 - Added the ability to show/hide individual ATIS stations in the mini-window.
-
 ### Changed
 - Updated exit dialog in the mini-window to be centered on screen.
 - Enhanced tooltip descriptions for external ATIS generator URL fields.
@@ -29,7 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated mini-window controls to appear only when `CTRL` is pressed.
 - Disabled mouse wheel input on the main UI preset dropdown to prevent accidental changes.
 - Enhanced "Record ATIS" button to highlight blue during broadcast and blink when a new recording is needed.
-
 ### Fixed
 - Fixed an issue where special parsing characters were not removed from the text ATIS.
 - Fixed a crash caused by an invalid application configuration.
