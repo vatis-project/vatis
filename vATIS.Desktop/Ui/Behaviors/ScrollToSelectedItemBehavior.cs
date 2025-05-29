@@ -6,10 +6,8 @@
 using System;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactions.Custom;
-using ReactiveUI;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
@@ -21,46 +19,59 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<TreeDat
     /// <inheritdoc />
     protected override IDisposable OnAttachedToVisualTreeOverride()
     {
-        if (AssociatedObject is not { RowSelection: { } rowSelection })
+        if (AssociatedObject?.RowSelection == null)
         {
             return Disposable.Empty;
         }
 
-        return Observable.FromEventPattern(rowSelection, nameof(rowSelection.SelectionChanged))
-            .Select(_ =>
-            {
-                var selectedIndexPath = rowSelection.SelectedIndex.FirstOrDefault();
-                if (AssociatedObject.Rows is null)
-                {
-                    return selectedIndexPath;
-                }
+        var rowSelection = AssociatedObject.RowSelection;
+        var subscription = new SelectionChangedSubscription(this);
+        rowSelection.SelectionChanged += subscription.OnSelectionChanged;
+        return Disposable.Create(() => rowSelection.SelectionChanged -= subscription.OnSelectionChanged);
+    }
 
-                // Get the actual index in the list of items.
-                var rowIndex = AssociatedObject.Rows.ModelIndexToRowIndex(selectedIndexPath);
+    private void HandleSelectionChanged()
+    {
+        var rowSelection = AssociatedObject?.RowSelection;
+        if (rowSelection == null || AssociatedObject?.Rows == null)
+        {
+            return;
+        }
 
-                // Correct the index wih the index of child item, in the case when the selected item is a child.
-                if (rowSelection.SelectedIndex.Count > 1)
-                {
-                    // Skip 1 because the first index is the parent.
-                    // Every other index is the child index.
-                    rowIndex += rowSelection.SelectedIndex.Skip(1).Sum();
+        var selectedIndexPath = rowSelection.SelectedIndex.FirstOrDefault();
+        var rowIndex = AssociatedObject.Rows.ModelIndexToRowIndex(selectedIndexPath);
 
-                    // Need to add 1 to get the correct index.
-                    rowIndex += 1;
-                }
+        // Correct the index with the index of child item, in the case when the selected item is a child.
+        if (rowSelection.SelectedIndex.Count > 1)
+        {
+            // Skip 1 because the first index is the parent.
+            // Every other index is the child index.
+            rowIndex += rowSelection.SelectedIndex.Skip(1).Sum();
 
-                return rowIndex;
-            })
-            .WhereNotNull()
-            .Do(ScrollToItemIndex)
-            .Subscribe();
+            // Need to add 1 to get the correct index.
+            rowIndex += 1;
+        }
+
+        ScrollToItemIndex(rowIndex);
     }
 
     private void ScrollToItemIndex(int index)
     {
-        if (AssociatedObject is { RowsPresenter: { } rowsPresenter })
+        AssociatedObject?.RowsPresenter?.BringIntoView(index);
+    }
+
+    private class SelectionChangedSubscription
+    {
+        private readonly ScrollToSelectedItemBehavior _behavior;
+
+        public SelectionChangedSubscription(ScrollToSelectedItemBehavior behavior)
         {
-            rowsPresenter.BringIntoView(index);
+            _behavior = behavior;
+        }
+
+        public void OnSelectionChanged(object? sender, EventArgs e)
+        {
+            _behavior.HandleSelectionChanged();
         }
     }
 }
