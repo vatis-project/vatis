@@ -223,7 +223,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 // Apply but don't save to profile
                 ApplyAirportConditionsCommand.Execute(false).Subscribe();
-            }).DisposeWith(_disposables);
+            }, ex => Log.Error(ex, "Error applying airport conditions"))
+            .DisposeWith(_disposables);
 
         this.WhenAnyValue(x => x.NotamsTextDocument!.Text)
             .Throttle(TimeSpan.FromSeconds(5))
@@ -232,7 +233,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 // Apply but don't save to profile
                 ApplyNotamsCommand.Execute(false).Subscribe();
-            }).DisposeWith(_disposables);
+            }, ex => Log.Error(ex, "Error applying NOTAMs"))
+            .DisposeWith(_disposables);
 
         _websocketService.GetAtisReceived += OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived += OnAcknowledgeAtisUpdateReceived;
