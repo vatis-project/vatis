@@ -44,6 +44,26 @@ public sealed class RunwayVisualRange
     public string? Runway { get; set; }
 
     /// <summary>
+    /// Gets or sets the runway identifier suffix (L/R/C).
+    /// </summary>
+    public string? RunwaySuffix { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the RVR is reported as missing (////).
+    /// </summary>
+    public bool IsMissing { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the reported value is "less than" (e.g., M0600).
+    /// </summary>
+    public bool IsLessThan { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the reported value is "greater than" (e.g., P1500).
+    /// </summary>
+    public bool IsGreaterThan { get; set; }
+
+    /// <summary>
     /// Gets or sets the visual range value associated with the runway.
     /// </summary>
     public Value? VisualRange { get; set; }

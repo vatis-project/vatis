@@ -6,11 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder.Abstract;
 using Vatsim.Vatis.Weather.Decoder.Entity;
-using Vatsim.Vatis.Weather.Decoder.Exception;
 using static Vatsim.Vatis.Weather.Decoder.Entity.RunwayVisualRange;
 
 namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
@@ -27,7 +25,7 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
 {
     private const string RunwaysVisualRangeParameterName = "RunwaysVisualRange";
-    private const string RunwayRegexPattern = "R([0-9]{2}[LCR]?)/([PM]?([0-9]{4})V)?[PM]?([0-9]{4})(FT)?/?([UDN]?)";
+    private const string RunwayRegexPattern = "R(\\d{2})([LRC]?)/(?:(M|P)?(\\d{4})|(////))(V)?(M|P)?(\\d{4})?([UDN])?";
 
     /// <inheritdoc/>
     public override string GetRegex()
@@ -46,94 +44,65 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
         if (found.Count > 1)
         {
             var rvrMetarPart = found[0].Value;
-            var chunkRegex = new Regex(
-                $"^(({RunwayRegexPattern}) )",
-                RegexOptions.None,
-                TimeSpan.FromMilliseconds(500));
+            var chunkRegex = new Regex(RunwayRegexPattern, RegexOptions.None, TimeSpan.FromMilliseconds(500));
+            var matches = chunkRegex.Matches(rvrMetarPart);
+
             var runways = new List<RunwayVisualRange>();
 
-            // iterate on the results to get all runways visual range found
-            List<Group> rvrRunwayGroups;
-            while ((rvrRunwayGroups = chunkRegex.Match(rvrMetarPart).Groups.Cast<Group>().ToList()).Count > 1)
+            foreach (Match match in matches)
             {
-                rvrMetarPart = chunkRegex.Replace(rvrMetarPart, string.Empty);
-                var rvrRawValue = rvrRunwayGroups[2].Value;
-                if (!string.IsNullOrEmpty(rvrRawValue))
+                var g = match.Groups;
+
+                var rawValue = g[0].Value; // Full matched RVR string, e.g. "R19/0350VP1200"
+                var runwayNumber = g[1].Value; // Runway number (2 digits), e.g. "19"
+                var runwaySuffix = g[2].Value; // Runway letter suffix (optional), e.g. "L", "R", "C", or empty
+                var prefix1 = g[3].Value; // Inequality prefix for first value (optional): "M" (less than), "P" (greater than)
+                var value1 = g[4].Value; // First visual range value (4 digits), e.g. "0350"
+                var isMissing = !string.IsNullOrEmpty(g[5].Value); // Missing value indicator: "////"
+                var hasVariable = !string.IsNullOrEmpty(g[6].Value); // Variable indicator "V" present or not
+                var prefix2 = g[7].Value; // Inequality prefix for second value (optional): "M" or "P"
+                var value2 = g[8].Value; // Second visual range value (optional, 4 digits)
+                var tendencyStr = g[9].Value; // Past tendency indicator (optional): "U", "D", or "N"
+
+                var rvr = new RunwayVisualRange
                 {
-                    var rwyValue = rvrRunwayGroups[3].Value;
-                    var minVisualRangeIntervalValue = rvrRunwayGroups[5].Value;
-                    var maxVisualRangeIntervalValue = rvrRunwayGroups[6].Value;
-                    var rangeUnitValue = rvrRunwayGroups[7].Value;
-                    var tendencyValue = rvrRunwayGroups[8].Value;
-
-                    // check runway qfu validity
-                    var qfuAsInt = Value.ToInt(rwyValue);
-                    if (qfuAsInt > 36 || qfuAsInt < 1)
+                    Runway = runwayNumber,
+                    RunwaySuffix = runwaySuffix,
+                    RawValue = rawValue,
+                    IsMissing = isMissing,
+                    Variable = hasVariable,
+                    PastTendency = tendencyStr switch
                     {
-                        throw new MetarChunkDecoderException(
-                            remainingMetar,
-                            newRemainingMetar,
-                            MetarChunkDecoderException.Messages.InvalidRunwayQfuRunwayVisualRangeInformation);
+                        "U" => Tendency.U,
+                        "D" => Tendency.D,
+                        "N" => Tendency.N,
+                        _ => Tendency.None
                     }
+                };
 
-                    // get distance unit
-                    var rangeUnit = Value.Unit.Meter;
-                    if (rangeUnitValue == "FT")
+                if (!isMissing)
+                {
+                    var unit = Value.Unit.Meter;
+
+                    if (hasVariable)
                     {
-                        rangeUnit = Value.Unit.Feet;
-                    }
-
-                    var tendency = Tendency.None;
-                    switch (tendencyValue)
-                    {
-                        case "U":
-                            tendency = Tendency.U;
-                            break;
-
-                        case "D":
-                            tendency = Tendency.D;
-                            break;
-
-                        case "N":
-                            tendency = Tendency.N;
-                            break;
-                    }
-
-                    var observation = new RunwayVisualRange
-                    {
-                        Runway = rwyValue,
-                        PastTendency = tendency,
-                        RawValue = rvrRawValue,
-                    };
-
-                    if (!string.IsNullOrEmpty(minVisualRangeIntervalValue))
-                    {
-                        observation.Variable = true;
-                        var min = string.IsNullOrEmpty(minVisualRangeIntervalValue)
-                            ? null
-                            : new Value(Value.ToInt(minVisualRangeIntervalValue)!.Value, rangeUnit);
-                        var max = string.IsNullOrEmpty(maxVisualRangeIntervalValue)
-                            ? null
-                            : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
-                        if (max != null && min != null)
-                        {
-                            observation.VisualRangeInterval = [min, max];
-                        }
+                        var min = string.IsNullOrEmpty(value1) ? null : new Value(Value.ToInt(value1)!.Value, unit);
+                        var max = string.IsNullOrEmpty(value2) ? null : new Value(Value.ToInt(value2)!.Value, unit);
+                        rvr.VisualRangeInterval = [min!, max!];
+                        rvr.IsLessThan = prefix1 == "M";
+                        rvr.IsGreaterThan = prefix2 == "P";
                     }
                     else
                     {
-                        observation.Variable = false;
-                        var v = string.IsNullOrEmpty(maxVisualRangeIntervalValue)
+                        rvr.VisualRange = string.IsNullOrEmpty(value1)
                             ? null
-                            : new Value(Value.ToInt(maxVisualRangeIntervalValue)!.Value, rangeUnit);
-                        if (v != null)
-                        {
-                            observation.VisualRange = v;
-                        }
+                            : new Value(Value.ToInt(value1)!.Value, unit);
+                        rvr.IsLessThan = prefix1 == "M";
+                        rvr.IsGreaterThan = prefix1 == "P";
                     }
-
-                    runways.Add(observation);
                 }
+
+                runways.Add(rvr);
             }
 
             result.Add(RunwaysVisualRangeParameterName, runways);
