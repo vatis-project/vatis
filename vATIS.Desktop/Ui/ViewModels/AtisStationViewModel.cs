@@ -2084,7 +2084,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 Dispatcher.UIThread.Invoke(() =>
                 {
                     _websocketSyncAtisLetter = e.Payload.SyncAtisLetter ?? false;
-                    SyncAtisLetter().SafeFireAndForget();
+                    SyncAtisLetter().SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to sync ATIS letter"));
 
                     SelectedAtisPreset = preset;
                     UpdatePresetData(e.Payload);
