@@ -18,6 +18,11 @@ public class SurfaceWind
     public bool SpeakLeadingZero { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to speak the wind speed in group format.
+    /// </summary>
+    public bool SpeakWindSpeedGroupFormat { get; set; }
+
+    /// <summary>
     /// Gets or sets the magnetic variation metadata.
     /// </summary>
     public MagneticVariationMeta MagneticVariation { get; set; } = new();

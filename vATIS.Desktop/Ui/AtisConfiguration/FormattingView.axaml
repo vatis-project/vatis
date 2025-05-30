@@ -94,7 +94,8 @@
 			<!--Wind-->
 			<StackPanel Spacing="10" Margin="10,0,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind'}">
 				<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-					<CheckBox IsChecked="{Binding SpeakWindSpeedLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Speak wind speed leading zero</CheckBox>
+                    <CheckBox x:Name="SpeakWindSpeedGroupFormat" IsChecked="{Binding SpeakWindSpeedGroupFormat, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Speak wind speed in group format</CheckBox>
+                    <CheckBox IsEnabled="{Binding !#SpeakWindSpeedGroupFormat.IsChecked}" IsChecked="{Binding SpeakWindSpeedLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Speak wind speed leading zero</CheckBox>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<CheckBox IsChecked="{Binding MagneticVariationEnabled, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" Name="MagneticVariation">Magnetic Variation</CheckBox>
 						<TextBox Text="{Binding MagneticVariationValue, DataType=vm:FormattingViewModel}" MaxLength="3" MinWidth="60" IsEnabled="{Binding #MagneticVariation.IsChecked}" Theme="{StaticResource DarkTextBox}">

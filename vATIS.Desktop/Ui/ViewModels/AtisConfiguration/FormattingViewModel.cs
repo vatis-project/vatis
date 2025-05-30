@@ -47,6 +47,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _observationTimeTextTemplate;
     private string? _observationTimeVoiceTemplate;
     private bool _speakWindSpeedLeadingZero;
+    private bool _speakWindSpeedGroupFormat;
     private bool _magneticVariationEnabled;
     private string? _magneticVariationValue;
     private string? _standardWindTextTemplate;
@@ -287,6 +288,19 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _speakWindSpeedLeadingZero, value);
             _changeTracker.TrackChange(nameof(SpeakWindSpeedLeadingZero), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to speak wind speed in group format.
+    /// </summary>
+    public bool SpeakWindSpeedGroupFormat
+    {
+        get => _speakWindSpeedGroupFormat;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _speakWindSpeedGroupFormat, value);
+            _changeTracker.TrackChange(nameof(SpeakWindSpeedGroupFormat), value);
         }
     }
 
@@ -1464,6 +1478,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.SurfaceWind.SpeakLeadingZero = SpeakWindSpeedLeadingZero;
         }
 
+        if (SelectedStation.AtisFormat.SurfaceWind.SpeakWindSpeedGroupFormat != SpeakWindSpeedGroupFormat)
+        {
+            SelectedStation.AtisFormat.SurfaceWind.SpeakWindSpeedGroupFormat = SpeakWindSpeedGroupFormat;
+        }
+
         if (SelectedStation.AtisFormat.SurfaceWind.MagneticVariation.Enabled != MagneticVariationEnabled)
         {
             SelectedStation.AtisFormat.SurfaceWind.MagneticVariation.Enabled = MagneticVariationEnabled;
@@ -1973,6 +1992,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         FormattingOptions = [.. items];
 
         SpeakWindSpeedLeadingZero = station.AtisFormat.SurfaceWind.SpeakLeadingZero;
+        SpeakWindSpeedGroupFormat = station.AtisFormat.SurfaceWind.SpeakWindSpeedGroupFormat;
         MagneticVariationEnabled = station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
         MagneticVariationValue = station.AtisFormat.SurfaceWind.MagneticVariation.MagneticDegrees.ToString();
         RoutineObservationTime = string.Join(",", station.AtisFormat.ObservationTime.StandardUpdateTime ?? []);
