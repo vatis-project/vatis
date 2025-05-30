@@ -859,6 +859,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (saveToProfile && _sessionManager.CurrentProfile != null)
         {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+            HasUnsavedNotams = false;
         }
 
         // Cancel previous request
@@ -901,6 +902,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (saveToProfile && _sessionManager.CurrentProfile != null)
         {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+            HasUnsavedAirportConditions = false;
         }
 
         // Cancel previous request
