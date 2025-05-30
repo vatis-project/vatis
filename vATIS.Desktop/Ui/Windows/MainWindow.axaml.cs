@@ -59,10 +59,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         base.OnLoaded(e);
 
         PositionChanged += OnPositionChanged;
-        if (DataContext is MainWindowViewModel model)
-        {
-            model.RestorePosition(this);
-        }
+
+        ViewModel?.RestorePosition(this);
     }
 
     private async void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -110,6 +108,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        Opened -= OnOpened;
+        Closed -= OnClosed;
+        Closing -= OnClosing;
+        PositionChanged -= OnPositionChanged;
+
         ViewModel?.DisconnectFromHub();
         ViewModel?.Dispose();
     }
@@ -129,9 +132,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is MainWindowViewModel model)
-        {
-            model.UpdatePosition(this);
-        }
+        ViewModel?.UpdatePosition(this);
+    }
+
+    private void OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        ViewModel?.InvokeMiniWindowCommand.Execute().Subscribe();
     }
 }

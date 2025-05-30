@@ -108,17 +108,17 @@
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <Grid ColumnDefinitions="65,10" IsVisible="{Binding !ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
-                                <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" />
+                                <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" Grid.Column="1"/>
                             </Grid>
                             <Grid ColumnDefinitions="65,10,60,10,Auto,15,Auto" IsVisible="{Binding ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
-                                <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" />
+                                <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
                                     <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" />
-                                    <TextBlock Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" FontSize="15" FontWeight="Medium"/>
+                                    <TextBlock Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" FontSize="15" FontWeight="Medium" IsHitTestVisible="False"/>
                                 </StackPanel>
-                                <TextBlock Grid.Column="4" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}" Foreground="White"/>
-                                <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Wind, DataType=vm:AtisStationViewModel}" Foreground="White"/>
+                                <TextBlock Grid.Column="4" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
+                                <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Wind, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
                             </Grid>
                         </StackPanel>
                     </DataTemplate>
@@ -129,6 +129,7 @@
                        Foreground="White"
                        FontSize="20"
                        Margin="10"
+                       IsHitTestVisible="False"
                        IsVisible="{Binding StatusLabelVisible, DataType=vm:MiniWindowViewModel, FallbackValue=False}"
                        Text="{Binding StatusLabel, DataType=vm:MiniWindowViewModel}"/>
         </Panel>

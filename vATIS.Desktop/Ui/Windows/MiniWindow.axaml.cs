@@ -48,11 +48,16 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
         base.OnLoaded(e);
 
         PositionChanged += OnPositionChanged;
+
         ViewModel?.RestorePosition(this);
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        Closed -= OnClosed;
+        Closing -= OnClosing;
+        PositionChanged -= OnPositionChanged;
+
         ViewModel?.Dispose();
     }
 
