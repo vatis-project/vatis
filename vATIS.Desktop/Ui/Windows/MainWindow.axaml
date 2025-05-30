@@ -26,7 +26,7 @@
 			<Grid x:Name="Overlay" Grid.ColumnSpan="2" Grid.RowSpan="2" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:MainWindowViewModel, FallbackValue=False}">
 				<Border Background="#000000" Opacity="0.80"/>
 			</Grid>
-			<Border Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0" Background="#1E1E1E" CornerRadius="5,5,0,0" HorizontalAlignment="Stretch" PointerPressed="OnPointerPressed">
+			<Border Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0" Background="#1E1E1E" CornerRadius="5,5,0,0" HorizontalAlignment="Stretch" PointerPressed="OnPointerPressed" DoubleTapped="OnDoubleTapped">
 				<Grid>
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 						<Button Theme="{StaticResource Dark}" Margin="10,8" Content="User Settings" Command="{Binding OpenSettingsDialogCommand, DataType=vm:MainWindowViewModel}"/>

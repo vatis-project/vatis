@@ -129,9 +129,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        if (DataContext is MainWindowViewModel model)
-        {
-            model.UpdatePosition(this);
-        }
+        ViewModel?.UpdatePosition(this);
+    }
+
+    private void OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        ViewModel?.InvokeMiniWindowCommand.Execute().Subscribe();
     }
 }
