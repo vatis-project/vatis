@@ -68,9 +68,9 @@ public class ConfigureAtisMessage
         public string? NotamsFreeText { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to connect the ATIS.
+        /// Gets or sets a value indicating whether to sync the ATIS letter to the real-world letter.
         /// </summary>
-        [JsonPropertyName("connect")]
-        public bool? Connect { get; set; }
+        [JsonPropertyName("syncAtisLetter")]
+        public bool? SyncAtisLetter { get; set; }
     }
 }

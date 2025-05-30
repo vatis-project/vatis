@@ -111,6 +111,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private string? _previousFreeTextNotams;
     private string? _previousFreeTextAirportConditions;
     private bool _isVisibleOnMiniWindow = true;
+    private bool _websocketSyncAtisLetter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisStationViewModel"/> class.
@@ -1318,14 +1319,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 NetworkConnectionStatus = NetworkConnectionStatus.Connecting;
 
                 // Fetch the real-world ATIS letter if the user has enabled this option.
-                if (_appConfig.AutoFetchAtisLetter && !string.IsNullOrEmpty(Identifier))
+                if (_websocketSyncAtisLetter || _appConfig.AutoFetchAtisLetter)
                 {
-                    var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
-                    var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-                    if (atisLetter != null)
-                    {
-                        await SetAtisLetterCommand.Execute(atisLetter.Value);
-                    }
+                    await SyncAtisLetter();
                 }
 
                 await _networkConnection.Connect();
@@ -1463,6 +1459,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 {
                     RecordedAtisState = RecordedAtisState.Expired;
                 }
+            }
+
+            if (_websocketSyncAtisLetter)
+            {
+                await SyncAtisLetter();
             }
 
             // Save the decoded metar so its individual properties can be sent to clients
@@ -2082,6 +2083,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             {
                 Dispatcher.UIThread.Invoke(() =>
                 {
+                    _websocketSyncAtisLetter = e.Payload.SyncAtisLetter ?? false;
+                    SyncAtisLetter().SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to sync ATIS letter"));
+
                     SelectedAtisPreset = preset;
                     UpdatePresetData(e.Payload);
                 });
@@ -2170,6 +2174,26 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             }
 
             IsNewAtis = false;
+        }
+    }
+
+    private async Task SyncAtisLetter()
+    {
+        if (string.IsNullOrEmpty(Identifier))
+            return;
+
+        try
+        {
+            var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
+            var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+            if (atisLetter != null)
+            {
+                await SetAtisLetterCommand.Execute(atisLetter.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to sync ATIS letter");
         }
     }
 
