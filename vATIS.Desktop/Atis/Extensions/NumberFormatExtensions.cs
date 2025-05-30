@@ -16,6 +16,25 @@ namespace Vatsim.Vatis.Atis.Extensions;
 public static class NumberFormatExtensions
 {
     /// <summary>
+    /// Converts a numeric value to a formatted string representation, either in group format or serial format.
+    /// </summary>
+    /// <param name="value">The value to format. Must implement <see cref="IConvertible"/>.</param>
+    /// <param name="speakInGroupFormat">
+    /// If <c>true</c>, formats the value using the group format (e.g., digit-by-digit with spacing).
+    /// If <c>false</c>, uses the serial format.
+    /// </param>
+    /// <param name="speakLeadingZero">
+    /// Optional. If <c>true</c>, includes a leading zero when using the serial format.
+    /// This parameter is ignored when <paramref name="speakInGroupFormat"/> is <c>true</c>.
+    /// </param>
+    /// <returns>A formatted string representation of the value.</returns>
+    public static string ToFormat(this IConvertible value, bool speakInGroupFormat,
+        bool speakLeadingZero = false)
+    {
+        return speakInGroupFormat ? ToGroupForm(value) : ToSerialFormat(value, speakLeadingZero);
+    }
+
+    /// <summary>
     /// Converts the value into a group form.
     /// </summary>
     /// <param name="value">The number to convert.</param>
