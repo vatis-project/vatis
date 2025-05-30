@@ -74,11 +74,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private readonly SemaphoreSlim _voiceRequestLock = new(1, 1);
     private readonly SemaphoreSlim _buildAtisLock = new(1, 1);
     private readonly string? _identifier;
+    private readonly TimeSpan _debounceDelay = TimeSpan.FromSeconds(5);
     private CancellationTokenSource _buildAtisCts = new();
     private CancellationTokenSource _selectedPresetCts = new();
     private CancellationTokenSource _voiceRecordAtisCts = new();
     private CancellationTokenSource _processMetarCts = new();
     private CancellationTokenSource _atisLetterChangedCts = new();
+    private CancellationTokenSource _debounceCts = new();
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
     private Timer? _publishAtisTimer;
@@ -812,6 +814,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _selectedPresetCts.Dispose();
         _atisLetterChangedCts.Dispose();
         _buildAtisCts.Dispose();
+        _debounceCts.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -857,6 +860,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (saveToProfile && _sessionManager.CurrentProfile != null)
         {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+            HasUnsavedNotams = false;
         }
 
         // Cancel previous request
@@ -899,6 +903,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (saveToProfile && _sessionManager.CurrentProfile != null)
         {
             _profileRepository.Save(_sessionManager.CurrentProfile);
+            HasUnsavedAirportConditions = false;
         }
 
         // Cancel previous request
@@ -1605,9 +1610,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (preset == null || _voiceServerConnection == null)
                 return;
 
-            if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
-                return;
-
             await _selectedPresetCts.CancelAsync();
             _selectedPresetCts = new CancellationTokenSource();
             var localToken = _selectedPresetCts;
@@ -1936,6 +1938,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
             return;
 
+        // Cancel any existing debounce task to reset the timer for RequestVoiceAtis
+        _debounceCts.Cancel();
+        _debounceCts.Dispose();
+        _debounceCts = new CancellationTokenSource();
+
         try
         {
             // Only allow one request at a time
@@ -1968,8 +1975,27 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 // Posts an update to the configured IDS endpoint URL
                 await _atisBuilder.UpdateIds(AtisStation, SelectedAtisPreset, AtisLetter, cancelToken);
 
-                // Requests a new voice ATIS
-                await RequestVoiceAtis(cancelToken);
+                // Create a debounced task to request the voice ATIS after a 5-second delay
+                // The task is canceled and restarted if BuildAtis is called again within the delay
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        // Wait for the debounce period unless canceled
+                        await Task.Delay(_debounceDelay, _debounceCts.Token);
+
+                        // Request the voice ATIS after the delay
+                        await RequestVoiceAtis(cancelToken);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // Ignore cancellation
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Ignore cancellation
+                    }
+                }, cancelToken);
             }
             catch (OperationCanceledException)
             {
