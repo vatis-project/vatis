@@ -2182,11 +2182,18 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         if (string.IsNullOrEmpty(Identifier))
             return;
 
-        var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
-        var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-        if (atisLetter != null)
+        try
         {
-            await SetAtisLetterCommand.Execute(atisLetter.Value);
+            var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
+            var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
+            if (atisLetter != null)
+            {
+                await SetAtisLetterCommand.Execute(atisLetter.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to sync ATIS letter");
         }
     }
 
