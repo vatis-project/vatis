@@ -1605,9 +1605,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (preset == null || _voiceServerConnection == null)
                 return;
 
-            if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
-                return;
-
             await _selectedPresetCts.CancelAsync();
             _selectedPresetCts = new CancellationTokenSource();
             var localToken = _selectedPresetCts;
