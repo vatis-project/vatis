@@ -814,6 +814,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _selectedPresetCts.Dispose();
         _atisLetterChangedCts.Dispose();
         _buildAtisCts.Dispose();
+        _debounceCts.Dispose();
 
         GC.SuppressFinalize(this);
     }
