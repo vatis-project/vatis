@@ -1386,6 +1386,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         Dispatcher.UIThread.Post(() =>
         {
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+            {
+                Disconnect().SafeFireAndForget();
+            }
+
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
             Metar = null;
             Wind = null;
