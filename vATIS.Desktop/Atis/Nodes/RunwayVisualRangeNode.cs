@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
@@ -41,92 +40,83 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 
         foreach (var rvr in runwayVisualRanges)
         {
-            var result = new List<string>();
-
             if (rvr.RawValue == null)
-            {
                 continue;
-            }
-
-            var match = Regex.Match(rvr.RawValue,
-                @"^R([0-3]{1}\d{1})(L|C|R)?\/(M|P)?(\d{4})(V|VP)?(\d{4})?(FT)?(?:\/?(U|D|N))?$");
-
-            if (!match.Success)
-            {
-                continue;
-            }
 
             acars.Add(rvr.RawValue);
 
-            var rwyNumber = match.Groups[1].Value;
+            var result = new List<string>();
 
-            var rwyDesignator = match.Groups[2].Value switch
+            // Runway
+            var rwyDesignatorText = rvr.RunwaySuffix switch
             {
                 "L" => "left",
                 "R" => "right",
                 "C" => "center",
                 _ => ""
             };
+            var runwayString = $"Runway {rvr.Runway.ToSerialFormat()}";
+            if (!string.IsNullOrEmpty(rwyDesignatorText))
+                runwayString += $" {rwyDesignatorText}";
 
-            switch (match.Groups[5].Value)
+            if (rvr.IsMissing)
             {
-                case "V":
+                result.Add("missing");
+            }
+            else
+            {
+                if (rvr is { Variable: true, VisualRangeInterval.Length: 2 })
                 {
-                    var minVis = int.Parse(match.Groups[4].Value);
-                    var maxVis = int.Parse(match.Groups[6].Value);
+                    var minValue = rvr.VisualRangeInterval[0];
+                    var maxValue = rvr.VisualRangeInterval[1];
 
-                    result.Add(match.Groups[3].Value == "M"
-                        ? $"variable from less than {minVis.ToGroupForm()} to {maxVis.ToGroupForm()}"
-                        : $"variable between {minVis.ToGroupForm()} and {maxVis.ToGroupForm()}");
-                    break;
-                }
+                    var minText = minValue.ActualValue.ToGroupForm();
+                    var maxText = maxValue.ActualValue.ToGroupForm();
 
-                case "VP":
-                {
-                    var minVis = int.Parse(match.Groups[4].Value);
-                    var maxVis = int.Parse(match.Groups[6].Value);
-
-                    result.Add(match.Groups[3].Value == "M"
-                        ? $"variable from less than {minVis.ToGroupForm()} to greater than {maxVis.ToGroupForm()}"
-                        : $"{minVis.ToGroupForm()} variable to greater than {maxVis.ToGroupForm()}");
-                    break;
-                }
-
-                default:
-                {
-                    var vis = int.Parse(match.Groups[4].Value);
-
-                    switch (match.Groups[3].Value)
+                    if (rvr.IsGreaterThan)
                     {
-                        case "M":
-                            result.Add($"less than {vis.ToGroupForm()}");
-                            break;
-                        case "P":
-                            result.Add($"more than {vis.ToGroupForm()}");
-                            break;
-                        default:
-                            result.Add(vis.ToGroupForm());
-                            break;
+                        result.Add($"{minValue.ActualValue.ToGroupForm()} variable to " +
+                                   $"greater than {maxValue.ActualValue.ToGroupForm()}");
                     }
+                    else
+                    {
+                        result.Add($"variable between {minText} and {maxText}");
+                    }
+                }
+                else if (rvr.VisualRange != null)
+                {
+                    var visText = rvr.VisualRange.ActualValue.ToGroupForm();
 
-                    break;
+                    if (rvr.IsLessThan)
+                    {
+                        result.Add($"less than {visText}");
+                    }
+                    else if (rvr.IsGreaterThan)
+                    {
+                        result.Add($"more than {visText}");
+                    }
+                    else
+                    {
+                        result.Add(visText);
+                    }
+                }
+
+                // Handle past-tendency
+                var tendencyText = rvr.PastTendency switch
+                {
+                    RunwayVisualRange.Tendency.N => Station?.AtisFormat.RunwayVisualRange.NeutralTendency,
+                    RunwayVisualRange.Tendency.U => Station?.AtisFormat.RunwayVisualRange.GoingUpTendency,
+                    RunwayVisualRange.Tendency.D => Station?.AtisFormat.RunwayVisualRange.GoingDownTendency,
+                    _ => ""
+                };
+
+                if (!string.IsNullOrEmpty(tendencyText))
+                {
+                    result.Add(tendencyText);
                 }
             }
 
-            var tendency = match.Groups[8].Value switch
-            {
-                "N" => Station?.AtisFormat.RunwayVisualRange.NeutralTendency,
-                "U" => Station?.AtisFormat.RunwayVisualRange.GoingUpTendency,
-                "D" => Station?.AtisFormat.RunwayVisualRange.GoingDownTendency,
-                _ => ""
-            };
-
-            if (!string.IsNullOrEmpty(tendency))
-            {
-                result.Add(tendency);
-            }
-
-            tts.Add($"Runway {rwyNumber.ToSerialFormat()} {rwyDesignator} R-V-R {string.Join(" ", result)}.");
+            tts.Add($"{runwayString} R-V-R {string.Join(" ", result)}.");
         }
 
         TextAtis = string.Join(" ", acars);
