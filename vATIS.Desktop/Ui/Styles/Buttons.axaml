@@ -22,6 +22,7 @@
 					<Button Theme="{StaticResource MiniWindowButton}"/>
 					<Button Theme="{StaticResource CloseButton}"/>
 					<ToggleButton Theme="{StaticResource PinButton}"/>
+                    <ToggleButton Theme="{StaticResource LockButtonSmall}"/>
                     <Button Theme="{StaticResource MiniWindowButtonSmall}"/>
                     <ToggleButton Theme="{StaticResource PinButtonSmall}"/>
                     <ToggleButton Theme="{StaticResource ActionToggle}"/>
@@ -346,7 +347,7 @@
 	<ControlTheme x:Key="CloseButton" BasedOn="{StaticResource Dark}" TargetType="Button">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
-		<Setter Property="Padding" Value="0"/>
+		<Setter Property="Padding" Value="2"/>
 		<Setter Property="Foreground" Value="White"/>
 		<Setter Property="Background" Value="#C0392B"/>
 		<Setter Property="BorderBrush" Value="#C0392B"/>
@@ -359,18 +360,11 @@
 			</FocusAdornerTemplate>
 		</Setter>
 		<Setter Property="Content">
-			<Template>
-				<Viewbox UseLayoutRounding="True">
-					<Path x:Name="Glyph"
-					      Fill="White"
-					      Stretch="None"
-					      HorizontalAlignment="Center"
-					      VerticalAlignment="Center"
-					      FlowDirection="LeftToRight"
-					      Margin="4"
-					      Data="M7.314 5.9l3.535-3.536A1 1 0 1 0 9.435.95L5.899 4.485 2.364.95A1 1 0 1 0 .95 2.364l3.535 3.535L.95 9.435a1 1 0 1 0 1.414 1.414l3.535-3.535 3.536 3.535a1 1 0 1 0 1.414-1.414L7.314 5.899z"/>
-				</Viewbox>
-			</Template>
+            <Template>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/Close.svg"/>
+                </Viewbox>
+            </Template>
 		</Setter>
 		<Style Selector="^:pointerover /template/ ContentPresenter">
 			<Setter Property="Cursor" Value="Hand"/>
@@ -385,18 +379,34 @@
 	</ControlTheme>
 
     <ControlTheme x:Key="ActionToggle" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
-        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Padding" Value="1"/>
         <Setter Property="Height" Value="19"/>
         <Setter Property="MinHeight" Value="19"/>
         <Setter Property="CornerRadius" Value="3"/>
         <Setter Property="Width" Value="19"/>
         <Setter Property="Content">
             <Template>
-                <Viewbox Width="20" Height="20" Stretch="Fill">
-                    <Canvas Width="256" Height="256">
-                        <Path Stroke="Transparent" Fill="White"
-                              Data="M156,128a28,28,0,1,1-28-28A28.02769,28.02769,0,0,1,156,128ZM48,100a28,28,0,1,0,28,28A28.02769,28.02769,0,0,0,48,100Zm160,0a28,28,0,1,0,28,28A28.02769,28.02769,0,0,0,208,100Z" />
-                    </Canvas>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/ThreeDots.svg"/>
+                </Viewbox>
+            </Template>
+        </Setter>
+        <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#C0392B"/>
+            <Setter Property="BorderBrush" Value="#C0392B"/>
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="LockButtonSmall" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
+        <Setter Property="Height" Value="19"/>
+        <Setter Property="MinHeight" Value="19"/>
+        <Setter Property="Width" Value="19"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Content">
+            <Template>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/Lock.svg"/>
                 </Viewbox>
             </Template>
         </Setter>
@@ -411,17 +421,11 @@
         <Setter Property="MinHeight" Value="19"/>
         <Setter Property="Width" Value="19"/>
         <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Padding" Value="0"/>
         <Setter Property="Content">
             <Template>
-                <Viewbox Stretch="Uniform" Width="19" Height="19">
-                    <Canvas Width="24" Height="24">
-                        <Path Fill="White"
-                              Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z">
-                            <Path.RenderTransform>
-                                <TranslateTransform X="0.5" Y="2.5"/>
-                            </Path.RenderTransform>
-                        </Path>
-                    </Canvas>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/Pin.svg"/>
                 </Viewbox>
             </Template>
         </Setter>
@@ -435,18 +439,12 @@
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
 		<Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Padding" Value="1"/>
 		<Setter Property="Content">
 			<Template>
-				<Viewbox Stretch="Uniform" Width="23" Height="19">
-                    <Canvas Width="24" Height="24">
-                        <Path Fill="White"
-                              Data="M7.374 12.268l-5.656 5.657A1 1 0 1 1 .303 16.51l5.657-5.656L1.718 6.61A6.992 6.992 0 0 1 7.9 4.67L11.617.954a2 2 0 0 1 2.828 0l2.829 2.828a2 2 0 0 1 0 2.829l-3.716 3.716a6.992 6.992 0 0 1-1.941 6.183l-4.243-4.242z">
-                            <Path.RenderTransform>
-                                <TranslateTransform X="3" Y="2.5"/>
-                            </Path.RenderTransform>
-                        </Path>
-                    </Canvas>
-				</Viewbox>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/Pin.svg"/>
+                </Viewbox>
 			</Template>
 		</Setter>
 		<Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
@@ -458,14 +456,12 @@
 	<ControlTheme x:Key="MiniWindowButton" BasedOn="{StaticResource Dark}" TargetType="Button">
 		<Setter Property="Width" Value="23"/>
 		<Setter Property="Height" Value="20"/>
-		<Setter Property="Padding" Value="0"/>
+		<Setter Property="Padding" Value="4"/>
 		<Setter Property="CornerRadius" Value="20"/>
 		<Setter Property="Content">
 			<Template>
-                <Viewbox Width="13" Height="13" Stretch="Uniform">
-                    <Canvas Width="251.496" Height="251.496">
-                        <Path Fill="White" Data="M243.996,0H127.5c-4.143,0-7.5,3.358-7.5,7.5v20c0,4.142,3.357,7.5,7.5,7.5h64.246L35,191.746 v-64.245c0-4.142-3.358-7.5-7.5-7.5h-20c-4.143,0-7.5,3.358-7.5,7.5v116.494c0,4.142,3.357,7.5,7.5,7.5h116.496 c4.143,0,7.5-3.358,7.5-7.5v-20c0-4.142-3.357-7.5-7.5-7.5H59.75L216.496,59.749v64.246c0,4.142,3.357,7.5,7.5,7.5h20 c4.143,0,7.5-3.358,7.5-7.5V7.5C251.496,3.358,248.139,0,243.996,0z"/>
-                    </Canvas>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/Expand.svg"/>
                 </Viewbox>
 			</Template>
 		</Setter>
@@ -479,10 +475,8 @@
         <Setter Property="CornerRadius" Value="3"/>
         <Setter Property="Content">
             <Template>
-                <Viewbox Width="13" Height="13" Stretch="Uniform">
-                    <Canvas Width="251.496" Height="251.496">
-                        <Path Fill="White" Data="M243.996,0H127.5c-4.143,0-7.5,3.358-7.5,7.5v20c0,4.142,3.357,7.5,7.5,7.5h64.246L35,191.746 v-64.245c0-4.142-3.358-7.5-7.5-7.5h-20c-4.143,0-7.5,3.358-7.5,7.5v116.494c0,4.142,3.357,7.5,7.5,7.5h116.496 c4.143,0,7.5-3.358,7.5-7.5v-20c0-4.142-3.357-7.5-7.5-7.5H59.75L216.496,59.749v64.246c0,4.142,3.357,7.5,7.5,7.5h20 c4.143,0,7.5-3.358,7.5-7.5V7.5C251.496,3.358,248.139,0,243.996,0z"/>
-                    </Canvas>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/Expand.svg"/>
                 </Viewbox>
             </Template>
         </Setter>
