@@ -112,6 +112,10 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
             {
                 Log.Warning(ex, "Invalid D-ATIS replacement regex pattern: {Pattern}", replacement.Pattern);
             }
+            catch (ArgumentException ex)
+            {
+                Log.Warning(ex, "Invalid D-ATIS replacement value for regex pattern: {Pattern}", replacement.Pattern);
+            }
             catch (RegexMatchTimeoutException ex)
             {
                 Log.Warning(ex, "Timed out applying D-ATIS replacement regex pattern: {Pattern}", replacement.Pattern);

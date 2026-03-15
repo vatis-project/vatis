@@ -43,11 +43,13 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
         AddReplacementCommand = ReactiveCommand.Create(HandleAddReplacement);
         DeleteReplacementCommand = ReactiveCommand.Create<DatisTextReplacement>(HandleDeleteReplacement);
         CellEditEndingCommand = ReactiveCommand.Create(HandleCellEditEnding);
+        TextBoxLostFocusCommand = ReactiveCommand.Create(HandleTextBoxLostFocus);
 
         _disposables.Add(AtisStationChanged);
         _disposables.Add(AddReplacementCommand);
         _disposables.Add(DeleteReplacementCommand);
         _disposables.Add(CellEditEndingCommand);
+        _disposables.Add(TextBoxLostFocusCommand);
     }
 
     /// <summary>
@@ -69,6 +71,11 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
     /// Gets the command executed when a cell edit operation ends.
     /// </summary>
     public ReactiveCommand<Unit, Unit> CellEditEndingCommand { get; }
+
+    /// <summary>
+    /// Gets the command executed when a prepend/append text box loses focus.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
     /// <summary>
     /// Gets or sets the currently selected ATIS station.
@@ -100,7 +107,6 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
             if (SelectedStation != null)
             {
                 SelectedStation.DatisPrependAirportConditions = value;
-                SaveProfile();
             }
         }
     }
@@ -117,7 +123,6 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
             if (SelectedStation != null)
             {
                 SelectedStation.DatisAppendAirportConditions = value;
-                SaveProfile();
             }
         }
     }
@@ -134,7 +139,6 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
             if (SelectedStation != null)
             {
                 SelectedStation.DatisPrependNotams = value;
-                SaveProfile();
             }
         }
     }
@@ -151,7 +155,6 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
             if (SelectedStation != null)
             {
                 SelectedStation.DatisAppendNotams = value;
-                SaveProfile();
             }
         }
     }
@@ -218,6 +221,16 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
     }
 
     private void HandleCellEditEnding()
+    {
+        if (SelectedStation == null)
+        {
+            return;
+        }
+
+        SaveProfile();
+    }
+
+    private void HandleTextBoxLostFocus()
     {
         if (SelectedStation == null)
         {

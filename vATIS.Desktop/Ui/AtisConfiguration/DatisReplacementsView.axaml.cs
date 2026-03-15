@@ -5,6 +5,7 @@
 
 using System;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
 namespace Vatsim.Vatis.Ui.AtisConfiguration;
@@ -27,6 +28,14 @@ public partial class DatisReplacementsView : UserControl
         if (e.EditAction == DataGridEditAction.Commit && DataContext is DatisReplacementsViewModel vm)
         {
             vm.CellEditEndingCommand.Execute().Subscribe();
+        }
+    }
+
+    private void TextBox_OnLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is DatisReplacementsViewModel vm)
+        {
+            vm.TextBoxLostFocusCommand.Execute().Subscribe();
         }
     }
 }

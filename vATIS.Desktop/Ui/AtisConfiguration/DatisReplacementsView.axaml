@@ -12,7 +12,7 @@
 		<Grid ColumnDefinitions="*,10,*">
 			<StackPanel Grid.Column="0" Spacing="4">
 				<TextBlock Text="Prepend Airport Conditions:"/>
-				<TextBox Text="{Binding PrependAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to airport conditions">
+				<TextBox Text="{Binding PrependAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to airport conditions" LostFocus="TextBox_OnLostFocus">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
@@ -20,7 +20,7 @@
 			</StackPanel>
 			<StackPanel Grid.Column="2" Spacing="4">
 				<TextBlock Text="Append Airport Conditions:"/>
-				<TextBox Text="{Binding AppendAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to airport conditions">
+				<TextBox Text="{Binding AppendAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to airport conditions" LostFocus="TextBox_OnLostFocus">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
@@ -31,7 +31,7 @@
 		<Grid ColumnDefinitions="*,10,*">
 			<StackPanel Grid.Column="0" Spacing="4">
 				<TextBlock Text="Prepend NOTAMs:"/>
-				<TextBox Text="{Binding PrependNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to NOTAMs">
+				<TextBox Text="{Binding PrependNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to NOTAMs" LostFocus="TextBox_OnLostFocus">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
@@ -39,7 +39,7 @@
 			</StackPanel>
 			<StackPanel Grid.Column="2" Spacing="4">
 				<TextBlock Text="Append NOTAMs:"/>
-				<TextBox Text="{Binding AppendNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to NOTAMs">
+				<TextBox Text="{Binding AppendNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to NOTAMs" LostFocus="TextBox_OnLostFocus">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
