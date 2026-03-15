@@ -24,6 +24,10 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
     private readonly ISessionManager _sessionManager;
     private AtisStation? _selectedStation;
     private ObservableCollection<DatisTextReplacement>? _replacements;
+    private string _prependAirportConditions = string.Empty;
+    private string _appendAirportConditions = string.Empty;
+    private string _prependNotams = string.Empty;
+    private string _appendNotams = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DatisReplacementsViewModel"/> class.
@@ -84,6 +88,74 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _replacements, value);
     }
 
+    /// <summary>
+    /// Gets or sets text to prepend to D-ATIS airport conditions.
+    /// </summary>
+    public string PrependAirportConditions
+    {
+        get => _prependAirportConditions;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _prependAirportConditions, value);
+            if (SelectedStation != null)
+            {
+                SelectedStation.DatisPrependAirportConditions = value;
+                SaveProfile();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets text to append to D-ATIS airport conditions.
+    /// </summary>
+    public string AppendAirportConditions
+    {
+        get => _appendAirportConditions;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _appendAirportConditions, value);
+            if (SelectedStation != null)
+            {
+                SelectedStation.DatisAppendAirportConditions = value;
+                SaveProfile();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets text to prepend to D-ATIS NOTAMs.
+    /// </summary>
+    public string PrependNotams
+    {
+        get => _prependNotams;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _prependNotams, value);
+            if (SelectedStation != null)
+            {
+                SelectedStation.DatisPrependNotams = value;
+                SaveProfile();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets text to append to D-ATIS NOTAMs.
+    /// </summary>
+    public string AppendNotams
+    {
+        get => _appendNotams;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _appendNotams, value);
+            if (SelectedStation != null)
+            {
+                SelectedStation.DatisAppendNotams = value;
+                SaveProfile();
+            }
+        }
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -108,6 +180,14 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
 
         SelectedStation = station;
         Replacements = new ObservableCollection<DatisTextReplacement>(station.DatisTextReplacements);
+        _prependAirportConditions = station.DatisPrependAirportConditions;
+        this.RaisePropertyChanged(nameof(PrependAirportConditions));
+        _appendAirportConditions = station.DatisAppendAirportConditions;
+        this.RaisePropertyChanged(nameof(AppendAirportConditions));
+        _prependNotams = station.DatisPrependNotams;
+        this.RaisePropertyChanged(nameof(PrependNotams));
+        _appendNotams = station.DatisAppendNotams;
+        this.RaisePropertyChanged(nameof(AppendNotams));
     }
 
     private void HandleAddReplacement()

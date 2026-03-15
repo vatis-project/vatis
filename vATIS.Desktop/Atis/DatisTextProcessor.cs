@@ -23,16 +23,25 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
         string stationId,
         char? atisLetter,
         List<ContractionMeta> contractions,
-        List<DatisTextReplacement> replacements)
+        List<DatisTextReplacement> replacements,
+        string prependAirportConditions,
+        string appendAirportConditions,
+        string prependNotams,
+        string appendNotams)
     {
         var text = StripEnvelope(rawBody);
         text = NormalizeNotamDelimiters(text);
         text = ApplyReplacements(text, replacements);
         text = NormalizeWhitespace(text);
         text = CleanPunctuation(text);
-        text = ExpandContractions(text, contractions);
 
         var (airportConditions, notams) = SplitConditionsAndNotams(text);
+
+        airportConditions = ApplyPrependAppend(airportConditions, prependAirportConditions, appendAirportConditions);
+        notams = ApplyPrependAppend(notams, prependNotams, appendNotams);
+
+        airportConditions = ExpandContractions(airportConditions, contractions);
+        notams = ExpandContractions(notams, contractions);
 
         return new DatisResult(stationId, airportConditions, notams, atisLetter);
     }
@@ -167,6 +176,24 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
         }
 
         return text;
+    }
+
+    /// <summary>
+    /// Prepends and/or appends user-defined text to a section, separated by spaces.
+    /// </summary>
+    private static string ApplyPrependAppend(string text, string prepend, string append)
+    {
+        if (!string.IsNullOrWhiteSpace(prepend))
+        {
+            text = prepend.Trim() + " " + text;
+        }
+
+        if (!string.IsNullOrWhiteSpace(append))
+        {
+            text = text + " " + append.Trim();
+        }
+
+        return text.Trim();
     }
 
     /// <summary>

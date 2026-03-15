@@ -157,7 +157,11 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
                 station.Id,
                 atisLetter,
                 station.Contractions,
-                station.DatisTextReplacements);
+                station.DatisTextReplacements,
+                station.DatisPrependAirportConditions,
+                station.DatisAppendAirportConditions,
+                station.DatisPrependNotams,
+                station.DatisAppendNotams);
 
             EventBus.Instance.Publish(new DatisReceived(result));
         }

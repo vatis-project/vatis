@@ -21,11 +21,19 @@ public interface IDatisTextProcessor
     /// <param name="atisLetter">The current ATIS letter from the API response, if available.</param>
     /// <param name="contractions">The contraction definitions configured for the station.</param>
     /// <param name="replacements">The text replacement rules configured for the station.</param>
+    /// <param name="prependAirportConditions">Text to prepend to airport conditions after processing.</param>
+    /// <param name="appendAirportConditions">Text to append to airport conditions after processing.</param>
+    /// <param name="prependNotams">Text to prepend to NOTAMs after processing.</param>
+    /// <param name="appendNotams">Text to append to NOTAMs after processing.</param>
     /// <returns>A <see cref="DatisResult"/> with processed airport conditions and NOTAMs.</returns>
     DatisResult Process(
         string rawBody,
         string stationId,
         char? atisLetter,
         List<ContractionMeta> contractions,
-        List<DatisTextReplacement> replacements);
+        List<DatisTextReplacement> replacements,
+        string prependAirportConditions,
+        string appendAirportConditions,
+        string prependNotams,
+        string appendNotams);
 }

@@ -4,11 +4,51 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="550"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.DatisReplacementsView">
 	<StackPanel Orientation="Vertical" Spacing="10">
+		<!-- Prepend/Append Airport Conditions -->
+		<Grid ColumnDefinitions="*,10,*">
+			<StackPanel Grid.Column="0" Spacing="4">
+				<TextBlock Text="Prepend Airport Conditions:"/>
+				<TextBox Text="{Binding PrependAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to airport conditions">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+			<StackPanel Grid.Column="2" Spacing="4">
+				<TextBlock Text="Append Airport Conditions:"/>
+				<TextBox Text="{Binding AppendAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to airport conditions">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+		</Grid>
+		<!-- Prepend/Append NOTAMs -->
+		<Grid ColumnDefinitions="*,10,*">
+			<StackPanel Grid.Column="0" Spacing="4">
+				<TextBlock Text="Prepend NOTAMs:"/>
+				<TextBox Text="{Binding PrependNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to NOTAMs">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+			<StackPanel Grid.Column="2" Spacing="4">
+				<TextBlock Text="Append NOTAMs:"/>
+				<TextBox Text="{Binding AppendNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to NOTAMs">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+		</Grid>
+		<!-- Text Replacements -->
 		<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-			<DataGrid x:Name="ReplacementsGrid" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="380" ItemsSource="{Binding Replacements, DataType=vm:DatisReplacementsViewModel}" SelectionMode="Single" CellEditEnding="ReplacementsGrid_OnCellEditEnding">
+			<DataGrid x:Name="ReplacementsGrid" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="280" ItemsSource="{Binding Replacements, DataType=vm:DatisReplacementsViewModel}" SelectionMode="Single" CellEditEnding="ReplacementsGrid_OnCellEditEnding">
 				<DataGrid.Styles>
 					<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
 						<Setter Property="IsVisible" Value="False" />
