@@ -68,6 +68,9 @@ public class AppConfig : IAppConfig
     public bool AutoFetchAtisLetter { get; set; }
 
     /// <inheritdoc />
+    public bool AutoFetchDatis { get; set; }
+
+    /// <inheritdoc />
     public bool SuppressReleaseNotes { get; set; }
 
     /// <inheritdoc />
@@ -112,6 +115,7 @@ public class AppConfig : IAppConfig
             MicrophoneDevice = config.MicrophoneDevice;
             PlaybackDevice = config.PlaybackDevice;
             AutoFetchAtisLetter = config.AutoFetchAtisLetter;
+            AutoFetchDatis = config.AutoFetchDatis;
             SuppressReleaseNotes = config.SuppressReleaseNotes;
         }
 

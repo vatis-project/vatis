@@ -103,6 +103,9 @@
 						<TabItem Header="Sandbox">
 							<views:SandboxView DataContext="{Binding SandboxViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
 						</TabItem>
+						<TabItem Header="D-ATIS">
+							<views:DatisReplacementsView DataContext="{Binding DatisReplacementsViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
+						</TabItem>
 					</TabControl>
 					<Grid ColumnDefinitions="1*,1*,1*" Grid.Column="0" Grid.Row="1">
 						<Button Command="{Binding NewAtisStationDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}" Grid.Column="0" Margin="0,0,5,0" Theme="{StaticResource Dark}" Height="28" HorizontalAlignment="Stretch">New</Button>

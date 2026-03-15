@@ -123,6 +123,11 @@ public class AtisStation : ReactiveObject
     public List<StaticDefinition> NotamDefinitions { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets the list of text replacement rules applied to D-ATIS data for this station.
+    /// </summary>
+    public List<DatisTextReplacement> DatisTextReplacements { get; set; } = [];
+
+    /// <summary>
     /// Gets a value indicating whether the ATIS station is an FAA ATIS station.
     /// </summary>
     [JsonIgnore]
@@ -237,6 +242,7 @@ public class AtisStation : ReactiveObject
             Contractions = Contractions.Select(x => x.Clone()).ToList(),
             AirportConditionDefinitions = AirportConditionDefinitions.Select(x => x.Clone()).ToList(),
             NotamDefinitions = NotamDefinitions.Select(x => x.Clone()).ToList(),
+            DatisTextReplacements = DatisTextReplacements.Select(x => x.Clone()).ToList(),
         };
     }
 
