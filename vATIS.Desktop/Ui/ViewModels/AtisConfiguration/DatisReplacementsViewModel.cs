@@ -181,6 +181,11 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
+        if (SelectedStation != null)
+        {
+            SaveProfile();
+        }
+
         SelectedStation = station;
         Replacements = new ObservableCollection<DatisTextReplacement>(station.DatisTextReplacements);
         _prependAirportConditions = station.DatisPrependAirportConditions;
