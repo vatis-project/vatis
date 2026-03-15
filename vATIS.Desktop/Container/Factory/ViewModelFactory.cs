@@ -126,6 +126,8 @@ internal class ViewModelFactory : IViewModelFactory
     /// <returns>A new <see cref="DatisReplacementsViewModel"/> instance.</returns>
     public DatisReplacementsViewModel CreateDatisReplacementsViewModel()
     {
-        return new DatisReplacementsViewModel(_provider.GetService<IAppConfig>());
+        return new DatisReplacementsViewModel(
+            _provider.GetService<IProfileRepository>(),
+            _provider.GetService<ISessionManager>());
     }
 }

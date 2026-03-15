@@ -114,8 +114,8 @@ public class AppConfig : IAppConfig
             VoiceRecordAtisDialogWindowPosition = config.VoiceRecordAtisDialogWindowPosition;
             MicrophoneDevice = config.MicrophoneDevice;
             PlaybackDevice = config.PlaybackDevice;
-            AutoFetchAtisLetter = config.AutoFetchAtisLetter;
             AutoFetchDatis = config.AutoFetchDatis;
+            AutoFetchAtisLetter = config.AutoFetchAtisLetter || AutoFetchDatis;
             SuppressReleaseNotes = config.SuppressReleaseNotes;
         }
 

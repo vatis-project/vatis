@@ -8,8 +8,9 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
 using ReactiveUI;
-using Vatsim.Vatis.Config;
+using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Sessions;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -19,17 +20,20 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
 {
     private readonly CompositeDisposable _disposables = [];
-    private readonly IAppConfig _appConfig;
+    private readonly IProfileRepository _profileRepository;
+    private readonly ISessionManager _sessionManager;
     private AtisStation? _selectedStation;
     private ObservableCollection<DatisTextReplacement>? _replacements;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DatisReplacementsViewModel"/> class.
     /// </summary>
-    /// <param name="appConfig">The application configuration.</param>
-    public DatisReplacementsViewModel(IAppConfig appConfig)
+    /// <param name="profileRepository">The profile repository used to persist profile data.</param>
+    /// <param name="sessionManager">The session manager for accessing the current profile.</param>
+    public DatisReplacementsViewModel(IProfileRepository profileRepository, ISessionManager sessionManager)
     {
-        _appConfig = appConfig;
+        _profileRepository = profileRepository;
+        _sessionManager = sessionManager;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         AddReplacementCommand = ReactiveCommand.Create(HandleAddReplacement);
@@ -87,6 +91,14 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
         GC.SuppressFinalize(this);
     }
 
+    private void SaveProfile()
+    {
+        if (_sessionManager.CurrentProfile != null)
+        {
+            _profileRepository.Save(_sessionManager.CurrentProfile);
+        }
+    }
+
     private void HandleAtisStationChanged(AtisStation? station)
     {
         if (station == null)
@@ -108,7 +120,7 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
         var replacement = new DatisTextReplacement();
         SelectedStation.DatisTextReplacements.Add(replacement);
         Replacements.Add(replacement);
-        _appConfig.SaveConfig();
+        SaveProfile();
     }
 
     private void HandleDeleteReplacement(DatisTextReplacement? item)
@@ -121,7 +133,7 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
         if (Replacements.Remove(item))
         {
             SelectedStation.DatisTextReplacements.Remove(item);
-            _appConfig.SaveConfig();
+            SaveProfile();
         }
     }
 
@@ -132,6 +144,6 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        _appConfig.SaveConfig();
+        SaveProfile();
     }
 }

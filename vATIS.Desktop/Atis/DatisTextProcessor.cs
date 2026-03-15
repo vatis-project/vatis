@@ -87,7 +87,12 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
             {
                 if (replacement.IsRegex)
                 {
-                    text = Regex.Replace(text, replacement.Pattern + @"[,.;]{0,1}", replacement.Replacement);
+                    text = Regex.Replace(
+                        text,
+                        replacement.Pattern + @"[,.;]{0,1}",
+                        replacement.Replacement,
+                        RegexOptions.None,
+                        TimeSpan.FromSeconds(1));
                 }
                 else
                 {
@@ -97,6 +102,10 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
             catch (RegexParseException ex)
             {
                 Log.Warning(ex, "Invalid D-ATIS replacement regex pattern: {Pattern}", replacement.Pattern);
+            }
+            catch (RegexMatchTimeoutException ex)
+            {
+                Log.Warning(ex, "Timed out applying D-ATIS replacement regex pattern: {Pattern}", replacement.Pattern);
             }
         }
 

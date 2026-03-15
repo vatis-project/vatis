@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Serilog;
@@ -28,6 +29,7 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
     private readonly string? _digitalAtisApiUrl;
     private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromSeconds(UpdateIntervalSeconds) };
     private readonly Dictionary<string, AtisStation> _monitoredStations = [];
+    private int _isUpdating;
     private bool _isDisposed;
 
     /// <summary>
@@ -45,7 +47,22 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
         _textProcessor = textProcessor;
         _digitalAtisApiUrl = appConfigurationProvider.DigitalAtisApiUrl;
 
-        _updateTimer.Tick += async (_, _) => { await UpdateAsync(); };
+        _updateTimer.Tick += async (_, _) =>
+        {
+            if (Interlocked.Exchange(ref _isUpdating, 1) == 1)
+            {
+                return;
+            }
+
+            try
+            {
+                await UpdateAsync();
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _isUpdating, 0);
+            }
+        };
         _updateTimer.Start();
     }
 
@@ -147,6 +164,7 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Error fetching D-ATIS for {Station}", station.Identifier);
+            PublishNotAvailable(station);
         }
     }
 }
