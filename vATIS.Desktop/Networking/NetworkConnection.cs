@@ -189,12 +189,20 @@ public class NetworkConnection : INetworkConnection, IDisposable
 
         await _authTokenManager.GetAuthToken();
 
+        var configuredServerAddress = serverAddress ?? RuntimeOptions.FsdServerHost;
+        if (!string.IsNullOrEmpty(configuredServerAddress))
+        {
+            _fsdSession.Connect(configuredServerAddress, 6809);
+            _previousMetar = "";
+            return;
+        }
+
         var bestServer = await _downloader.DownloadStringAsync(VatsimServerEndpoint);
         if (!string.IsNullOrEmpty(bestServer))
         {
             if (Regex.IsMatch(bestServer, @"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", RegexOptions.CultureInvariant))
             {
-                _fsdSession.Connect(serverAddress ?? bestServer, 6809);
+                _fsdSession.Connect(bestServer, 6809);
                 _previousMetar = "";
             }
             else

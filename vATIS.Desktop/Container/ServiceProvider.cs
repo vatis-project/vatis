@@ -149,6 +149,11 @@ internal sealed partial class ServiceProvider
 
     private IAtisHubConnection CreateAtisHubConnection()
     {
+        if (!RuntimeOptions.IsAtisHubEnabled)
+        {
+            return new DisabledAtisHubConnection();
+        }
+
         if (IsDevelopmentEnvironment())
         {
             return new MockAtisHubConnection(GetService<IDownloader>(), GetService<IAppConfigurationProvider>());

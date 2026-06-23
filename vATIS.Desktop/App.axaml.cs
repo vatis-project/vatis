@@ -119,8 +119,17 @@ public class App : Application
 
                 var arguments = ParseArguments(desktop.Args ?? []);
 
-                _serviceProvider = new Container.ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
+                RuntimeOptions.Configure(arguments.ContainsKey("--dsg"));
+                _serviceProvider = new Container.ServiceProvider();
+
+                if (RuntimeOptions.UseDownstairsGeekNetwork)
+                {
+                    Log.Information(
+                        "Launching with --dsg: using voice server {VoiceServerUrl}, FSD server {FsdServerHost}, and ATIS hub disabled.",
+                        RuntimeOptions.VoiceServerUrl,
+                        RuntimeOptions.FsdServerHost);
+                }
 
                 if (OperatingSystem.IsMacOS() && AppContext.BaseDirectory.StartsWith("/Volumes"))
                 {
