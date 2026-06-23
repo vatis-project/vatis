@@ -1,22 +1,21 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
+
+project(NativeAudio LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-project(NativeAudio)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(NATIVE_DLL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/../vATIS.Desktop/Voice/Audio/Native" CACHE PATH "Path to copy built library")
 
 if(APPLE)
-    # Disable runtime linking to prevent issues with backends that are not actually implemented
+    # Disable runtime linking to prevent issues with backends that are not actually implemented.
     add_definitions(-DMA_NO_RUNTIME_LINKING)
 
-    # Set architectures to build fat library
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
-
-    # Set minimum macOS deployment target
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum macOS Version" FORCE)
+    if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum macOS Version" FORCE)
+    endif()
 endif()
 
 add_definitions(-DMA_NO_JACK)
@@ -26,10 +25,12 @@ add_definitions(-DMA_NO_CUSTOM)
 
 add_library(${PROJECT_NAME} SHARED)
 
-# Specify include directory
+if(WIN32)
+    set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+endif()
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Add source files
 target_sources(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/native_audio.cpp
@@ -53,13 +54,12 @@ if(APPLE)
 
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-        ${CORE_AUDIO}
-        ${AUDIO_TOOLBOX}
-        ${AUDIO_UNIT}
-        ${CORE_FOUNDATION}
-        ${CORE_SERVICES})
+            ${CORE_AUDIO}
+            ${AUDIO_TOOLBOX}
+            ${AUDIO_UNIT}
+            ${CORE_FOUNDATION}
+            ${CORE_SERVICES})
 
-    # Copy the built dylib to the Native folder, creating a subfolder for macOS
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "${NATIVE_DLL_OUTPUT_DIR}/macos"
@@ -70,11 +70,13 @@ if(APPLE)
 endif()
 
 if(WIN32)
-    # Set multi-threaded runtime for Debug and Release
-    target_compile_options(${PROJECT_NAME} PRIVATE 
-        $<$<CONFIG:Debug>:/MTd> 
-        $<$<CONFIG:Release>:/MT>
-    )
+    if(MSVC)
+        # Keep MSVC builds on the static CRT, while allowing MinGW/Zig cross-builds from Linux.
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            $<$<CONFIG:Debug>:/MTd>
+            $<$<CONFIG:Release>:/MT>
+        )
+    endif()
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -86,13 +88,13 @@ if(WIN32)
 endif()
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(${PROJECT_NAME} -lpthread -lm -ldl)
+    target_link_libraries(${PROJECT_NAME} PRIVATE pthread m dl)
 
-    target_compile_options(${PROJECT_NAME} PRIVATE 
-        $<$<CONFIG:Debug>:-g> # Enable debug symbols for Debug builds
-        $<$<CONFIG:Release>:-O2> # Optimize for Release builds
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Debug>:-g>
+        $<$<CONFIG:Release>:-O2>
     )
-    
+
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "${NATIVE_DLL_OUTPUT_DIR}/lin"

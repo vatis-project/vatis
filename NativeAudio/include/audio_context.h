@@ -13,9 +13,6 @@
 #include <thread>
 #include <chrono>
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 class AudioContext {
 public:

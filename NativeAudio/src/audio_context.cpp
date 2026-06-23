@@ -2,6 +2,9 @@
 #include "native_audio.h"
 #include "wav_data.h"
 
+#include <codecvt>
+#include <locale>
+
 AudioContext::AudioContext() :
 	playbackDeviceName(""),
 	captureDeviceName(""),
@@ -101,21 +104,11 @@ std::string AudioContext::GetDeviceId(const ma_device_id& deviceId, unsigned int
 
 	const auto ma_api = static_cast<ma_backend>(api);
 	if (ma_api == ma_backend_wasapi) {
-#ifdef WIN32
-		// Determine the length of the converted string
-		int length = WideCharToMultiByte(CP_UTF8, 0, deviceId.wasapi, -1, nullptr, 0, nullptr, nullptr);
-		if (length == 0) {
-			// Conversion failed
-			return "";
-		}
+#ifdef _WIN32
 
-		// Allocate a buffer to hold the converted string
-		std::string result(length - 1, '\0'); // Length includes the null terminator, which we don't need
-
-		// Perform the conversion
-		WideCharToMultiByte(CP_UTF8, 0, deviceId.wasapi, -1, &result[0], length, nullptr, nullptr);
-		return result;
-#endif // WIN32
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		return converter.to_bytes(deviceId.wasapi);
+#endif // _WIN32
 	}
 
 	if (ma_api == ma_backend_dsound) {
