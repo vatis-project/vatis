@@ -406,3 +406,5 @@ FodyWeavers.xsd
 # Windows builds
 build/**
 NativeAudio/Out/**
+
+Scripts/env-setup.sh

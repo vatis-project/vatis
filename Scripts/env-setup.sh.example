@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Copy this file to env-setup.sh and update the values for your machine.
+
+# Reset macOS signing / notarization variables so this file can be re-sourced cleanly.
+unset APPLE_CERT_P12
+unset APPLE_CERT_PASSWORD
+unset APPLE_NOTARY_API_KEY
+
+# Update these paths / values for your local machine before sourcing this file.
+export APPLE_CERT_P12="$HOME/.secrets/vatis/certificate.p12"
+export APPLE_CERT_PASSWORD="replace-with-your-p12-password"
+export APPLE_NOTARY_API_KEY="$HOME/.secrets/vatis/notary-key.json"
+
+unset AZURE_TENANT_ID
+unset AZURE_CLIENT_ID
+unset AZURE_CLIENT_SECRET
+unset AZURE_TRUSTED_SIGNING_ENDPOINT
+unset AZURE_TRUSTED_SIGNING_ACCOUNT
+unset AZURE_TRUSTED_SIGNING_CERT_PROFILE
+
+export AZURE_TENANT_ID="replace-with-your-tenant-id"
+export AZURE_CLIENT_ID="replace-with-your-client-id"
+export AZURE_CLIENT_SECRET="replace-with-your-client-secret"
+export AZURE_TRUSTED_SIGNING_ENDPOINT="https://replace-with-your-endpoint.codesigning.azure.net"
+export AZURE_TRUSTED_SIGNING_ACCOUNT="replace-with-your-account-name"
+export AZURE_TRUSTED_SIGNING_CERT_PROFILE="replace-with-your-cert-profile"
