@@ -15,7 +15,7 @@ vATIS is a simple and intuitive program for generating ATIS broadcasts on the VA
 
 ## Contributing
 
-vATIS is written in **C# (.NET 8.0)** using the **[Avalonia UI](https://github.com/avaloniaui/avalonia)** framework.  
+vATIS is written in **C# (.NET 10.0)** using the **[Avalonia UI](https://github.com/avaloniaui/avalonia)** framework.  
 Please read the [Contribution Guide](CONTRIBUTING.md) for details on how to contribute to the project.  
 
 Changes to the vATIS navdata can be contributed in the **[vATIS NavData](https://github.com/vatis-project/navdata)** repository.
