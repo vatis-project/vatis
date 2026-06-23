@@ -15,41 +15,41 @@ public interface IAppConfigurationProvider
     /// <summary>
     /// Gets the URL of the version information for the application.
     /// </summary>
-    string VersionUrl { get; }
+    public string VersionUrl { get; }
 
     /// <summary>
     /// Gets the URL for retrieving METAR data.
     /// </summary>
-    string MetarUrl { get; }
+    public string MetarUrl { get; }
 
     /// <summary>
     /// Gets the URL of the navigation data configuration for the application.
     /// </summary>
-    string NavDataUrl { get; }
+    public string NavDataUrl { get; }
 
     /// <summary>
     /// Gets the URL of the ATIS Hub for the application.
     /// </summary>
-    string AtisHubUrl { get; }
+    public string AtisHubUrl { get; }
 
     /// <summary>
     /// Gets the URL of the voice list for the application.
     /// </summary>
-    string VoiceListUrl { get; }
+    public string VoiceListUrl { get; }
 
     /// <summary>
     /// Gets the URL used for the text-to-speech service in the application.
     /// </summary>
-    string TextToSpeechUrl { get; }
+    public string TextToSpeechUrl { get; }
 
     /// <summary>
     /// Gets the URL of the D-ATIS API.
     /// </summary>
-    string DigitalAtisApiUrl { get; }
+    public string DigitalAtisApiUrl { get; }
 
     /// <summary>
     /// Provides configuration settings and URLs for the application.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    Task Initialize();
+    public Task Initialize();
 }

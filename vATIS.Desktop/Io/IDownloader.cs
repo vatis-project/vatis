@@ -23,14 +23,14 @@ public interface IDownloader
     /// <param name="jwtToken">Optional JWT bearer token that will be sent as an <c>Authorized</c> header.
     /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <returns>A task representing the asynchronous operation, containing the HTTP response message.</returns>
-    Task<HttpResponseMessage> GetAsync(string url, string? jwtToken = null);
+    public Task<HttpResponseMessage> GetAsync(string url, string? jwtToken = null);
 
     /// <summary>
     /// Downloads the content of the specified URL as a string.
     /// </summary>
     /// <param name="url">The URL to download.</param>
     /// <returns>A task representing the asynchronous operation, containing the downloaded string.</returns>
-    Task<string> DownloadStringAsync(string url);
+    public Task<string> DownloadStringAsync(string url);
 
     /// <summary>
     /// Downloads the content of the specified URL to the specified file path.
@@ -39,7 +39,7 @@ public interface IDownloader
     /// <param name="path">The file path to save the downloaded content to.</param>
     /// <param name="progress">An optional progress reporter for tracking download progress.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task DownloadFileAsync(string url, string path, IProgress<int> progress);
+    public Task DownloadFileAsync(string url, string path, IProgress<int> progress);
 
     /// <summary>
     /// Downloads the content of the specified URL as a byte array.
@@ -47,7 +47,7 @@ public interface IDownloader
     /// <param name="url">The URL to download.</param>
     /// <param name="progress">An optional progress reporter for tracking download progress.</param>
     /// <returns>A task representing the asynchronous operation, containing the downloaded byte array.</returns>
-    Task<byte[]> DownloadBytesAsync(string url, IProgress<int> progress);
+    public Task<byte[]> DownloadBytesAsync(string url, IProgress<int> progress);
 
     /// <summary>
     /// Posts the specified JSON content to the specified URL and returns the response.
@@ -58,7 +58,7 @@ public interface IDownloader
     /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation, containing the downloaded stream.</returns>
-    Task<HttpResponseMessage> PostJsonResponse(
+    public Task<HttpResponseMessage> PostJsonResponse(
         string url,
         string jsonContent,
         string? jwtToken = null,
@@ -74,7 +74,7 @@ public interface IDownloader
     /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation, containing the downloaded stream.</returns>
-    Task PostJson(string url, string jsonContent, string? jwtToken = null, CancellationToken? cancellationToken = null);
+    public Task PostJson(string url, string jsonContent, string? jwtToken = null, CancellationToken? cancellationToken = null);
 
     /// <summary>
     /// Send a DELETE request to the specified URL.
@@ -84,7 +84,7 @@ public interface IDownloader
     /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task Delete(string url, string? jwtToken = null, CancellationToken? cancellationToken = null);
+    public Task Delete(string url, string? jwtToken = null, CancellationToken? cancellationToken = null);
 
     /// <summary>
     /// Send a PUT request with the specified JSON content to the specified URL.
@@ -95,7 +95,7 @@ public interface IDownloader
     /// Provide <c>null</c> for unauthenticated requests.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task<HttpResponseMessage> PutJson(
+    public Task<HttpResponseMessage> PutJson(
         string url,
         string jsonContent,
         string? jwtToken = null,
@@ -108,5 +108,5 @@ public interface IDownloader
     /// <param name="jsonContent">The JSON content to post.</param>
     /// <param name="cancellationToken">An optional cancellation token for cancelling the operation.</param>
     /// <returns>A task representing the asynchronous operation, containing the downloaded stream.</returns>
-    Task<Stream> PostJsonDownloadAsync(string url, string jsonContent, CancellationToken? cancellationToken = null);
+    public Task<Stream> PostJsonDownloadAsync(string url, string jsonContent, CancellationToken? cancellationToken = null);
 }

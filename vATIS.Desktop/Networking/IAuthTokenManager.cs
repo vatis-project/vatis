@@ -16,12 +16,12 @@ public interface IAuthTokenManager
     /// <summary>
     /// Gets the current authentication token.
     /// </summary>
-    string? AuthToken { get; }
+    public string? AuthToken { get; }
 
     /// <summary>
     /// Retrieves the authentication token asynchronously.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A task that resolves to the authentication token, or null if unavailable.</returns>
-    Task<string?> GetAuthToken(CancellationToken cancellationToken = default);
+    public Task<string?> GetAuthToken(CancellationToken cancellationToken = default);
 }

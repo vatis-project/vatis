@@ -54,6 +54,6 @@ public class AtisStationMessage
         /// Gets or sets a list of presets.
         /// </summary>
         [JsonPropertyName("presets")]
-        public List<string>? Presets { get; set; }
+        public List<string?>? Presets { get; set; }
     }
 }

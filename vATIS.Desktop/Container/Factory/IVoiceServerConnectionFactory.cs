@@ -16,5 +16,5 @@ public interface IVoiceServerConnectionFactory
     /// Creates a new voice server connection instance.
     /// </summary>
     /// <returns>An instance of <see cref="IVoiceServerConnection"/>.</returns>
-    IVoiceServerConnection CreateVoiceServerConnection();
+    public IVoiceServerConnection CreateVoiceServerConnection();
 }

@@ -18,11 +18,11 @@ public interface IEventBus
     /// <param name="messageType">The type of message to subscribe to.</param>
     /// <param name="handler">The handler to call when the message is published.</param>
     /// <returns>An IDisposable that unsubscribes the handler when disposed.</returns>
-    IDisposable Subscribe(Type messageType, Action<object> handler);
+    public IDisposable Subscribe(Type messageType, Action<object> handler);
 
     /// <summary>
     /// Publish a message.
     /// </summary>
     /// <param name="message">The message to publish.</param>
-    void Publish(object message);
+    public void Publish(object message);
 }

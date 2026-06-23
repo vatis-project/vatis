@@ -19,13 +19,13 @@ public interface ITextToSpeechService
     /// Gets the available list of voices with their metadata for text-to-speech conversion.
     /// </summary>
     /// <value>A list of voice metadata objects containing information about available voices.</value>
-    List<VoiceMetaData> VoiceList { get; }
+    public List<VoiceMetaData> VoiceList { get; }
 
     /// <summary>
     /// Initializes the service.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
-    Task Initialize();
+    public Task Initialize();
 
     /// <summary>
     /// Requests audio synthesis for the specified text and ATIS station data.
@@ -34,5 +34,5 @@ public interface ITextToSpeechService
     /// <param name="station">The ATIS station metadata associated with the request.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation, containing the synthesized audio as a byte array or null if the request failed.</returns>
-    Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken);
+    public Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken);
 }

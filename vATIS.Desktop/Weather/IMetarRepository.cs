@@ -20,11 +20,11 @@ public interface IMetarRepository
     /// <param name="monitor">Whether to monitor the station for updates.</param>
     /// <param name="triggerMessageBus">Whether to trigger the message bus.</param>
     /// <returns>The decoded METAR.</returns>
-    Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true);
+    public Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true);
 
     /// <summary>
     /// Removes the METAR from being monitored.
     /// </summary>
     /// <param name="station">The station identifier.</param>
-    void RemoveMetar(string station);
+    public void RemoveMetar(string station);
 }

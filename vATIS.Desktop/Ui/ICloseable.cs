@@ -14,10 +14,10 @@ public interface ICloseable
     /// Defines methods to close a dialog or window with an optional result.
     /// </summary>
     /// <param name="dialogResult">The dialog result.</param>
-    void Close(object? dialogResult);
+    public void Close(object? dialogResult);
 
     /// <summary>
     /// Defines methods to close a dialog or window with an optional result.
     /// </summary>
-    void Close();
+    public void Close();
 }

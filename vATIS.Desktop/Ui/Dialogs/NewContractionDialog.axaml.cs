@@ -46,7 +46,7 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
 
     private void Variable_OnLostFocus(object? sender, RoutedEventArgs e)
     {
-        if (e.Source is TextBox textBox)
+        if (e.Source is TextBox { Text: not null } textBox)
         {
             textBox.Text = s_slug.GenerateSlug(textBox.Text).ToUpperInvariant().Replace("-", "_");
         }

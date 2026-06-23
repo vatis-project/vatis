@@ -19,12 +19,12 @@ public interface IVoiceServerConnection
     /// Establishes a connection to the voice server.
     /// </summary>
     /// <returns>A task that represents the asynchronous connection operation.</returns>
-    Task Connect();
+    public Task Connect();
 
     /// <summary>
     /// Terminates the current connection to the voice server and clears any associated session state.
     /// </summary>
-    void Disconnect();
+    public void Disconnect();
 
     /// <summary>
     /// Adds a new bot or updates an existing bot on the voice server with the provided callsign
@@ -34,7 +34,7 @@ public interface IVoiceServerConnection
     /// <param name="dto">The details of the bot, including transceivers and audio settings.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task AddOrUpdateBot(string? callsign, PutBotRequestDto dto, CancellationToken cancellationToken);
+    public Task AddOrUpdateBot(string? callsign, PutBotRequestDto dto, CancellationToken cancellationToken);
 
     /// <summary>
     /// Removes the bot associated with the specified callsign from the voice server.
@@ -42,5 +42,5 @@ public interface IVoiceServerConnection
     /// <param name="callsign">The callsign of the bot to be removed.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task RemoveBot(string? callsign, CancellationToken? cancellationToken = null);
+    public Task RemoveBot(string? callsign, CancellationToken? cancellationToken = null);
 }

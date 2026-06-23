@@ -49,16 +49,19 @@ public partial class ContractionsView : UserControl
             {
                 if (e.Column.Header.ToString() == "Variable")
                 {
-                    var slug = s_slug.GenerateSlug(textBox.Text).Replace("-", "_").ToUpperInvariant();
-
-                    if (vm.CurrentContractions.Any(x => x.Item1 != e.Row.Index && string.Equals(x.Item2.VariableName,
-                            slug, StringComparison.InvariantCultureIgnoreCase)))
+                    if (textBox.Text != null)
                     {
-                        e.Cancel = true;
-                        dataGrid.CancelEdit();
-                    }
+                        var slug = s_slug.GenerateSlug(textBox.Text).Replace("-", "_").ToUpperInvariant();
 
-                    textBox.Text = slug;
+                        if (vm.CurrentContractions.Any(x => x.Item1 != e.Row.Index && string.Equals(x.Item2.VariableName,
+                                slug, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            e.Cancel = true;
+                            dataGrid.CancelEdit();
+                        }
+
+                        textBox.Text = slug;
+                    }
                 }
             }
         }
