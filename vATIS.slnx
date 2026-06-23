@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="DevServer/DevServer.csproj" />
+  <Project Path="vATIS.Desktop/vATIS.Desktop.csproj" />
+  <Project Path="Vatsim.Network/Vatsim.Network.csproj" />
+</Solution>
