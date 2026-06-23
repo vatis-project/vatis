@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading;
 using Avalonia;
 using Avalonia.ReactiveUI;
-using NuGet.Versioning;
 using Serilog;
 using Velopack;
 
@@ -34,7 +33,7 @@ internal static class Program
         try
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-            VelopackApp.Build().WithFirstRun(OnFirstRun).WithRestarted(OnRestarted).Run();
+            VelopackApp.Build().OnFirstRun(OnFirstRun).OnRestarted(OnRestarted).Run();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnExplicitShutdown);
         }
         catch (Exception ex)

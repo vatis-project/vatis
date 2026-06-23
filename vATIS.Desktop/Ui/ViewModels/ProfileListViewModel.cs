@@ -425,7 +425,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 
         try
         {
-            var locator = VelopackLocator.GetDefault(NullLogger.Instance);
+            var locator = VelopackLocator.CreateDefaultForPlatform();
             var currentRelease = locator.GetLocalPackages()
                 .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
             if (currentRelease?.NotesMarkdown != null)
