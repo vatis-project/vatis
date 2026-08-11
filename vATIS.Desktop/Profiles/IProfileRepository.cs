@@ -61,6 +61,14 @@ public interface IProfileRepository
     Task<Profile> Import(string path);
 
     /// <summary>
+    /// Imports a profile from the specified file path, preserving the profile's existing identifier.
+    /// If a profile with the same identifier already exists, its content is overwritten.
+    /// </summary>
+    /// <param name="path">The file path to the profile to be imported.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the imported <see cref="Profile"/>.</returns>
+    Task<Profile> ImportWithId(string path);
+
+    /// <summary>
     /// Exports the specified profile to a file at the given path.
     /// </summary>
     /// <param name="profile">The profile to export.</param>

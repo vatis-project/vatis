@@ -229,7 +229,22 @@ public class App : Application
                 _startupWindow.Close();
 
                 var sessionManager = _serviceProvider.GetService<ISessionManager>();
-                if (arguments.TryGetValue("--profile", out var profileId))
+                if (arguments.TryGetValue("--import-profile", out var importProfilePath))
+                {
+                    try
+                    {
+                        Log.Information($"Launching vATIS with --import-profile {importProfilePath}");
+                        var importedProfile =
+                            await _serviceProvider.GetService<IProfileRepository>().ImportWithId(importProfilePath);
+                        await sessionManager.StartSession(importedProfile.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Failed to import profile from path {importProfilePath}");
+                        sessionManager.Run();
+                    }
+                }
+                else if (arguments.TryGetValue("--profile", out var profileId))
                 {
                     Log.Information($"Launching vATIS with --profile {profileId}");
                     await sessionManager.StartSession(profileId);

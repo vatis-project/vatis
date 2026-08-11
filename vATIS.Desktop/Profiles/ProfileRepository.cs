@@ -178,6 +178,19 @@ public class ProfileRepository : IProfileRepository
     }
 
     /// <inheritdoc />
+    public async Task<Profile> ImportWithId(string path)
+    {
+        var profile = await Load(path);
+        if (string.IsNullOrWhiteSpace(profile.Id) || !Guid.TryParse(profile.Id, out _))
+        {
+            profile.Id = Guid.NewGuid().ToString();
+        }
+        Log.Information($"Importing profile {profile.Name} ({profile.Id})");
+        Save(profile);
+        return profile;
+    }
+
+    /// <inheritdoc />
     public void Export(Profile profile, string path)
     {
         var scrubbed = JsonSerializer.Deserialize(
