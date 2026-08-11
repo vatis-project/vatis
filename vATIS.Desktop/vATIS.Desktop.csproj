@@ -72,24 +72,24 @@
 
 	<ItemGroup>
 		<PackageReference Include="AsyncAwaitBestPractices" Version="10" />
-		<PackageReference Include="Avalonia" Version="11.3.18" />
+		<PackageReference Include="Avalonia" Version="11.3.20" />
 		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.13" />
 		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
-		<PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.3.20" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.20" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.18" />
+		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.20" />
 		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.3.0.6" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.4.1" />
 		<PackageReference Include="Concentus" Version="2.2.2" />
 		<PackageReference Include="Markdown.Avalonia" Version="11.0.3" />
-		<PackageReference Include="MessagePack" Version="3.1.7" />
+		<PackageReference Include="MessagePack" Version="3.1.8" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.9" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
-		<PackageReference Include="Sentry" Version="6.6.0" />
-		<PackageReference Include="Serilog" Version="4.3.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+		<PackageReference Include="Sentry" Version="6.8.0" />
+		<PackageReference Include="Serilog" Version="4.4.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 		<PackageReference Include="Jab" Version="0.12.0" PrivateAssets="all" />
 		<PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0" />
@@ -98,7 +98,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
 		<PackageReference Include="Velopack" Version="1.2.0" />
 		<PackageReference Include="WatsonWebsocket" Version="4.1.8" />
 	</ItemGroup>
