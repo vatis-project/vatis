@@ -50,6 +50,8 @@ namespace Vatsim.Vatis.Container;
 [Singleton(typeof(IProfileRepository), typeof(ProfileRepository))]
 [Singleton(typeof(IWebsocketService), typeof(WebsocketService))]
 [Singleton(typeof(IClientAuth), typeof(ClientAuth))]
+[Singleton(typeof(IDatisTextProcessor), typeof(DatisTextProcessor))]
+[Singleton<IDatisRepository>(Factory = nameof(CreateDatisRepository))]
 [Singleton<IMetarRepository>(Factory = nameof(CreateMetarRepository))]
 [Singleton<IAtisHubConnection>(Factory = nameof(CreateAtisHubConnection))]
 [Transient(typeof(IWindowFactory), Factory = nameof(WindowFactory))]
@@ -98,6 +100,7 @@ namespace Vatsim.Vatis.Container;
 [Transient(typeof(GeneralConfigViewModel))]
 [Transient(typeof(PresetsViewModel))]
 [Transient(typeof(SandboxViewModel))]
+[Transient(typeof(DatisReplacementsViewModel))]
 [Transient(typeof(SortAtisStationsDialogViewModel))]
 [Transient(typeof(ReleaseNotesDialogViewModel))]
 internal sealed partial class ServiceProvider
@@ -136,6 +139,14 @@ internal sealed partial class ServiceProvider
     /// </summary>
     /// <returns>A new instance of the <see cref="VoiceServerConnectionFactory"/> class.</returns>
     public IVoiceServerConnectionFactory VoiceServerConnectionFactory() => new VoiceServerConnectionFactory(this);
+
+    private IDatisRepository CreateDatisRepository()
+    {
+        return new DatisRepository(
+            GetService<IDownloader>(),
+            GetService<IAppConfigurationProvider>(),
+            GetService<IDatisTextProcessor>());
+    }
 
     private IMetarRepository CreateMetarRepository()
     {

@@ -170,6 +170,12 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     public SandboxViewModel? SandboxViewModel { get; private set; }
 
     /// <summary>
+    /// Gets the instance of <see cref="DatisReplacementsViewModel"/> used for managing D-ATIS text
+    /// replacement rules in the ATIS configuration window.
+    /// </summary>
+    public DatisReplacementsViewModel? DatisReplacementsViewModel { get; private set; }
+
+    /// <summary>
     /// Gets the command that handles the logic to close a window that implements the <see cref="ICloseable"/> interface.
     /// </summary>
     public ReactiveCommand<ICloseable, Unit> CloseWindowCommand { get; }
@@ -310,11 +316,14 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         SandboxViewModel = _viewModelFactory.CreateSandboxViewModel();
         SandboxViewModel.DialogOwner = _dialogOwner;
 
+        DatisReplacementsViewModel = _viewModelFactory.CreateDatisReplacementsViewModel();
+
         _disposables.Add(GeneralConfigViewModel);
         _disposables.Add(PresetsViewModel);
         _disposables.Add(FormattingViewModel);
         _disposables.Add(ContractionsViewModel);
         _disposables.Add(SandboxViewModel);
+        _disposables.Add(DatisReplacementsViewModel);
     }
 
     /// <inheritdoc />
@@ -886,6 +895,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         FormattingViewModel?.AtisStationChanged.Execute(station).Subscribe();
         ContractionsViewModel?.AtisStationChanged.Execute(station).Subscribe();
         SandboxViewModel?.AtisStationChanged.Execute(station).Subscribe();
+        DatisReplacementsViewModel?.AtisStationChanged.Execute(station).Subscribe();
     }
 
     private void ResetFields()

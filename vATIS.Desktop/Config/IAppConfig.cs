@@ -103,6 +103,11 @@ public interface IAppConfig
     bool AutoFetchAtisLetter { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to automatically fetch and populate real-world D-ATIS data.
+    /// </summary>
+    bool AutoFetchDatis { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to suppress the release notes window after updating.
     /// </summary>
     bool SuppressReleaseNotes { get; set; }
