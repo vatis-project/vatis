@@ -356,7 +356,11 @@ public class NetworkConnection : INetworkConnection, IDisposable
                 ]));
                 break;
             case ClientQueryType.Atis:
-                var num = 0;
+                _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
+                    ["A", _atisStation?.AtisLetter.ToString() ?? string.Empty]));
+
+                var num = 1;
+
                 if (_atisStation != null && !string.IsNullOrEmpty(_atisStation.TextAtis))
                 {
                     var collection = FormatAtisText(_atisStation.TextAtis);
@@ -371,8 +375,6 @@ public class NetworkConnection : INetworkConnection, IDisposable
                 num++;
                 _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
                     ["E", num.ToString()]));
-                _fsdSession.SendPdu(new PDUClientQueryResponse(Callsign, e.Pdu.From, ClientQueryType.Atis,
-                    ["A", _atisStation?.AtisLetter.ToString() ?? string.Empty]));
 
                 break;
             case ClientQueryType.Inf:
