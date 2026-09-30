@@ -185,6 +185,7 @@ public class ProfileRepository : IProfileRepository
         {
             profile.Id = Guid.NewGuid().ToString();
         }
+
         Log.Information($"Importing profile {profile.Name} ({profile.Id})");
         Save(profile);
         return profile;

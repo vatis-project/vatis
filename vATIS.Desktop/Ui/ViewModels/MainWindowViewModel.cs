@@ -369,7 +369,7 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
                 Id = station.Id,
                 Name = station.Identifier,
                 AtisType = station.AtisType,
-                Presets = [.. station.AtisPresetList.OrderBy(n => n.Ordinal).ThenBy(n => n.Name).Select(n => n.Name)]
+                Presets = [.. station.AtisPresetList.OrderBy(n => n.Ordinal).ThenBy(n => n.Name).Select(n => n.Name).OfType<string>()]
             }).ToList();
 
         _websocketService.SendAtisStationsAsync(e.Session, new AtisStationMessage { Stations = [..stations] });
