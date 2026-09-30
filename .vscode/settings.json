@@ -9,7 +9,7 @@
     "explorer.fileNesting.patterns": {
         "README.md": "CONTRIBUTING.md,LICENSE"
     },
-    "dotnet.defaultSolution": "vATIS.sln",
+    "dotnet.defaultSolution": "vATIS.slnx",
     "cmake.sourceDirectory": "${workspaceFolder}/NativeAudio",
     "cmake.revealLog": "error"
 }
