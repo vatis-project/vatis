@@ -389,7 +389,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 });
             }
         }));
-        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ => { SubscribeToAtis(); }));
+        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ =>
+        {
+            SubscribeToAtis();
+
+            // After a hub reconnect the hub no longer has our ATIS published under the new connection.
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+            {
+                Task.Run(PublishAtisToHub);
+            }
+        }));
         _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ =>
         {
             if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
