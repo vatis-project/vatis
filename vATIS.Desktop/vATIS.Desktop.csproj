@@ -16,13 +16,9 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' != 'Debug'">
-		<PublishAot>true</PublishAot>
+		<SelfContained>true</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
 	</PropertyGroup>
-
-	<ItemGroup
-		Condition="'$(Configuration)' != 'Debug' and ('$(RuntimeIdentifier)' == 'osx-x64' or '$(RuntimeIdentifier)' == 'osx-arm64')">
-		<LinkerArg Include="-mmacosx-version-min=12.0" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
