@@ -51,7 +51,7 @@ jobs:
     - name: Build Desktop App
       run: |
         dotnet restore ./vATIS.Desktop
-        dotnet build ./vATIS.sln /p:Configuration=Release
+        dotnet build ./vATIS.slnx /p:Configuration=Release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
