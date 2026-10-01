@@ -151,12 +151,6 @@ public class AtisBuilder : IAtisBuilder
     public async Task UpdateIds(AtisStation station, AtisPreset preset, char currentAtisLetter,
         CancellationToken cancellationToken)
     {
-        if (Debugger.IsAttached)
-            return;
-
-        if (string.IsNullOrEmpty(station.IdsEndpoint))
-            return;
-
         var request = new IdsUpdateRequest
         {
             Facility = station.Identifier,
@@ -164,10 +158,42 @@ public class AtisBuilder : IAtisBuilder
             AtisLetter = currentAtisLetter.ToString(),
             AirportConditions = preset.AirportConditions?.StripNewLineChars() ?? "",
             Notams = preset.Notams?.StripNewLineChars() ?? "",
+            TextAtis = station.TextAtis ?? "",
             Timestamp = DateTime.UtcNow,
             Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "",
             AtisType = station.AtisType.ToString().ToLowerInvariant()
         };
+
+        await PostIdsUpdate(station, request, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task DisconnectIds(AtisStation station, CancellationToken cancellationToken)
+    {
+        var request = new IdsUpdateRequest
+        {
+            Facility = station.Identifier,
+            Preset = "",
+            AtisLetter = "",
+            AirportConditions = "",
+            Notams = "",
+            TextAtis = "",
+            Timestamp = DateTime.UtcNow,
+            Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "",
+            AtisType = station.AtisType.ToString().ToLowerInvariant()
+        };
+
+        await PostIdsUpdate(station, request, cancellationToken);
+    }
+
+    private async Task PostIdsUpdate(AtisStation station, IdsUpdateRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        if (string.IsNullOrEmpty(station.IdsEndpoint))
+            return;
 
         try
         {

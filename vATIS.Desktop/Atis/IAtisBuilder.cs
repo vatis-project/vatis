@@ -72,4 +72,12 @@ public interface IAtisBuilder
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task UpdateIds(AtisStation station, AtisPreset preset, char currentAtisLetter, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Notifies the IDS endpoint that the ATIS has disconnected by posting an empty ATIS letter and text.
+    /// </summary>
+    /// <param name="station">The ATIS station.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    Task DisconnectIds(AtisStation station, CancellationToken cancellationToken);
 }

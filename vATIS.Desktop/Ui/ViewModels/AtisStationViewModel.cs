@@ -406,6 +406,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
                     AtisLetter));
 
+                _atisBuilder.DisconnectIds(AtisStation, CancellationToken.None).SafeFireAndForget();
+
                 _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
             }
 
@@ -767,6 +769,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to disconnect ATIS from hub.");
+        }
+
+        // Clear the ATIS on the configured IDS endpoint
+        try
+        {
+            await _atisBuilder.DisconnectIds(AtisStation, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to disconnect ATIS from IDS.");
         }
 
         // Set network connection status as disconnected
