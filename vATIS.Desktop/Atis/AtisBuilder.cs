@@ -535,6 +535,7 @@ public class AtisBuilder : IAtisBuilder
         var trends = NodeParser.Parse<TrendNode, TrendForecast>(metar, station);
         var recentWeather = NodeParser.Parse<RecentWeatherNode, WeatherPhenomenon>(metar, station);
         var windshear = NodeParser.Parse<WindShearNode, string>(metar, station);
+        var remarkWind = NodeParser.Parse<RemarkWindNode, RemarkWind>(metar, station);
 
         var completeWxStringVoice =
             $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis} {windshear.VoiceAtis} {trends.VoiceAtis}";
@@ -649,7 +650,8 @@ public class AtisBuilder : IAtisBuilder
             new("NOTAMS", notamsText, notamsVoice),
             new("TREND", trends.TextAtis, trends.VoiceAtis),
             new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
-            new("WS", windshear.TextAtis, windshear.VoiceAtis)
+            new("WS", windshear.TextAtis, windshear.VoiceAtis),
+            new("RMK_WIND", remarkWind.TextAtis, remarkWind.VoiceAtis)
         };
 
         if (!station.IsFaaAtis)

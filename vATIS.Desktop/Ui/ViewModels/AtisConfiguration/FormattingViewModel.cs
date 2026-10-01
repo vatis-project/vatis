@@ -120,6 +120,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _temporaryVoiceValue;
     private string? _trendNotAvailableText;
     private string? _trendNotAvailableVoice;
+    private string? _remarkWindText;
+    private string? _remarkWindVoice;
     private string? _runwayWindShearText;
     private string? _runwayWindShearVoice;
     private string? _allRunwayWindShearText;
@@ -1246,6 +1248,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the text template for the remark wind.
+    /// </summary>
+    public string? RemarkWindText
+    {
+        get => _remarkWindText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _remarkWindText, value);
+            _changeTracker.TrackChange(nameof(RemarkWindText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the remark wind.
+    /// </summary>
+    public string? RemarkWindVoice
+    {
+        get => _remarkWindVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _remarkWindVoice, value);
+            _changeTracker.TrackChange(nameof(RemarkWindVoice), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the text value for individual runway wind shear.
     /// </summary>
     public string? RunwayWindShearText
@@ -1893,6 +1921,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.Trend.NotAvailableVoice = TrendNotAvailableVoiceValue;
         }
 
+        if (SelectedStation.AtisFormat.RemarkWind.TextTemplate != RemarkWindText)
+        {
+            SelectedStation.AtisFormat.RemarkWind.TextTemplate = RemarkWindText;
+        }
+
+        if (SelectedStation.AtisFormat.RemarkWind.VoiceTemplate != RemarkWindVoice)
+        {
+            SelectedStation.AtisFormat.RemarkWind.VoiceTemplate = RemarkWindVoice;
+        }
+
         if (SelectedStation.AtisFormat.WindShear.RunwayText != RunwayWindShearText)
         {
             SelectedStation.AtisFormat.WindShear.RunwayText = RunwayWindShearText;
@@ -1982,6 +2020,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         if (!station.IsFaaAtis)
         {
             items.Add("Wind Shear");
+            items.Add("Remark Wind");
             items.Add("Trend Forecast");
             items.Add("Transition Level");
         }
@@ -2064,6 +2103,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         TemporaryVoiceValue = station.AtisFormat.Trend.TemporaryVoice;
         TrendNotAvailableTextValue = station.AtisFormat.Trend.NotAvailableText;
         TrendNotAvailableVoiceValue = station.AtisFormat.Trend.NotAvailableVoice;
+        RemarkWindText = station.AtisFormat.RemarkWind.TextTemplate;
+        RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
         RunwayWindShearText = station.AtisFormat.WindShear.RunwayText;
         RunwayWindShearVoice = station.AtisFormat.WindShear.RunwayVoice;
         AllRunwayWindShearText = station.AtisFormat.WindShear.AllRunwayText;

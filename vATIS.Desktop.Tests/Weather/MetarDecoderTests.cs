@@ -42,6 +42,28 @@ public class MetarDecoderTests
     }
 
     [Fact]
+    public void Parse_RemarkWind_DecodesWind()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "ENBR 061250Z 19005KT 160V230 9999 FEW020 17/10 Q1023 NOSIG RMK WIND 1200FT 29003KT");
+
+        Assert.NotNull(metar.RemarkWind);
+        Assert.Equal(1200, metar.RemarkWind.HeightFeet);
+        Assert.Equal(290, metar.RemarkWind.Direction);
+        Assert.Equal(3, metar.RemarkWind.Speed);
+        Assert.Null(metar.RemarkWind.Gust);
+        Assert.NotNull(metar.TrendForecast);
+    }
+
+    [Fact]
+    public void Parse_NoRemarkWind_IsNull()
+    {
+        var metar = _decoder.ParseNotStrict("ENBR 061250Z 19005KT 9999 FEW020 17/10 Q1023 NOSIG");
+
+        Assert.Null(metar.RemarkWind);
+    }
+
+    [Fact]
     public void Parse_NosigWithRemarks_DecodesTrend()
     {
         var metar = _decoder.ParseNotStrict(
