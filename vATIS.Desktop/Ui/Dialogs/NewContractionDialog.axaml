@@ -8,7 +8,7 @@
         x:Class="Vatsim.Vatis.Ui.Dialogs.NewContractionDialog"
         Title="NewContractionDialog"
         x:Name="Window"
-        Width="375" Height="315"
+        Width="375"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"

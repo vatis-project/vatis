@@ -9,7 +9,7 @@
         x:Class="Vatsim.Vatis.Ui.Dialogs.StaticDefinitionEditorDialog"
         Title="StaticDefinitionEditorDialog"
         x:Name="Window"
-        Width="500" Height="325"
+        Width="500" d:DesignHeight="325"
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
