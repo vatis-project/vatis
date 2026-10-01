@@ -13,7 +13,10 @@ if(APPLE)
     add_definitions(-DMA_NO_RUNTIME_LINKING)
 
     # Set architectures to build fat library
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    # (skipped when cross-compiling with a toolchain file that sets a single architecture)
+    if(NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    endif()
 
     # Set minimum macOS deployment target
     set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum macOS Version" FORCE)
@@ -50,6 +53,11 @@ if(APPLE)
     find_library(AUDIO_UNIT AudioUnit)
     find_library(CORE_FOUNDATION CoreFoundation)
     find_library(CORE_SERVICES CoreServices)
+    find_library(AV_FOUNDATION AVFoundation)
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/mac_permissions.mm
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/mac_permissions.h)
 
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
@@ -57,7 +65,8 @@ if(APPLE)
         ${AUDIO_TOOLBOX}
         ${AUDIO_UNIT}
         ${CORE_FOUNDATION}
-        ${CORE_SERVICES})
+        ${CORE_SERVICES}
+        ${AV_FOUNDATION})
 
     # Copy the built dylib to the Native folder, creating a subfolder for macOS
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
