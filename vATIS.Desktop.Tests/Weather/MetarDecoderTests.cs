@@ -53,4 +53,18 @@ public class MetarDecoderTests
 
         Assert.Null(metar.TrendForecast);
     }
+
+    [Fact]
+    public void Parse_VisibilityInKilometers_DecodesAllFollowingGroups()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "NZNV 300700Z 24023G35KT 18KM -RA VCTS FEW019 BKN055 OVC120 06/04 Q0994 RMK AUTO VATSIM USE ONLY");
+
+        Assert.Equal(18000, metar.Visibility?.PrevailingVisibility?.ActualValue);
+        Assert.Equal(Value.Unit.Meter, metar.Visibility?.PrevailingVisibility?.ActualUnit);
+        Assert.NotEmpty(metar.PresentWeather);
+        Assert.NotEmpty(metar.Clouds);
+        Assert.NotNull(metar.AirTemperature);
+        Assert.NotNull(metar.Pressure);
+    }
 }

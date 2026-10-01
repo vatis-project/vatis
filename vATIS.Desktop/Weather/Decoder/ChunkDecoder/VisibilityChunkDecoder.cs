@@ -28,13 +28,14 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
     private const string VisibilityRegexPattern = "([0-9]{4})(NDV)?";
     private const string UsVisibilityRegexPattern = "M?([0-9]{0,2}) ?(([1357])/(2|4|8|16))?SM";
     private const string MinimumVisibilityRegexPattern = "( ([0-9]{4})(N|NE|E|SE|S|SW|W|NW)?)?"; // optional
+    private const string KilometerVisibilityRegexPattern = "([0-9]{1,2})KM"; // non-ICAO, used by some domestic METARs (e.g. NZ)
     private const string NoInfoRegexPattern = "////";
 
     /// <inheritdoc/>
     public override string GetRegex()
     {
         return
-            $"^({CavokRegexPattern}|{VisibilityRegexPattern}{MinimumVisibilityRegexPattern}|{UsVisibilityRegexPattern}|{NoInfoRegexPattern})( )";
+            $"^({CavokRegexPattern}|{VisibilityRegexPattern}{MinimumVisibilityRegexPattern}|{UsVisibilityRegexPattern}|{KilometerVisibilityRegexPattern}|{NoInfoRegexPattern})( )";
     }
 
     /// <inheritdoc/>
@@ -86,6 +87,11 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
                 }
 
                 visibility.IsNdv = !string.IsNullOrEmpty(found[3].Value);
+            }
+            else if (!string.IsNullOrEmpty(found[11].Value))
+            {
+                // visibility in kilometers, converted to meters
+                visibility.PrevailingVisibility = new Value(Convert.ToDouble(found[11].Value) * 1000, Value.Unit.Meter);
             }
             else
             {
