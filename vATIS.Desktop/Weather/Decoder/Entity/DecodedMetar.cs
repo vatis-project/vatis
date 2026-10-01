@@ -206,6 +206,11 @@ public class DecodedMetar
     public List<string>? WindshearRunways { get; set; }
 
     /// <summary>
+    /// Gets or sets the wind reported in the remarks (e.g. from a weather station away from the airport).
+    /// </summary>
+    public RemarkWind? RemarkWind { get; set; }
+
+    /// <summary>
     /// Gets or sets the trend forecast information.
     /// </summary>
     public TrendForecast? TrendForecast { get; set; }
