@@ -62,6 +62,19 @@ public class MockAtisHubConnection : IAtisHubConnection
                 .Build();
 
             _hubConnection.Closed += OnHubConnectionClosed;
+            _hubConnection.Reconnecting += _ =>
+            {
+                SetConnectionState(ConnectionState.Connecting);
+                return Task.CompletedTask;
+            };
+            _hubConnection.Reconnected += connectionId =>
+            {
+                // The hub assigns a new connection ID on reconnect, so subscriptions and published ATISes
+                // are lost. Raising HubConnected makes stations re-subscribe and republish.
+                Log.Information("Reconnected to AtisHub with ID: " + connectionId);
+                SetConnectionState(ConnectionState.Connected);
+                return Task.CompletedTask;
+            };
             _hubConnection.On<List<AtisHubDto>>("AtisReceived", (dtoList) =>
             {
                 foreach (var dto in dtoList)
