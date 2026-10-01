@@ -27,7 +27,7 @@ namespace Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
 {
     private const string RunwaysVisualRangeParameterName = "RunwaysVisualRange";
-    private const string RunwayRegexPattern = "R([0-9]{2}[LCR]?)/([PM]?([0-9]{4})V)?[PM]?([0-9]{4})(FT)?/?([UDN]?)";
+    private const string RunwayRegexPattern = "R([0-9]{2}[LCR]?)/([PM]?([0-9]{4})V)?[PM]?([0-9]{4}|/{4})(FT)?/?([UDN]?)";
 
     /// <inheritdoc/>
     public override string GetRegex()
@@ -65,6 +65,12 @@ public sealed class RunwayVisualRangeChunkDecoder : MetarChunkDecoder
                     var maxVisualRangeIntervalValue = rvrRunwayGroups[6].Value;
                     var rangeUnitValue = rvrRunwayGroups[7].Value;
                     var tendencyValue = rvrRunwayGroups[8].Value;
+
+                    // RVR not available for this runway (e.g. R19/////)
+                    if (maxVisualRangeIntervalValue == "////")
+                    {
+                        continue;
+                    }
 
                     // check runway qfu validity
                     var qfuAsInt = Value.ToInt(rwyValue);
