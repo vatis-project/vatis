@@ -82,22 +82,22 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
 
         format = Regex.Replace(format, "{wind_dir}", meanDirectionMag.ToSerialFormat() ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_spd}",
+        format = Regex.Replace(format, @"{wind_spd(?::#+)?}",
             meanSpeed?.ToString(leadingZero).ToFormat(speakInGroupForm, speakLeadingZero) ?? "",
             RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_spd\|kt}",
+        format = Regex.Replace(format, @"{wind_spd\|kt(?::#+)?}",
             meanSpeedKts?.ToString(leadingZero).ToFormat(speakInGroupForm, speakLeadingZero) ?? "",
             RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_spd\|mps}",
+        format = Regex.Replace(format, @"{wind_spd\|mps(?::#+)?}",
             meanSpeedMps?.ToString(leadingZero).ToFormat(speakInGroupForm, speakLeadingZero) ?? "",
             RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_gust}",
+        format = Regex.Replace(format, @"{wind_gust(?::#+)?}",
             speedVariations?.ToString(leadingZero).ToFormat(speakInGroupForm, speakLeadingZero) ?? "",
             RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_gust\|kt}",
+        format = Regex.Replace(format, @"{wind_gust\|kt(?::#+)?}",
             speedVariationKts?.ToString(leadingZero).ToFormat(speakInGroupForm, speakLeadingZero) ?? "",
             RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_gust\|mps}",
+        format = Regex.Replace(format, @"{wind_gust\|mps(?::#+)?}",
             speedVariationMps?.ToString(leadingZero).ToFormat(speakInGroupForm, speakLeadingZero) ?? "",
             RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_vmin}",
@@ -165,12 +165,12 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         var meanDirectionMag = (meanDirection ?? 0).ApplyMagVar(magVarEnabled, magVarDeg).ToString("000");
 
         format = Regex.Replace(format, "{wind_dir}", meanDirectionMag, RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_spd}", meanSpeed?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_spd\|kt}", meanSpeedKts?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_spd\|mps}", meanSpeedMps?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind_gust}", speedVariations?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_gust\|kt}", speedVariationKts?.ToString("00") ?? "", RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{wind_gust\|mps}", speedVariationMps?.ToString("00") ?? "", RegexOptions.IgnoreCase);
+        format = ReplaceSpeed(format, "wind_spd", meanSpeed);
+        format = ReplaceSpeed(format, @"wind_spd\|kt", meanSpeedKts);
+        format = ReplaceSpeed(format, @"wind_spd\|mps", meanSpeedMps);
+        format = ReplaceSpeed(format, "wind_gust", speedVariations);
+        format = ReplaceSpeed(format, @"wind_gust\|kt", speedVariationKts);
+        format = ReplaceSpeed(format, @"wind_gust\|mps", speedVariationMps);
         format = Regex.Replace(format, "{wind_vmin}", minDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? "",
             RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_vmax}", maxDirectionVariation?.ApplyMagVar(magVarEnabled, magVarDeg).ToString("000") ?? "",
@@ -179,6 +179,22 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         format = Regex.Replace(format, "{wind}", node.RawValue ?? "", RegexOptions.IgnoreCase);
 
         return format;
+    }
+
+    /// <summary>
+    /// Replaces a speed variable in a text template. The number of '#' characters in an optional suffix
+    /// (e.g. {wind_spd:#}) sets the minimum digits; without a suffix the value is padded to two digits.
+    /// </summary>
+    private static string ReplaceSpeed(string format, string variable, double? value)
+    {
+        return Regex.Replace(format, "{" + variable + "(?::(?<digits>#+))?}", match =>
+        {
+            if (value == null)
+                return "";
+
+            var digits = match.Groups["digits"].Success ? match.Groups["digits"].Length : 2;
+            return ((int)value.Value).ToString(new string('0', digits), CultureInfo.InvariantCulture);
+        }, RegexOptions.IgnoreCase);
     }
 
     private void Parse(SurfaceWind? surfaceWind)

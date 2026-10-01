@@ -134,7 +134,7 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__spd}
@@ -178,14 +178,14 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__spd}
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The gust speed of the wind (e.g. 25010G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
+										ToolTip.Tip="The gust speed of the wind (e.g. 25010G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}. In text, add :# to drop the leading zero (e.g. {wind_gust:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__gust}
@@ -252,14 +252,14 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 08). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 08). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__spd}
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}. In text, add :# to drop the leading zero (e.g. {wind_gust:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__gust}
@@ -349,7 +349,7 @@
 										</Button>
 										<Button
 											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+											ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 											CommandParameter="{Binding $self.Content}">
 											{wind__spd}
