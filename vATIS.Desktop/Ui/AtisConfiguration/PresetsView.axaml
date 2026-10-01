@@ -212,7 +212,7 @@
                     <StackPanel Orientation="Vertical" Spacing="5">
                         <StackPanel Spacing="5">
 						    <TextBlock Text="Text ATIS URL:" ToolTip.Tip="The URL used to generate the text ATIS."/>
-						    <TextBox Text="{Binding ExternalGeneratorTextUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+						    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorTextUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 							    <Interaction.Behaviors>
 								    <behaviors:SelectAllTextOnFocusBehavior/>
 							    </Interaction.Behaviors>
@@ -220,7 +220,7 @@
 					    </StackPanel>
                         <StackPanel Spacing="5">
                             <TextBlock Text="Voice ATIS URL:" ToolTip.Tip="The URL used to generate the voice ATIS. If you don't have a separate URL, use the same URL as the text ATIS."/>
-                            <TextBox Text="{Binding ExternalGeneratorVoiceUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+                            <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorVoiceUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
                                 <Interaction.Behaviors>
                                     <behaviors:SelectAllTextOnFocusBehavior/>
                                 </Interaction.Behaviors>

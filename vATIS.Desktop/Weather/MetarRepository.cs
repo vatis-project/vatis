@@ -52,7 +52,11 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
     public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true,
         string? customUrl = null)
     {
-        if (_metars.TryGetValue(station, out var metar))
+        // A cached METAR may have come from the default source, so skip it when a custom URL is
+        // requested unless this station is already being monitored with that same URL.
+        var useCache = string.IsNullOrWhiteSpace(customUrl)
+                       || (_customUrls.TryGetValue(station, out var monitoredUrl) && monitoredUrl == customUrl.Trim());
+        if (useCache && _metars.TryGetValue(station, out var metar))
         {
             return metar;
         }
