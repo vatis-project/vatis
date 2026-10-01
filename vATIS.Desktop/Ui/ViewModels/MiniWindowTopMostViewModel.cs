@@ -21,11 +21,13 @@ public class MiniWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
     private IAppConfig? _appConfig;
     private bool _isTopMost;
     private bool _showMetarDetails;
+    private bool _useMagneticWind;
 
     private MiniWindowTopMostViewModel()
     {
         ToggleIsTopMost = ReactiveCommand.Create(HandleToggleIsTopMost);
         ToggleMetarDetails = ReactiveCommand.Create(HandleToggleMetarDetails);
+        ToggleMagneticWind = ReactiveCommand.Create(HandleToggleMagneticWind);
     }
 
     /// <summary>
@@ -42,6 +44,11 @@ public class MiniWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
     /// Gets the command that toggles the display of the METAR details (wind and altimeter) in the mini-window.
     /// </summary>
     public ReactiveCommand<Unit, Unit> ToggleMetarDetails { get; private set; }
+
+    /// <summary>
+    /// Gets the command that toggles whether the mini-window displays wind with magnetic variation applied.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ToggleMagneticWind { get; private set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the mini-window is displayed as the topmost window.
@@ -63,6 +70,16 @@ public class MiniWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the wind shown in the mini-window has each station's
+    /// magnetic variation applied.
+    /// </summary>
+    public bool UseMagneticWind
+    {
+        get => _useMagneticWind;
+        set => this.RaiseAndSetIfChanged(ref _useMagneticWind, value);
+    }
+
+    /// <summary>
     /// Initializes the <see cref="MiniWindowTopMostViewModel"/> with the specified application configuration.
     /// </summary>
     /// <param name="appConfig">The application configuration used to initialize the view model.</param>
@@ -71,6 +88,7 @@ public class MiniWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
         _appConfig = appConfig;
         IsTopMost = _appConfig.MiniWindowAlwaysOnTop;
         ShowMetarDetails = _appConfig.MiniWindowShowMetarDetails;
+        UseMagneticWind = _appConfig.MiniWindowUseMagneticWind;
     }
 
     /// <inheritdoc />
@@ -78,6 +96,7 @@ public class MiniWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
     {
         ToggleIsTopMost.Dispose();
         ToggleMetarDetails.Dispose();
+        ToggleMagneticWind.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -100,6 +119,17 @@ public class MiniWindowTopMostViewModel : ReactiveViewModelBase, IDisposable
         if (_appConfig != null)
         {
             _appConfig.MiniWindowShowMetarDetails = ShowMetarDetails;
+            _appConfig.SaveConfig();
+        }
+    }
+
+    private void HandleToggleMagneticWind()
+    {
+        UseMagneticWind = !UseMagneticWind;
+
+        if (_appConfig != null)
+        {
+            _appConfig.MiniWindowUseMagneticWind = UseMagneticWind;
             _appConfig.SaveConfig();
         }
     }

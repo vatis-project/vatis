@@ -63,6 +63,12 @@ public interface IAppConfig
     bool MiniWindowShowMetarDetails { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the mini-window should show wind direction with each
+    /// station's magnetic variation applied.
+    /// </summary>
+    bool MiniWindowUseMagneticWind { get; set; }
+
+    /// <summary>
     /// Gets a value indicating whether the configuration is required.
     /// </summary>
     bool ConfigRequired { get; }

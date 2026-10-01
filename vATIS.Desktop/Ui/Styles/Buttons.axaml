@@ -397,6 +397,25 @@
         </Style>
     </ControlTheme>
 
+    <ControlTheme x:Key="CompassToggle" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
+        <Setter Property="Padding" Value="1"/>
+        <Setter Property="Height" Value="19"/>
+        <Setter Property="MinHeight" Value="19"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Width" Value="19"/>
+        <Setter Property="Content">
+            <Template>
+                <Viewbox>
+                    <Svg Path="/Assets/Icons/Compass.svg"/>
+                </Viewbox>
+            </Template>
+        </Setter>
+        <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#C0392B"/>
+            <Setter Property="BorderBrush" Value="#C0392B"/>
+        </Style>
+    </ControlTheme>
+
     <ControlTheme x:Key="LockButtonSmall" BasedOn="{StaticResource Dark}" TargetType="ToggleButton">
         <Setter Property="Height" Value="19"/>
         <Setter Property="MinHeight" Value="19"/>
