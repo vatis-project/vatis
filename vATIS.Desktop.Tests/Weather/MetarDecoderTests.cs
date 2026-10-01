@@ -1,4 +1,4 @@
-using Vatsim.Vatis.Weather.Decoder;
+﻿using Vatsim.Vatis.Weather.Decoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Xunit;
 
@@ -66,5 +66,17 @@ public class MetarDecoderTests
         Assert.NotEmpty(metar.Clouds);
         Assert.NotNull(metar.AirTemperature);
         Assert.NotNull(metar.Pressure);
+    }
+
+    [Fact]
+    public void Parse_VisibilityWithDirectionalMinimum_DecodesMinimumAndFollowingGroups()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "VVNB 230700Z 30007KT 260V320 7000 4000E RA FEW004 SCT046 OVC077 27/26 Q1001");
+
+        Assert.Equal(7000, metar.Visibility?.PrevailingVisibility?.ActualValue);
+        Assert.Equal(4000, metar.Visibility?.MinimumVisibility?.ActualValue);
+        Assert.Equal("E", metar.Visibility?.MinimumVisibilityDirection);
+        Assert.NotEmpty(metar.Clouds);
     }
 }
