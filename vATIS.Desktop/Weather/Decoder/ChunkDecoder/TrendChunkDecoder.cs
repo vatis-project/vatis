@@ -44,8 +44,10 @@ public sealed class TrendChunkDecoder : MetarChunkDecoder
         const string windRegex =
             $"{WindDirectionRegexPattern}{WindSpeedRegexPattern}{WindSpeedVariationsRegexPattern}{WindUnitRegexPattern}";
         const string visibilityRegex = $"{VisibilityRegexPattern}|CAVOK";
-        const string presentWeatherRegex =
+        const string singleWeatherRegex =
             $@"(?:[-+]|VC)?(?:{CaracRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?(?:{TypeRegexPattern})?";
+        const string presentWeatherRegex =
+            $@"{singleWeatherRegex}(?: (?=\S)(?!TEMPO|BECMG|NOSIG){singleWeatherRegex}(?=\s|$)){{0,2}}";
         const string cloudRegex =
             $@"(?:{NoCloudRegexPattern}|(?:{LayerRegexPattern})(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?(?: {LayerRegexPattern})?)";
 
