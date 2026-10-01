@@ -32,7 +32,8 @@ public class MockMetarRepository : IMetarRepository
     }
 
     /// <inheritdoc />
-    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
+    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true,
+        string? customUrl = null)
     {
         var metar = await _downloader.DownloadStringAsync(_localMetarServiceUrl + station);
         if (!string.IsNullOrEmpty(metar))

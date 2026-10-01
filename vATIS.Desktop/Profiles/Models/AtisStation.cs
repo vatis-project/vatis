@@ -75,6 +75,12 @@ public class AtisStation : ReactiveObject
     public string? IdsEndpoint { get; set; }
 
     /// <summary>
+    /// Gets or sets an optional custom METAR source URL. May contain an {icao} placeholder.
+    /// When empty, or if the source fails, the default VATSIM METAR source is used.
+    /// </summary>
+    public string? CustomMetarUrl { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether decimal terminology should be used in the ATIS station.
     /// </summary>
     public bool UseDecimalTerminology { get; set; }
@@ -231,6 +237,7 @@ public class AtisStation : ReactiveObject
             AirportConditionsBeforeFreeText = AirportConditionsBeforeFreeText,
             Frequency = Frequency,
             IdsEndpoint = IdsEndpoint,
+            CustomMetarUrl = CustomMetarUrl,
             UseDecimalTerminology = UseDecimalTerminology,
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),

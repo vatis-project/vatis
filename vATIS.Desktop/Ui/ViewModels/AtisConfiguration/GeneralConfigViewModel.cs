@@ -45,6 +45,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     private string? _textToSpeechVoice;
     private bool _useDecimalTerminology;
     private string? _idsEndpoint;
+    private string? _customMetarUrl;
     private ObservableCollection<VoiceMetaData>? _availableVoices;
     private bool _showDuplicateAtisTypeError;
     private int _selectedSpeechRate;
@@ -224,6 +225,19 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the custom METAR source URL.
+    /// </summary>
+    public string? CustomMetarUrl
+    {
+        get => _customMetarUrl;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _customMetarUrl, value);
+            _changeTracker.TrackChange(nameof(CustomMetarUrl), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the available voices.
     /// </summary>
     public ObservableCollection<VoiceMetaData>? AvailableVoices
@@ -279,6 +293,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         UseDecimalTerminology = false;
         UseTextToSpeech = true;
         IdsEndpoint = null;
+        CustomMetarUrl = null;
         _changeTracker.ResetChanges();
     }
 
@@ -365,6 +380,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.IdsEndpoint = IdsEndpoint ?? string.Empty;
         }
 
+        if (SelectedStation.CustomMetarUrl != CustomMetarUrl)
+        {
+            SelectedStation.CustomMetarUrl = CustomMetarUrl?.Trim();
+        }
+
         if (SelectedStation.AtisVoice.UseTextToSpeech != UseTextToSpeech)
         {
             SelectedStation.AtisVoice.UseTextToSpeech = UseTextToSpeech;
@@ -419,6 +439,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         CodeRangeHigh = station.CodeRange.High;
         UseDecimalTerminology = station.UseDecimalTerminology;
         IdsEndpoint = station.IdsEndpoint;
+        CustomMetarUrl = station.CustomMetarUrl;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
         TextToSpeechVoice = station.AtisVoice.Voice;
 

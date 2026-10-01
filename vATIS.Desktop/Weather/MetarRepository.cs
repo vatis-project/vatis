@@ -27,6 +27,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
     private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromSeconds(UpdateIntervalSeconds) };
     private readonly HashSet<string> _monitoredStations = [];
     private readonly Dictionary<string, DecodedMetar> _metars = [];
+    private readonly Dictionary<string, string> _customUrls = [];
     private readonly string? _metarUrl;
     private bool _isDisposed;
 
@@ -48,7 +49,8 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
+    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true,
+        string? customUrl = null)
     {
         if (_metars.TryGetValue(station, out var metar))
         {
@@ -58,6 +60,28 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
         if (monitor)
         {
             _monitoredStations.Add(station);
+            if (string.IsNullOrWhiteSpace(customUrl))
+            {
+                _customUrls.Remove(station);
+            }
+            else
+            {
+                _customUrls[station] = customUrl.Trim();
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(customUrl))
+        {
+            var customMetar = await FetchCustomMetarAsync(station, customUrl.Trim());
+            if (customMetar != null)
+            {
+                if (triggerMessageBus)
+                {
+                    EventBus.Instance.Publish(new MetarReceived(customMetar));
+                }
+
+                return customMetar;
+            }
         }
 
         var rawMetar = await DownloadMetarAsync(station);
@@ -80,6 +104,7 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
     {
         _metars.Remove(station);
         _monitoredStations.Remove(station);
+        _customUrls.Remove(station);
     }
 
     /// <inheritdoc />
@@ -92,8 +117,66 @@ public sealed class MetarRepository : IMetarRepository, IDisposable
     {
         if (_monitoredStations.Count != 0)
         {
-            await FetchMetarsAsync(_monitoredStations.ToList());
+            var customStations = _monitoredStations.Where(_customUrls.ContainsKey).ToList();
+            var standardStations = _monitoredStations.Except(customStations).ToList();
+
+            foreach (var station in customStations)
+            {
+                var metar = await FetchCustomMetarAsync(station, _customUrls[station]);
+                if (metar != null)
+                {
+                    _metars[station] = metar;
+                    EventBus.Instance.Publish(new MetarReceived(metar));
+                }
+                else
+                {
+                    // Custom source unavailable, fall back to the VATSIM source.
+                    standardStations.Add(station);
+                }
+            }
+
+            if (standardStations.Count != 0)
+            {
+                await FetchMetarsAsync(standardStations);
+            }
         }
+    }
+
+    /// <summary>
+    /// Downloads a METAR from a user-supplied URL. The URL may contain an {icao} placeholder.
+    /// </summary>
+    /// <returns>The decoded METAR, or null if the source failed or returned no usable METAR.</returns>
+    private async Task<DecodedMetar?> FetchCustomMetarAsync(string station, string urlTemplate)
+    {
+        try
+        {
+            var url = urlTemplate.Replace("{icao}", station, StringComparison.OrdinalIgnoreCase);
+            Log.Information($"Downloading METAR {station} from custom source {url}");
+            var response = await _downloader.DownloadStringAsync(url);
+
+            foreach (var line in response.Split(s_separators, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var trimmed = line.Trim();
+                if (trimmed.Length == 0)
+                {
+                    continue;
+                }
+
+                var metar = _metarDecoder.ParseNotStrict(trimmed);
+                if (string.Equals(metar.Icao, station, StringComparison.OrdinalIgnoreCase))
+                {
+                    return metar;
+                }
+            }
+
+            Log.Warning($"Custom METAR source for {station} returned no matching METAR, using default source");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, $"Error downloading METAR from custom source: {station}");
+        }
+
+        return null;
     }
 
     private async Task FetchMetarsAsync(List<string> stations)

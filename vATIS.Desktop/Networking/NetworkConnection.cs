@@ -475,7 +475,7 @@ public class NetworkConnection : INetworkConnection, IDisposable
         // Wait until we have established FSD connection to request METAR.
         if (_atisStation != null)
         {
-            _metarRepository.GetMetar(_atisStation.Identifier, monitor: true);
+            _metarRepository.GetMetar(_atisStation.Identifier, monitor: true, customUrl: _atisStation.CustomMetarUrl);
         }
     }
 

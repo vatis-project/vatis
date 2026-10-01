@@ -506,7 +506,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, false, false);
+        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, false, false, SelectedStation.CustomMetarUrl);
         SandboxMetar = metar?.RawMetar;
     }
 

@@ -134,6 +134,18 @@
 				</StackPanel>
 			</Border>
 		</StackPanel>
+		<StackPanel>
+			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+				<StackPanel Spacing="5">
+					<TextBlock Text="Custom METAR URL (optional):" ToolTip.Tip="Overrides the default VATSIM METAR source. The URL must return a single METAR or SPECI report. Use {icao} as a placeholder for the airport identifier. If the source fails, the default VATSIM source is used."/>
+					<TextBox Name="CustomMetarUrl" Text="{Binding CustomMetarUrl, DataType=vm:GeneralConfigViewModel}" Watermark="https://example.com/metar/{icao}" Theme="{StaticResource DarkTextBox}">
+						<Interaction.Behaviors>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+			</Border>
+		</StackPanel>
 		<TextBlock Foreground="#FFA500" TextWrapping="Wrap" FontWeight="Medium">Note: Saving changes to the ATIS configuration will automatically<LineBreak/>disconnect it from the network if it is currently connected.</TextBlock>
 		<TextBlock Foreground="White" FontWeight="Medium" Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}"/>
 	</StackPanel>
