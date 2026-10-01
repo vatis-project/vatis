@@ -20,6 +20,18 @@ public class MetarDecoderTests
     }
 
     [Fact]
+    public void Parse_UnavailableGroupAfterVisibility_DecodesRemainingGroups()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "ELLX 241050Z 09004KT 050V120 0150 0050// R24/0150N FG VV001 00/00 Q1001 NOSIG");
+
+        Assert.Single(metar.RunwaysVisualRange!);
+        Assert.NotNull(metar.AirTemperature);
+        Assert.NotNull(metar.Pressure);
+        Assert.NotEmpty(metar.PresentWeather);
+    }
+
+    [Fact]
     public void Parse_NosigWithoutRemarks_DecodesTrend()
     {
         var metar = _decoder.ParseNotStrict(

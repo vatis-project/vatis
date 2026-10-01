@@ -28,6 +28,7 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
     private const string VisibilityRegexPattern = "([0-9]{4})(NDV)?";
     private const string UsVisibilityRegexPattern = "M?([0-9]{0,2}) ?(([1357])/(2|4|8|16))?SM";
     private const string MinimumVisibilityRegexPattern = "( ([0-9]{4})(N|NE|E|SE|S|SW|W|NW)?)?"; // optional
+    private const string UnavailableGroupRegexPattern = "(?: [0-9]{4}//)?"; // e.g. "0050//" sensor value not available, ignored
     private const string KilometerVisibilityRegexPattern = "([0-9]{1,2})KM"; // non-ICAO, used by some domestic METARs (e.g. NZ)
     private const string NoInfoRegexPattern = "////";
 
@@ -35,7 +36,7 @@ public sealed class VisibilityChunkDecoder : MetarChunkDecoder
     public override string GetRegex()
     {
         return
-            $"^({CavokRegexPattern}|{VisibilityRegexPattern}{MinimumVisibilityRegexPattern}|{UsVisibilityRegexPattern}|{KilometerVisibilityRegexPattern}|{NoInfoRegexPattern})( )";
+            $"^({CavokRegexPattern}|{VisibilityRegexPattern}{MinimumVisibilityRegexPattern}{UnavailableGroupRegexPattern}|{UsVisibilityRegexPattern}|{KilometerVisibilityRegexPattern}|{NoInfoRegexPattern})( )";
     }
 
     /// <inheritdoc/>
