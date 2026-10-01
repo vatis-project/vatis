@@ -65,6 +65,10 @@
                                   ToolTip.Tip="Toggle Weather Data"
                                   Command="{Binding ToggleMetarDetails, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
                                   IsChecked="{Binding ShowMetarDetails, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"/>
+                    <ToggleButton Theme="{StaticResource CompassToggle}"
+                                  ToolTip.Tip="Show Magnetic Wind"
+                                  Command="{Binding ToggleMagneticWind, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
+                                  IsChecked="{Binding UseMagneticWind, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"/>
                     <ToggleButton Theme="{StaticResource PinButtonSmall}"
                                   ToolTip.Tip="Keep Window On Top"
                                   Command="{Binding ToggleIsTopMost, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
@@ -118,7 +122,7 @@
                                     <TextBlock Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" FontSize="15" FontWeight="Medium" IsHitTestVisible="False"/>
                                 </StackPanel>
                                 <TextBlock Grid.Column="4" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
-                                <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Wind, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
+                                <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding MiniWindowWind, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
                             </Grid>
                         </StackPanel>
                     </DataTemplate>

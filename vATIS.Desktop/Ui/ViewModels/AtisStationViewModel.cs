@@ -25,6 +25,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Container.Factory;
 using Vatsim.Vatis.Events;
@@ -94,6 +95,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     private string? _metarString;
     private string? _observationTime;
     private string? _wind;
+    private static readonly System.Text.RegularExpressions.Regex s_windDirectionRegex =
+        new(@"(?<![0-9])[0-9]{3}(?=[0-9]{2,3}|V[0-9]{3}|\b)", System.Text.RegularExpressions.RegexOptions.Compiled);
     private string? _altimeter;
     private bool _isNewAtis;
     private string _atisTypeLabel = "";
@@ -417,6 +420,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
 
         this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
 
+        MiniWindowTopMostViewModel.Instance.WhenAnyValue(x => x.UseMagneticWind)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(MiniWindowWind)));
+
         this.WhenAnyValue(x => x.AtisLetter)
             .Select(_ => Observable.FromAsync(() => PublishAtisToWebsocket()))
             .Concat()
@@ -580,7 +586,32 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public string? Wind
     {
         get => _wind;
-        set => this.RaiseAndSetIfChanged(ref _wind, value?.Trim());
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _wind, value?.Trim());
+            this.RaisePropertyChanged(nameof(MiniWindowWind));
+        }
+    }
+
+    /// <summary>
+    /// Gets the wind shown in the mini-window. When the mini-window magnetic wind option is enabled and
+    /// magnetic variation is configured for this station, the wind directions have it applied.
+    /// </summary>
+    public string? MiniWindowWind
+    {
+        get
+        {
+            var magVar = AtisStation.AtisFormat.SurfaceWind.MagneticVariation;
+            if (string.IsNullOrEmpty(_wind) ||
+                !MiniWindowTopMostViewModel.Instance.UseMagneticWind ||
+                !magVar.Enabled)
+            {
+                return _wind;
+            }
+
+            return s_windDirectionRegex.Replace(_wind, m =>
+                int.Parse(m.Value).ApplyMagVar(true, magVar.MagneticDegrees).ToString("000"));
+        }
     }
 
     /// <summary>
