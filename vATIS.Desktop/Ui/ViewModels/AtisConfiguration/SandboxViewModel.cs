@@ -621,7 +621,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             return;
 
         var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, monitor: false,
-            triggerMessageBus: false);
+            triggerMessageBus: false, customUrl: SelectedStation.CustomMetarUrl);
         SandboxMetar = metar?.RawMetar;
     }
 

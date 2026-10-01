@@ -23,7 +23,7 @@ public class ObservationTimeNode : BaseNode<string>
     /// <inheritdoc/>
     public override void Parse(DecodedMetar metar)
     {
-        Parse(metar.Day, metar.Hour, metar.Minute);
+        Parse(metar.Day, metar.Hour, metar.Minute, metar.Type is DecodedMetar.MetarType.Speci or DecodedMetar.MetarType.SpeciCor);
     }
 
     /// <inheritdoc/>
@@ -38,12 +38,13 @@ public class ObservationTimeNode : BaseNode<string>
         throw new NotImplementedException();
     }
 
-    private void Parse(int metarDay, int metarHour, int metarMinute)
+    private void Parse(int metarDay, int metarHour, int metarMinute, bool isSpeci = false)
     {
         ArgumentNullException.ThrowIfNull(Station);
 
-        _isSpecialAtis = Station.AtisFormat.ObservationTime.StandardUpdateTime != null
-                         && !Station.AtisFormat.ObservationTime.StandardUpdateTime.Contains(metarMinute);
+        _isSpecialAtis = isSpeci
+                         || (Station.AtisFormat.ObservationTime.StandardUpdateTime != null
+                             && !Station.AtisFormat.ObservationTime.StandardUpdateTime.Contains(metarMinute));
 
         VoiceAtis = ParseVoiceVariables(metarDay, metarHour, metarMinute, Station.AtisFormat.ObservationTime.Template.Voice);
         TextAtis = ParseTextVariables(metarDay, metarHour, metarMinute, Station.AtisFormat.ObservationTime.Template.Text);
