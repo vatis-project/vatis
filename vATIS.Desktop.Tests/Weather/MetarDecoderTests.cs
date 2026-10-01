@@ -62,6 +62,17 @@ public class MetarDecoderTests
     }
 
     [Fact]
+    public void Parse_TempoWithMultiplePresentWeather_DecodesTrend()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "LOWW 261750Z 11010KT 9999 FEW007 BKN026 13/12 Q1024 TEMPO 4000 SHRA BR SCT004 BKN008");
+
+        Assert.NotNull(metar.TrendForecast);
+        Assert.Equal("SHRA BR ", metar.TrendForecast.WeatherCodes);
+        Assert.Equal("SCT004 BKN008 ", metar.TrendForecast.Clouds);
+    }
+
+    [Fact]
     public void Parse_WithRemarks_PreservesRawMetar()
     {
         var metar = _decoder.ParseNotStrict("METAR UNNT 290800Z 11003MPS CAVOK 31/17 Q1002 NOSIG RMK QFE742/0989");
