@@ -10,7 +10,7 @@
         x:Class="Vatsim.Vatis.Ui.Dialogs.NewAtisStationDialog"
         Title="NewAtisStationDialog"
 		x:Name="Window"
-		Width="375" Height="315"
+		Width="375" d:DesignHeight="315"
 		WindowStartupLocation="CenterOwner"
 		CanResize="False"
 		ShowInTaskbar="False"

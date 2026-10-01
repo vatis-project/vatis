@@ -50,27 +50,42 @@ public partial class MessageBoxView : Window, ICloseable
 
     private void CenterWindow()
     {
-        if (DataContext is MessageBoxViewModel { Owner: not null } viewModel)
+        if (DataContext is not MessageBoxViewModel { Owner: not null } viewModel)
         {
-            if (viewModel.CenterWindowOnScreen)
-            {
-                var screen = Screens.ScreenFromVisual(this) ?? Screens.Primary;
-                if (screen != null)
-                {
-                    var screenBounds = screen.WorkingArea;
-                    Position = new PixelPoint(
-                        (int)(screenBounds.X + ((screenBounds.Width - Width) / 2)),
-                        (int)(screenBounds.Y + ((screenBounds.Height - Height) / 2)));
-                    return;
-                }
-            }
-
-            var owner = viewModel.Owner;
-            var ownerPosition = owner.Position;
-
-            Position = new PixelPoint(
-                (int)(ownerPosition.X + ((owner.Width - Width) / 2)),
-                (int)(ownerPosition.Y + ((owner.Height - Height) / 2)));
+            return;
         }
+
+        // Width/Height are NaN when the window uses SizeToContent, so use the actual size of the window.
+        var size = PixelSizeOf(this);
+        if (size.Width <= 0 || size.Height <= 0)
+        {
+            return;
+        }
+
+        if (viewModel.CenterWindowOnScreen)
+        {
+            var screen = Screens.ScreenFromVisual(this) ?? Screens.Primary;
+            if (screen != null)
+            {
+                var area = screen.WorkingArea;
+                Position = new PixelPoint(
+                    area.X + ((area.Width - size.Width) / 2),
+                    area.Y + ((area.Height - size.Height) / 2));
+                return;
+            }
+        }
+
+        var owner = viewModel.Owner;
+        var ownerSize = PixelSizeOf(owner);
+        Position = new PixelPoint(
+            owner.Position.X + ((ownerSize.Width - size.Width) / 2),
+            owner.Position.Y + ((ownerSize.Height - size.Height) / 2));
+    }
+
+    private static PixelSize PixelSizeOf(Window window)
+    {
+        var size = window.FrameSize ?? window.ClientSize;
+        var scale = window.RenderScaling;
+        return new PixelSize((int)(size.Width * scale), (int)(size.Height * scale));
     }
 }
