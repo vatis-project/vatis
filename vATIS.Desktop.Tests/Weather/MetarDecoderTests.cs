@@ -9,6 +9,17 @@ public class MetarDecoderTests
     private readonly MetarDecoder _decoder = new();
 
     [Fact]
+    public void Parse_UnavailableRvr_DecodesRemainingGroups()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "ESOW 021850Z AUTO 01017KT 1300 R01/P2000N R19///// // VV016 M04/M05 Q0983");
+
+        Assert.NotNull(metar.AirTemperature);
+        Assert.NotNull(metar.DewPointTemperature);
+        Assert.NotNull(metar.Pressure);
+    }
+
+    [Fact]
     public void Parse_NosigWithoutRemarks_DecodesTrend()
     {
         var metar = _decoder.ParseNotStrict(
