@@ -786,6 +786,43 @@
 					</StackPanel>
 				</groupBox:GroupBoxControl>
 			</StackPanel>
+            <!--Remark Wind-->
+            <StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Remark Wind'}">
+                <StackPanel Orientation="Vertical" Spacing="10">
+                    <Grid ColumnDefinitions="100,10,*,10,*">
+                        <TextBlock Grid.Column="2">Text</TextBlock>
+                        <TextBlock Grid.Column="4">Voice</TextBlock>
+                    </Grid>
+                    <Grid ColumnDefinitions="100,10,*,10,*">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">Template</TextBlock>
+                        <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Text" Text="{Binding RemarkWindText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        <controls:TemplateVariableTextBox Grid.Column="4" Watermark="Voice" Text="{Binding RemarkWindVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                    <WrapPanel>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,8,0"
+                            ToolTip.Tip="The height of the wind observation in feet."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {height}
+                        </Button>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,8,0"
+                            ToolTip.Tip="The wind direction in degrees, or VRB if variable."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {dir}
+                        </Button>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,8,0"
+                            ToolTip.Tip="The wind speed in knots, including any gust (e.g. 03G10)."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {speed}
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
+            </StackPanel>
             <!--Wind Shear-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind Shear'}">
                 <StackPanel Orientation="Vertical" Spacing="10">

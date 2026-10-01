@@ -17,22 +17,33 @@ public class RemarkWindNode : BaseNode<RemarkWind>
     /// <inheritdoc />
     public override void Parse(DecodedMetar metar)
     {
+        var format = Station?.AtisFormat.RemarkWind;
         var wind = metar.RemarkWind;
-        if (wind == null)
+        if (format == null || wind == null)
         {
             return;
         }
 
         var direction = wind.Direction.HasValue ? $"{wind.Direction.Value:000}" : "VRB";
         var gust = wind.Gust.HasValue ? $"G{wind.Gust.Value:00}" : string.Empty;
-        TextAtis = $"WIND {wind.HeightFeet}FT {direction}/{wind.Speed:00}{gust}KT";
+        TextAtis = Apply(format.TextTemplate, wind.HeightFeet.ToString(), direction, $"{wind.Speed:00}{gust}");
 
-        var voiceDirection = wind.Direction.HasValue
-            ? $"{wind.Direction.Value.ToSerialFormat(leadingZero: true)} DEGREES"
-            : "VARIABLE";
-        var voiceGust = wind.Gust.HasValue ? $" GUSTING {wind.Gust.Value.ToSerialFormat()}" : string.Empty;
-        VoiceAtis =
-            $"WIND {wind.HeightFeet.ToSerialFormat()} FEET {voiceDirection} {wind.Speed.ToSerialFormat()}{voiceGust} KNOTS";
+        var voiceDirection = wind.Direction.HasValue ? wind.Direction.Value.ToSerialFormat(leadingZero: true) : "variable";
+        var voiceSpeed = wind.Speed.ToSerialFormat();
+        if (wind.Gust.HasValue)
+        {
+            voiceSpeed += $" gusting {wind.Gust.Value.ToSerialFormat()}";
+        }
+
+        VoiceAtis = Apply(format.VoiceTemplate, wind.HeightFeet.ToSerialFormat(), voiceDirection, voiceSpeed);
+    }
+
+    private static string Apply(string? template, string height, string direction, string speed)
+    {
+        return (template ?? string.Empty)
+            .Replace("{height}", height, StringComparison.OrdinalIgnoreCase)
+            .Replace("{dir}", direction, StringComparison.OrdinalIgnoreCase)
+            .Replace("{speed}", speed, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <inheritdoc />
