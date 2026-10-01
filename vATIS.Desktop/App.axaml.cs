@@ -195,7 +195,16 @@ public class App : Application
                 }
 
                 await CheckForProfileUpdatesAsync();
-                await UpdateNavDataAsync();
+                try
+                {
+                    await UpdateNavDataAsync();
+                }
+                catch (NavDataUnavailableException ex)
+                {
+                    HandleError(ex, "Required navdata is unavailable", true);
+                    return;
+                }
+
                 await UpdateAvailableVoicesAsync();
 
                 // Show release notes of new version

@@ -106,29 +106,53 @@ public class NavDataRepository : INavDataRepository
         if (!string.IsNullOrEmpty(availableNavData.AirportDataUrl))
         {
             Log.Information($"Downloading airport navdata from {availableNavData.AirportDataUrl}");
-            await _downloader.DownloadFileAsync(availableNavData.AirportDataUrl, PathProvider.AirportsFilePath,
-                new Progress<int>(percent =>
-                {
-                    EventBus.Instance.Publish(new StartupStatusChanged($"Downloading airport navdata: {percent}%"));
-                }));
+            await DownloadAtomicAsync(availableNavData.AirportDataUrl, PathProvider.AirportsFilePath, "airport");
         }
 
         if (!string.IsNullOrEmpty(availableNavData.NavaidDataUrl))
         {
             Log.Information($"Downloading navaid navdata from {availableNavData.NavaidDataUrl}");
-            await _downloader.DownloadFileAsync(availableNavData.NavaidDataUrl, PathProvider.NavaidsFilePath,
-                new Progress<int>(percent =>
-                {
-                    EventBus.Instance.Publish(new StartupStatusChanged($"Downloading navaid navdata: {percent}%"));
-                }));
+            await DownloadAtomicAsync(availableNavData.NavaidDataUrl, PathProvider.NavaidsFilePath, "navaid");
         }
 
         await File.WriteAllTextAsync(PathProvider.NavDataSerialFilePath,
             JsonSerializer.Serialize(availableNavData.NavDataSerial, SourceGenerationContext.NewDefault.String));
     }
 
+    private async Task DownloadAtomicAsync(string url, string destination, string label)
+    {
+        // Download to a temp file first so a failed download never leaves a missing or truncated data file.
+        var tempPath = destination + ".tmp";
+        try
+        {
+            await _downloader.DownloadFileAsync(url, tempPath,
+                new Progress<int>(percent =>
+                {
+                    EventBus.Instance.Publish(new StartupStatusChanged($"Downloading {label} navdata: {percent}%"));
+                }));
+            File.Move(tempPath, destination, true);
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(tempPath);
+            }
+            catch (IOException)
+            {
+                // Best effort cleanup.
+            }
+        }
+    }
+
     private async Task LoadAirportDatabase()
     {
+        if (!File.Exists(PathProvider.AirportsFilePath))
+        {
+            Log.Error("Airport navdata file not found: {Path}", PathProvider.AirportsFilePath);
+            throw new NavDataUnavailableException();
+        }
+
         _airports = await Task.Run(() =>
         {
             var content = File.ReadAllText(PathProvider.AirportsFilePath);
@@ -138,6 +162,12 @@ public class NavDataRepository : INavDataRepository
 
     private async Task LoadNavaidDatabase()
     {
+        if (!File.Exists(PathProvider.NavaidsFilePath))
+        {
+            Log.Error("Navaid navdata file not found: {Path}", PathProvider.NavaidsFilePath);
+            throw new NavDataUnavailableException();
+        }
+
         _navaids = await Task.Run(() =>
         {
             using var source = File.OpenRead(PathProvider.NavaidsFilePath);
