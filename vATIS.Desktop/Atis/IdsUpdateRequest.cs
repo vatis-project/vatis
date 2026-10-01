@@ -38,6 +38,11 @@ public class IdsUpdateRequest
     public string? Notams { get; set; }
 
     /// <summary>
+    /// Gets or sets the full text ATIS.
+    /// </summary>
+    public string? TextAtis { get; set; }
+
+    /// <summary>
     /// Gets or sets the timestamp of the request.
     /// </summary>
     public DateTime Timestamp { get; set; }
