@@ -1,6 +1,9 @@
 #include "audio_context.h"
 #include "native_audio.h"
 #include "wav_data.h"
+#ifdef __APPLE__
+#include "mac_permissions.h"
+#endif
 
 AudioContext::AudioContext() :
 	playbackDeviceName(""),
@@ -196,6 +199,12 @@ bool AudioContext::StartRecording(const std::string deviceName)
 	std::lock_guard<std::mutex> lock(audioMutex);
 	audioBuffer.clear();
 
+#ifdef __APPLE__
+	if (!EnsureMicrophoneAccess()) {
+		return false;
+	}
+#endif
+
 	if (!captureInitialized) {
 		ma_device_id deviceId;
 		if (!GetDeviceFromName(deviceName, deviceId, true)) {
@@ -219,6 +228,7 @@ bool AudioContext::StartRecording(const std::string deviceName)
 
 	if (ma_device_start(&captureDevice) != MA_SUCCESS) {
 		ma_device_uninit(&captureDevice);
+		captureInitialized = false;
 		return false;
 	}
 
