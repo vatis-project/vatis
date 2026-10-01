@@ -4,6 +4,7 @@
 // https://github.com/afonsoft/metar-decoder
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
@@ -116,7 +117,11 @@ public class MetarDecoder
         var cleanMetar = rawMetar.ToUpper().Trim();
         cleanMetar = Regex.Replace(cleanMetar, "=$", string.Empty);
         cleanMetar = Regex.Replace(cleanMetar, "[ ]{2,}", " ") + " ";
-        var remainingMetar = cleanMetar;
+
+        // Remarks are free text that the chunk decoders cannot parse, and would prevent the trailing
+        // trend group from matching. Exclude them from decoding but keep them in the raw METAR.
+        var remarksIndex = cleanMetar.IndexOf(" RMK ", StringComparison.Ordinal);
+        var remainingMetar = remarksIndex >= 0 ? cleanMetar[..(remarksIndex + 1)] : cleanMetar;
         var decodedMetar = new DecodedMetar(cleanMetar);
         var withCavok = false;
 
