@@ -1,4 +1,4 @@
-// <copyright file="PresetsViewModel.cs" company="Justin Shannon">
+﻿// <copyright file="PresetsViewModel.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
@@ -468,34 +470,78 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         return _changeTracker.ApplyChangesIfNeeded();
     }
 
-    private static void HandleTemplateVariableClicked(string? variable)
+    private void HandleTemplateVariableClicked(string? variable)
     {
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime
+            {
+                MainWindow: not null
+            } lifetime)
         {
-            if (lifetime.MainWindow == null)
+            return;
+        }
+
+        var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
+        var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
+
+        variable = variable?.Replace("__", "_") ?? string.Empty;
+
+        if (variable.StartsWith("[QFE|", StringComparison.OrdinalIgnoreCase))
+        {
+            PromptForQfeElevation(lifetime.MainWindow, focusedElement);
+            return;
+        }
+
+        InsertTemplateVariable(focusedElement, variable);
+    }
+
+    private void PromptForQfeElevation(Window owner, IInputElement? focusedElement)
+    {
+        var dialog = _windowFactory.CreateUserInputDialog();
+        dialog.Topmost = owner.Topmost;
+        if (dialog.DataContext is not UserInputDialogViewModel context)
+        {
+            return;
+        }
+
+        context.Title = "Threshold QFE";
+        context.Prompt = "Runway threshold elevation (feet):";
+        context.DialogResultChanged += (_, dialogResult) =>
+        {
+            if (dialogResult != DialogResult.Ok)
             {
                 return;
             }
 
-            var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
-            var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
+            context.ClearError();
 
-            variable = variable?.Replace("__", "_") ?? string.Empty;
-
-            if (focusedElement is TemplateVariableTextBox focusedTextBox)
+            if (!int.TryParse(context.UserValue?.Trim(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture,
+                    out var elevation))
             {
-                var caretIndex = focusedTextBox.CaretIndex;
-                focusedTextBox.Text = focusedTextBox.Text?.Insert(focusedTextBox.CaretIndex, variable);
-                focusedTextBox.CaretIndex = variable.Length + caretIndex;
+                context.SetError("Enter the elevation as a whole number of feet.");
+                return;
             }
 
-            if (focusedElement is TextArea focusedTextEditor)
-            {
-                var caretIndex = focusedTextEditor.Caret.Offset;
-                focusedTextEditor.Document.Text =
-                    focusedTextEditor.Document.Text.Insert(focusedTextEditor.Caret.Offset, variable);
-                focusedTextEditor.Caret.Offset = variable.Length + caretIndex;
-            }
+            InsertTemplateVariable(focusedElement, $"[QFE|{elevation}]");
+        };
+
+        dialog.ShowDialog(owner);
+    }
+
+    private static void InsertTemplateVariable(IInputElement? focusedElement, string variable)
+    {
+        if (focusedElement is TemplateVariableTextBox focusedTextBox)
+        {
+            var caretIndex = focusedTextBox.CaretIndex;
+            focusedTextBox.Text = focusedTextBox.Text?.Insert(focusedTextBox.CaretIndex, variable);
+            focusedTextBox.CaretIndex = variable.Length + caretIndex;
+        }
+
+        if (focusedElement is TextArea focusedTextEditor)
+        {
+            var caretIndex = focusedTextEditor.Caret.Offset;
+            focusedTextEditor.Document.Text =
+                focusedTextEditor.Document.Text.Insert(focusedTextEditor.Caret.Offset, variable);
+            focusedTextEditor.Caret.Offset = variable.Length + caretIndex;
         }
     }
 

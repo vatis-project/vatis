@@ -90,7 +90,7 @@ public class AtisBuilder : IAtisBuilder
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
         var (spokenText, audioBytes) =
-            await CreateVoiceAtis(station, preset, currentAtisLetter, variables, cancellationToken);
+            await CreateVoiceAtis(station, preset, currentAtisLetter, variables, decodedMetar, cancellationToken);
 
         return new AtisBuilderVoiceAtisResponse(spokenText, audioBytes);
     }
@@ -139,7 +139,7 @@ public class AtisBuilder : IAtisBuilder
 
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
-        return await CreateTextAtis(station, preset, currentAtisLetter, variables);
+        return await CreateTextAtis(station, preset, currentAtisLetter, variables, decodedMetar);
     }
 
     /// <inheritdoc />
@@ -267,6 +267,23 @@ public class AtisBuilder : IAtisBuilder
         });
     }
 
+    /// <summary>
+    /// Replaces <c>[QFE|elevation]</c> variables with the QFE calculated for the given elevation in feet, allowing
+    /// a preset to report the threshold QFE for the runways in use.
+    /// </summary>
+    private static string ReplaceQfeVariables(string template, DecodedMetar metar, bool voiceVariable)
+    {
+        var qnh = AltimeterSettingNode.GetQnhHpa(metar.Pressure?.Value);
+        return Regex.Replace(template, @"\[QFE\|(-?\d+)\]", match =>
+        {
+            if (qnh == null || !int.TryParse(match.Groups[1].Value, out var elevation))
+                return "";
+
+            var qfe = AltimeterSettingNode.CalculateQfe(qnh.Value, elevation);
+            return voiceVariable ? qfe.ToSerialFormat() : qfe.ToString(CultureInfo.InvariantCulture);
+        }, RegexOptions.IgnoreCase);
+    }
+
     private static string RemoveTextParsingCharacters(string text)
     {
         // Remove '+' prefix from airport and navaid identifiers (3-4 uppercase letters/numbers)
@@ -334,13 +351,14 @@ public class AtisBuilder : IAtisBuilder
     }
 
     private async Task<(string? SpokenText, byte[]? AudioBytes)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
-        char currentAtisLetter, List<AtisVariable> variables, CancellationToken cancellationToken)
+        char currentAtisLetter, List<AtisVariable> variables, DecodedMetar metar, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var template = preset.Template ?? "";
 
         template = ReplaceContractionVariable(template, station, voiceVariable: true);
+        template = ReplaceQfeVariables(template, metar, voiceVariable: true);
 
         // Custom station altimeter
         try
@@ -425,11 +443,12 @@ public class AtisBuilder : IAtisBuilder
     }
 
     private async Task<string> CreateTextAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
-        List<AtisVariable> variables)
+        List<AtisVariable> variables, DecodedMetar metar)
     {
         var template = preset.Template ?? "";
 
         template = ReplaceContractionVariable(template, station, voiceVariable: false);
+        template = ReplaceQfeVariables(template, metar, voiceVariable: false);
 
         foreach (var variable in variables)
         {
