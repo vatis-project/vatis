@@ -823,6 +823,19 @@
                     </WrapPanel>
                 </StackPanel>
             </StackPanel>
+            <!--Automatic Observation-->
+            <StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Automatic Observation'}">
+                <TextBlock TextWrapping="Wrap">Used by the [AUTO] variable. Only output when the METAR is flagged AUTO.</TextBlock>
+                <Grid ColumnDefinitions="100,10,*,10,*">
+                    <TextBlock Grid.Column="2">Text</TextBlock>
+                    <TextBlock Grid.Column="4">Voice</TextBlock>
+                </Grid>
+                <Grid ColumnDefinitions="100,10,*,10,*">
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center">Template</TextBlock>
+                    <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Text" Text="{Binding AutoObservationText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    <controls:TemplateVariableTextBox Grid.Column="4" Watermark="Voice" Text="{Binding AutoObservationVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                </Grid>
+            </StackPanel>
             <!--Wind Shear-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind Shear'}">
                 <StackPanel Orientation="Vertical" Spacing="10">

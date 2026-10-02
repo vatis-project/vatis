@@ -536,6 +536,10 @@ public class AtisBuilder : IAtisBuilder
         var recentWeather = NodeParser.Parse<RecentWeatherNode, WeatherPhenomenon>(metar, station);
         var windshear = NodeParser.Parse<WindShearNode, string>(metar, station);
         var remarkWind = NodeParser.Parse<RemarkWindNode, RemarkWind>(metar, station);
+        var autoNode = new AutoObservationNode { Station = station };
+        autoNode.Parse(metar);
+        var autoText = autoNode.TextAtis ?? "";
+        var autoVoice = string.IsNullOrEmpty(autoNode.VoiceAtis) ? "" : $"{autoNode.VoiceAtis}.";
 
         var completeWxStringVoice =
             $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis} {windshear.VoiceAtis} {trends.VoiceAtis}";
@@ -651,7 +655,8 @@ public class AtisBuilder : IAtisBuilder
             new("TREND", trends.TextAtis, trends.VoiceAtis),
             new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
             new("WS", windshear.TextAtis, windshear.VoiceAtis),
-            new("RMK_WIND", remarkWind.TextAtis, remarkWind.VoiceAtis)
+            new("RMK_WIND", remarkWind.TextAtis, remarkWind.VoiceAtis),
+            new("AUTO", autoText, autoVoice)
         };
 
         if (!station.IsFaaAtis)
