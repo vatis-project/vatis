@@ -122,6 +122,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _trendNotAvailableVoice;
     private string? _remarkWindText;
     private string? _remarkWindVoice;
+    private string? _autoObservationText;
+    private string? _autoObservationVoice;
     private string? _runwayWindShearText;
     private string? _runwayWindShearVoice;
     private string? _allRunwayWindShearText;
@@ -1274,6 +1276,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the text template for the automatic observation.
+    /// </summary>
+    public string? AutoObservationText
+    {
+        get => _autoObservationText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoObservationText, value);
+            _changeTracker.TrackChange(nameof(AutoObservationText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the automatic observation.
+    /// </summary>
+    public string? AutoObservationVoice
+    {
+        get => _autoObservationVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoObservationVoice, value);
+            _changeTracker.TrackChange(nameof(AutoObservationVoice), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the text value for individual runway wind shear.
     /// </summary>
     public string? RunwayWindShearText
@@ -1931,6 +1959,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.RemarkWind.VoiceTemplate = RemarkWindVoice;
         }
 
+        if (SelectedStation.AtisFormat.AutoObservation.TextTemplate != AutoObservationText)
+        {
+            SelectedStation.AtisFormat.AutoObservation.TextTemplate = AutoObservationText;
+        }
+
+        if (SelectedStation.AtisFormat.AutoObservation.VoiceTemplate != AutoObservationVoice)
+        {
+            SelectedStation.AtisFormat.AutoObservation.VoiceTemplate = AutoObservationVoice;
+        }
+
         if (SelectedStation.AtisFormat.WindShear.RunwayText != RunwayWindShearText)
         {
             SelectedStation.AtisFormat.WindShear.RunwayText = RunwayWindShearText;
@@ -2025,6 +2063,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             items.Add("Transition Level");
         }
 
+        items.Add("Automatic Observation");
         items.Add("NOTAMs");
         items.Add("Closing Statement");
 
@@ -2105,6 +2144,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         TrendNotAvailableVoiceValue = station.AtisFormat.Trend.NotAvailableVoice;
         RemarkWindText = station.AtisFormat.RemarkWind.TextTemplate;
         RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
+        AutoObservationText = station.AtisFormat.AutoObservation.TextTemplate;
+        AutoObservationVoice = station.AtisFormat.AutoObservation.VoiceTemplate;
         RunwayWindShearText = station.AtisFormat.WindShear.RunwayText;
         RunwayWindShearVoice = station.AtisFormat.WindShear.RunwayVoice;
         AllRunwayWindShearText = station.AtisFormat.WindShear.AllRunwayText;
