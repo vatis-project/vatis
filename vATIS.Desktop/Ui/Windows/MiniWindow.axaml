@@ -6,6 +6,7 @@
         xmlns:networking="using:Vatsim.Vatis.Networking"
         xmlns:converter="using:Vatsim.Vatis.Ui.Converters"
         xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+        xmlns:atis="using:Vatsim.Vatis.Atis"
         mc:Ignorable="d"
         x:Name="Window"
         x:Class="Vatsim.Vatis.Ui.Windows.MiniWindow"
@@ -26,6 +27,7 @@
     <Window.Resources>
         <converter:AtisLetterColorConverter x:Key="AtisLetterColorConverter"/>
         <converter:EnumToBrushConverter x:Key="ConnectionStatusToBrush" Match="Aqua" NoMatch="Tomato"/>
+        <converter:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
         <DataTemplate x:Key="AtisLetterTemplate">
             <TextBlock
                 Name="AtisLetter"
@@ -111,6 +113,9 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Panel Width="7" VerticalAlignment="Center">
+                                <Ellipse Width="7" Height="7" Fill="Red" IsVisible="{Binding RecordedAtisState, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static atis:RecordedAtisState.Expired}}"><ToolTip.Tip>Voice ATIS needs recording</ToolTip.Tip></Ellipse>
+                            </Panel>
                             <Grid ColumnDefinitions="65,10" IsVisible="{Binding !ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" Grid.Column="1"/>
