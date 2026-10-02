@@ -19,6 +19,7 @@ using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Windows;
@@ -156,6 +157,11 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     }
 
     /// <summary>
+    /// Gets or sets the source used to underline contractions and show spoken text in the editors.
+    /// </summary>
+    public ISpokenTextSource? SpokenTextSource { get; set; }
+
+    /// <summary>
     /// Gets or sets the definitions associated with the airport conditions.
     /// </summary>
     public ObservableCollection<StaticDefinition> Definitions
@@ -252,6 +258,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                     vm.Title = "Edit Airport Condition";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
                     vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
                     {
                         if (result == DialogResult.Ok)
@@ -303,6 +310,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
             {
                 vm.Title = "New Airport Condition";
                 vm.ContractionCompletionData = ContractionCompletionData;
+                vm.SpokenTextSource = SpokenTextSource;
                 vm.DialogResultChanged += (_, result) =>
                 {
                     if (result == DialogResult.Ok)

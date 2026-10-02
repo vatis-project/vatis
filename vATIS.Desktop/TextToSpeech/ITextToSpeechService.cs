@@ -22,6 +22,12 @@ public interface ITextToSpeechService
     List<VoiceMetaData> VoiceList { get; }
 
     /// <summary>
+    /// Gets the contractions built into the ATIS Hub, mapping an abbreviation to its spoken expansion.
+    /// The lookup is case-insensitive.
+    /// </summary>
+    IReadOnlyDictionary<string, string> BuiltInContractions { get; }
+
+    /// <summary>
     /// Initializes the service.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>

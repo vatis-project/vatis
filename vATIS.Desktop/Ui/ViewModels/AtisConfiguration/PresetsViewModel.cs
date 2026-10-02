@@ -39,7 +39,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Provides the ViewModel for managing ATIS presets and configurations.
 /// </summary>
-public class PresetsViewModel : ReactiveViewModelBase, IDisposable
+public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private readonly IMetarRepository _metarRepository;
     private readonly IProfileRepository _profileRepository;
@@ -917,6 +917,29 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         NativeAudio.StopBufferPlayback();
 
         PopulateContractions();
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
+    /// <summary>
+    /// Gets the spoken form of a built-in template token for the selected station.
+    /// </summary>
+    /// <param name="token">The template token.</param>
+    /// <returns>The spoken text, or null if no station is selected or the token could not be converted.</returns>
+    public string? GetSpokenText(string token)
+    {
+        if (SelectedStation == null)
+            return null;
+
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, SelectedStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 
     private void PopulateContractions()

@@ -38,6 +38,7 @@ using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Ui.Services.Websocket;
@@ -57,7 +58,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// <summary>
 /// Represents a ViewModel for managing ATIS station information and operations.
 /// </summary>
-public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
+public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private const int TransceiverHeightM = 10;
     private readonly IAppConfig _appConfig;
@@ -975,6 +976,22 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         });
     }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, AtisStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     private void LoadContractionData()
     {
         ContractionCompletionData.Clear();
@@ -984,6 +1001,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
+
+        this.RaisePropertyChanged(nameof(ContractionCompletionData));
     }
 
     private async Task HandleOpenStaticNotamsDialog()
@@ -1000,6 +1019,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.NotamsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
@@ -1056,6 +1076,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.AirportConditionsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>

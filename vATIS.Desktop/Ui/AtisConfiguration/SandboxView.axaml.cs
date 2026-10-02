@@ -39,8 +39,8 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
             NotamFreeText.TextArea.ReadOnlySectionProvider = new TextSegmentReadOnlySectionProvider<TextSegment>([]);
 
             // Remove previous transformers
-            AirportConditions.TextArea.TextView.LineTransformers.Clear();
-            NotamFreeText.TextArea.TextView.LineTransformers.Clear();
+            ReadOnlySegmentTransformer.RemoveFrom(AirportConditions.TextArea.TextView);
+            ReadOnlySegmentTransformer.RemoveFrom(NotamFreeText.TextArea.TextView);
 
             // Assign new read-only sections
             AirportConditions.TextArea.ReadOnlySectionProvider =

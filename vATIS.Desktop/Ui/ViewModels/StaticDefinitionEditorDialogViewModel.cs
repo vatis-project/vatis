@@ -9,6 +9,7 @@ using System.Reactive;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using ReactiveUI;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -17,7 +18,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// Represents the ViewModel for the Static Definition Editor Dialog.
 /// Provides functionality for editing static definitions with data-binding support.
 /// </summary>
-public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDisposable
+public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private TextDocument? _textDocument = new();
     private List<ICompletionData> _contractionCompletionData = [];
@@ -97,6 +98,21 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         get => _contractionCompletionData;
         set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the source that provides the built-in contractions and spoken text for the editor.
+    /// </summary>
+    public ISpokenTextSource? SpokenTextSource { get; set; }
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions =>
+        SpokenTextSource?.BuiltInContractions ?? new Dictionary<string, string>();
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        return SpokenTextSource?.GetSpokenText(token);
     }
 
     /// <summary>

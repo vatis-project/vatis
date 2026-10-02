@@ -44,6 +44,7 @@
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:PresetsViewModel}"/>
+						<behaviors:TextEditorSpokenTextBehavior/>
                         <behaviors:DocumentTextBindingBehavior Text="{Binding AtisTemplateText, DataType=vm:PresetsViewModel, Mode=TwoWay}"/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>

@@ -61,6 +61,10 @@ public class AtisBuilder : IAtisBuilder
     }
 
     /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions =>
+        _textToSpeechService?.BuiltInContractions ?? new Dictionary<string, string>();
+
+    /// <inheritdoc/>
     public async Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset,
         char currentAtisLetter, DecodedMetar decodedMetar, CancellationToken cancellationToken,
         bool sandboxRequest = false)
@@ -89,6 +93,27 @@ public class AtisBuilder : IAtisBuilder
             await CreateVoiceAtis(station, preset, currentAtisLetter, variables, cancellationToken);
 
         return new AtisBuilderVoiceAtisResponse(spokenText, audioBytes);
+    }
+
+    /// <inheritdoc/>
+    public string GetSpokenText(string token, AtisStation station)
+    {
+        // Station contractions are expanded first, as when building the voice ATIS.
+        var expanded = ReplaceContractionVariable(token.ToUpperInvariant(), station, voiceVariable: true);
+        var spoken = FormatForTextToSpeech(expanded, station).Trim();
+
+        // The ATIS Hub strips any characters it can't speak (e.g. the '+' prefix on airport identifiers).
+        spoken = Regex.Replace(spoken, @"[^A-Za-z0-9 .,\-'#]", string.Empty);
+
+        // The ATIS Hub expands its built-in contractions (e.g. TWY -> TAXIWAY) when synthesizing the audio.
+        var contractions = BuiltInContractions;
+        if (contractions.Count == 0)
+            return spoken;
+
+        var pattern = @"\b(" + string.Join("|", contractions.Keys.Select(Regex.Escape)) + @")\b";
+        return Regex.Replace(spoken, pattern,
+            m => contractions.TryGetValue(m.Value, out var expansion) ? expansion : m.Value,
+            RegexOptions.IgnoreCase);
     }
 
     /// <inheritdoc/>
@@ -226,7 +251,7 @@ public class AtisBuilder : IAtisBuilder
 
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
-        return Regex.Replace(text, @"\@?([\w]+(?:_[\w]+)*)", match =>
+        return Regex.Replace(text, @"@?(\+?[\w]+(?:_[\w]+)*)", match =>
         {
             var key = match.Groups[1].Value; // Get the matched variable
             var variable = station.Contractions.Find(v => v.VariableName == key); // Find matching variable

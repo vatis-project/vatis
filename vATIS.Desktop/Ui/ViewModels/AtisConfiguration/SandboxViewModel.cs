@@ -24,6 +24,7 @@ using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Voice.Audio;
@@ -35,7 +36,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Represents the view model for the sandbox environment.
 /// </summary>
-public class SandboxViewModel : ReactiveViewModelBase, IDisposable
+public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
@@ -283,6 +284,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     /// </summary>
     public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
     /// <summary>
     /// Gets or sets the contraction completion data.
     /// </summary>
@@ -431,6 +435,22 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        if (SelectedStation == null)
+            return null;
+
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, SelectedStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     private void HandleSaveNotamsText()
     {
         if (SelectedPreset == null)
@@ -469,6 +489,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(SelectedStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.NotamsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
@@ -547,6 +568,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             viewModel.Definitions =
                 new ObservableCollection<StaticDefinition>(SelectedStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.AirportConditionsBeforeFreeText;
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
