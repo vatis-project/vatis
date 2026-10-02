@@ -44,6 +44,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     private bool _useTextToSpeech;
     private string? _textToSpeechVoice;
     private bool _useDecimalTerminology;
+    private bool _randomizeAtisLetterOnConnect;
     private string? _idsEndpoint;
     private string? _customMetarUrl;
     private ObservableCollection<VoiceMetaData>? _availableVoices;
@@ -212,6 +213,19 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the ATIS letter is randomized when connecting.
+    /// </summary>
+    public bool RandomizeAtisLetterOnConnect
+    {
+        get => _randomizeAtisLetterOnConnect;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _randomizeAtisLetterOnConnect, value);
+            _changeTracker.TrackChange(nameof(RandomizeAtisLetterOnConnect), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the IDS endpoint.
     /// </summary>
     public string? IdsEndpoint
@@ -291,6 +305,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         CodeRangeLow = '\0';
         CodeRangeHigh = '\0';
         UseDecimalTerminology = false;
+        RandomizeAtisLetterOnConnect = false;
         UseTextToSpeech = true;
         IdsEndpoint = null;
         CustomMetarUrl = null;
@@ -375,6 +390,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.UseDecimalTerminology = UseDecimalTerminology;
         }
 
+        if (SelectedStation.RandomizeAtisLetterOnConnect != RandomizeAtisLetterOnConnect)
+        {
+            SelectedStation.RandomizeAtisLetterOnConnect = RandomizeAtisLetterOnConnect;
+        }
+
         if (SelectedStation.IdsEndpoint != IdsEndpoint)
         {
             SelectedStation.IdsEndpoint = IdsEndpoint ?? string.Empty;
@@ -438,6 +458,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         CodeRangeLow = station.CodeRange.Low;
         CodeRangeHigh = station.CodeRange.High;
         UseDecimalTerminology = station.UseDecimalTerminology;
+        RandomizeAtisLetterOnConnect = station.RandomizeAtisLetterOnConnect;
         IdsEndpoint = station.IdsEndpoint;
         CustomMetarUrl = station.CustomMetarUrl;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;

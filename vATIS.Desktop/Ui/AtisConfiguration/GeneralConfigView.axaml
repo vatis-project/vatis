@@ -118,7 +118,10 @@
                         <TextBlock VerticalAlignment="Center" ToolTip.Tip="{StaticResource SpeechRateTooltip}">Speech Rate (WPM):</TextBlock>
                         <ComboBox Width="100" Classes="Dark" ItemsSource="{Binding SpeechRates, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding SelectedSpeechRate, DataType=vm:GeneralConfigViewModel}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" ToolTip.Tip="{StaticResource SpeechRateTooltip}"/>
                     </StackPanel>
-					<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
+					<StackPanel Orientation="Horizontal" Spacing="20">
+						<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
+						<CheckBox Theme="{StaticResource CheckBox}" Content="Randomize ATIS letter on connect" ToolTip.Tip="Start with a random letter within the code range each time this ATIS connects. Ignored when the letter is synced from the real-world ATIS." IsChecked="{Binding RandomizeAtisLetterOnConnect, DataType=vm:GeneralConfigViewModel}" />
+					</StackPanel>
 				</StackPanel>
 			</Border>
 		</StackPanel>
