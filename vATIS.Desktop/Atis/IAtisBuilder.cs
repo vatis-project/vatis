@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Vatsim.Vatis.Profiles.Models;
@@ -16,6 +17,11 @@ namespace Vatsim.Vatis.Atis;
 public interface IAtisBuilder
 {
     /// <summary>
+    /// Gets the contractions built into the ATIS Hub, mapping an abbreviation to its spoken expansion.
+    /// </summary>
+    IReadOnlyDictionary<string, string> BuiltInContractions { get; }
+
+    /// <summary>
     /// Builds a voice ATIS message.
     /// </summary>
     /// <param name="station">The ATIS station.</param>
@@ -27,6 +33,14 @@ public interface IAtisBuilder
     /// <returns>A <see cref="AtisBuilderVoiceAtisResponse"/> object representing the voice ATIS message.</returns>
     Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
         DecodedMetar decodedMetar, CancellationToken cancellationToken, bool sandboxRequest = false);
+
+    /// <summary>
+    /// Gets the spoken form of a built-in template token, such as a runway or taxiway.
+    /// </summary>
+    /// <param name="token">The template token.</param>
+    /// <param name="station">The ATIS station.</param>
+    /// <returns>The text as it would be spoken in the voice ATIS.</returns>
+    string GetSpokenText(string token, AtisStation station);
 
     /// <summary>
     /// Builds a text ATIS message.

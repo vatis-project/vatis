@@ -19,6 +19,7 @@ using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Windows;
@@ -165,6 +166,11 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the source used to underline contractions and show spoken text in the editors.
+    /// </summary>
+    public ISpokenTextSource? SpokenTextSource { get; set; }
+
+    /// <summary>
     /// Gets or sets the collection of static definitions used in the dialog.
     /// </summary>
     public ObservableCollection<StaticDefinition> Definitions
@@ -261,6 +267,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                     vm.Title = "Edit NOTAM";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
                     vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
                     {
                         if (result == DialogResult.Ok)
@@ -312,6 +319,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
             {
                 vm.Title = "New NOTAM";
                 vm.ContractionCompletionData = ContractionCompletionData;
+                vm.SpokenTextSource = SpokenTextSource;
                 vm.DialogResultChanged += (_, result) =>
                 {
                     if (result == DialogResult.Ok)

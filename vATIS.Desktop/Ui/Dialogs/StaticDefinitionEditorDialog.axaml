@@ -66,6 +66,7 @@
 						<Interaction.Behaviors>
 							<behaviors:TextEditorUpperCaseBehavior/>
 							<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
+							<behaviors:TextEditorSpokenTextBehavior/>
 						</Interaction.Behaviors>
 					</editor:TextEditor>
 					<TextBox Name="DataValidation" Theme="{StaticResource Hidden}" Text="{Binding DataValidation, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
