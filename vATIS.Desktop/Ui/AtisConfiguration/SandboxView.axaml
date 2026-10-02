@@ -46,6 +46,7 @@
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:SandboxViewModel}"/>
+						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>
 			</StackPanel>
@@ -58,6 +59,7 @@
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:SandboxViewModel}"/>
+						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>
 			</StackPanel>
