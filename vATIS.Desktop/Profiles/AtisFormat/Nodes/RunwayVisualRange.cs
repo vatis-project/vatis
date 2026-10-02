@@ -11,6 +11,11 @@ namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 public class RunwayVisualRange : BaseFormat
 {
     /// <summary>
+    /// Gets or sets the spoken text used to announce runway visual range.
+    /// </summary>
+    public string? SpokenText { get; set; } = "R-V-R";
+
+    /// <summary>
     /// Gets or sets the neutral tendency.
     /// </summary>
     public string? NeutralTendency { get; set; } = "Neutral";

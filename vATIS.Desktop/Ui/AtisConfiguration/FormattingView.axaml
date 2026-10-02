@@ -443,6 +443,12 @@
 			</StackPanel>
             <!--Runway Visual Range-->
 			<StackPanel Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
+                <groupBox:GroupBoxControl Header="Runway Visual Range (Spoken)" Theme="{StaticResource GroupBoxClassic}">
+                    <Grid ColumnDefinitions="130,*">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text used to announce runway visual range, e.g. R-V-R or Runway Visual Range">Spoken text:</TextBlock>
+                        <TextBox Grid.Column="1" Text="{Binding RvrSpokenText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                </groupBox:GroupBoxControl>
                 <groupBox:GroupBoxControl Header="Tendencies (Spoken)" Theme="{StaticResource GroupBoxClassic}">
                     <StackPanel Orientation="Vertical" Spacing="10">
                         <Grid ColumnDefinitions="130,*">

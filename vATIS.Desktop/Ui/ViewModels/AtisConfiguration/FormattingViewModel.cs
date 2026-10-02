@@ -93,6 +93,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _visibilityUnlimitedVisibilityText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
+    private string? _rvrSpokenText;
     private string? _rvrTendencyNeutralText;
     private string? _rvrTendencyGoingUpText;
     private string? _rvrTendencyGoingDownText;
@@ -890,6 +891,19 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _visibilityMetersCutoff, value);
             _changeTracker.TrackChange(nameof(VisibilityMetersCutoff), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken text used to announce runway visual range.
+    /// </summary>
+    public string? RvrSpokenText
+    {
+        get => _rvrSpokenText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rvrSpokenText, value);
+            _changeTracker.TrackChange(nameof(RvrSpokenText), value);
         }
     }
 
@@ -1788,6 +1802,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.Visibility.MetersCutoff = VisibilityMetersCutoff;
         }
 
+        if (SelectedStation.AtisFormat.RunwayVisualRange.SpokenText != RvrSpokenText)
+        {
+            SelectedStation.AtisFormat.RunwayVisualRange.SpokenText = RvrSpokenText;
+        }
+
         if (SelectedStation.AtisFormat.RunwayVisualRange.NeutralTendency != RvrTendencyNeutralText)
         {
             SelectedStation.AtisFormat.RunwayVisualRange.NeutralTendency = RvrTendencyNeutralText;
@@ -2117,6 +2136,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
+        RvrSpokenText = station.AtisFormat.RunwayVisualRange.SpokenText;
         RvrTendencyNeutralText = station.AtisFormat.RunwayVisualRange.NeutralTendency;
         RvrTendencyGoingUpText = station.AtisFormat.RunwayVisualRange.GoingUpTendency;
         RvrTendencyGoingDownText = station.AtisFormat.RunwayVisualRange.GoingDownTendency;
