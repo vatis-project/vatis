@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -144,6 +144,14 @@
 						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
 						CommandParameter="{Binding $self.Content}">
 						[PRESSURE]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="Runway threshold QFE&#x0a;&#x0a;Replace ELEVATION__FT with the runway threshold elevation in feet."
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[QFE|ELEVATION__FT]
 					</Button>
 					<Button
 						Margin="0,0,5,5"

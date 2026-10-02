@@ -101,7 +101,28 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         return format;
     }
 
-    private static int CalculateQfe(double qnh, double elevationFeet)
+    /// <summary>
+    /// Gets the QNH in whole hectopascals from a decoded pressure value.
+    /// </summary>
+    /// <param name="pressure">The decoded pressure value.</param>
+    /// <returns>The QNH in hPa, or null if no pressure is available.</returns>
+    public static int? GetQnhHpa(Value? pressure)
+    {
+        if (pressure == null)
+            return null;
+
+        return pressure.ActualUnit == Value.Unit.MercuryInch
+            ? (int)Math.Floor((pressure.ActualValue / 100.0) * 33.86)
+            : (int)pressure.ActualValue;
+    }
+
+    /// <summary>
+    /// Calculates the QFE for the given elevation.
+    /// </summary>
+    /// <param name="qnh">The QNH in hPa.</param>
+    /// <param name="elevationFeet">The elevation in feet.</param>
+    /// <returns>The QFE in hPa.</returns>
+    public static int CalculateQfe(double qnh, double elevationFeet)
     {
         // Pressure lapse rate: approximately 1 hPa per 27.3 feet
         const double pressureLapseRateFeet = 27.3;
