@@ -1371,9 +1371,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 NetworkConnectionStatus = NetworkConnectionStatus.Connecting;
 
                 // Fetch the real-world ATIS letter if the user has enabled this option.
+                var letterSynced = false;
                 if (_websocketSyncAtisLetter || _appConfig.AutoFetchAtisLetter)
                 {
-                    await SyncAtisLetter();
+                    letterSynced = await SyncAtisLetter();
+                }
+
+                if (!letterSynced && AtisStation.RandomizeAtisLetterOnConnect)
+                {
+                    var range = AtisStation.CodeRange;
+                    AtisLetter = (char)Random.Shared.Next(range.Low, range.High + 1);
                 }
 
                 await _networkConnection.Connect();
@@ -2234,10 +2241,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private async Task SyncAtisLetter()
+    private async Task<bool> SyncAtisLetter()
     {
         if (string.IsNullOrEmpty(Identifier))
-            return;
+            return false;
 
         try
         {
@@ -2246,12 +2253,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (atisLetter != null)
             {
                 await SetAtisLetterCommand.Execute(atisLetter.Value);
+                return true;
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to sync ATIS letter");
         }
+
+        return false;
     }
 
     private void AcknowledgeOrIncrementAtisLetter()
