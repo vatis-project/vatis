@@ -362,17 +362,12 @@ public class MainWindowViewModel : ReactiveViewModelBase, IDisposable
 
     private void OnGetAtisStations(object? sender, GetStationListReceived e)
     {
-        var stations = (from station in AtisStations
-            where !string.IsNullOrEmpty(station.Id) && !string.IsNullOrEmpty(station.Identifier)
-            select new AtisStationMessage.AtisStationRecord
-            {
-                Id = station.Id,
-                Name = station.Identifier,
-                AtisType = station.AtisType,
-                Presets = [.. station.AtisPresetList.OrderBy(n => n.Ordinal).ThenBy(n => n.Name).Select(n => n.Name).OfType<string>()]
-            }).ToList();
+        // This handler runs on the websocket thread. Answer from the profile model (the source of truth) rather than
+        // the UI-bound AtisStations collection, which is mutated on the UI thread while the main window populates
+        // or re-sorts it and is not safe to enumerate from here.
+        var stations = _sessionManager.CurrentProfile?.Stations?.ToList();
 
-        _websocketService.SendAtisStationsAsync(e.Session, new AtisStationMessage { Stations = [..stations] });
+        _websocketService.SendAtisStationsAsync(e.Session, AtisStationMessage.FromStations(stations));
     }
 
     private void OnChangeProfileReceived(object? sender, GetChangeProfileReceived e)
