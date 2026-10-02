@@ -1,4 +1,4 @@
-// <copyright file="ContractionUnderlineRenderer.cs" company="Justin Shannon">
+﻿// <copyright file="ContractionUnderlineRenderer.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -45,6 +45,47 @@ public partial class ContractionUnderlineRenderer : IBackgroundRenderer
     [GeneratedRegex(@"\+[A-Z0-9]{3,4}\b|\*[A-Z]{1,2}[0-9]{0,2}\b|\^(?:0[1-9]|[12][0-9]|3[0-6]|[1-9])[RLC]?\b|\*-?[\,0-9]+|\{-?[\,0-9]+\}|\b(?:RY|RWYS?|RUNWAYS?)\s?[0-9]{1,2}[LRC]?\b|\bTWYS? [A-Z]{1,2}[0-9]{0,2}\b|&")]
     public static partial Regex BuiltInTokenRegex();
 
+    /// <summary>
+    /// Matches preset template variables such as <c>[VIS]</c>, <c>[WIND:VOX]</c> and <c>$VIS</c>, which are never
+    /// contractions even when their name matches one.
+    /// </summary>
+    /// <returns>The template variable regex.</returns>
+    [GeneratedRegex(@"\[[^\]\r\n]*\]|\$\w+(?::VOX)?", RegexOptions.IgnoreCase)]
+    public static partial Regex TemplateVariableRegex();
+
+    /// <summary>
+    /// Matches words that may be contractions, with the contraction name in the first group.
+    /// </summary>
+    /// <returns>The contraction regex.</returns>
+    [GeneratedRegex(@"@?(\+?[\w]+(?:_[\w]+)*)")]
+    public static partial Regex ContractionRegex();
+
+    /// <summary>
+    /// Gets the contraction matches in a line of text, excluding words that are part of a template variable.
+    /// </summary>
+    /// <param name="lineText">The line of text.</param>
+    /// <returns>The contraction candidates.</returns>
+    public static IEnumerable<Match> GetContractionCandidates(string lineText)
+    {
+        var variables = TemplateVariableRegex().Matches(lineText);
+        foreach (Match match in ContractionRegex().Matches(lineText))
+        {
+            var end = match.Index + match.Length;
+            var inVariable = false;
+            foreach (Match variable in variables)
+            {
+                if (match.Index < variable.Index + variable.Length && end > variable.Index)
+                {
+                    inVariable = true;
+                    break;
+                }
+            }
+
+            if (!inVariable)
+                yield return match;
+        }
+    }
+
     /// <inheritdoc/>
     public void Draw(TextView textView, DrawingContext drawingContext)
     {
@@ -66,7 +107,7 @@ public partial class ContractionUnderlineRenderer : IBackgroundRenderer
             foreach (Match match in BuiltInTokenRegex().Matches(text))
                 segments.Add((match.Index, match.Index + match.Length));
 
-            foreach (Match match in ContractionRegex().Matches(text))
+            foreach (var match in GetContractionCandidates(text))
             {
                 if (_isContraction(match.Groups[1].Value))
                     segments.Add((match.Index, match.Index + match.Length));
@@ -96,9 +137,6 @@ public partial class ContractionUnderlineRenderer : IBackgroundRenderer
                 DrawUnderline(textView, drawingContext, line.Offset + start, end - start);
         }
     }
-
-    [GeneratedRegex(@"@?(\+?[\w]+(?:_[\w]+)*)")]
-    private static partial Regex ContractionRegex();
 
     private static void DrawUnderline(TextView textView, DrawingContext drawingContext, int offset, int length)
     {
