@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.Entity;
@@ -126,7 +127,11 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                 result.Add(tendency);
             }
 
-            tts.Add($"Runway {rwyNumber.ToSerialFormat()} {rwyDesignator} R-V-R {string.Join(" ", result)}.");
+            var spokenText = Station?.AtisFormat.RunwayVisualRange.SpokenText;
+            var runway = $"Runway {rwyNumber.ToSerialFormat()} {rwyDesignator}";
+            var values = string.Join(" ", result);
+            var sentence = string.Join(" ", new[] { runway, spokenText, values }.Where(x => !string.IsNullOrWhiteSpace(x)));
+            tts.Add($"{sentence}.");
         }
 
         TextAtis = string.Join(" ", acars);
