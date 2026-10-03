@@ -1,4 +1,4 @@
-// <copyright file="ContractionsViewModel.cs" company="Justin Shannon">
+﻿// <copyright file="ContractionsViewModel.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -17,7 +17,9 @@ using ReactiveUI;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
+using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 
@@ -31,6 +33,8 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
     private readonly CompositeDisposable _disposables = [];
     private readonly IAppConfig _appConfig;
     private readonly IWindowFactory _windowFactory;
+    private readonly ISessionManager _sessionManager;
+    private readonly IProfileRepository _profileRepository;
     private IDialogOwner? _dialogOwner;
     private AtisStation? _selectedStation;
     private bool _hasUnsavedChanges;
@@ -41,10 +45,18 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
     /// </summary>
     /// <param name="windowFactory">The factory used to create windows.</param>
     /// <param name="appConfig">The application configuration.</param>
-    public ContractionsViewModel(IWindowFactory windowFactory, IAppConfig appConfig)
+    /// <param name="sessionManager">The session manager providing the current profile.</param>
+    /// <param name="profileRepository">The repository used to persist the profile.</param>
+    public ContractionsViewModel(
+        IWindowFactory windowFactory,
+        IAppConfig appConfig,
+        ISessionManager sessionManager,
+        IProfileRepository profileRepository)
     {
         _windowFactory = windowFactory;
         _appConfig = appConfig;
+        _sessionManager = sessionManager;
+        _profileRepository = profileRepository;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
         CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEndEditEventArgEx>(HandleCellEditEnding);
@@ -231,6 +243,11 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
                             });
                         _appConfig.SaveConfig();
 
+                        if (context.AddToAllStations)
+                        {
+                            AddToOtherStations(context.Variable, context.Text, context.Spoken);
+                        }
+
                         Contractions = [];
                         foreach (var item in SelectedStation.Contractions)
                         {
@@ -242,6 +259,39 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
                 };
                 await dialog.ShowDialog((Window)_dialogOwner);
             }
+        }
+    }
+
+    private void AddToOtherStations(string variable, string text, string voice)
+    {
+        var profile = _sessionManager.CurrentProfile;
+        if (profile?.Stations == null || SelectedStation == null)
+        {
+            return;
+        }
+
+        var updatedStationIds = new List<string>();
+        foreach (var station in profile.Stations)
+        {
+            if (station.Id == SelectedStation.Id ||
+                station.Contractions.Any(x => x.VariableName == variable))
+            {
+                continue;
+            }
+
+            station.Contractions.Add(new ContractionMeta { VariableName = variable, Text = text, Voice = voice, });
+            updatedStationIds.Add(station.Id);
+        }
+
+        if (updatedStationIds.Count == 0)
+        {
+            return;
+        }
+
+        _profileRepository.Save(profile);
+        foreach (var id in updatedStationIds)
+        {
+            EventBus.Instance.Publish(new ContractionsUpdated(id));
         }
     }
 
