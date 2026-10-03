@@ -16,11 +16,11 @@ public interface IWindowLocationService
     /// Restores the window to its previously saved location.
     /// </summary>
     /// <param name="window">The window whose position needs to be restored. Can be null.</param>
-    void Restore(Window? window);
+    public void Restore(Window? window);
 
     /// <summary>
     /// Updates the saved location of a window based on its current position.
     /// </summary>
     /// <param name="window">The window whose current position should be saved. Can be null.</param>
-    void Update(Window? window);
+    public void Update(Window? window);
 }

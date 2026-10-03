@@ -18,95 +18,95 @@ public interface IWindowFactory
     /// Creates and initializes a new instance of the <see cref="MainWindow"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="MainWindow"/> class.</returns>
-    MainWindow CreateMainWindow();
+    public MainWindow CreateMainWindow();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="ProfileListDialog"/> class.
     /// </summary>
     /// <returns>A new instance of the <see cref="ProfileListDialog"/> class.</returns>
-    ProfileListDialog CreateProfileListDialog();
+    public ProfileListDialog CreateProfileListDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="SettingsDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="SettingsDialog"/> class.</returns>
-    SettingsDialog CreateSettingsDialog();
+    public SettingsDialog CreateSettingsDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="MiniWindow"/> class.
     /// </summary>
     /// <returns>A new instance of the <see cref="MiniWindow"/> class initialized with the associated ViewModel.</returns>
-    MiniWindow CreateMiniWindow();
+    public MiniWindow CreateMiniWindow();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="AtisConfigurationWindow"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="AtisConfigurationWindow"/> class.</returns>
-    AtisConfigurationWindow CreateProfileConfigurationWindow();
+    public AtisConfigurationWindow CreateProfileConfigurationWindow();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="UserInputDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="UserInputDialog"/> class.</returns>
-    UserInputDialog CreateUserInputDialog();
+    public UserInputDialog CreateUserInputDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="NewAtisStationDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="NewAtisStationDialog"/> class.</returns>
-    NewAtisStationDialog CreateNewAtisStationDialog();
+    public NewAtisStationDialog CreateNewAtisStationDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="VoiceRecordAtisDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="VoiceRecordAtisDialog"/> class.</returns>
-    VoiceRecordAtisDialog CreateVoiceRecordAtisDialog();
+    public VoiceRecordAtisDialog CreateVoiceRecordAtisDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="TransitionLevelDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="TransitionLevelDialog"/> class.</returns>
-    TransitionLevelDialog CreateTransitionLevelDialog();
+    public TransitionLevelDialog CreateTransitionLevelDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="NewContractionDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="NewContractionDialog"/> class.</returns>
-    NewContractionDialog CreateNewContractionDialog();
+    public NewContractionDialog CreateNewContractionDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="StaticAirportConditionsDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="StaticAirportConditionsDialog"/> class.</returns>
-    StaticAirportConditionsDialog CreateStaticAirportConditionsDialog();
+    public StaticAirportConditionsDialog CreateStaticAirportConditionsDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="StaticNotamsDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="StaticNotamsDialog"/> class.</returns>
-    StaticNotamsDialog CreateStaticNotamsDialog();
+    public StaticNotamsDialog CreateStaticNotamsDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="StaticDefinitionEditorDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="StaticDefinitionEditorDialog"/> class.</returns>
-    StaticDefinitionEditorDialog CreateStaticDefinitionEditorDialog();
+    public StaticDefinitionEditorDialog CreateStaticDefinitionEditorDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="SortPresetsDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="SortPresetsDialog"/> class.</returns>
-    SortPresetsDialog CreateSortPresetsDialog();
+    public SortPresetsDialog CreateSortPresetsDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="SortAtisStationsDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="SortAtisStationsDialog"/> class.</returns>
-    SortAtisStationsDialog CreateSortAtisStationsDialog();
+    public SortAtisStationsDialog CreateSortAtisStationsDialog();
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="ReleaseNotesDialog"/> class.</returns>
-    ReleaseNotesDialog CreateReleaseNotesDialog();
+    public ReleaseNotesDialog CreateReleaseNotesDialog();
 }

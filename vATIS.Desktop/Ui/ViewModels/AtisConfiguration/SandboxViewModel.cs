@@ -339,6 +339,22 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         return true;
     }
 
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        if (SelectedStation == null)
+            return null;
+
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, SelectedStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     private void HandleAtisStationChanged(AtisStation? station)
     {
         if (station == null)
@@ -432,22 +448,6 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
                 SelectedStation?.Id, SelectedStation?.Identifier, SelectedPreset?.Id);
             TextAtisTextDocument.Text = "Error: " + ex.Message;
             VoiceAtisTextDocument.Text = "";
-        }
-    }
-
-    /// <inheritdoc/>
-    public string? GetSpokenText(string token)
-    {
-        if (SelectedStation == null)
-            return null;
-
-        try
-        {
-            return _atisBuilder.GetSpokenText(token, SelectedStation);
-        }
-        catch (Exception)
-        {
-            return null;
         }
     }
 

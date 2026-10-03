@@ -16,25 +16,25 @@ public interface INavDataRepository
     /// Initializes the navigation data repository.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task Initialize();
+    public Task Initialize();
 
     /// <summary>
     /// Checks for updates in the navigation data repository.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task CheckForUpdates();
+    public Task CheckForUpdates();
 
     /// <summary>
     /// Gets the airport information by its identifier.
     /// </summary>
     /// <param name="id">The identifier of the airport.</param>
     /// <returns>The airport information if found; otherwise, null.</returns>
-    Airport? GetAirport(string id);
+    public Airport? GetAirport(string id);
 
     /// <summary>
     /// Gets the navaid information by its identifier.
     /// </summary>
     /// <param name="id">The identifier of the navaid.</param>
     /// <returns>The navaid information if found; otherwise, null.</returns>
-    Navaid? GetNavaid(string id);
+    public Navaid? GetNavaid(string id);
 }

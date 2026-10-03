@@ -18,5 +18,5 @@ public interface INetworkConnectionFactory
     /// </summary>
     /// <param name="station">The ATIS station for which to create the connection.</param>
     /// <returns>An instance of <see cref="INetworkConnection"/>.</returns>
-    INetworkConnection CreateConnection(AtisStation station);
+    public INetworkConnection CreateConnection(AtisStation station);
 }

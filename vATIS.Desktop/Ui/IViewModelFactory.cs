@@ -21,36 +21,36 @@ public interface IViewModelFactory
     /// <param name="station">The ATIS station for which the view model is to be created.</param>
     /// <param name="windowNotificationManager">The notification manager for the window.</param>
     /// <returns>An instance of <see cref="AtisStationViewModel"/> that corresponds to the given station.</returns>
-    AtisStationViewModel CreateAtisStationViewModel(AtisStation station,
+    public AtisStationViewModel CreateAtisStationViewModel(AtisStation station,
         WindowNotificationManager? windowNotificationManager);
 
     /// <summary>
     /// Creates an instance of <see cref="ContractionsViewModel"/> for managing contractions in the ATIS configuration.
     /// </summary>
     /// <returns>An instance of <see cref="ContractionsViewModel"/> for modifying and interacting with contraction data.</returns>
-    ContractionsViewModel CreateContractionsViewModel();
+    public ContractionsViewModel CreateContractionsViewModel();
 
     /// <summary>
     /// Creates an instance of <see cref="FormattingViewModel"/> for formatting-related configurations.
     /// </summary>
     /// <returns>An instance of <see cref="FormattingViewModel"/>.</returns>
-    FormattingViewModel CreateFormattingViewModel();
+    public FormattingViewModel CreateFormattingViewModel();
 
     /// <summary>
     /// Creates an instance of <see cref="GeneralConfigViewModel"/>.
     /// </summary>
     /// <returns>An instance of <see cref="GeneralConfigViewModel"/>.</returns>
-    GeneralConfigViewModel CreateGeneralConfigViewModel();
+    public GeneralConfigViewModel CreateGeneralConfigViewModel();
 
     /// <summary>
     /// Creates an instance of <see cref="PresetsViewModel"/> for managing ATIS preset configurations.
     /// </summary>
     /// <returns>An instance of <see cref="PresetsViewModel"/> for interacting with ATIS presets.</returns>
-    PresetsViewModel CreatePresetsViewModel();
+    public PresetsViewModel CreatePresetsViewModel();
 
     /// <summary>
     /// Creates an instance of <see ref="SandboxViewModel"/> for sandbox operations.
     /// </summary>
     /// <returns>A new instance of <see ref="SandboxViewModel"/>.</returns>
-    SandboxViewModel CreateSandboxViewModel();
+    public SandboxViewModel CreateSandboxViewModel();
 }

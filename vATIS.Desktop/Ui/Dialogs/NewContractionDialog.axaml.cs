@@ -48,7 +48,7 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
     {
         if (e.Source is TextBox textBox)
         {
-            textBox.Text = s_slug.GenerateSlug(textBox.Text).ToUpperInvariant().Replace("-", "_");
+            textBox.Text = s_slug.GenerateSlug(textBox.Text ?? string.Empty).ToUpperInvariant().Replace("-", "_");
         }
     }
 

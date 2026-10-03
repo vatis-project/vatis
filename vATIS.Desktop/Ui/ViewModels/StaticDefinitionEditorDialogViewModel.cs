@@ -109,12 +109,6 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     public IReadOnlyDictionary<string, string> BuiltInContractions =>
         SpokenTextSource?.BuiltInContractions ?? new Dictionary<string, string>();
 
-    /// <inheritdoc/>
-    public string? GetSpokenText(string token)
-    {
-        return SpokenTextSource?.GetSpokenText(token);
-    }
-
     /// <summary>
     /// Gets or sets the validation message associated with data input. This property provides feedback
     /// or error messages related to the data validation process.
@@ -123,6 +117,12 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         get => _dataValidation;
         set => this.RaiseAndSetIfChanged(ref _dataValidation, value);
+    }
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        return SpokenTextSource?.GetSpokenText(token);
     }
 
     /// <inheritdoc />
