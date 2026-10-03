@@ -40,7 +40,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
             // List of required cloud types to ensure they are always present
             var requiredKeys = new List<string>
             {
-                "FEW", "SCT", "BKN", "OVC", "VV", "NSC", "NCD", "CLR", "SKC",
+                "FEW", "SCT", "BKN", "OVC", "VV", "NSC", "NCD", "CLR", "SKC", "UND",
             };
 
             // Iterate through each property in the "types" object
@@ -71,6 +71,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
                         "NCD" => new CloudType("NCD", property.Value.GetString() ?? string.Empty),
                         "CLR" => new CloudType("CLR", property.Value.GetString() ?? string.Empty),
                         "SKC" => new CloudType("SKC", property.Value.GetString() ?? string.Empty),
+                        "UND" => new CloudType("{amount}///{convective}", property.Value.GetString() ?? string.Empty),
                         _ => throw new ArgumentException($"Unknown cloud type: {property.Name}"),
                     };
                     result.Add(property.Name, cloudType);
@@ -130,6 +131,7 @@ public class CloudTypeConverter : JsonConverter<Dictionary<string, CloudType>>
             "NCD" => new CloudType("NCD", "no clouds detected"),
             "CLR" => new CloudType("CLR", "sky clear below one-two thousand"),
             "SKC" => new CloudType("SKC", "sky clear"),
+            "UND" => new CloudType("{amount}///{convective}", "{amount} cloud height not available {convective}"),
             _ => throw new ArgumentException($"Unknown cloud type: {key}"),
         };
     }
