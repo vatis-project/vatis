@@ -73,6 +73,7 @@ public class ProfileRepository : IProfileRepository
     {
         var profile = await Load(PathProvider.GetProfilePath(profileId));
         profile.Name = newName;
+        profile.IsNameOverridden = true;
         Save(profile);
     }
 
@@ -228,6 +229,12 @@ public class ProfileRepository : IProfileRepository
                             var updatedProfile =
                                 remoteProfile ?? throw new JsonException("Updated profile is null");
                             updatedProfile.Id = localProfile.Id;
+                            if (localProfile.IsNameOverridden)
+                            {
+                                updatedProfile.Name = localProfile.Name;
+                                updatedProfile.IsNameOverridden = true;
+                            }
+
                             Delete(localProfile);
                             Save(updatedProfile);
                         }
