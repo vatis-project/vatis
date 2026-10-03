@@ -384,6 +384,29 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         set => this.RaiseAndSetIfChanged(ref _isSandboxPlaybackActive, value);
     }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
+    /// <summary>
+    /// Gets the spoken form of a built-in template token for the selected station.
+    /// </summary>
+    /// <param name="token">The template token.</param>
+    /// <returns>The spoken text, or null if no station is selected or the token could not be converted.</returns>
+    public string? GetSpokenText(string token)
+    {
+        if (SelectedStation == null)
+            return null;
+
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, SelectedStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -470,12 +493,28 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         return _changeTracker.ApplyChangesIfNeeded();
     }
 
+    private static void InsertTemplateVariable(IInputElement? focusedElement, string variable)
+    {
+        if (focusedElement is TemplateVariableTextBox focusedTextBox)
+        {
+            var caretIndex = focusedTextBox.CaretIndex;
+            focusedTextBox.Text = focusedTextBox.Text?.Insert(focusedTextBox.CaretIndex, variable);
+            focusedTextBox.CaretIndex = variable.Length + caretIndex;
+        }
+
+        if (focusedElement is TextArea focusedTextEditor)
+        {
+            var caretIndex = focusedTextEditor.Caret.Offset;
+            focusedTextEditor.Document.Text =
+                focusedTextEditor.Document.Text.Insert(focusedTextEditor.Caret.Offset, variable);
+            focusedTextEditor.Caret.Offset = variable.Length + caretIndex;
+        }
+    }
+
     private void HandleTemplateVariableClicked(string? variable)
     {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime
-            {
-                MainWindow: not null
-            } lifetime)
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime ||
+            lifetime.MainWindow is null)
         {
             return;
         }
@@ -525,24 +564,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         };
 
         dialog.ShowDialog(owner);
-    }
-
-    private static void InsertTemplateVariable(IInputElement? focusedElement, string variable)
-    {
-        if (focusedElement is TemplateVariableTextBox focusedTextBox)
-        {
-            var caretIndex = focusedTextBox.CaretIndex;
-            focusedTextBox.Text = focusedTextBox.Text?.Insert(focusedTextBox.CaretIndex, variable);
-            focusedTextBox.CaretIndex = variable.Length + caretIndex;
-        }
-
-        if (focusedElement is TextArea focusedTextEditor)
-        {
-            var caretIndex = focusedTextEditor.Caret.Offset;
-            focusedTextEditor.Document.Text =
-                focusedTextEditor.Document.Text.Insert(focusedTextEditor.Caret.Offset, variable);
-            focusedTextEditor.Caret.Offset = variable.Length + caretIndex;
-        }
     }
 
     private async Task HandleFetchSandboxMetar()
@@ -963,29 +984,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         NativeAudio.StopBufferPlayback();
 
         PopulateContractions();
-    }
-
-    /// <inheritdoc/>
-    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
-
-    /// <summary>
-    /// Gets the spoken form of a built-in template token for the selected station.
-    /// </summary>
-    /// <param name="token">The template token.</param>
-    /// <returns>The spoken text, or null if no station is selected or the token could not be converted.</returns>
-    public string? GetSpokenText(string token)
-    {
-        if (SelectedStation == null)
-            return null;
-
-        try
-        {
-            return _atisBuilder.GetSpokenText(token, SelectedStation);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
     }
 
     private void PopulateContractions()

@@ -61,6 +61,9 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private const int TransceiverHeightM = 10;
+    private static readonly System.Text.RegularExpressions.Regex s_windDirectionRegex =
+        new(@"(?<![0-9])[0-9]{3}(?=[0-9]{2,3}|V[0-9]{3}|\b)", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private readonly IAppConfig _appConfig;
     private readonly IProfileRepository _profileRepository;
     private readonly IAtisBuilder _atisBuilder;
@@ -96,8 +99,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private string? _metarString;
     private string? _observationTime;
     private string? _wind;
-    private static readonly System.Text.RegularExpressions.Regex s_windDirectionRegex =
-        new(@"(?<![0-9])[0-9]{3}(?=[0-9]{2,3}|V[0-9]{3}|\b)", System.Text.RegularExpressions.RegexOptions.Compiled);
     private string? _altimeter;
     private bool _isNewAtis;
     private string _atisTypeLabel = "";
@@ -765,6 +766,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         set => this.RaiseAndSetIfChanged(ref _ordinal, value);
     }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
     private ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
 
     private WindowNotificationManager? NotificationManager { get; }
@@ -873,6 +877,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         GC.SuppressFinalize(this);
     }
 
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, AtisStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     private void HandleSetAtisLetter(char letter)
     {
         if (letter < AtisStation.CodeRange.Low || letter > AtisStation.CodeRange.High)
@@ -974,22 +991,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             );
             Log.Error(exception, "BuildAtis Exception");
         });
-    }
-
-    /// <inheritdoc/>
-    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
-
-    /// <inheritdoc/>
-    public string? GetSpokenText(string token)
-    {
-        try
-        {
-            return _atisBuilder.GetSpokenText(token, AtisStation);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
     }
 
     private void LoadContractionData()

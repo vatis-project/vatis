@@ -23,12 +23,12 @@ public interface IMetarRepository
     /// Optional custom METAR source URL (may contain an {icao} placeholder). Falls back to the default source on failure.
     /// </param>
     /// <returns>The decoded METAR.</returns>
-    Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true,
+    public Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true,
         string? customUrl = null);
 
     /// <summary>
     /// Removes the METAR from being monitored.
     /// </summary>
     /// <param name="station">The station identifier.</param>
-    void RemoveMetar(string station);
+    public void RemoveMetar(string station);
 }

@@ -16,17 +16,17 @@ public interface ISpokenTextSource
     /// <summary>
     /// Gets the contraction variables, where the text is the variable name and the description is the spoken value.
     /// </summary>
-    List<ICompletionData> ContractionCompletionData { get; }
+    public List<ICompletionData> ContractionCompletionData { get; }
 
     /// <summary>
     /// Gets the contractions built into the ATIS Hub, mapping an abbreviation to its spoken expansion.
     /// </summary>
-    IReadOnlyDictionary<string, string> BuiltInContractions { get; }
+    public IReadOnlyDictionary<string, string> BuiltInContractions { get; }
 
     /// <summary>
     /// Gets the spoken form of a built-in template token.
     /// </summary>
     /// <param name="token">The template token.</param>
     /// <returns>The spoken text, or null if it could not be determined.</returns>
-    string? GetSpokenText(string token);
+    public string? GetSpokenText(string token);
 }

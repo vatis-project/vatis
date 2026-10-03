@@ -20,5 +20,5 @@ public interface IClientUpdater
     /// A task that represents the asynchronous operation. The task result is a boolean
     /// value indicating whether the update process was successfully executed.
     /// </returns>
-    Task<bool> Run();
+    public Task<bool> Run();
 }

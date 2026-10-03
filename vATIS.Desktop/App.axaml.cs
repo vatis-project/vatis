@@ -193,6 +193,7 @@ public class App : Application
                 {
                     Log.Error(ex, "Error running client updater.");
                 }
+
                 // Profile updates, navdata and the voice list are independent network round trips, so run them
                 // concurrently instead of one after another.
                 var profileUpdatesTask = CheckForProfileUpdatesAsync();

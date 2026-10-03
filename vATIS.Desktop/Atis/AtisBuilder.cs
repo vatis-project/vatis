@@ -211,44 +211,6 @@ public class AtisBuilder : IAtisBuilder
         await PostIdsUpdate(station, request, cancellationToken);
     }
 
-    private async Task PostIdsUpdate(AtisStation station, IdsUpdateRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (Debugger.IsAttached)
-            return;
-
-        if (string.IsNullOrEmpty(station.IdsEndpoint))
-            return;
-
-        try
-        {
-            ArgumentNullException.ThrowIfNull(_downloader);
-
-            string? jwt = null;
-            if (!ServiceProvider.IsDevelopmentEnvironment() && !string.IsNullOrEmpty(_clientAuth.IdsValidationKey()))
-            {
-                // Generate a signed JWT token for optional validation by the IDS server.
-                jwt = JwtHelper.GenerateJwt(_clientAuth.IdsValidationKey(), "ids-validation");
-            }
-
-            var jsonSerialized = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.IdsUpdateRequest);
-            await _downloader.PostJson(station.IdsEndpoint, jsonSerialized, jwt, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // Ignore
-        }
-        catch (HttpRequestException ex)
-        {
-            Log.Error(ex, "HttpRequestException updating IDS");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to update IDS");
-            throw new AtisBuilderException($"Failed to Update IDS: {ex.Message}");
-        }
-    }
-
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
         return Regex.Replace(text, @"@?(\+?[\w]+(?:_[\w]+)*)", match =>
@@ -314,6 +276,44 @@ public class AtisBuilder : IAtisBuilder
         text = Regex.Replace(text, @"(?<![\w\d])\^((?:0?[1-9]|[1-2][0-9]|3[0-6])(?:[LRC]?))(?![\w\d])", "$1");
 
         return text;
+    }
+
+    private async Task PostIdsUpdate(AtisStation station, IdsUpdateRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        if (string.IsNullOrEmpty(station.IdsEndpoint))
+            return;
+
+        try
+        {
+            ArgumentNullException.ThrowIfNull(_downloader);
+
+            string? jwt = null;
+            if (!ServiceProvider.IsDevelopmentEnvironment() && !string.IsNullOrEmpty(_clientAuth.IdsValidationKey()))
+            {
+                // Generate a signed JWT token for optional validation by the IDS server.
+                jwt = JwtHelper.GenerateJwt(_clientAuth.IdsValidationKey(), "ids-validation");
+            }
+
+            var jsonSerialized = JsonSerializer.Serialize(request, SourceGenerationContext.NewDefault.IdsUpdateRequest);
+            await _downloader.PostJson(station.IdsEndpoint, jsonSerialized, jwt, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Ignore
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Error(ex, "HttpRequestException updating IDS");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to update IDS");
+            throw new AtisBuilderException($"Failed to Update IDS: {ex.Message}");
+        }
     }
 
     private async Task<string?> GetExternalAtis(string? url, string currentAtisLetter, string? rawMetar,

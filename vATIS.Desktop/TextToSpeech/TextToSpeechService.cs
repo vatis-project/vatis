@@ -55,45 +55,6 @@ public class TextToSpeechService : ITextToSpeechService
         await Task.WhenAll(LoadVoiceList(), LoadBuiltInContractions());
     }
 
-    private async Task LoadVoiceList()
-    {
-        try
-        {
-            var response = await _downloader.DownloadStringAsync(_appConfigurationProvider.VoiceListUrl);
-            {
-                var voices = JsonSerializer.Deserialize(response, SourceGenerationContext.NewDefault.ListVoiceMetaData);
-                if (voices != null)
-                {
-                    VoiceList = voices;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error downloading voice list");
-        }
-    }
-
-    private async Task LoadBuiltInContractions()
-    {
-        try
-        {
-            // The contractions endpoint lives alongside the voice list endpoint (e.g. /speech/voices).
-            var contractionsUrl = Regex.Replace(_appConfigurationProvider.VoiceListUrl, @"voices/?$", "contractions");
-            var response = await _downloader.DownloadStringAsync(contractionsUrl);
-            var contractions = JsonSerializer.Deserialize(response,
-                SourceGenerationContext.NewDefault.DictionaryStringString);
-            if (contractions != null)
-            {
-                BuiltInContractions = new Dictionary<string, string>(contractions, StringComparer.OrdinalIgnoreCase);
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error downloading built-in contractions");
-        }
-    }
-
     /// <inheritdoc />
     public async Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken)
     {
@@ -131,5 +92,44 @@ public class TextToSpeechService : ITextToSpeechService
         }
 
         return null;
+    }
+
+    private async Task LoadVoiceList()
+    {
+        try
+        {
+            var response = await _downloader.DownloadStringAsync(_appConfigurationProvider.VoiceListUrl);
+            {
+                var voices = JsonSerializer.Deserialize(response, SourceGenerationContext.NewDefault.ListVoiceMetaData);
+                if (voices != null)
+                {
+                    VoiceList = voices;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error downloading voice list");
+        }
+    }
+
+    private async Task LoadBuiltInContractions()
+    {
+        try
+        {
+            // The contractions endpoint lives alongside the voice list endpoint (e.g. /speech/voices).
+            var contractionsUrl = Regex.Replace(_appConfigurationProvider.VoiceListUrl, @"voices/?$", "contractions");
+            var response = await _downloader.DownloadStringAsync(contractionsUrl);
+            var contractions = JsonSerializer.Deserialize(response,
+                SourceGenerationContext.NewDefault.DictionaryStringString);
+            if (contractions != null)
+            {
+                BuiltInContractions = new Dictionary<string, string>(contractions, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error downloading built-in contractions");
+        }
     }
 }
