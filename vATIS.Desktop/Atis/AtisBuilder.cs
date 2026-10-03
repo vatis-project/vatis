@@ -713,15 +713,13 @@ public class AtisBuilder : IAtisBuilder
                 var trlTemplateText = station.AtisFormat.TransitionLevel.Template.Text;
                 if (trlTemplateText != null)
                 {
-                    trlTemplateText = Regex.Replace(trlTemplateText, @"{trl}", trl.Altitude.ToString());
-                    trlTemplateText = Regex.Replace(trlTemplateText, @"{trl\|text}", trl.Altitude.ToSerialFormat());
+                    trlTemplateText = TransitionLevelFormatter.Format(trlTemplateText, trl.Altitude);
                 }
 
                 var trlTemplateVoice = station.AtisFormat.TransitionLevel.Template.Voice;
                 if (trlTemplateVoice != null)
                 {
-                    trlTemplateVoice = Regex.Replace(trlTemplateVoice, @"{trl}", trl.Altitude.ToString());
-                    trlTemplateVoice = Regex.Replace(trlTemplateVoice, @"{trl\|text}", trl.Altitude.ToSerialFormat());
+                    trlTemplateVoice = TransitionLevelFormatter.Format(trlTemplateVoice, trl.Altitude);
                 }
 
                 variables.Add(new AtisVariable("TL", trlTemplateText ?? "", trlTemplateVoice ?? ""));

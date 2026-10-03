@@ -918,7 +918,7 @@
 								<StackPanel Orientation="Horizontal" Spacing="10">
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The transition level altitude value (e.g. &quot;65&quot;)."
+										ToolTip.Tip="The transition level altitude value (e.g. &quot;65&quot;). Add :### to zero-pad to a digit count (e.g. {trl:###} yields 065)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{trl}
