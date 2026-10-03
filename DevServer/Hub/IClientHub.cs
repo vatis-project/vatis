@@ -17,19 +17,19 @@ public interface IClientHub
     /// </summary>
     /// <param name="dto">The subscription data.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task AtisReceived(List<AtisHubDto> dto);
+    public Task AtisReceived(List<AtisHubDto> dto);
 
     /// <summary>
     /// Unsubscribes a client from ATIS updates.
     /// </summary>
     /// <param name="hubDto">The subscription data.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task RemoveAtisReceived(AtisHubDto hubDto);
+    public Task RemoveAtisReceived(AtisHubDto hubDto);
 
     /// <summary>
     /// Sends METAR data to a client.
     /// </summary>
     /// <param name="metar">The METAR data.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task MetarReceived(string metar);
+    public Task MetarReceived(string metar);
 }
