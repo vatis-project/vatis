@@ -19,7 +19,6 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
-using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Config;
@@ -425,9 +424,8 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 
         try
         {
-            var locator = VelopackLocator.GetDefault(NullLogger.Instance);
-            var currentRelease = locator.GetLocalPackages()
-                .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
+            var currentRelease = VelopackLocator.Current.GetLocalPackages()
+                .FirstOrDefault(x => x.Version == VelopackLocator.Current.CurrentlyInstalledVersion);
             if (currentRelease?.NotesMarkdown != null)
             {
                 var releaseNotes = _windowFactory.CreateReleaseNotesDialog();
