@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
@@ -1165,7 +1166,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                     var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
                         _decodedMetar, localToken.Token);
 
-                    vm.AtisScript = textAtis;
+                    // Show the airport name in the recording script so the identifier is easier to read aloud.
+                    vm.AtisScript = string.IsNullOrEmpty(textAtis) || string.IsNullOrEmpty(_atisStationAirport.Name)
+                        ? textAtis
+                        : Regex.Replace(textAtis, $@"(?<![\w\d]){Regex.Escape(_atisStationAirport.Id)}(?![\w\d])",
+                            _atisStationAirport.Name.Replace("$", "$$"), RegexOptions.IgnoreCase);
                     window.Topmost = lifetime.MainWindow.Topmost;
 
                     if (await window.ShowDialog<bool>(lifetime.MainWindow))
