@@ -83,12 +83,6 @@ jobs:
         run: |
           dotnet publish -c Release -r linux-x64 -o ./build -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version=$RELEASE_VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
 
-      - name: Upload Debug Symbols
-        run: |
-          npm install -g @sentry/cli
-          sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
-          sentry-cli debug-files upload -o clowd -p vatis ./build
-
       - name: Download last release
         run: |
           vpk download s3 --outputDir "./velopack" \
@@ -325,12 +319,6 @@ jobs:
               --releaseNotes RELEASE_NOTES.md \
               --verbose
 
-      - name: Upload Debug Symbols
-        run: |
-          npm install -g @sentry/cli
-          sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
-          sentry-cli debug-files upload -o clowd -p vatis $APP_BUNDLE/Contents/MacOS    
-
       - name: Codesign Application
         run: |
           unzip -o ./velopack/org.vatsim.vatis-osx-Portable.zip -d ./velopack
@@ -439,13 +427,6 @@ jobs:
         shell: bash
         run: |
           dotnet publish -c Release -r win-x64 -o ./build -p:NoWarn=IL3000 -p:Version=$RELEASE_VERSION ./vATIS.Desktop/vATIS.Desktop.csproj
-
-      - name: Upload Debug Symbols
-        shell: bash
-        run: |
-          npm install -g @sentry/cli
-          sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
-          sentry-cli debug-files upload -o clowd -p vatis ./build    
 
       - name: Download last release
         shell: bash
