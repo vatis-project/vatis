@@ -700,7 +700,8 @@ public class AtisBuilder : IAtisBuilder
             new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
             new("WS", windshear.TextAtis, windshear.VoiceAtis),
             new("RMK_WIND", remarkWind.TextAtis, remarkWind.VoiceAtis),
-            new("AUTO", autoText, autoVoice)
+            new("AUTO", autoText, autoVoice),
+            new("METAR", metar.RawMetar?.Trim() ?? "", metar.RawMetar?.Trim() ?? "")
         };
 
         if (!station.IsFaaAtis)

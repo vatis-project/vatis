@@ -76,6 +76,14 @@
 					<Button
 						Margin="0,0,5,5"
 						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The complete, raw METAR as received (e.g. KSFO 031856Z 28012KT 10SM FEW015 18/11 A3002). Does not include a leading &quot;METAR&quot; keyword."
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[METAR]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
 						ToolTip.Tip="The observation time of the METAR&#x0a;&#x0a;Aliases:&#x0a;[OBS_TIME]"
 						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
 						CommandParameter="{Binding $self.Content}">
