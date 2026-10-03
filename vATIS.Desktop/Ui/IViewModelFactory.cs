@@ -53,4 +53,10 @@ public interface IViewModelFactory
     /// </summary>
     /// <returns>A new instance of <see ref="SandboxViewModel"/>.</returns>
     SandboxViewModel CreateSandboxViewModel();
+
+    /// <summary>
+    /// Creates an instance of <see cref="DatisReplacementsViewModel"/> for managing D-ATIS text replacement rules.
+    /// </summary>
+    /// <returns>A new instance of <see cref="DatisReplacementsViewModel"/>.</returns>
+    DatisReplacementsViewModel CreateDatisReplacementsViewModel();
 }

@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
+             xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
+             xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="550"
+             x:Class="Vatsim.Vatis.Ui.AtisConfiguration.DatisReplacementsView">
+	<StackPanel Orientation="Vertical" Spacing="10">
+		<!-- Prepend/Append Airport Conditions -->
+		<Grid ColumnDefinitions="*,10,*">
+			<StackPanel Grid.Column="0" Spacing="4">
+				<TextBlock Text="Prepend Airport Conditions:"/>
+				<TextBox Text="{Binding PrependAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to airport conditions" LostFocus="TextBox_OnLostFocus">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+			<StackPanel Grid.Column="2" Spacing="4">
+				<TextBlock Text="Append Airport Conditions:"/>
+				<TextBox Text="{Binding AppendAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to airport conditions" LostFocus="TextBox_OnLostFocus">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+		</Grid>
+		<!-- Prepend/Append NOTAMs -->
+		<Grid ColumnDefinitions="*,10,*">
+			<StackPanel Grid.Column="0" Spacing="4">
+				<TextBlock Text="Prepend NOTAMs:"/>
+				<TextBox Text="{Binding PrependNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to NOTAMs" LostFocus="TextBox_OnLostFocus">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+			<StackPanel Grid.Column="2" Spacing="4">
+				<TextBlock Text="Append NOTAMs:"/>
+				<TextBox Text="{Binding AppendNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to NOTAMs" LostFocus="TextBox_OnLostFocus">
+					<Interaction.Behaviors>
+						<behaviors:TextBoxUppercaseBehavior/>
+					</Interaction.Behaviors>
+				</TextBox>
+			</StackPanel>
+		</Grid>
+		<!-- Text Replacements -->
+		<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+			<DataGrid x:Name="ReplacementsGrid" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="280" ItemsSource="{Binding Replacements, DataType=vm:DatisReplacementsViewModel}" SelectionMode="Single" CellEditEnding="ReplacementsGrid_OnCellEditEnding">
+				<DataGrid.Styles>
+					<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+						<Setter Property="IsVisible" Value="False" />
+					</Style>
+				</DataGrid.Styles>
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="Pattern" Width="2*" IsReadOnly="False" Binding="{Binding Pattern, DataType=models:DatisTextReplacement}"/>
+					<DataGridTextColumn Header="Replacement" Width="2*" IsReadOnly="False" Binding="{Binding Replacement, DataType=models:DatisTextReplacement}"/>
+					<DataGridCheckBoxColumn Header="Regex" Width="80" IsReadOnly="False" Binding="{Binding IsRegex, DataType=models:DatisTextReplacement}"/>
+				</DataGrid.Columns>
+			</DataGrid>
+		</Border>
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+			<Button Theme="{StaticResource Dark}" MinWidth="80" Height="28" Command="{Binding AddReplacementCommand, DataType=vm:DatisReplacementsViewModel}">New</Button>
+			<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding DeleteReplacementCommand, DataType=vm:DatisReplacementsViewModel}" IsEnabled="{Binding #ReplacementsGrid.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" CommandParameter="{Binding #ReplacementsGrid.SelectedItem}">Delete</Button>
+		</StackPanel>
+	</StackPanel>
+</UserControl>

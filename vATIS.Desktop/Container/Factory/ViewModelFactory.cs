@@ -56,7 +56,8 @@ internal class ViewModelFactory : IViewModelFactory
             _provider.GetService<IAtisHubConnection>(),
             _provider.GetService<ISessionManager>(),
             _provider.GetService<IProfileRepository>(),
-            _provider.GetService<IWebsocketService>());
+            _provider.GetService<IWebsocketService>(),
+            _provider.GetService<IDatisRepository>());
     }
 
     /// <summary>
@@ -115,6 +116,17 @@ internal class ViewModelFactory : IViewModelFactory
             _provider.GetService<IWindowFactory>(),
             _provider.GetService<IAtisBuilder>(),
             _provider.GetService<IMetarRepository>(),
+            _provider.GetService<IProfileRepository>(),
+            _provider.GetService<ISessionManager>());
+    }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="DatisReplacementsViewModel"/> class.
+    /// </summary>
+    /// <returns>A new <see cref="DatisReplacementsViewModel"/> instance.</returns>
+    public DatisReplacementsViewModel CreateDatisReplacementsViewModel()
+    {
+        return new DatisReplacementsViewModel(
             _provider.GetService<IProfileRepository>(),
             _provider.GetService<ISessionManager>());
     }
