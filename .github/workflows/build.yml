@@ -7,7 +7,33 @@ on:
   merge_group:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      native: ${{ steps.filter.outputs.native }}
+      dotnet: ${{ steps.filter.outputs.dotnet }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            native:
+              - 'NativeAudio/**'
+              - '.github/workflows/build.yml'
+            dotnet:
+              - 'vATIS.Desktop/**'
+              - 'vATIS.Desktop.Tests/**'
+              - 'Vatsim.Network/**'
+              - 'vATIS.slnx'
+              - '**/*.props'
+              - '**/*.targets'
+              - '**/global.json'
+              - '.github/workflows/build.yml'
+
   build:
+    needs: changes
     runs-on: ${{ matrix.os }}
     if: ${{ !contains(github.event.pull_request.title, '[skip ci]') && 
         !contains(github.event.pull_request.body, '[skip ci]') && 
@@ -28,24 +54,26 @@ jobs:
           submodules: recursive
 
       - name: Install .NET Core
+        if: needs.changes.outputs.dotnet == 'true'
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
       - name: Install Dependencies
-        if: matrix.os == 'ubuntu-latest'
+        if: needs.changes.outputs.native == 'true' && matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update
           sudo apt install -y build-essential libcurl4-openssl-dev
 
       - name: Build NativeAudio
+        if: needs.changes.outputs.native == 'true'
         run: |
           mkdir -p ./NativeAudio/out
           cmake -S ./NativeAudio -B ./NativeAudio/out -DCMAKE_BUILD_TYPE=Release
           cmake --build ./NativeAudio/out --config Release
 
       - name: Build client for macOS (ARM and x64)
-        if: matrix.os == 'macos-latest'
+        if: needs.changes.outputs.dotnet == 'true' && matrix.os == 'macos-latest'
         run: |
           for ARCH in osx-arm64 osx-x64; do
             echo "Building for platform: $ARCH"
@@ -53,8 +81,29 @@ jobs:
           done
 
       - name: Build client (single platform)
-        if: matrix.os != 'macos-latest'
+        if: needs.changes.outputs.dotnet == 'true' && matrix.os != 'macos-latest'
         shell: bash
         run: |
           echo "Building for platform: ${{ matrix.platform }}"
           dotnet publish -c Release -r ${{ matrix.platform }} -o ./build-${{ matrix.platform }} -p:UseAppHost=true -p:NoWarn=IL3000 ./vATIS.Desktop/vATIS.Desktop.csproj
+
+  test:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.dotnet == 'true' &&
+        !contains(github.event.pull_request.title, '[skip ci]') &&
+        !contains(github.event.pull_request.body, '[skip ci]') &&
+        !contains(join(github.event.pull_request.labels.*.name, ','), 'skip ci') }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run tests
+        run: dotnet test ./vATIS.Desktop.Tests/vATIS.Desktop.Tests.csproj -c Release
