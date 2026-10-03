@@ -17,12 +17,12 @@ namespace Vatsim.Vatis.Tests.Atis;
 
 public class AtisBuilderMetarVariableTests
 {
-    private const string RawMetar = "FALA 241100Z 31005KT 210V010 CAVOK 29/M00 Q1020 NOSIG";
+    private const string RawMetar = "KSFO 031856Z 28012KT 10SM FEW015 18/11 A3002";
 
     private static async Task<string?> BuildText(string template)
     {
         var builder = new AtisBuilder(null!, new FakeNavData(), null!, new FakeMetarRepository(), null!);
-        var station = new AtisStation { Identifier = "FALA", Name = "FALA", AtisType = AtisType.Combined };
+        var station = new AtisStation { Identifier = "KSFO", Name = "KSFO", AtisType = AtisType.Combined };
         var preset = new AtisPreset { Name = "P", Template = template };
         var metar = new MetarDecoder().ParseNotStrict(RawMetar);
 
