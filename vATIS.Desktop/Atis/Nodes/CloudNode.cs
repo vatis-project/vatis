@@ -65,6 +65,24 @@ public class CloudNode : BaseNode<CloudLayer>
         };
     }
 
+    private static string AmountToSpoken(CloudLayer.CloudAmount amount)
+    {
+        return amount switch
+        {
+            CloudLayer.CloudAmount.Few => "few",
+            CloudLayer.CloudAmount.Scattered => "scattered",
+            CloudLayer.CloudAmount.Broken => "broken",
+            CloudLayer.CloudAmount.Overcast => "overcast",
+            _ => "",
+        };
+    }
+
+    private static bool UsesUndeterminedTemplate(CloudLayer layer)
+    {
+        return layer.BaseHeight == null && layer.Amount is CloudLayer.CloudAmount.Few
+            or CloudLayer.CloudAmount.Scattered or CloudLayer.CloudAmount.Broken or CloudLayer.CloudAmount.Overcast;
+    }
+
     private void Parse(List<CloudLayer> cloudLayers)
     {
         ArgumentNullException.ThrowIfNull(Station);
@@ -116,6 +134,11 @@ public class CloudNode : BaseNode<CloudLayer>
         }
 
         var template = value.Text;
+
+        if (UsesUndeterminedTemplate(layer) && Station.AtisFormat.Clouds.Types.TryGetValue("UND", out var undText))
+        {
+            template = Regex.Replace(undText.Text, "{amount}", AmountToString(layer.Amount), RegexOptions.IgnoreCase);
+        }
 
         if (layer.BaseHeight == null)
         {
@@ -175,6 +198,11 @@ public class CloudNode : BaseNode<CloudLayer>
         }
 
         var template = value.Voice;
+
+        if (UsesUndeterminedTemplate(layer) && Station.AtisFormat.Clouds.Types.TryGetValue("UND", out var undVoice))
+        {
+            template = Regex.Replace(undVoice.Voice, "{amount}", AmountToSpoken(layer.Amount), RegexOptions.IgnoreCase);
+        }
 
         if (layer.BaseHeight == null)
         {
