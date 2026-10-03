@@ -41,6 +41,13 @@ public interface IProfileRepository
     Task<List<Profile>> LoadAll();
 
     /// <summary>
+    /// Loads a single profile by its identifier without reading the other profiles.
+    /// </summary>
+    /// <param name="profileId">The identifier of the profile to load.</param>
+    /// <returns>A task whose result is the profile, or <c>null</c> if no profile with that identifier exists.</returns>
+    Task<Profile?> LoadById(string profileId);
+
+    /// <summary>
     /// Provides functionality to copy an existing profile.
     /// </summary>
     /// <param name="profile">The profile to copy.</param>

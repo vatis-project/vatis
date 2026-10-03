@@ -193,8 +193,10 @@ public class App : Application
                 {
                     Log.Error(ex, "Error running client updater.");
                 }
-
-                await CheckForProfileUpdatesAsync();
+                // Profile updates, navdata and the voice list are independent network round trips, so run them
+                // concurrently instead of one after another.
+                var profileUpdatesTask = CheckForProfileUpdatesAsync();
+                var voicesTask = UpdateAvailableVoicesAsync();
                 try
                 {
                     await UpdateNavDataAsync();
@@ -205,7 +207,8 @@ public class App : Application
                     return;
                 }
 
-                await UpdateAvailableVoicesAsync();
+                await profileUpdatesTask;
+                await voicesTask;
 
                 // Show release notes of new version
                 if (Program.IsUpdated && !appConfig.SuppressReleaseNotes)

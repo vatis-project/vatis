@@ -242,10 +242,10 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 
     private async Task Initialize()
     {
-        foreach (var profile in await _profileRepository.LoadAll())
-        {
-            _profileList.Add(new ProfileViewModel(profile));
-        }
+        var profiles = await _profileRepository.LoadAll();
+
+        // Add in one batch so the sorted/bound collection is rebuilt once rather than once per profile.
+        _profileList.AddRange(profiles.Select(p => new ProfileViewModel(p)));
     }
 
     private void HandleStartSession(ProfileViewModel model)

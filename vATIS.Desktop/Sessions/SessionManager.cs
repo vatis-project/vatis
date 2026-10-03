@@ -55,20 +55,11 @@ public class SessionManager : ISessionManager
     /// <inheritdoc />
     public async Task StartSession(string profileId)
     {
-        var profile = (await _profileRepository.LoadAll()).Find(p => p.Id == profileId);
+        var profile = await _profileRepository.LoadById(profileId);
         if (profile == null)
             return;
 
-        _profileListDialog?.Close();
-        CurrentProfile = profile;
-        CurrentConnectionCount = 0;
-        _mainWindow = _windowFactory.CreateMainWindow();
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            desktop.MainWindow = _mainWindow;
-        }
-
-        _mainWindow.Show();
+        OpenSession(profile);
     }
 
     /// <inheritdoc />
@@ -86,18 +77,32 @@ public class SessionManager : ISessionManager
     {
         try
         {
-            var profile = (await _profileRepository.LoadAll()).Find(p => p.Id == profileId);
+            var profile = await _profileRepository.LoadById(profileId);
             if (profile == null)
                 return;
 
             EndSession();
-            await StartSession(profileId);
+            OpenSession(profile);
         }
         catch (Exception ex)
         {
             ShowProfileListDialog();
             Log.Error(ex, "ChangeProfile failed");
         }
+    }
+
+    private void OpenSession(Profile profile)
+    {
+        _profileListDialog?.Close();
+        CurrentProfile = profile;
+        CurrentConnectionCount = 0;
+        _mainWindow = _windowFactory.CreateMainWindow();
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow = _mainWindow;
+        }
+
+        _mainWindow.Show();
     }
 
     private void ShowProfileListDialog()

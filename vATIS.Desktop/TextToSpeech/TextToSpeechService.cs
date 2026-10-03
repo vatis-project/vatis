@@ -51,6 +51,12 @@ public class TextToSpeechService : ITextToSpeechService
     /// <inheritdoc />
     public async Task Initialize()
     {
+        // The two requests are independent, so issue them concurrently.
+        await Task.WhenAll(LoadVoiceList(), LoadBuiltInContractions());
+    }
+
+    private async Task LoadVoiceList()
+    {
         try
         {
             var response = await _downloader.DownloadStringAsync(_appConfigurationProvider.VoiceListUrl);
@@ -66,7 +72,10 @@ public class TextToSpeechService : ITextToSpeechService
         {
             Log.Error(ex, "Error downloading voice list");
         }
+    }
 
+    private async Task LoadBuiltInContractions()
+    {
         try
         {
             // The contractions endpoint lives alongside the voice list endpoint (e.g. /speech/voices).

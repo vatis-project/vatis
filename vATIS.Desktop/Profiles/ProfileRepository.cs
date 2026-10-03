@@ -35,69 +35,93 @@ public class ProfileRepository : IProfileRepository
     public async Task CheckForProfileUpdates()
     {
         var profiles = await LoadAll();
-        foreach (var localProfile in profiles)
-        {
-            string cacheBusterUpdateUrl; // The update URL with a cache buster timestamp appended to it.
-            string queryChar; // The character to use to append the cache buster to the URL.
+        await Task.WhenAll(profiles.Select(p => CheckForProfileUpdate(p)));
+    }
 
+    /// <inheritdoc />
+    public async Task<Profile?> LoadById(string profileId)
+    {
+        var path = PathProvider.GetProfilePath(profileId);
+        if (File.Exists(path))
+        {
             try
             {
-                if (string.IsNullOrEmpty(localProfile.UpdateUrl)) continue;
-
-                // Append a cache buster to the update URL to ensure we don't get a cached response.
-                var baseUri = new Uri(localProfile.UpdateUrl);
-
-                // If the query string is empty, we need to add a "?" to the URL. Otherwise, we need to add an "&".
-                queryChar = baseUri.Query.Length == 0 ? "?" : "&";
+                var profile = await LoadAndMigrate(path);
+                if (profile.Id == profileId)
+                    return profile;
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Unable to convert {localProfile.UpdateUrl} to an Uri in profile {localProfile.Id}.");
-                return;
+                Log.Warning(ex, "Failed to deserialize profile from path: " + path);
             }
+        }
 
-            // Append the current Unix timestamp to the query string.
-            cacheBusterUpdateUrl = $"{localProfile.UpdateUrl}{queryChar}ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+        // The file name did not match the profile id (or could not be read); fall back to scanning every profile.
+        return (await LoadAll()).Find(p => p.Id == profileId);
+    }
 
-            try
+    private async Task CheckForProfileUpdate(Profile localProfile)
+    {
+        string cacheBusterUpdateUrl; // The update URL with a cache buster timestamp appended to it.
+        string queryChar; // The character to use to append the cache buster to the URL.
+
+        try
+        {
+            if (string.IsNullOrEmpty(localProfile.UpdateUrl)) return;
+
+            // Append a cache buster to the update URL to ensure we don't get a cached response.
+            var baseUri = new Uri(localProfile.UpdateUrl);
+
+            // If the query string is empty, we need to add a "?" to the URL. Otherwise, we need to add an "&".
+            queryChar = baseUri.Query.Length == 0 ? "?" : "&";
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, $"Unable to convert {localProfile.UpdateUrl} to an Uri in profile {localProfile.Id}.");
+            return;
+        }
+
+        // Append the current Unix timestamp to the query string.
+        cacheBusterUpdateUrl = $"{localProfile.UpdateUrl}{queryChar}ts={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+
+        try
+        {
+            var response = await _downloader.GetAsync(cacheBusterUpdateUrl);
+            if (response.IsSuccessStatusCode)
             {
-                var response = await _downloader.GetAsync(cacheBusterUpdateUrl);
-                if (response.IsSuccessStatusCode)
+                var remoteProfileJson = await response.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(remoteProfileJson))
                 {
-                    var remoteProfileJson = await response.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(remoteProfileJson))
+                    var remoteProfile = JsonSerializer.Deserialize(remoteProfileJson,
+                        SourceGenerationContext.NewDefault.Profile);
+                    if (remoteProfile != null)
                     {
-                        var remoteProfile = JsonSerializer.Deserialize(remoteProfileJson,
-                            SourceGenerationContext.NewDefault.Profile);
-                        if (remoteProfile != null)
+                        if (localProfile.UpdateSerial == null ||
+                            remoteProfile.UpdateSerial > localProfile.UpdateSerial)
                         {
-                            if (localProfile.UpdateSerial == null ||
-                                remoteProfile.UpdateSerial > localProfile.UpdateSerial)
-                            {
-                                Log.Information($"Updating profile {localProfile.Name}: {localProfile.Id}");
-                                var updatedProfile =
-                                    remoteProfile ?? throw new JsonException("Updated profile is null");
-                                updatedProfile.Id = localProfile.Id;
-                                Delete(localProfile);
-                                Save(updatedProfile);
-                            }
+                            Log.Information($"Updating profile {localProfile.Name}: {localProfile.Id}");
+                            var updatedProfile =
+                                remoteProfile ?? throw new JsonException("Updated profile is null");
+                            updatedProfile.Id = localProfile.Id;
+                            Delete(localProfile);
+                            Save(updatedProfile);
                         }
                     }
                 }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    Log.Warning($"Profile update URL not found for {localProfile.Id} at {cacheBusterUpdateUrl}.");
-                }
-                else
-                {
-                    Log.Warning(
-                        $"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {cacheBusterUpdateUrl}.");
-                }
             }
-            catch (Exception ex)
+            else if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                Log.Warning(ex, $"Profile update check failed for {localProfile.Id} at {cacheBusterUpdateUrl}.");
+                Log.Warning($"Profile update URL not found for {localProfile.Id} at {cacheBusterUpdateUrl}.");
             }
+            else
+            {
+                Log.Warning(
+                    $"Profile update request failed with status code {response.StatusCode} for {localProfile.Id} at {cacheBusterUpdateUrl}.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, $"Profile update check failed for {localProfile.Id} at {cacheBusterUpdateUrl}.");
         }
     }
 
@@ -121,27 +145,22 @@ public class ProfileRepository : IProfileRepository
     public async Task<List<Profile>> LoadAll()
     {
         var paths = Directory.GetFiles(PathProvider.ProfilesFolderPath, "*.json");
-        var profiles = new List<Profile>(paths.Length);
-        foreach (var path in paths)
+
+        // Reading and deserializing the (large) profile files is independent per file, so do it concurrently.
+        var loaded = await Task.WhenAll(paths.Select(async path =>
         {
             try
             {
-                var profile = await Load(path);
-                EnsureLatestVersion(profile, out var wasUpdated);
-                if (wasUpdated)
-                {
-                    Save(profile);
-                }
-
-                profiles.Add(profile);
+                return await LoadAndMigrate(path);
             }
             catch (Exception ex)
             {
                 Log.Warning(ex, "Failed to deserialize profile from path: " + path);
+                return null;
             }
-        }
+        }));
 
-        return profiles;
+        return loaded.Where(p => p != null).Select(p => p!).ToList();
     }
 
     /// <inheritdoc />
@@ -198,6 +217,18 @@ public class ProfileRepository : IProfileRepository
             JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile),
             SourceGenerationContext.NewDefault.Profile) ?? throw new JsonException("Result is null");
         File.WriteAllText(path, JsonSerializer.Serialize(scrubbed, SourceGenerationContext.NewDefault.Profile));
+    }
+
+    private async Task<Profile> LoadAndMigrate(string path)
+    {
+        var profile = await Load(path);
+        EnsureLatestVersion(profile, out var wasUpdated);
+        if (wasUpdated)
+        {
+            Save(profile);
+        }
+
+        return profile;
     }
 
     private static async Task<Profile> Load(string path)
