@@ -63,7 +63,7 @@ public interface IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    Task SendAtisMessageAsync(ClientMetadata? session, AtisMessage.AtisMessageValue value);
+    public Task SendAtisMessageAsync(ClientMetadata? session, AtisMessage.AtisMessageValue value);
 
     /// <summary>
     /// Sends a message with a list of ATIS stations to the specific client session,
@@ -72,17 +72,17 @@ public interface IWebsocketService
     /// <param name="session">The session to send the message to.</param>
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
-    Task SendAtisStationsAsync(ClientMetadata? session, AtisStationMessage value);
+    public Task SendAtisStationsAsync(ClientMetadata? session, AtisStationMessage value);
 
     /// <summary>
     /// Starts the WebSocket server.
     /// </summary>
     /// <returns>A task.</returns>
-    Task StartAsync();
+    public Task StartAsync();
 
     /// <summary>
     /// Stops the WebSocket server.
     /// </summary>
     /// <returns>A task.</returns>
-    Task StopAsync();
+    public Task StopAsync();
 }

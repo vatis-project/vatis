@@ -21,5 +21,5 @@ public interface IMachineInfoProvider
     /// <exception cref="PlatformNotSupportedException">
     /// Thrown if the method is invoked on an unsupported platform.
     /// </exception>
-    byte[]? GetMachineGuid();
+    public byte[]? GetMachineGuid();
 }

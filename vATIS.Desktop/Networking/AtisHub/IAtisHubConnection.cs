@@ -18,39 +18,39 @@ public interface IAtisHubConnection
     /// Connects to the ATIS hub.
     /// </summary>
     /// <returns>A task that represents the asynchronous connect operation.</returns>
-    Task Connect();
+    public Task Connect();
 
     /// <summary>
     /// Disconnects from the ATIS hub.
     /// </summary>
     /// <returns>A task that represents the asynchronous disconnect operation.</returns>
-    Task Disconnect();
+    public Task Disconnect();
 
     /// <summary>
     /// Publishes ATIS information to the hub.
     /// </summary>
     /// <param name="dto">The data transfer object containing ATIS information.</param>
     /// <returns>A task that represents the asynchronous publish operation.</returns>
-    Task PublishAtis(AtisHubDto dto);
+    public Task PublishAtis(AtisHubDto dto);
 
     /// <summary>
     /// Subscribes to ATIS information from the hub.
     /// </summary>
     /// <param name="dto">The data transfer object containing subscription information.</param>
     /// <returns>A task that represents the asynchronous subscribe operation.</returns>
-    Task SubscribeToAtis(SubscribeDto dto);
+    public Task SubscribeToAtis(SubscribeDto dto);
 
     /// <summary>
     /// Retrieves the current real-world digital ATIS letter.
     /// </summary>
     /// <param name="dto">The request parameters to fetch the digital ATIS letter.</param>
     /// <returns>The ATIS letter if available; otherwise, null.</returns>
-    Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto);
+    public Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto);
 
     /// <summary>
     /// Sends a disconnect message to the ATIS hub.
     /// </summary>
     /// <param name="dto">The DTO representing the ATIS connection.</param>
     /// <returns>A task that represents the asynchronous subscribe operation.</returns>
-    Task DisconnectAtis(AtisHubDto dto);
+    public Task DisconnectAtis(AtisHubDto dto);
 }

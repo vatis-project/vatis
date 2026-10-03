@@ -48,6 +48,13 @@ public partial class MessageBoxView : Window, ICloseable
         Dispatcher.UIThread.InvokeAsync(CenterWindow);
     }
 
+    private static PixelSize PixelSizeOf(Window window)
+    {
+        var size = window.FrameSize ?? window.ClientSize;
+        var scale = window.RenderScaling;
+        return new PixelSize((int)(size.Width * scale), (int)(size.Height * scale));
+    }
+
     private void CenterWindow()
     {
         if (DataContext is not MessageBoxViewModel { Owner: not null } viewModel)
@@ -80,12 +87,5 @@ public partial class MessageBoxView : Window, ICloseable
         Position = new PixelPoint(
             owner.Position.X + ((ownerSize.Width - size.Width) / 2),
             owner.Position.Y + ((ownerSize.Height - size.Height) / 2));
-    }
-
-    private static PixelSize PixelSizeOf(Window window)
-    {
-        var size = window.FrameSize ?? window.ClientSize;
-        var scale = window.RenderScaling;
-        return new PixelSize((int)(size.Width * scale), (int)(size.Height * scale));
     }
 }

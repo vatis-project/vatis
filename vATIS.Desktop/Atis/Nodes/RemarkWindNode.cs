@@ -38,14 +38,6 @@ public class RemarkWindNode : BaseNode<RemarkWind>
         VoiceAtis = Apply(format.VoiceTemplate, wind.HeightFeet.ToSerialFormat(), voiceDirection, voiceSpeed);
     }
 
-    private static string Apply(string? template, string height, string direction, string speed)
-    {
-        return (template ?? string.Empty)
-            .Replace("{height}", height, StringComparison.OrdinalIgnoreCase)
-            .Replace("{dir}", direction, StringComparison.OrdinalIgnoreCase)
-            .Replace("{speed}", speed, StringComparison.OrdinalIgnoreCase);
-    }
-
     /// <inheritdoc />
     public override string ParseVoiceVariables(RemarkWind node, string? format) =>
         throw new NotImplementedException();
@@ -53,4 +45,12 @@ public class RemarkWindNode : BaseNode<RemarkWind>
     /// <inheritdoc />
     public override string ParseTextVariables(RemarkWind node, string? format) =>
         throw new NotImplementedException();
+
+    private static string Apply(string? template, string height, string direction, string speed)
+    {
+        return (template ?? string.Empty)
+            .Replace("{height}", height, StringComparison.OrdinalIgnoreCase)
+            .Replace("{dir}", direction, StringComparison.OrdinalIgnoreCase)
+            .Replace("{speed}", speed, StringComparison.OrdinalIgnoreCase);
+    }
 }

@@ -61,6 +61,12 @@ public class MockMetarRepository : IMetarRepository
         return null;
     }
 
+    /// <inheritdoc />
+    public void RemoveMetar(string station)
+    {
+        // Ignore
+    }
+
     private async Task<DecodedMetar?> FetchCustomMetarAsync(string station, string urlTemplate)
     {
         try
@@ -82,11 +88,5 @@ public class MockMetarRepository : IMetarRepository
         }
 
         return null;
-    }
-
-    /// <inheritdoc />
-    public void RemoveMetar(string station)
-    {
-        // Ignore
     }
 }
