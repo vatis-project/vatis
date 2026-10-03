@@ -59,14 +59,22 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Cache NativeAudio
+        id: native-cache
+        if: needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true'
+        uses: actions/cache@v4
+        with:
+          path: vATIS.Desktop/Voice/Audio/Native
+          key: nativeaudio-${{ runner.os }}-${{ hashFiles('NativeAudio/**') }}
+
       - name: Install Dependencies
-        if: needs.changes.outputs.native == 'true' && matrix.os == 'ubuntu-latest'
+        if: ${{ steps.native-cache.outputs.cache-hit != 'true' && (needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true') && matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
           sudo apt install -y build-essential libcurl4-openssl-dev
 
       - name: Build NativeAudio
-        if: needs.changes.outputs.native == 'true'
+        if: ${{ steps.native-cache.outputs.cache-hit != 'true' && (needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true') }}
         run: |
           mkdir -p ./NativeAudio/out
           cmake -S ./NativeAudio -B ./NativeAudio/out -DCMAKE_BUILD_TYPE=Release
@@ -104,6 +112,27 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
+
+      - name: Cache NativeAudio
+        id: native-cache
+        if: needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true'
+        uses: actions/cache@v4
+        with:
+          path: vATIS.Desktop/Voice/Audio/Native
+          key: nativeaudio-${{ runner.os }}-${{ hashFiles('NativeAudio/**') }}
+
+      - name: Install Dependencies
+        if: ${{ steps.native-cache.outputs.cache-hit != 'true' && (needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true') }}
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential libcurl4-openssl-dev
+
+      - name: Build NativeAudio
+        if: ${{ steps.native-cache.outputs.cache-hit != 'true' && (needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true') }}
+        run: |
+          mkdir -p ./NativeAudio/out
+          cmake -S ./NativeAudio -B ./NativeAudio/out -DCMAKE_BUILD_TYPE=Release
+          cmake --build ./NativeAudio/out --config Release
 
       - name: Run tests
         run: dotnet test ./vATIS.Desktop.Tests/vATIS.Desktop.Tests.csproj -c Release
