@@ -195,9 +195,8 @@ public class App : Application
                 {
                     try
                     {
-                        var locator = VelopackLocator.GetDefault(NullLogger.Instance);
-                        var currentRelease = locator.GetLocalPackages()
-                            .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
+                        var currentRelease = VelopackLocator.Current.GetLocalPackages()
+                            .FirstOrDefault(x => x.Version == VelopackLocator.Current.CurrentlyInstalledVersion);
                         if (currentRelease?.NotesMarkdown != null)
                         {
                             var releaseNotes = _serviceProvider.GetService<ReleaseNotesDialog>();
