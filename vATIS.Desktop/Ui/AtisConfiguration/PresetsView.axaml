@@ -76,6 +76,14 @@
 					<Button
 						Margin="0,0,5,5"
 						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The complete, raw METAR as received (e.g. FALA 241100Z 31005KT CAVOK 29/M00 Q1020 NOSIG). Does not include a leading &quot;METAR&quot; keyword."
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[METAR]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
 						ToolTip.Tip="The observation time of the METAR&#x0a;&#x0a;Aliases:&#x0a;[OBS_TIME]"
 						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
 						CommandParameter="{Binding $self.Content}">
