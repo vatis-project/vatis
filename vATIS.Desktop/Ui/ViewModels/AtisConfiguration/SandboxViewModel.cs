@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -19,6 +20,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
@@ -491,6 +493,14 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             viewModel.ContractionCompletionData = ContractionCompletionData;
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.NotamsBeforeFreeText;
+            viewModel.Separator = SelectedStation.NotamsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                SelectedStation.NotamsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -570,6 +580,14 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             viewModel.ContractionCompletionData = ContractionCompletionData;
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.AirportConditionsBeforeFreeText;
+            viewModel.Separator = SelectedStation.AirportConditionsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                SelectedStation.AirportConditionsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -700,7 +718,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         // Reset offset
         _notamFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, SelectedStation.NotamsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(SelectedStation.NotamsSeparator);
 
         // Insert static definitions before free-text
         if (SelectedStation.NotamsBeforeFreeText)
@@ -792,7 +812,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         // Reset offset
         _airportConditionsFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, SelectedStation.AirportConditionsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(SelectedStation.AirportConditionsSeparator);
 
         // Insert static definitions before free-text
         if (SelectedStation.AirportConditionsBeforeFreeText)

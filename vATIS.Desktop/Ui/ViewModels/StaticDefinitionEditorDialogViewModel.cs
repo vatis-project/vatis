@@ -25,6 +25,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     private DialogResult _dialogResult;
     private string? _title = "Definition Editor";
     private string? _dataValidation;
+    private string? _separatorAfter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticDefinitionEditorDialogViewModel"/> class.
@@ -108,6 +109,15 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     /// <inheritdoc/>
     public IReadOnlyDictionary<string, string> BuiltInContractions =>
         SpokenTextSource?.BuiltInContractions ?? new Dictionary<string, string>();
+
+    /// <summary>
+    /// Gets or sets an optional separator placed after this definition. Blank uses the default separator.
+    /// </summary>
+    public string? SeparatorAfter
+    {
+        get => _separatorAfter;
+        set => this.RaiseAndSetIfChanged(ref _separatorAfter, value);
+    }
 
     /// <summary>
     /// Gets or sets the validation message associated with data input. This property provides feedback

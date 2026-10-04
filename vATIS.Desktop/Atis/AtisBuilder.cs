@@ -591,29 +591,21 @@ public class AtisBuilder : IAtisBuilder
             $"{surfaceWind.TextAtis} {visibility.TextAtis} {rvr.TextAtis} {presentWeather.TextAtis} {clouds.TextAtis} {temp.TextAtis}{(!string.IsNullOrEmpty(temp.TextAtis) || !string.IsNullOrEmpty(dew.TextAtis) ? "/" : "")}{dew.TextAtis} {pressure.TextAtis} {recentWeather.TextAtis} {windshear.TextAtis} {trends.TextAtis}";
 
         var airportConditions = "";
+        var acCustom = false;
         if (!string.IsNullOrEmpty(preset.AirportConditions) || station.AirportConditionDefinitions.Any(x => x.Enabled))
         {
-            if (station.AirportConditionsBeforeFreeText)
-            {
-                airportConditions = string.Join(" ", new[]
-                {
-                    string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text)),
-                    preset.AirportConditions
-                }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            }
-            else
-            {
-                airportConditions = string.Join(" ", new[]
-                {
-                    preset.AirportConditions,
-                    string.Join(". ", station.AirportConditionDefinitions.Where(t => t.Enabled).Select(t => t.Text))
-                }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            }
+            var acDefinitions = station.AirportConditionDefinitions.Where(t => t.Enabled).OrderBy(t => t.Ordinal).ToList();
+            acCustom = StaticDefinitionJoiner.HasCustomSeparators(acDefinitions, station.AirportConditionsSeparator);
+            var acStatic = StaticDefinitionJoiner.Join(acDefinitions, station.AirportConditionsSeparator);
+            var acFree = StaticDefinitionJoiner.Prepare(preset.AirportConditions, acCustom);
+
+            airportConditions = string.Join(" ", (station.AirportConditionsBeforeFreeText
+                ? new[] { acStatic, acFree }
+                : new[] { acFree, acStatic }).Where(s => !string.IsNullOrWhiteSpace(s)));
         }
 
         // clean up duplicate punctuation
-        airportConditions = Regex.Replace(airportConditions, @"[!?.]*([!?.])", "$1");
-        airportConditions = Regex.Replace(airportConditions, "\\s+([.,!\":])", "$1");
+        airportConditions = StaticDefinitionJoiner.Finish(airportConditions, acCustom);
 
         // replace contraction variables
         var airportConditionsText = ReplaceContractionVariable(airportConditions, station, voiceVariable: false);
@@ -625,28 +617,20 @@ public class AtisBuilder : IAtisBuilder
         var notams = "";
         var notamsText = "";
         var notamsVoice = "";
+        var notamsCustom = false;
         if (!string.IsNullOrEmpty(preset.Notams) || station.NotamDefinitions.Any(x => x.Enabled))
         {
-            if (station.NotamsBeforeFreeText)
-            {
-                notams += string.Join(". ", new[]
-                {
-                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text)),
-                    preset.Notams
-                }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            }
-            else
-            {
-                notams += string.Join(". ", new[]
-                {
-                    preset.Notams,
-                    string.Join(". ", station.NotamDefinitions.Where(x => x.Enabled).Select(t => t.Text))
-                }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            }
+            var notamDefinitions = station.NotamDefinitions.Where(x => x.Enabled).OrderBy(x => x.Ordinal).ToList();
+            notamsCustom = StaticDefinitionJoiner.HasCustomSeparators(notamDefinitions, station.NotamsSeparator);
+            var notamStatic = StaticDefinitionJoiner.Join(notamDefinitions, station.NotamsSeparator);
+            var notamFree = StaticDefinitionJoiner.Prepare(preset.Notams, notamsCustom);
+
+            notams += string.Join(". ", (station.NotamsBeforeFreeText
+                ? new[] { notamStatic, notamFree }
+                : new[] { notamFree, notamStatic }).Where(s => !string.IsNullOrWhiteSpace(s)));
 
             // strip extraneous punctuation
-            notams = Regex.Replace(notams, @"[!?.]*([!?.])", "$1");
-            notams = Regex.Replace(notams, "\\s+([.,!\":])", "$1");
+            notams = StaticDefinitionJoiner.Finish(notams, notamsCustom);
 
             // Add space to end of NOTAMs
             notams = notams.Trim() + " ";

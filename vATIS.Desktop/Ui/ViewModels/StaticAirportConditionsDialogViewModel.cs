@@ -37,6 +37,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     private bool _showOverlay;
     private bool _hasDefinitions;
     private bool _includeBeforeFreeText;
+    private string _separator = ". ";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticAirportConditionsDialogViewModel"/> class.
@@ -145,6 +146,15 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     {
         get => _includeBeforeFreeText;
         set => this.RaiseAndSetIfChanged(ref _includeBeforeFreeText, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the separator placed between the selected airport conditions definitions. Used exactly as typed.
+    /// </summary>
+    public string Separator
+    {
+        get => _separator;
+        set => this.RaiseAndSetIfChanged(ref _separator, value);
     }
 
     /// <summary>
@@ -257,6 +267,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                 {
                     vm.Title = "Edit Airport Condition";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
+                    vm.SeparatorAfter = definition.SeparatorAfter;
                     vm.ContractionCompletionData = ContractionCompletionData;
                     vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
@@ -284,7 +295,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
                             Definitions.Remove(definition);
                             Definitions.Insert(currentIndex,
-                                new StaticDefinition(text, currentIndex, definition.Enabled));
+                                new StaticDefinition(text, currentIndex, definition.Enabled) { SeparatorAfter = vm.SeparatorAfter });
                             Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         }
                     };
@@ -333,7 +344,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
                         var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";
 
-                        Definitions.Add(new StaticDefinition(text, Definitions.Count + 1));
+                        Definitions.Add(new StaticDefinition(text, Definitions.Count + 1) { SeparatorAfter = vm.SeparatorAfter });
                         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         HasDefinitions = Definitions.Count != 0;
                     }
