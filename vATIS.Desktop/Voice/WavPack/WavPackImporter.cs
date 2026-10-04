@@ -51,7 +51,8 @@ public static class WavPackImporter
             .FirstOrDefault(f => string.Equals(Path.GetFileName(f), "ATIS.txt", StringComparison.OrdinalIgnoreCase))
             ?? throw new WavPackException($"ATIS.txt not found in {packFolder}");
 
-        var files = Directory.EnumerateFiles(packFolder, "*.wav")
+        var files = Directory.EnumerateFiles(packFolder)
+            .Where(f => f.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
             .Select(Path.GetFileName)
             .OfType<string>()
             .GroupBy(f => f, StringComparer.OrdinalIgnoreCase)
