@@ -40,7 +40,7 @@
 			<CheckBox Name="UseExternalAtisGenerator" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
 			<StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !#UseExternalAtisGenerator.IsChecked}">
 				<TextBlock Text="ATIS Template:"/>
-				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" WordWrap="True" Height="300" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
+				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" WordWrap="True" Height="370" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:PresetsViewModel}"/>
@@ -235,7 +235,7 @@
 					</Button>
 				</WrapPanel>
 			</StackPanel>
-			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="410" MaxHeight="410">
+			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="480" MaxHeight="480">
                 <ScrollViewer AllowAutoHide="False" Margin="0,0,-10,0" VerticalScrollBarVisibility="Visible">
                     <ScrollViewer.Styles>
                         <Style Selector="ScrollBar">

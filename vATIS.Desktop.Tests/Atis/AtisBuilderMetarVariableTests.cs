@@ -21,7 +21,7 @@ public class AtisBuilderMetarVariableTests
 
     private static async Task<string?> BuildText(string template)
     {
-        var builder = new AtisBuilder(null!, new FakeNavData(), null!, new FakeMetarRepository(), null!);
+        var builder = new AtisBuilder(null!, new FakeNavData(), null!, new FakeMetarRepository(), null!, null!);
         var station = new AtisStation { Identifier = "KSFO", Name = "KSFO", AtisType = AtisType.Combined };
         var preset = new AtisPreset { Name = "P", Template = template };
         var metar = new MetarDecoder().ParseNotStrict(RawMetar);

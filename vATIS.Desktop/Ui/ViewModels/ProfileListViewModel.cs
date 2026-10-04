@@ -31,6 +31,7 @@ using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Utils;
+using Vatsim.Vatis.Voice.WavPack;
 using Velopack.Locators;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -353,7 +354,10 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
 
         try
         {
-            var filters = new List<FilePickerFileType> { new("vATIS Profile (*.json)") { Patterns = ["*.json"] } };
+            var filters = new List<FilePickerFileType>
+            {
+                new("vATIS Profile (*.json, *.zip)") { Patterns = ["*.json", "*.zip"] }
+            };
             var files = await FilePickerExtensions.OpenFilePickerAsync(filters, "Import vATIS Profile");
 
             if (files == null)
@@ -397,16 +401,30 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         if (_dialogOwner == null)
             return;
 
-        var filters = new List<FilePickerFileType> { new("vATIS Profile (*.json)") { Patterns = ["*.json"] } };
+        var withVoicePacks = WavPackBundler.UsesVoicePack(SelectedProfile.Profile.Stations);
+        var filters = withVoicePacks
+            ? new List<FilePickerFileType> { new("vATIS Profile with voice packs (*.zip)") { Patterns = ["*.zip"] } }
+            : new List<FilePickerFileType> { new("vATIS Profile (*.json)") { Patterns = ["*.json"] } };
         var file = await FilePickerExtensions.SaveFileAsync("Export Profile", filters,
-            $"vATIS Profile - {SelectedProfile.Name}.json");
+            $"vATIS Profile - {SelectedProfile.Name}.{(withVoicePacks ? "zip" : "json")}");
 
         if (file == null)
             return;
 
-        _profileRepository.Export(SelectedProfile.Profile, file.Path.LocalPath);
-        await MessageBox.ShowDialog((Window)_dialogOwner, "Profile successfully exported.", "Success",
-            MessageBoxButton.Ok, MessageBoxIcon.Information);
+        try
+        {
+            _profileRepository.Export(SelectedProfile.Profile, file.Path.LocalPath);
+        }
+        catch (WavPackException ex)
+        {
+            await MessageBox.ShowDialog((Window)_dialogOwner, ex.Message, "Export Error", MessageBoxButton.Ok,
+                MessageBoxIcon.Error);
+            return;
+        }
+
+        await MessageBox.ShowDialog((Window)_dialogOwner,
+            withVoicePacks ? "Profile and voice packs successfully exported." : "Profile successfully exported.",
+            "Success", MessageBoxButton.Ok, MessageBoxIcon.Information);
     }
 
     private void HandleExit()

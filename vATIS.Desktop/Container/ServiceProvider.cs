@@ -28,6 +28,7 @@ using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 using Vatsim.Vatis.Ui.Windows;
 using Vatsim.Vatis.Updates;
+using Vatsim.Vatis.Voice.WavPack;
 using Vatsim.Vatis.Weather;
 
 namespace Vatsim.Vatis.Container;
@@ -45,6 +46,7 @@ namespace Vatsim.Vatis.Container;
 [Singleton(typeof(IAuthTokenManager), typeof(AuthTokenManager))]
 [Singleton(typeof(INavDataRepository), typeof(NavDataRepository))]
 [Singleton(typeof(ITextToSpeechService), typeof(TextToSpeechService))]
+[Singleton(typeof(IWavPackService), typeof(WavPackService))]
 [Singleton(typeof(IAtisBuilder), typeof(AtisBuilder))]
 [Singleton(typeof(IWindowLocationService), typeof(WindowLocationService))]
 [Singleton(typeof(IProfileRepository), typeof(ProfileRepository))]
@@ -74,6 +76,7 @@ namespace Vatsim.Vatis.Container;
 [Transient(typeof(MessageBoxView))]
 [Transient(typeof(SortPresetsDialog))]
 [Transient(typeof(SortAtisStationsDialog))]
+[Transient(typeof(VoicePacksDialog))]
 [Transient(typeof(ReleaseNotesDialog))]
 
 // ViewModels
@@ -99,6 +102,7 @@ namespace Vatsim.Vatis.Container;
 [Transient(typeof(PresetsViewModel))]
 [Transient(typeof(SandboxViewModel))]
 [Transient(typeof(SortAtisStationsDialogViewModel))]
+[Transient(typeof(VoicePacksDialogViewModel))]
 [Transient(typeof(ReleaseNotesDialogViewModel))]
 internal sealed partial class ServiceProvider
 {
