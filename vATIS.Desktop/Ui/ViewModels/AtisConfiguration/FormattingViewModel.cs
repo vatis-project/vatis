@@ -91,6 +91,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _visibilityNorthWest;
     private string? _visibilityUnlimitedVisibilityVoice;
     private string? _visibilityUnlimitedVisibilityText;
+    private string? _visibilityCavokVoice;
+    private string? _visibilityCavokText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
     private string? _rvrSpokenText;
@@ -865,6 +867,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityText, value);
             _changeTracker.TrackChange(nameof(VisibilityUnlimitedVisibilityText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the CAVOK voice value.
+    /// </summary>
+    public string? VisibilityCavokVoice
+    {
+        get => _visibilityCavokVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityCavokVoice, value);
+            _changeTracker.TrackChange(nameof(VisibilityCavokVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the CAVOK text value.
+    /// </summary>
+    public string? VisibilityCavokText
+    {
+        get => _visibilityCavokText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityCavokText, value);
+            _changeTracker.TrackChange(nameof(VisibilityCavokText), value);
         }
     }
 
@@ -1791,6 +1819,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 VisibilityUnlimitedVisibilityText ?? string.Empty;
         }
 
+        if (SelectedStation.AtisFormat.Visibility.CavokVoice != VisibilityCavokVoice)
+        {
+            SelectedStation.AtisFormat.Visibility.CavokVoice = VisibilityCavokVoice ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Visibility.CavokText != VisibilityCavokText)
+        {
+            SelectedStation.AtisFormat.Visibility.CavokText = VisibilityCavokText ?? string.Empty;
+        }
+
         if (SelectedStation.AtisFormat.Visibility.IncludeVisibilitySuffix !=
             VisibilityIncludeVisibilitySuffix)
         {
@@ -2134,6 +2172,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         VisibilityNorthWest = station.AtisFormat.Visibility.NorthWest;
         VisibilityUnlimitedVisibilityVoice = station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
+        VisibilityCavokVoice = station.AtisFormat.Visibility.CavokVoice;
+        VisibilityCavokText = station.AtisFormat.Visibility.CavokText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
         RvrSpokenText = station.AtisFormat.RunwayVisualRange.SpokenText;

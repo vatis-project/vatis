@@ -71,6 +71,16 @@ public class Visibility : BaseFormat
     public string UnlimitedVisibilityText { get; set; } = "VIS 10KM";
 
     /// <summary>
+    /// Gets or sets the voice description for CAVOK.
+    /// </summary>
+    public string CavokVoice { get; set; } = "CAVOK";
+
+    /// <summary>
+    /// Gets or sets the text description for CAVOK.
+    /// </summary>
+    public string CavokText { get; set; } = "CAVOK";
+
+    /// <summary>
     /// Gets or sets a value indicating whether to include the visibility suffix.
     /// </summary>
     public bool IncludeVisibilitySuffix { get; set; } = true;
