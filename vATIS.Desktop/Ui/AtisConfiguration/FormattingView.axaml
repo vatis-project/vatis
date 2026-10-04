@@ -407,16 +407,16 @@
 									</TextBox>
 								</StackPanel>
 							</StackPanel>
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								</StackPanel>
-							</StackPanel>
+							<Grid ColumnDefinitions="Auto,10,Auto,20,Auto,10,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
+								<TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
+								<TextBox Grid.Row="0" Grid.Column="2" Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBlock Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
+								<TextBox Grid.Row="0" Grid.Column="6" Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the METAR reports CAVOK">CAVOK (Voice):</TextBlock>
+								<TextBox Grid.Row="1" Grid.Column="2" Text="{Binding VisibilityCavokVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBlock Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the METAR reports CAVOK">CAVOK (Text):</TextBlock>
+								<TextBox Grid.Row="1" Grid.Column="6" Text="{Binding VisibilityCavokText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+							</Grid>
 							<groupBox:GroupBoxControl Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
 								<Grid ColumnDefinitions="80,*,15,80,*" RowDefinitions="*,5,*,5,*,5,*">
 									<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">North:</TextBlock>

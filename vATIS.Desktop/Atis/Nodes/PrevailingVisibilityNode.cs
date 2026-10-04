@@ -32,7 +32,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (value.IsCavok)
         {
-            return "CAVOK";
+            return Station.AtisFormat.Visibility.CavokText;
         }
 
         if (value.PrevailingVisibility is { ActualUnit: Value.Unit.Meter } &&
@@ -63,7 +63,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (node.IsCavok)
         {
-            return "CAVOK";
+            return Station.AtisFormat.Visibility.CavokVoice;
         }
         else
         {
