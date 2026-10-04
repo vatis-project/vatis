@@ -1,4 +1,4 @@
-// <copyright file="MessageBoxView.axaml.cs" company="Justin Shannon">
+﻿// <copyright file="MessageBoxView.axaml.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -45,7 +45,13 @@ public partial class MessageBoxView : Window, ICloseable
     {
         base.OnOpened(e);
 
-        Dispatcher.UIThread.InvokeAsync(CenterWindow);
+        // Owner-relative centering is handled natively through WindowStartupLocation.CenterOwner. Only centering on
+        // the screen needs to be done manually.
+        if (DataContext is MessageBoxViewModel { CenterWindowOnScreen: true })
+        {
+            Resized += OnResized;
+            Dispatcher.UIThread.InvokeAsync(CenterWindowOnScreen);
+        }
     }
 
     private static PixelSize PixelSizeOf(Window window)
@@ -55,13 +61,13 @@ public partial class MessageBoxView : Window, ICloseable
         return new PixelSize((int)(size.Width * scale), (int)(size.Height * scale));
     }
 
-    private void CenterWindow()
+    private void OnResized(object? sender, WindowResizedEventArgs e)
     {
-        if (DataContext is not MessageBoxViewModel { Owner: not null } viewModel)
-        {
-            return;
-        }
+        CenterWindowOnScreen();
+    }
 
+    private void CenterWindowOnScreen()
+    {
         // Width/Height are NaN when the window uses SizeToContent, so use the actual size of the window.
         var size = PixelSizeOf(this);
         if (size.Width <= 0 || size.Height <= 0)
@@ -69,23 +75,15 @@ public partial class MessageBoxView : Window, ICloseable
             return;
         }
 
-        if (viewModel.CenterWindowOnScreen)
+        var screen = Screens.ScreenFromVisual(this) ?? Screens.Primary;
+        if (screen == null)
         {
-            var screen = Screens.ScreenFromVisual(this) ?? Screens.Primary;
-            if (screen != null)
-            {
-                var area = screen.WorkingArea;
-                Position = new PixelPoint(
-                    area.X + ((area.Width - size.Width) / 2),
-                    area.Y + ((area.Height - size.Height) / 2));
-                return;
-            }
+            return;
         }
 
-        var owner = viewModel.Owner;
-        var ownerSize = PixelSizeOf(owner);
+        var area = screen.WorkingArea;
         Position = new PixelPoint(
-            owner.Position.X + ((ownerSize.Width - size.Width) / 2),
-            owner.Position.Y + ((ownerSize.Height - size.Height) / 2));
+            area.X + ((area.Width - size.Width) / 2),
+            area.Y + ((area.Height - size.Height) / 2));
     }
 }
