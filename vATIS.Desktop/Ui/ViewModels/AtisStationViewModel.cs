@@ -1023,6 +1023,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             viewModel.ContractionCompletionData = ContractionCompletionData;
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.NotamsBeforeFreeText;
+            viewModel.Separator = AtisStation.NotamsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                AtisStation.NotamsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -1080,6 +1088,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             viewModel.ContractionCompletionData = ContractionCompletionData;
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.AirportConditionsBeforeFreeText;
+            viewModel.Separator = AtisStation.AirportConditionsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                AtisStation.AirportConditionsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -1834,7 +1850,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         NotamsTextDocument.Text = "";
         _notamFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, AtisStation.NotamsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(AtisStation.NotamsSeparator);
 
         // Insert static definitions before free-text
         if (AtisStation.NotamsBeforeFreeText)
@@ -1918,7 +1936,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         AirportConditionsTextDocument.Text = "";
         _airportConditionsFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, AtisStation.AirportConditionsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(AtisStation.AirportConditionsSeparator);
 
         // Insert static definitions before free-text
         if (AtisStation.AirportConditionsBeforeFreeText)

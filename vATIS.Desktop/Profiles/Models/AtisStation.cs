@@ -65,6 +65,16 @@ public class AtisStation : ReactiveObject
     public bool AirportConditionsBeforeFreeText { get; set; }
 
     /// <summary>
+    /// Gets or sets the separator placed between static NOTAM definitions. Used exactly as typed.
+    /// </summary>
+    public string NotamsSeparator { get; set; } = ". ";
+
+    /// <summary>
+    /// Gets or sets the separator placed between static airport condition definitions. Used exactly as typed.
+    /// </summary>
+    public string AirportConditionsSeparator { get; set; } = ". ";
+
+    /// <summary>
     /// Gets or sets the frequency of the ATIS station.
     /// </summary>
     public uint Frequency { get; set; }
@@ -241,6 +251,8 @@ public class AtisStation : ReactiveObject
             AtisFormat = AtisFormat.Clone(),
             NotamsBeforeFreeText = NotamsBeforeFreeText,
             AirportConditionsBeforeFreeText = AirportConditionsBeforeFreeText,
+            NotamsSeparator = NotamsSeparator,
+            AirportConditionsSeparator = AirportConditionsSeparator,
             Frequency = Frequency,
             IdsEndpoint = IdsEndpoint,
             CustomMetarUrl = CustomMetarUrl,
