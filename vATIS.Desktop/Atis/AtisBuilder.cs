@@ -159,9 +159,6 @@ public class AtisBuilder : IAtisBuilder
     public async Task<AtisBuilderVoiceAtisResponse?> GetExternalVoiceAtis(AtisStation station, AtisPreset preset,
         string currentAtisLetter, string? rawMetar, CancellationToken cancellationToken)
     {
-        if (_textToSpeechService == null)
-            return null;
-
         var result = await GetExternalAtis(preset.ExternalGenerator?.VoiceUrl, currentAtisLetter, rawMetar,
             preset.ExternalGenerator);
 
@@ -172,6 +169,15 @@ public class AtisBuilder : IAtisBuilder
 
         // Format for text-to-speech (replace text parsing characters, etc).
         result = FormatForTextToSpeech(result, station);
+
+        if (station.AtisVoice.UseWavPack)
+        {
+            var (spokenText, pcm) = BuildWavPackAudio(result, station);
+            return new AtisBuilderVoiceAtisResponse(spokenText, pcm);
+        }
+
+        if (_textToSpeechService == null)
+            return null;
 
         var audioBytes = await _textToSpeechService.RequestAudio(result, station, cancellationToken);
         return audioBytes != null ? new AtisBuilderVoiceAtisResponse(result, audioBytes) : null;
@@ -445,29 +451,32 @@ public class AtisBuilder : IAtisBuilder
         }
 
         if (station.AtisVoice.UseWavPack)
-        {
-            var packFolder = WavPackLibrary.ResolveFolder(station.AtisVoice) ??
-                             throw new AtisBuilderException(
-                                 "This station's WAV voice pack was not found. Choose a voice pack in the ATIS configuration.");
-
-            try
-            {
-                var result = _wavPackService.Build(text, packFolder);
-                if (result.Pcm == null)
-                {
-                    throw new AtisBuilderException(
-                        $"Voice pack is missing clips for: {string.Join(", ", result.MissingTokens)}. Spoken text: {text}");
-                }
-
-                return (text, result.Pcm);
-            }
-            catch (Exception ex) when (ex is WavPackException or InvalidOperationException or System.IO.IOException)
-            {
-                throw new AtisBuilderException($"Failed to build voice ATIS from WAV pack: {ex.Message}");
-            }
-        }
+            return BuildWavPackAudio(text, station);
 
         return (text, null);
+    }
+
+    private (string SpokenText, byte[] Pcm) BuildWavPackAudio(string text, AtisStation station)
+    {
+        var packFolder = WavPackLibrary.ResolveFolder(station.AtisVoice) ??
+                         throw new AtisBuilderException(
+                             "This station's WAV voice pack was not found. Choose a voice pack in the ATIS configuration.");
+
+        try
+        {
+            var result = _wavPackService.Build(text, packFolder);
+            if (result.Pcm == null)
+            {
+                throw new AtisBuilderException(
+                    $"Voice pack is missing clips for: {string.Join(", ", result.MissingTokens)}. Spoken text: {text}");
+            }
+
+            return (text, result.Pcm);
+        }
+        catch (Exception ex) when (ex is WavPackException or InvalidOperationException or System.IO.IOException)
+        {
+            throw new AtisBuilderException($"Failed to build voice ATIS from WAV pack: {ex.Message}");
+        }
     }
 
     private async Task<string> CreateTextAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
