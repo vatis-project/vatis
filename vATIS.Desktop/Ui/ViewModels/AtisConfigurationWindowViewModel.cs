@@ -53,6 +53,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     private bool _hasUnsavedChanges;
     private bool _requiresDisconnect;
     private bool _showOverlay;
+    private const int SandboxTabIndex = 4;
     private int _selectedTabControlTabIndex;
     private AtisStation? _selectedAtisStation;
     private IDialogOwner? _dialogOwner;
@@ -307,6 +308,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         PresetsViewModel = _viewModelFactory.CreatePresetsViewModel();
         PresetsViewModel.DialogOwner = _dialogOwner;
         PresetsViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val => { HasUnsavedChanges = val; });
+        PresetsViewModel.TestInSandboxRequested += OnTestInSandboxRequested;
 
         FormattingViewModel = _viewModelFactory.CreateFormattingViewModel();
         FormattingViewModel.DialogOwner = _dialogOwner;
@@ -932,6 +934,23 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         if (!hasGeneralErrors && !hasPresetsErrors && !hasFormattingErrors)
         {
             window?.Close();
+        }
+    }
+
+    private async void OnTestInSandboxRequested(AtisPreset preset)
+    {
+        if (SandboxViewModel == null)
+            return;
+
+        SelectedTabControlTabIndex = SandboxTabIndex;
+
+        try
+        {
+            await SandboxViewModel.SelectPresetAndRefresh(preset);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to refresh sandbox ATIS for preset {PresetId}", preset.Id);
         }
     }
 

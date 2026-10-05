@@ -8,7 +8,6 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Serilog;
 using Vatsim.Vatis.Profiles.Models;
-using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -28,8 +27,6 @@ public partial class PresetsView : UserControl
     public PresetsView()
     {
         InitializeComponent();
-        ExternalSandboxText.TextArea.TextView.LineTransformers.Add(new ErrorTextTransformer());
-        ExternalSandboxVoice.TextArea.TextView.LineTransformers.Add(new ErrorTextTransformer());
     }
 
     private async void SelectedPreset_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
