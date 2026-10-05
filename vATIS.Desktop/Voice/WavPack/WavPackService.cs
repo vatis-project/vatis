@@ -44,6 +44,22 @@ public class WavPackService : IWavPackService
             maxWords = Math.Max(maxWords, normalized.Split(' ').Length);
         }
 
+        // A bare letter (e.g. the information letter from an external generator) uses its phonetic clip.
+        for (var letter = 0; letter < WavPackImporter.s_letters.Length; letter++)
+        {
+            var single = ((char)('A' + letter)).ToString();
+            var phonetic = WavPackImporter.s_letters[letter];
+            if (!plain.ContainsKey(single) && plain.TryGetValue(phonetic, out var plainFile))
+            {
+                plain[single] = plainFile;
+            }
+
+            if (!beforeComma.ContainsKey(single) && beforeComma.TryGetValue(phonetic, out var commaFile))
+            {
+                beforeComma[single] = commaFile;
+            }
+        }
+
         var tokens = new List<(string Word, List<string> Pauses)>();
         foreach (var raw in spokenText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
         {
