@@ -332,7 +332,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     public string? ExternalGeneratorSandboxResponseText
     {
         get => _externalGeneratorSandboxResponseText;
-        set => this.RaiseAndSetIfChanged(ref _externalGeneratorSandboxResponseText, value);
+        set => this.RaiseAndSetIfChanged(ref _externalGeneratorSandboxResponseText, value?.ToUpperInvariant());
     }
 
     /// <summary>
@@ -341,7 +341,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     public string? ExternalGeneratorSandboxResponseVoice
     {
         get => _externalGeneratorSandboxResponseVoice;
-        set => this.RaiseAndSetIfChanged(ref _externalGeneratorSandboxResponseVoice, value);
+        set => this.RaiseAndSetIfChanged(ref _externalGeneratorSandboxResponseVoice, value?.ToUpperInvariant());
     }
 
     /// <summary>
@@ -611,10 +611,15 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
                 AtisBuilderVoiceResponse = voiceAtis;
             }
         }
+        catch (AtisBuilderException ex)
+        {
+            ExternalGeneratorSandboxResponseVoice = "Error: " + ex.Message;
+            Log.Error(ex, "Failed to generate sandbox ATIS.");
+        }
         catch (Exception ex)
         {
-            ExternalGeneratorSandboxResponseText = "Error fetching text ATIS. See log for details.";
-            ExternalGeneratorSandboxResponseVoice = "Error fetching voice ATIS. See log for details.";
+            ExternalGeneratorSandboxResponseText = "Error: Failed to fetch text ATIS. See log for details.";
+            ExternalGeneratorSandboxResponseVoice = "Error: Failed to fetch voice ATIS. See log for details.";
             Log.Error(ex, "Failed to generate sandbox ATIS.");
         }
     }

@@ -310,20 +310,26 @@
                             <Grid ColumnDefinitions="*,5,*" Margin="0,0,5,0">
                                 <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="5">
                                     <TextBlock>Text ATIS</TextBlock>
-                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseText, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
+                                    <editor:TextEditor Name="ExternalSandboxText" Height="90" Padding="4" WordWrap="True" ShowLineNumbers="False" IsReadOnly="True" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}">
+                                        <editor:TextEditor.Options>
+                                            <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
+                                        </editor:TextEditor.Options>
                                         <Interaction.Behaviors>
-                                            <behaviors:TextBoxUppercaseBehavior/>
+                                            <behaviors:DocumentTextBindingBehavior Text="{Binding ExternalGeneratorSandboxResponseText, DataType=vm:PresetsViewModel, Mode=OneWay}"/>
                                         </Interaction.Behaviors>
-                                    </TextBox>
+                                    </editor:TextEditor>
                                     <Button Theme="{StaticResource Dark}" Content="Refresh ATIS" Command="{Binding GenerateSandboxAtisCommand, DataType=vm:PresetsViewModel}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="5">
                                     <TextBlock>Voice ATIS</TextBlock>
-                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseVoice, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
+                                    <editor:TextEditor Name="ExternalSandboxVoice" Height="90" Padding="4" WordWrap="True" ShowLineNumbers="False" IsReadOnly="True" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}">
+                                        <editor:TextEditor.Options>
+                                            <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
+                                        </editor:TextEditor.Options>
                                         <Interaction.Behaviors>
-                                            <behaviors:TextBoxUppercaseBehavior/>
+                                            <behaviors:DocumentTextBindingBehavior Text="{Binding ExternalGeneratorSandboxResponseVoice, DataType=vm:PresetsViewModel, Mode=OneWay}"/>
                                         </Interaction.Behaviors>
-                                    </TextBox>
+                                    </editor:TextEditor>
                                     <Button Theme="{StaticResource Dark}" Command="{Binding PlaySandboxVoiceAtisCommand, DataType=vm:PresetsViewModel}" Content="{Binding IsSandboxPlaybackActive, DataType=vm:PresetsViewModel, Converter={StaticResource PlaybackLabelConverter}, FallbackValue=Listen}"/>
                                 </StackPanel>
                             </Grid>
