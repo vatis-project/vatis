@@ -67,7 +67,7 @@
 		<Grid ColumnDefinitions="50*,10,50*" RowDefinitions="*,*">
 			<StackPanel Grid.Column="0" Orientation="Vertical" Spacing="5">
 				<TextBlock Text="Text ATIS:"/>
-                <editor:TextEditor Height="166" Padding="4" Document="{Binding TextAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
+                <editor:TextEditor Name="TextAtis" Height="166" Padding="4" Document="{Binding TextAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
                     <editor:TextEditor.Options>
                         <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
                     </editor:TextEditor.Options>
@@ -76,7 +76,7 @@
 			<Button Grid.Column="0" Grid.Row="1" Margin="0,10,0,0" HorizontalAlignment="Stretch" Theme="{StaticResource Dark}" Content="Refresh ATIS" Command="{Binding RefreshSandboxAtisCommand, DataType=vm:SandboxViewModel}"/>
 			<StackPanel Grid.Column="2" Grid.Row="0" Orientation="Vertical" Spacing="5">
 				<TextBlock Text="Voice ATIS:"/>
-                <editor:TextEditor Height="166" Padding="4" Document="{Binding VoiceAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
+                <editor:TextEditor Name="VoiceAtis" Height="166" Padding="4" Document="{Binding VoiceAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
                     <editor:TextEditor.Options>
                         <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
                     </editor:TextEditor.Options>
