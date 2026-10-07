@@ -428,10 +428,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             VoiceAtisTextDocument.Text = "Loading...";
 
             var randomLetter =
-                (char)_random.Next(SelectedStation.CodeRange.Low + SelectedStation.CodeRange.High + 1);
-
-            if (randomLetter is < 'A' or > 'Z')
-                randomLetter = 'A';
+                (char)_random.Next(SelectedStation.CodeRange.Low, SelectedStation.CodeRange.High + 1);
 
             if (SandboxMetar != null)
             {
