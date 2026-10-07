@@ -43,6 +43,7 @@ public:
 	bool StartPlayback(const std::string deviceName);
 	bool StopPlayback();
 	static void PlaybackCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
+	static void BufferPlaybackCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 
 	bool GetDeviceFromName(const std::string& deviceName, ma_device_id &deviceId, bool isInput);
 	void DestroyDevices();
@@ -60,6 +61,8 @@ private:
 	bool captureInitialized;
 	bool playbackInitialized;
 	bool bufferPlaybackInitialized;
+	bool bufferPlaybackActive = false;
+	size_t bufferFadeOutRemaining = 0; // samples left in the stop fade-out; 0 when not fading
 	ma_context context;
 	ma_device playbackDevice = {};
 	ma_device captureDevice = {};

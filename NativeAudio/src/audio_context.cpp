@@ -1,4 +1,6 @@
 #include "audio_context.h"
+#include <chrono>
+#include <thread>
 #include "native_audio.h"
 #include "wav_data.h"
 #ifdef __APPLE__
@@ -36,6 +38,11 @@ void AudioContext::Close()
 	if (playbackInitialized) {
 		ma_device_uninit(&playbackDevice);
 		playbackInitialized = false;
+	}
+
+	if (bufferPlaybackInitialized) {
+		ma_device_uninit(&bufferPlaybackDevice);
+		bufferPlaybackInitialized = false;
 	}
 
 	ma_context_uninit(&context);
@@ -258,6 +265,8 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
     {
         std::lock_guard<std::mutex> lock(audioMutex);
         playbackPos = 0;
+        bufferPlaybackActive = true;
+        bufferFadeOutRemaining = 0;
 
         // Clear and resize the audio buffer
         audioBuffer.clear();
@@ -265,6 +274,10 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
 
         // Copy provided buffer to internal buffer
         std::memcpy(audioBuffer.data(), buffer, bufferSize);
+
+        // Prepend a short silence so the output device can settle before the speech begins (avoids a start pop)
+        const size_t leadSilenceBytes = static_cast<size_t>(sampleRateHz / 5) * sizeof(int16_t);
+        audioBuffer.insert(audioBuffer.begin(), leadSilenceBytes, 0);
 
         // Add silence to the end of playback
         AddSilence(audioBuffer, sampleRateHz, 3);
@@ -278,7 +291,7 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
 		deviceConfig.sampleRate = sampleRateHz;
 		deviceConfig.periodSizeInFrames = frameSizeSamples;
 		deviceConfig.playback.shareMode = ma_share_mode_shared;
-		deviceConfig.dataCallback = PlaybackCallback;
+		deviceConfig.dataCallback = BufferPlaybackCallback;
 		deviceConfig.pUserData = this;
 
         if (ma_device_init(&context, &deviceConfig, &bufferPlaybackDevice) != MA_SUCCESS) {
@@ -289,7 +302,7 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
         bufferPlaybackInitialized = true;
     }
 
-    if (ma_device_start(&bufferPlaybackDevice) != MA_SUCCESS) {
+    if (!ma_device_is_started(&bufferPlaybackDevice) && ma_device_start(&bufferPlaybackDevice) != MA_SUCCESS) {
         return false;
     }
 
@@ -298,10 +311,83 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
 
 bool AudioContext::StopBufferPlayback()
 {
+	bool fading = false;
+	{
+		std::lock_guard<std::mutex> lock(audioMutex);
+		// Fade out over ~20 ms instead of cutting the audio mid-waveform, which would pop.
+		if (bufferPlaybackActive) {
+			if (bufferFadeOutRemaining == 0) {
+				bufferFadeOutRemaining = static_cast<size_t>(sampleRateHz / 50);
+			}
+			fading = true;
+		}
+	}
+
+	// Let the fade-out finish before stopping the device. The lock must not be held while stopping, since the
+	// playback callback takes it.
+	if (fading) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(40));
+	}
+
+	if (bufferPlaybackInitialized) {
+		ma_device_stop(&bufferPlaybackDevice);
+	}
+
 	std::lock_guard<std::mutex> lock(audioMutex);
-	ma_device_stop(&bufferPlaybackDevice);
+	bufferPlaybackActive = false;
+	bufferFadeOutRemaining = 0;
 	playbackPos = 0;
 	return true;
+}
+
+void AudioContext::BufferPlaybackCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
+{
+    AudioContext* pContext = static_cast<AudioContext*>(pDevice->pUserData);
+    uint8_t* outputData = static_cast<uint8_t*>(pOutput);
+    size_t byteCount = static_cast<size_t>(frameCount) * pDevice->playback.channels * sizeof(int16_t);
+
+    std::lock_guard<std::mutex> lock(pContext->audioMutex);
+
+    if (!pContext->bufferPlaybackActive || pContext->audioBuffer.empty()) {
+        std::memset(outputData, 0, byteCount);
+        return;
+    }
+
+    size_t pos = pContext->playbackPos;
+    if (pos >= pContext->audioBuffer.size()) {
+        pos = 0;
+    }
+
+    size_t remaining = pContext->audioBuffer.size() - pos;
+    if (byteCount <= remaining) {
+        std::memcpy(outputData, &pContext->audioBuffer[pos], byteCount);
+        pos += byteCount;
+    } else {
+        std::memcpy(outputData, &pContext->audioBuffer[pos], remaining);
+        std::memset(outputData + remaining, 0, byteCount - remaining);
+        pos = 0;
+    }
+
+    // Apply the fade-out requested by StopBufferPlayback, then go idle once it completes.
+    if (pContext->bufferFadeOutRemaining > 0) {
+        const size_t fadeTotal = static_cast<size_t>(pContext->sampleRateHz / 50);
+        int16_t* samples = reinterpret_cast<int16_t*>(outputData);
+        const size_t sampleCount = byteCount / sizeof(int16_t);
+        for (size_t i = 0; i < sampleCount; i++) {
+            const size_t left = pContext->bufferFadeOutRemaining;
+            samples[i] = static_cast<int16_t>(samples[i] * (static_cast<float>(left) / static_cast<float>(fadeTotal)));
+            if (left > 0) {
+                pContext->bufferFadeOutRemaining--;
+            }
+        }
+
+        if (pContext->bufferFadeOutRemaining == 0) {
+            pContext->bufferPlaybackActive = false;
+            pos = 0;
+        }
+    }
+
+    pContext->playbackPos = pos;
 }
 
 bool AudioContext::StartPlayback(const std::string deviceName)
