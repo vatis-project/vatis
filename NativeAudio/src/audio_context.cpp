@@ -1,4 +1,5 @@
 #include "audio_context.h"
+#include <algorithm>
 #include <chrono>
 #include <thread>
 #include "native_audio.h"
@@ -268,16 +269,46 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
         bufferPlaybackActive = true;
         bufferFadeOutRemaining = 0;
 
+        // If the data is a WAV file, skip past its header so the header bytes aren't played as samples (audible click)
+        const uint8_t* src = static_cast<const uint8_t*>(buffer);
+        size_t srcSize = bufferSize;
+        if (srcSize >= 12 && std::memcmp(src, "RIFF", 4) == 0 && std::memcmp(src + 8, "WAVE", 4) == 0) {
+            size_t offset = 12;
+            while (offset + 8 <= srcSize) {
+                uint32_t chunkSize;
+                std::memcpy(&chunkSize, src + offset + 4, sizeof(chunkSize));
+                if (std::memcmp(src + offset, "data", 4) == 0) {
+                    offset += 8;
+                    src += offset;
+                    srcSize = std::min(static_cast<size_t>(chunkSize), srcSize - offset);
+                    break;
+                }
+                offset += 8 + static_cast<size_t>(chunkSize) + (chunkSize & 1);
+            }
+        }
+        srcSize &= ~static_cast<size_t>(1); // whole 16-bit samples only
+        bufferSize = srcSize;
+
         // Clear and resize the audio buffer
         audioBuffer.clear();
         audioBuffer.resize(bufferSize);
 
         // Copy provided buffer to internal buffer
-        std::memcpy(audioBuffer.data(), buffer, bufferSize);
+        std::memcpy(audioBuffer.data(), src, bufferSize);
 
         // Prepend a short silence so the output device can settle before the speech begins (avoids a start pop)
         const size_t leadSilenceBytes = static_cast<size_t>(sampleRateHz / 5) * sizeof(int16_t);
         audioBuffer.insert(audioBuffer.begin(), leadSilenceBytes, 0);
+
+        // Fade in over ~10 ms so the speech doesn't begin with a step discontinuity
+        {
+            int16_t* samples = reinterpret_cast<int16_t*>(audioBuffer.data() + leadSilenceBytes);
+            const size_t speechSamples = bufferSize / sizeof(int16_t);
+            const size_t fadeInSamples = std::min(static_cast<size_t>(sampleRateHz / 100), speechSamples);
+            for (size_t i = 0; i < fadeInSamples; i++) {
+                samples[i] = static_cast<int16_t>(samples[i] * (static_cast<float>(i) / static_cast<float>(fadeInSamples)));
+            }
+        }
 
         // Add silence to the end of playback
         AddSilence(audioBuffer, sampleRateHz, 3);
@@ -323,10 +354,18 @@ bool AudioContext::StopBufferPlayback()
 		}
 	}
 
-	// Let the fade-out finish before stopping the device. The lock must not be held while stopping, since the
-	// playback callback takes it.
+	// Wait for the fade-out to finish (the callback clears bufferFadeOutRemaining), then let the faded samples drain
+	// through the device buffer before stopping. The lock must not be held while waiting, since the playback callback
+	// takes it.
 	if (fading) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(40));
+		for (int i = 0; i < 50; i++) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
+			std::lock_guard<std::mutex> lock(audioMutex);
+			if (bufferFadeOutRemaining == 0) {
+				break;
+			}
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	}
 
 	if (bufferPlaybackInitialized) {
