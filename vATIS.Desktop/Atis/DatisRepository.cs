@@ -118,7 +118,13 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
 
     private async Task FetchForStationAsync(AtisStation station)
     {
-        EventBus.Instance.Publish(new DatisReceived(await FetchAsync(station)));
+        var result = await FetchAsync(station);
+
+        // Drop results from a fetch that was in flight when the station stopped being monitored.
+        if (_monitoredStations.TryGetValue(station.Id, out var current) && ReferenceEquals(current, station))
+        {
+            EventBus.Instance.Publish(new DatisReceived(result));
+        }
     }
 
     /// <inheritdoc />
