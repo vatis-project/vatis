@@ -280,7 +280,7 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
                 if (std::memcmp(src + offset, "data", 4) == 0) {
                     offset += 8;
                     src += offset;
-                    srcSize = std::min(static_cast<size_t>(chunkSize), srcSize - offset);
+                    srcSize = (std::min)(static_cast<size_t>(chunkSize), srcSize - offset);
                     break;
                 }
                 offset += 8 + static_cast<size_t>(chunkSize) + (chunkSize & 1);
@@ -304,7 +304,7 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
         {
             int16_t* samples = reinterpret_cast<int16_t*>(audioBuffer.data() + leadSilenceBytes);
             const size_t speechSamples = bufferSize / sizeof(int16_t);
-            const size_t fadeInSamples = std::min(static_cast<size_t>(sampleRateHz / 100), speechSamples);
+            const size_t fadeInSamples = (std::min)(static_cast<size_t>(sampleRateHz / 100), speechSamples);
             for (size_t i = 0; i < fadeInSamples; i++) {
                 samples[i] = static_cast<int16_t>(samples[i] * (static_cast<float>(i) / static_cast<float>(fadeInSamples)));
             }
