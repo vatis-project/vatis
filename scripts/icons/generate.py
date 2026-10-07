@@ -7,6 +7,7 @@ changing the icon's color is a matter of editing those two files and re-running 
     python3 scripts/icons/generate.py app      # Windows/Linux icon + a fallback .icns, written in place
     python3 scripts/icons/generate.py web      # website favicon and BETA logo (512 and 1024 px)
     python3 scripts/icons/generate.py social   # Discord server icon and GitHub avatar
+    python3 scripts/icons/generate.py transparent  # the artwork alone on a transparent background (e.g. a Discord app icon)
     python3 scripts/icons/generate.py all --out some/dir
 
 Requires: pip install pillow numpy scipy cairosvg  (the BETA ribbon also needs a bold sans font, see FONTS).
@@ -94,6 +95,18 @@ def render_bleed(canvas, layer_scale):
     body = int(round(canvas * layer_scale))
     img.alpha_composite(with_shadow(foreground(body, names)), ((canvas - body) // 2, (canvas - body) // 2))
     return img
+
+
+def render_transparent(canvas, layer_scale, shadow=True):
+    """Just the artwork (no tile) on a transparent canvas, scaled to stay inside a circular crop."""
+    _, _, names = read_source()
+    body = int(round(canvas * layer_scale))
+    fg = foreground(body, names)
+    if shadow:
+        fg = with_shadow(fg)
+    out = Image.new('RGBA', (canvas, canvas), (0, 0, 0, 0))
+    out.alpha_composite(fg, ((canvas - body) // 2, (canvas - body) // 2))
+    return out
 
 
 def ribbon(canvas, base):
@@ -236,9 +249,20 @@ def cmd_social(out):
     print('wrote', out)
 
 
+def cmd_transparent(out):
+    """The artwork on a transparent background, with and without the soft shadow."""
+    out.mkdir(parents=True, exist_ok=True)
+    N = 2048
+    for suffix, shadow in (('', True), ('-noshadow', False)):
+        img = render_transparent(N, 0.80, shadow)
+        img.resize((1024, 1024), Image.LANCZOS).save(out / f'vatis-discord-app-icon-transparent{suffix}-1024.png', optimize=True)
+        img.resize((512, 512), Image.LANCZOS).save(out / f'vatis-discord-app-icon-transparent{suffix}-512.png', optimize=True)
+    print('wrote', out)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('what', choices=['app', 'web', 'social', 'all'])
+    p.add_argument('what', choices=['app', 'web', 'social', 'transparent', 'all'])
     p.add_argument('--out', type=Path, help='output directory (default: icon-out; the app command writes in place)')
     a = p.parse_args()
     out = a.out
@@ -248,6 +272,8 @@ def main():
         cmd_web((out or Path('icon-out')) / 'web' if a.what == 'all' else (out or Path('icon-out')))
     if a.what in ('social', 'all'):
         cmd_social((out or Path('icon-out')) / 'social' if a.what == 'all' else (out or Path('icon-out')))
+    if a.what in ('transparent', 'all'):
+        cmd_transparent((out or Path('icon-out')) / 'social' if a.what == 'all' else (out or Path('icon-out')))
 
 
 if __name__ == '__main__':
