@@ -38,7 +38,9 @@ public interface ITextToSpeechService
     /// </summary>
     /// <param name="text">The text to be synthesized into audio.</param>
     /// <param name="station">The ATIS station metadata associated with the request.</param>
+    /// <param name="atisLetter">The current ATIS letter, used to select the voice when voices alternate.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation, containing the synthesized audio as a byte array or null if the request failed.</returns>
-    public Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken);
+    public Task<byte[]?> RequestAudio(string text, AtisStation station, char atisLetter,
+        CancellationToken cancellationToken);
 }
