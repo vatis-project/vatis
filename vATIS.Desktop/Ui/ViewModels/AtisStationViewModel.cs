@@ -75,6 +75,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly IWebsocketService _websocketService;
     private readonly ISessionManager _sessionManager;
     private readonly IDatisRepository _datisRepository;
+    private bool _autoFetchDatis;
     private readonly Airport _atisStationAirport;
     private readonly MetarDecoder _metarDecoder = new();
     private readonly CompositeDisposable _disposables = [];
@@ -178,6 +179,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _sessionManager = sessionManager;
         _profileRepository = profileRepository;
         _datisRepository = datisRepository;
+        _autoFetchDatis = _appConfig.AutoFetchDatis;
         _atisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
 
@@ -287,6 +289,29 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             if (evt.Id == AtisStation.Id)
             {
                 AtisPresetList = [.. AtisStation.Presets.OrderBy(x => x.Ordinal)];
+            }
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(_ =>
+        {
+            // Start or stop D-ATIS monitoring when the setting is toggled while a D-ATIS preset is already selected.
+            if (_appConfig.AutoFetchDatis == _autoFetchDatis)
+                return;
+
+            _autoFetchDatis = _appConfig.AutoFetchDatis;
+
+            if (SelectedAtisPreset == null ||
+                !string.Equals(SelectedAtisPreset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (_autoFetchDatis)
+            {
+                _datisRepository.MonitorStation(AtisStation);
+            }
+            else
+            {
+                _datisRepository.RemoveStation(AtisStation.Id);
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
