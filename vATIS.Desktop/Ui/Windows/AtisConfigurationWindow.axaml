@@ -8,7 +8,7 @@
         x:Class="Vatsim.Vatis.Ui.Windows.AtisConfigurationWindow"
 		x:Name="Window"
         x:DataType="vm:AtisConfigurationWindowViewModel"
-        Height="640"
+        Height="780"
         Width="1000"
         SystemDecorations="None"
         Background="Transparent"
@@ -99,9 +99,6 @@
 						</TabItem>
 						<TabItem Header="Contractions">
 							<views:ContractionsView DataContext="{Binding ContractionsViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
-						</TabItem>
-						<TabItem Header="D-ATIS">
-							<views:DatisReplacementsView DataContext="{Binding DatisReplacementsViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
 						</TabItem>
 						<TabItem Header="Sandbox">
 							<views:SandboxView DataContext="{Binding SandboxViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>

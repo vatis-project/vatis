@@ -317,6 +317,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         SandboxViewModel.DialogOwner = _dialogOwner;
 
         DatisReplacementsViewModel = _viewModelFactory.CreateDatisReplacementsViewModel();
+        PresetsViewModel.DatisReplacementsViewModel = DatisReplacementsViewModel;
 
         _disposables.Add(GeneralConfigViewModel);
         _disposables.Add(PresetsViewModel);

@@ -7,9 +7,9 @@
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.ContractionsView">
-	<StackPanel Orientation="Vertical" Spacing="10">
-		<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-			<DataGrid x:Name="Contractions" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="380" ItemsSource="{Binding Contractions, DataType=vm:ContractionsViewModel}" SelectionMode="Extended" LoadingRow="Contractions_OnLoadingRow" CellEditEnding="Contractions_Validate">
+	<Grid RowDefinitions="*,Auto" RowSpacing="10">
+		<Border Grid.Row="0" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+			<DataGrid x:Name="Contractions" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding Contractions, DataType=vm:ContractionsViewModel}" SelectionMode="Extended" LoadingRow="Contractions_OnLoadingRow" CellEditEnding="Contractions_Validate">
 				<Interaction.Behaviors>
 					<behaviors:DataGridCellEndEditBehavior DataGridName="Contractions" Command="{Binding CellEditEndingCommand, DataType=vm:ContractionsViewModel}"/>
 					<behaviors:DataGridTextUppercaseBehavior/>
@@ -26,9 +26,9 @@
 				</DataGrid.Columns>
 			</DataGrid>
 		</Border>
-		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="5">
 			<Button Theme="{StaticResource Dark}" MinWidth="80" Height="28" Command="{Binding NewContractionCommand, DataType=vm:ContractionsViewModel}">New</Button>
 			<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding DeleteContractionCommand, DataType=vm:ContractionsViewModel}" IsEnabled="{Binding #Contractions.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" CommandParameter="{Binding #Contractions.SelectedItem}">Delete</Button>
 		</StackPanel>
-	</StackPanel>
+	</Grid>
 </UserControl>

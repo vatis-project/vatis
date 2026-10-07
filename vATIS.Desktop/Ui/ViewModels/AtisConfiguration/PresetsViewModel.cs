@@ -55,6 +55,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private List<ICompletionData> _contractionCompletionData = new();
     private AtisStation? _selectedStation;
     private AtisPreset? _selectedPreset;
+    private int _selectedSubTabIndex;
     private bool _useExternalAtisGenerator;
     private string _externalGeneratorTextUrl = string.Empty;
     private string _externalGeneratorVoiceUrl = string.Empty;
@@ -232,8 +233,38 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     public AtisPreset? SelectedPreset
     {
         get => _selectedPreset;
-        set => this.RaiseAndSetIfChanged(ref _selectedPreset, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedPreset, value);
+            this.RaisePropertyChanged(nameof(IsDatisPresetSelected));
+
+            // Fall back to the Template sub-tab when the D-ATIS sub-tab is no longer available.
+            if (!IsDatisPresetSelected)
+            {
+                SelectedSubTabIndex = 0;
+            }
+        }
     }
+
+    /// <summary>
+    /// Gets or sets the index of the selected sub-tab (0 = Template, 1 = D-ATIS).
+    /// </summary>
+    public int SelectedSubTabIndex
+    {
+        get => _selectedSubTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _selectedSubTabIndex, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the selected preset is the D-ATIS preset.
+    /// </summary>
+    public bool IsDatisPresetSelected =>
+        string.Equals(SelectedPreset?.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Gets or sets the view model for the D-ATIS settings shown when the D-ATIS preset is selected.
+    /// </summary>
+    public DatisReplacementsViewModel? DatisReplacementsViewModel { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to use an external ATIS generator.

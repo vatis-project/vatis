@@ -7,9 +7,9 @@
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="550"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.DatisReplacementsView">
-	<StackPanel Orientation="Vertical" Spacing="10">
+	<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10">
 		<!-- Prepend/Append Airport Conditions -->
-		<Grid ColumnDefinitions="*,10,*">
+		<Grid Grid.Row="0" ColumnDefinitions="*,10,*">
 			<StackPanel Grid.Column="0" Spacing="4">
 				<TextBlock Text="Prepend Airport Conditions:"/>
 				<TextBox Text="{Binding PrependAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to airport conditions" LostFocus="TextBox_OnLostFocus">
@@ -28,7 +28,7 @@
 			</StackPanel>
 		</Grid>
 		<!-- Prepend/Append NOTAMs -->
-		<Grid ColumnDefinitions="*,10,*">
+		<Grid Grid.Row="1" ColumnDefinitions="*,10,*">
 			<StackPanel Grid.Column="0" Spacing="4">
 				<TextBlock Text="Prepend NOTAMs:"/>
 				<TextBox Text="{Binding PrependNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to NOTAMs" LostFocus="TextBox_OnLostFocus">
@@ -47,8 +47,7 @@
 			</StackPanel>
 		</Grid>
 		<!-- Text Replacements -->
-		<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-			<DataGrid x:Name="ReplacementsGrid" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="280" ItemsSource="{Binding Replacements, DataType=vm:DatisReplacementsViewModel}" SelectionMode="Single" CellEditEnding="ReplacementsGrid_OnCellEditEnding">
+			<DataGrid x:Name="ReplacementsGrid" Grid.Row="2" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding Replacements, DataType=vm:DatisReplacementsViewModel}" SelectionMode="Single" CellEditEnding="ReplacementsGrid_OnCellEditEnding">
 				<DataGrid.Styles>
 					<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
 						<Setter Property="IsVisible" Value="False" />
@@ -60,10 +59,9 @@
 					<DataGridCheckBoxColumn Header="Regex" Width="80" IsReadOnly="False" Binding="{Binding IsRegex, DataType=models:DatisTextReplacement}"/>
 				</DataGrid.Columns>
 			</DataGrid>
-		</Border>
-		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+		<StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="5">
 			<Button Theme="{StaticResource Dark}" MinWidth="80" Height="28" Command="{Binding AddReplacementCommand, DataType=vm:DatisReplacementsViewModel}">New</Button>
 			<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding DeleteReplacementCommand, DataType=vm:DatisReplacementsViewModel}" IsEnabled="{Binding #ReplacementsGrid.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" CommandParameter="{Binding #ReplacementsGrid.SelectedItem}">Delete</Button>
 		</StackPanel>
-	</StackPanel>
+	</Grid>
 </UserControl>
