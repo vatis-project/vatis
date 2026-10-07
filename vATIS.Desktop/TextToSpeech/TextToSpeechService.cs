@@ -56,9 +56,19 @@ public class TextToSpeechService : ITextToSpeechService
     }
 
     /// <inheritdoc />
-    public async Task<byte[]?> RequestAudio(string text, AtisStation station, CancellationToken cancellationToken)
+    public async Task<byte[]?> RequestAudio(string text, AtisStation station, char atisLetter,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        var voiceName = station.AtisVoice.Voice;
+        if (station.AtisVoice.AlternatingVoices is { Length: >= 2 } voices)
+        {
+            var index = (atisLetter - station.CodeRange.Low) % voices.Length;
+            voiceName = voices[index < 0 ? index + voices.Length : index];
+        }
+
+        var voiceId = VoiceList.FirstOrDefault(v => v.Name == voiceName)?.Id ?? "default";
 
         var authToken = await _authTokenManager.GetAuthToken(cancellationToken);
 
@@ -67,7 +77,7 @@ public class TextToSpeechService : ITextToSpeechService
             var dto = new TextToSpeechRequestDto
             {
                 Text = text,
-                Voice = VoiceList.FirstOrDefault(v => v.Name == station.AtisVoice.Voice)?.Id ?? "default",
+                Voice = voiceId,
                 SpeechRate = station.AtisVoice.SpeechRate,
                 Jwt = authToken
             };
@@ -87,8 +97,7 @@ public class TextToSpeechService : ITextToSpeechService
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error requesting audio for voice {Voice}",
-                VoiceList.FirstOrDefault(v => v.Name == station.AtisVoice.Voice)?.Id ?? "default");
+            Log.Error(ex, "Error requesting audio for voice {Voice}", voiceId);
         }
 
         return null;
