@@ -60,6 +60,15 @@ public class WavPackService : IWavPackService
             }
         }
 
+        // Digits are spoken one at a time, which breaks the single "10km or more" clip into ONE ZERO KM...
+        spokenText = s_tenKmOrMore.Replace(spokenText, m =>
+        {
+            var comma = m.Groups[1].Success ? "," : string.Empty;
+            var phrase = new[] { "10KM OR MORE", "TEN KILOMETRES OR MORE", "TEN KILOMETERS OR MORE" }
+                .FirstOrDefault(p => plain.ContainsKey(p) || (comma.Length > 0 && beforeComma.ContainsKey(p)));
+            return phrase == null ? m.Value : phrase + comma;
+        });
+
         var tokens = new List<(string Word, List<string> Pauses)>();
         foreach (var raw in spokenText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
         {
@@ -177,6 +186,10 @@ public class WavPackService : IWavPackService
 
         return (manifest.Clips.Count, problems);
     }
+
+    private static readonly System.Text.RegularExpressions.Regex s_tenKmOrMore = new(
+        @"\bONE ZERO ?(?:KM|KILOMET(?:RE|ER)S?) OR MORE(,)?",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
 
     private static string Normalize(string phrase)
     {

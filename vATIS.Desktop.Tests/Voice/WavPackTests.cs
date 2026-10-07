@@ -120,6 +120,43 @@ public class WavPackTests : IDisposable
         Assert.Null(new WavPackService().Build("ONE ALPHA", _dir).MissingTokens.FirstOrDefault());
     }
 
+    [Theory]
+    [InlineData("VISIBILITY ONE ZEROKM OR MORE LIGHT RAIN")]
+    [InlineData("VISIBILITY ONE ZERO KM OR MORE LIGHT RAIN")]
+    [InlineData("VISIBILITY ONE ZERO KILOMETERS OR MORE LIGHT RAIN")]
+    public void Build_TenKmOrMoreDigitsExpanded_UsesWholePhraseClip(string text)
+    {
+        WritePack(("VISIBILITY", new short[960]), ("10KM OR MORE", new short[960]), ("LIGHT", new short[960]),
+            ("RAIN", new short[960]));
+        var result = new WavPackService().Build(text, _dir);
+
+        Assert.NotNull(result.Pcm);
+        Assert.Empty(result.MissingTokens);
+    }
+
+    [Fact]
+    public void Build_TenKmOrMoreWithoutClip_StillReportsMissing()
+    {
+        WritePack(("ONE", new short[960]), ("ZERO", new short[960]), ("OR", new short[960]));
+        var result = new WavPackService().Build("ONE ZEROKM OR MORE", _dir);
+
+        Assert.Null(result.Pcm);
+        Assert.Equal(["ZEROKM", "MORE"], result.MissingTokens);
+    }
+
+    [Fact]
+    public void Build_TenKmOrMoreBeforeComma_UsesCommaVariantClip()
+    {
+        File.WriteAllBytes(Path.Combine(_dir, "a.wav"), MakeWav(48000, 1, 16, new short[960]));
+        File.WriteAllBytes(Path.Combine(_dir, "b.wav"), MakeWav(48000, 1, 16, new short[960 * 2]));
+        File.WriteAllText(Path.Combine(_dir, "manifest.json"),
+            "{\"gapMs\":0,\"pauseMs\":{},\"clips\":{\"10KM OR MORE\":\"a.wav\",\"10KM OR MORE,\":\"b.wav\"}}");
+
+        var svc = new WavPackService();
+        Assert.Equal(960 * 2 * 2, svc.Build("ONE ZEROKM OR MORE,", _dir).Pcm!.Length);
+        Assert.Equal(960 * 2, svc.Build("ONE ZEROKM OR MORE", _dir).Pcm!.Length);
+    }
+
     [Fact]
     public void Build_FolderWithTrailingSeparator_Works()
     {
