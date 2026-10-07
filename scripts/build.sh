@@ -18,8 +18,8 @@
 # Requirements: dotnet SDK, docker (macOS universal binary via lipo), curl, python3, zip/unzip,
 #               cmake (--native), java (Windows signing).
 # vpk is installed on demand into publish/tools, pinned to the Velopack version the app uses.
-# macOS packages are built with a patched vpk (scripts/velopack/macos-on-linux.patch) because stock vpk only
-# packs for macOS on a Mac.
+# Linux and macOS packages are built with a patched vpk (scripts/velopack/*.patch): stock vpk only packs for
+# macOS on a Mac, and the Linux AppImage is built with pkgforge's appimagetool (no libfuse.so.2 dependency).
 #
 # Code signing (skipped with --skip-codesign, or per platform when credentials are unset):
 #   macOS    rcodesign (auto-downloaded to publish/tools). Signs, notarizes and staples the .app.
@@ -111,25 +111,48 @@ ensure_vpk() {
     fi
 }
 
-# Builds a copy of vpk that can pack macOS releases on Linux (scripts/velopack/macos-on-linux.patch).
-# Sets VPK_MACOS to its vpk.dll.
-ensure_vpk_macos() {
-    local root="$TOOLS_DIR/vpk-macos-$VELOPACK_VERSION" src
-    VPK_MACOS="$root/tools/net10.0/any/vpk.dll"
-    [ -f "$VPK_MACOS" ] && return
+# Builds a patched copy of vpk (scripts/velopack/*.patch): macOS packing on Linux, and Linux AppImages built
+# with pkgforge's appimagetool. The folder name includes a hash of the patches, so editing them rebuilds it.
+# Sets VPK_PATCHED to its vpk.dll.
+ensure_vpk_patched() {
+    local hash root src
+    hash="$(cat "$ROOT"/scripts/velopack/*.patch | sha256sum | cut -c1-8)"
+    root="$TOOLS_DIR/vpk-patched-$VELOPACK_VERSION-$hash"
+    VPK_PATCHED="$root/tools/net10.0/any/vpk.dll"
+    [ -f "$VPK_PATCHED" ] && return
 
     ensure_vpk
-    info "Building patched vpk $VELOPACK_VERSION (macOS packing on Linux)"
+    info "Building patched vpk $VELOPACK_VERSION"
     src="$(mktemp -d)"
     curl -fsSL "https://github.com/velopack/velopack/archive/refs/tags/$VELOPACK_VERSION.tar.gz" \
         | tar -xz -C "$src" --strip-components=1
-    (cd "$src" && git apply "$ROOT/scripts/velopack/macos-on-linux.patch") || die "Velopack patch does not apply"
+    local patch
+    for patch in "$ROOT"/scripts/velopack/*.patch; do
+        (cd "$src" && git apply "$patch") || die "Velopack patch does not apply: $(basename "$patch")"
+    done
     # PublicSign: the .snk key cannot be used to sign here (OpenSSL policies reject SHA-1), but internals
     # are shared between Velopack assemblies by public key, which public signing keeps intact.
     (cd "$src" && dotnet publish src/vpk/Velopack.Vpk/Velopack.Vpk.csproj -c Release -f net10.0 \
         -p:PublicSign=true -o "$root/tools/net10.0/any" -nologo -v q -clp:ErrorsOnly) || die "Building patched vpk failed"
     cp -r "$(ls -d "$TOOLS_DIR/vpk-stock-$VELOPACK_VERSION"/.store/vpk/"$VELOPACK_VERSION"/vpk/"$VELOPACK_VERSION"/vendor)" "$root/vendor"
     rm -rf "$src"
+    find "$TOOLS_DIR" -maxdepth 1 -name "vpk-patched-$VELOPACK_VERSION-*" ! -name "vpk-patched-$VELOPACK_VERSION-$hash" -exec rm -rf {} +
+}
+
+# pkgforge-dev/appimagetool (the "full" build bundles uruntime and mkdwarfs, so no downloads at build time).
+APPIMAGETOOL_VERSION="0.5.2"
+APPIMAGETOOL_SHA256="49999e2ba854fd826aa00cb872a6b7294137d32346aec6e21be63cae49bdc854"
+
+ensure_appimagetool() {
+    APPIMAGETOOL="$TOOLS_DIR/appimagetool-full-$APPIMAGETOOL_VERSION-x86_64-linux"
+    [ -x "$APPIMAGETOOL" ] && return
+    info "Downloading appimagetool $APPIMAGETOOL_VERSION"
+    curl -fsSL -o "$APPIMAGETOOL.part" \
+        "https://github.com/pkgforge-dev/appimagetool/releases/download/$APPIMAGETOOL_VERSION/appimagetool-full-x86_64-linux"
+    echo "$APPIMAGETOOL_SHA256  $APPIMAGETOOL.part" | sha256sum -c --quiet - \
+        || { rm -f "$APPIMAGETOOL.part"; die "appimagetool checksum mismatch"; }
+    chmod +x "$APPIMAGETOOL.part"
+    mv -f "$APPIMAGETOOL.part" "$APPIMAGETOOL"
 }
 
 # Seeds an empty output dir with the previous release (for delta packages). The channel must be given:
@@ -223,14 +246,15 @@ build_linux() {
     mkdir -p "$out"
     [ -f "$NATIVE_DIR/lin/libNativeAudio.so" ] || die "Missing $NATIVE_DIR/lin/libNativeAudio.so (use --native)"
     publish linux-x64
-    ensure_vpk
+    ensure_vpk_patched
+    ensure_appimagetool
     rm -f "$out/$PACK_ID.AppImage"
     vpk_download linux linux "$out"
 
     info "vpk pack (linux)"
-    "$VPK_STOCK" pack -y --skip-updates --packId "$PACK_ID" --packTitle "$APP_NAME" --packVersion "$VERSION" \
+    VPK_APPIMAGETOOL="$APPIMAGETOOL" dotnet "$VPK_PATCHED" pack -y --skip-updates --packId "$PACK_ID" --packTitle "$APP_NAME" --packVersion "$VERSION" \
         --packAuthors "$AUTHORS" --packDir "$BUILD_DIR/linux-x64" --mainExe "$APP_NAME" \
-        --delta BestSize --icon ./vATIS.Desktop/Assets/MainIcon.png \
+        --delta BestSize --icon ./vATIS.Desktop/Assets/MainIcon.png --categories "AudioVideo;Audio" \
         --releaseNotes "$(release_notes)" --outputDir "$out" --verbose
 
     mv -f "$out/$PACK_ID.AppImage" "$out/$APP_NAME-$VERSION.AppImage"
@@ -324,7 +348,7 @@ build_macos() {
 </plist>
 EOF
 
-    ensure_vpk_macos
+    ensure_vpk_patched
     vpk_download macos osx "$out"
 
     # The patched vpk adds UpdateMac and sq.version, signs and notarizes with rcodesign (configured through
@@ -339,7 +363,7 @@ EOF
     fi
 
     info "vpk pack (macos)"
-    env "${env_args[@]}" dotnet "$VPK_MACOS" "[osx]" pack -y --skip-updates --packId "$PACK_ID" \
+    env "${env_args[@]}" dotnet "$VPK_PATCHED" "[osx]" pack -y --skip-updates --packId "$PACK_ID" \
         --packTitle "$APP_NAME" --packVersion "$VERSION" --packAuthors "$AUTHORS" --packDir "$bundle" \
         --mainExe "$APP_NAME" --noInst --delta BestSize --icon ./vATIS.Desktop/Assets/MainIcon.icns \
         --signEntitlements "$ROOT/scripts/app.entitlements" --releaseNotes "$(release_notes)" \
