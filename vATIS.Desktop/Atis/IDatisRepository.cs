@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Threading.Tasks;
 using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Atis;
@@ -23,4 +24,11 @@ public interface IDatisRepository
     /// </summary>
     /// <param name="stationId">The unique identifier of the station to remove.</param>
     void RemoveStation(string stationId);
+
+    /// <summary>
+    /// Fetches and processes D-ATIS data for a station once, without monitoring it or publishing an event.
+    /// </summary>
+    /// <param name="station">The ATIS station to fetch.</param>
+    /// <returns>The processed result, or a "D-ATIS NOT AVBL." result if no data could be retrieved.</returns>
+    Task<DatisResult> FetchAsync(AtisStation station);
 }

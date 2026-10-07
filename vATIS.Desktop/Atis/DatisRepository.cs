@@ -103,10 +103,9 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
         };
     }
 
-    private static void PublishNotAvailable(AtisStation station)
+    private static DatisResult NotAvailable(AtisStation station)
     {
-        EventBus.Instance.Publish(new DatisReceived(
-            new DatisResult(station.Id, "D-ATIS NOT AVBL.", string.Empty, null)));
+        return new DatisResult(station.Id, "D-ATIS NOT AVBL.", string.Empty, null);
     }
 
     private async Task UpdateAsync()
@@ -119,6 +118,12 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
 
     private async Task FetchForStationAsync(AtisStation station)
     {
+        EventBus.Instance.Publish(new DatisReceived(await FetchAsync(station)));
+    }
+
+    /// <inheritdoc />
+    public async Task<DatisResult> FetchAsync(AtisStation station)
+    {
         try
         {
             var url = $"{_digitalAtisApiUrl}/{station.Identifier}";
@@ -128,8 +133,7 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
             if (!response.IsSuccessStatusCode)
             {
                 Log.Warning("D-ATIS request failed for {Station}: {StatusCode}", station.Identifier, response.StatusCode);
-                PublishNotAvailable(station);
-                return;
+                return NotAvailable(station);
             }
 
             var json = await response.Content.ReadAsStringAsync();
@@ -138,16 +142,14 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
             if (datisList == null || datisList.Count == 0)
             {
                 Log.Information("No D-ATIS data available for {Station}", station.Identifier);
-                PublishNotAvailable(station);
-                return;
+                return NotAvailable(station);
             }
 
             var match = FindMatchingAtis(datisList, station.AtisType);
             if (match == null || string.IsNullOrWhiteSpace(match.Body))
             {
                 Log.Information("No matching D-ATIS entry for {Station} ({AtisType})", station.Identifier, station.AtisType);
-                PublishNotAvailable(station);
-                return;
+                return NotAvailable(station);
             }
 
             char? atisLetter = char.TryParse(match.AtisLetter, out var letter) ? letter : null;
@@ -163,12 +165,12 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
                 station.DatisPrependNotams,
                 station.DatisAppendNotams);
 
-            EventBus.Instance.Publish(new DatisReceived(result));
+            return result;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error fetching D-ATIS for {Station}", station.Identifier);
-            PublishNotAvailable(station);
+            return NotAvailable(station);
         }
     }
 }
