@@ -4,7 +4,7 @@
 The gradient comes from icon.json and the layers (and their stacking order) from icon.json plus Assets/*.svg, so
 changing the icon's color is a matter of editing those two files and re-running this script.
 
-    python3 scripts/icons/generate.py app      # Windows/Linux icon + a fallback .icns, written in place
+    python3 scripts/icons/generate.py app      # Windows/Linux icon (artwork only) + a fallback .icns, written in place
     python3 scripts/icons/generate.py web      # website favicon and BETA logo (512 and 1024 px)
     python3 scripts/icons/generate.py social   # Discord server icon and GitHub avatar
     python3 scripts/icons/generate.py transparent  # the artwork alone on a transparent background (e.g. a Discord app icon)
@@ -202,9 +202,9 @@ def save_sizes(img, directory, name, sizes):
 
 
 def cmd_app(out):
-    """Windows/Linux icons, and a fallback AppIcon.icns (macOS uses Apple's actool output, see scripts/macos)."""
+    """Windows/Linux icons (artwork on a transparent background), and a fallback AppIcon.icns (macOS uses Apple's actool output, see scripts/macos)."""
     N = 4096
-    icon = render_icon(N, fill=0.953, radius=0.2285, art=1 / 0.953)
+    icon = render_transparent(N, 1.0)          # no background tile on Windows/Linux, only macOS gets the tile
     desktop = (out / 'vATIS.Desktop/Assets') if out else ROOT / 'vATIS.Desktop/Assets'
     macos = (out / 'scripts/macos') if out else ROOT / 'scripts/macos'
     desktop.mkdir(parents=True, exist_ok=True)
