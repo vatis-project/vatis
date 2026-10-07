@@ -45,6 +45,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private readonly IWindowFactory _windowFactory;
     private readonly IAtisBuilder _atisBuilder;
     private readonly IMetarRepository _metarRepository;
+    private readonly IDatisRepository _datisRepository;
     private readonly Random _random = new();
     private readonly MetarDecoder _metarDecoder = new();
     private readonly CompositeDisposable _disposables = [];
@@ -76,9 +77,11 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     /// <param name="metarRepository">An instance of <see cref="IMetarRepository"/> used for accessing METAR data.</param>
     /// <param name="profileRepository">An instance of <see cref="IProfileRepository"/> used for managing user profiles.</param>
     /// <param name="sessionManager">An instance of <see cref="ISessionManager"/> used for managing sessions.</param>
+    /// <param name="datisRepository">An instance of <see cref="IDatisRepository"/> used for fetching D-ATIS data.</param>
     public SandboxViewModel(IWindowFactory windowFactory, IAtisBuilder atisBuilder, IMetarRepository metarRepository,
-        IProfileRepository profileRepository, ISessionManager sessionManager)
+        IProfileRepository profileRepository, ISessionManager sessionManager, IDatisRepository datisRepository)
     {
+        _datisRepository = datisRepository;
         _windowFactory = windowFactory;
         _atisBuilder = atisBuilder;
         _metarRepository = metarRepository;
@@ -436,9 +439,26 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             if (SandboxMetar != null)
             {
                 var decodedMetar = _metarDecoder.ParseNotStrict(SandboxMetar);
-                var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, SelectedPreset, randomLetter,
+                var preset = SelectedPreset;
+
+                // For a D-ATIS preset, build from a copy populated with the processed real-world D-ATIS
+                // so the saved preset is left untouched.
+                if (string.Equals(preset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
+                {
+                    var datis = await _datisRepository.FetchAsync(SelectedStation);
+                    preset = preset.Clone();
+                    preset.AirportConditions = datis.AirportConditions;
+                    preset.Notams = datis.Notams;
+
+                    if (datis.AtisLetter.HasValue)
+                    {
+                        randomLetter = datis.AtisLetter.Value;
+                    }
+                }
+
+                var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, preset, randomLetter,
                     decodedMetar, _cancellationToken.Token);
-                AtisBuilderVoiceResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, SelectedPreset,
+                AtisBuilderVoiceResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, preset,
                     randomLetter, decodedMetar, _cancellationToken.Token, true);
                 TextAtisTextDocument.Text = textAtis?.ToUpperInvariant() ?? "";
                 VoiceAtisTextDocument.Text = AtisBuilderVoiceResponse.SpokenText?.ToUpperInvariant() ?? "";
