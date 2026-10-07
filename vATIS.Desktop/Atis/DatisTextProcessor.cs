@@ -99,13 +99,13 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
                     text = Regex.Replace(
                         text,
                         replacement.Pattern + @"[,.;]{0,1}",
-                        replacement.Replacement,
+                        replacement.Replacement ?? string.Empty,
                         RegexOptions.None,
                         TimeSpan.FromSeconds(1));
                 }
                 else
                 {
-                    text = text.Replace(replacement.Pattern, replacement.Replacement);
+                    text = text.Replace(replacement.Pattern, replacement.Replacement ?? string.Empty);
                 }
             }
             catch (RegexParseException ex)
