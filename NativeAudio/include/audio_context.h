@@ -36,7 +36,7 @@ public:
 	std::vector<uint8_t> StopRecording();
 	static void MicrophoneCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 
-	bool StartBufferPlayback(void* buffer, size_t bufferSize);
+	bool StartBufferPlayback(void* buffer, size_t bufferSize, const std::string& deviceName);
 	bool StopBufferPlayback();
 	static void AddSilence(std::vector<uint8_t>& audioBuffer, size_t sampleRate, size_t durationInSeconds);
 
@@ -61,6 +61,7 @@ private:
 	bool captureInitialized;
 	bool playbackInitialized;
 	bool bufferPlaybackInitialized;
+	std::string bufferPlaybackDeviceName;
 	bool bufferPlaybackActive = false;
 	size_t bufferFadeOutRemaining = 0; // samples left in the stop fade-out; 0 when not fading
 	ma_context context;

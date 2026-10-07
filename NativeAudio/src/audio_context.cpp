@@ -204,8 +204,11 @@ void AudioContext::SetPlaybackDevice(const std::string deviceName)
 
 bool AudioContext::StartRecording(const std::string deviceName)
 {
-	std::lock_guard<std::mutex> lock(audioMutex);
-	audioBuffer.clear();
+	// The lock must not be held while starting the device, since the capture callback takes it.
+	{
+		std::lock_guard<std::mutex> lock(audioMutex);
+		audioBuffer.clear();
+	}
 
 #ifdef __APPLE__
 	if (!EnsureMicrophoneAccess()) {
@@ -261,7 +264,7 @@ void AudioContext::MicrophoneCallback(ma_device* pDevice, void* pOutput, const v
 	}
 }
 
-bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
+bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize, const std::string& deviceName)
 {
     {
         std::lock_guard<std::mutex> lock(audioMutex);
@@ -314,9 +317,20 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
         AddSilence(audioBuffer, sampleRateHz, 3);
     }
 
+    // Re-create the device if a different output device was requested. The lock must not be held here, since the
+    // playback callback takes it.
+    if (bufferPlaybackInitialized && deviceName != bufferPlaybackDeviceName) {
+        ma_device_uninit(&bufferPlaybackDevice);
+        bufferPlaybackInitialized = false;
+    }
+
     if (!bufferPlaybackInitialized) {
+        // An empty name, or one that can't be resolved, uses the system default device.
+        ma_device_id deviceId;
+        const bool hasDevice = !deviceName.empty() && GetDeviceFromName(deviceName, deviceId, false);
+
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
-		deviceConfig.playback.pDeviceID = nullptr;
+		deviceConfig.playback.pDeviceID = hasDevice ? &deviceId : nullptr;
 		deviceConfig.playback.format = ma_format_s16;
 		deviceConfig.playback.channels = 1;
 		deviceConfig.sampleRate = sampleRateHz;
@@ -331,6 +345,7 @@ bool AudioContext::StartBufferPlayback(void *buffer, size_t bufferSize)
         }
 
         bufferPlaybackInitialized = true;
+        bufferPlaybackDeviceName = deviceName;
     }
 
     if (!ma_device_is_started(&bufferPlaybackDevice) && ma_device_start(&bufferPlaybackDevice) != MA_SUCCESS) {
@@ -431,8 +446,11 @@ void AudioContext::BufferPlaybackCallback(ma_device* pDevice, void* pOutput, con
 
 bool AudioContext::StartPlayback(const std::string deviceName)
 {
-	std::lock_guard<std::mutex> lock(audioMutex);
-	playbackPos = 0;
+	// The lock must not be held while starting the device, since the playback callback takes it.
+	{
+		std::lock_guard<std::mutex> lock(audioMutex);
+		playbackPos = 0;
+	}
 
 	if (!playbackInitialized) {
 		ma_device_id deviceId;
@@ -482,6 +500,11 @@ void AudioContext::PlaybackCallback(ma_device* pDevice, void* pOutput, const voi
 
     {
         std::lock_guard<std::mutex> lock(pContext->audioMutex);
+        if (pContext->audioBuffer.empty()) {
+            std::memset(outputData, 0, byteCount);
+            return;
+        }
+
         playbackPosCopy = pContext->playbackPos;
         remainingBytesCopy = pContext->audioBuffer.size() - playbackPosCopy;
     }
