@@ -53,7 +53,7 @@ public class MockAtisHubConnection : IAtisHubConnection
                 return;
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl($"http://{IPAddress.Loopback.ToString()}:5500/hub")
+                .WithUrl($"http://{IPAddress.Loopback}:5500/hub")
                 .WithAutomaticReconnect()
                 .AddJsonProtocol(options =>
                 {
@@ -62,6 +62,19 @@ public class MockAtisHubConnection : IAtisHubConnection
                 .Build();
 
             _hubConnection.Closed += OnHubConnectionClosed;
+            _hubConnection.Reconnecting += _ =>
+            {
+                SetConnectionState(ConnectionState.Connecting);
+                return Task.CompletedTask;
+            };
+            _hubConnection.Reconnected += connectionId =>
+            {
+                // The hub assigns a new connection ID on reconnect, so subscriptions and published ATISes
+                // are lost. Raising HubConnected makes stations re-subscribe and republish.
+                Log.Information("Reconnected to AtisHub with ID: " + connectionId);
+                SetConnectionState(ConnectionState.Connected);
+                return Task.CompletedTask;
+            };
             _hubConnection.On<List<AtisHubDto>>("AtisReceived", (dtoList) =>
             {
                 foreach (var dto in dtoList)
@@ -87,7 +100,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             });
 
             SetConnectionState(ConnectionState.Connecting);
-            Log.Information($"Connecting to Dev AtisHub.");
+            Log.Information("Connecting to Dev AtisHub.");
             await _hubConnection.StartAsync();
             Log.Information("Connected to Dev AtisHub with ID: " + _hubConnection.ConnectionId);
             SetConnectionState(ConnectionState.Connected);
@@ -122,6 +135,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("PublishAtis", dto);
+        Log.Information("PublishAtis: {DtoStationId}", dto.StationId);
     }
 
     /// <inheritdoc />
@@ -131,6 +145,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
+        Log.Information("SubscribeToAtis: {DtoStationId}", dto.StationId);
     }
 
     /// <inheritdoc />
@@ -139,6 +154,7 @@ public class MockAtisHubConnection : IAtisHubConnection
         if (string.IsNullOrEmpty(dto.Id))
             return null;
 
+        Log.Information("GetDigitalAtisLetter: {DtoStationId}", dto.Id);
         var response = await _downloader.GetAsync(_appConfigurationProvider.DigitalAtisApiUrl + "/" + dto.Id);
         if (response.IsSuccessStatusCode)
         {
@@ -201,6 +217,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("DisconnectAtis", dto);
+        Log.Information("DisconnectAtis: {DtoStationId}", dto.StationId);
     }
 
     private void SetConnectionState(ConnectionState connectionState)
@@ -225,6 +242,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             Log.Error(exception, "Dev AtisHub connection closed unexpectedly.");
         }
 
+        Log.Information("Disconnected from Dev AtisHub.");
         SetConnectionState(ConnectionState.Disconnected);
         return Task.CompletedTask;
     }

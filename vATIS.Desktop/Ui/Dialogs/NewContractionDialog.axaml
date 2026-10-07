@@ -8,7 +8,7 @@
         x:Class="Vatsim.Vatis.Ui.Dialogs.NewContractionDialog"
         Title="NewContractionDialog"
         x:Name="Window"
-        Width="375" Height="315"
+        Width="375"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
@@ -84,6 +84,7 @@
 						</Interaction.Behaviors>
 					</TextBox>
 				</StackPanel>
+				<CheckBox IsChecked="{Binding AddToAllStations, DataType=vm:NewContractionDialogViewModel}" Content="Add to all ATIS stations in this profile"/>
 				<StackPanel Orientation="Horizontal" Spacing="10">
 					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding OkButtonCommand, DataType=vm:NewContractionDialogViewModel}" CommandParameter="{Binding ElementName=Window}" IsDefault="True">OK</Button>
 					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding CancelButtonCommand, DataType=vm:NewContractionDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>

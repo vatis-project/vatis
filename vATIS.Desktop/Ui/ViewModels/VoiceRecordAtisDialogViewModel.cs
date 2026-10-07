@@ -424,6 +424,17 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
             _recordingStopwatch.Start();
             _maxRecordingDurationTimer.Start();
         }
+        else if (DialogOwner != null)
+        {
+            var message = "Unable to start recording. Check that the selected microphone is available.";
+            if (OperatingSystem.IsMacOS())
+            {
+                message += " If microphone access was denied, enable it for vATIS in " +
+                           "System Settings > Privacy & Security > Microphone.";
+            }
+
+            _ = MessageBox.ShowDialog(DialogOwner, message, "Error", MessageBoxButton.Ok, MessageBoxIcon.Error);
+        }
     }
 
     private void HandleStopRecordingCommand()

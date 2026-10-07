@@ -77,6 +77,7 @@ public class Clouds : BaseFormat
         { "NCD", new CloudType("NCD", "no clouds detected") },
         { "CLR", new CloudType("CLR", "sky clear below one-two thousand") },
         { "SKC", new CloudType("SKC", "sky clear") },
+        { "UND", new CloudType("{amount}///{convective}", "{amount} cloud height not available {convective}") },
     };
 
     /// <summary>

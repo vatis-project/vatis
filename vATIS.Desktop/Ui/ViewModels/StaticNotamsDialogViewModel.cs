@@ -19,6 +19,7 @@ using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Windows;
@@ -37,6 +38,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     private bool _showOverlay;
     private bool _hasDefinitions;
     private bool _includeBeforeFreeText;
+    private string _separator = ". ";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticNotamsDialogViewModel"/> class.
@@ -156,6 +158,15 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the separator placed between the selected NOTAMs definitions. Used exactly as typed.
+    /// </summary>
+    public string Separator
+    {
+        get => _separator;
+        set => this.RaiseAndSetIfChanged(ref _separator, value);
+    }
+
+    /// <summary>
     /// Gets or sets the list of completion data used for contraction suggestions in the NOTAM editor dialog.
     /// </summary>
     public List<ICompletionData> ContractionCompletionData
@@ -163,6 +174,11 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         get => _contractionCompletionData;
         set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
     }
+
+    /// <summary>
+    /// Gets or sets the source used to underline contractions and show spoken text in the editors.
+    /// </summary>
+    public ISpokenTextSource? SpokenTextSource { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of static definitions used in the dialog.
@@ -260,7 +276,9 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                 {
                     vm.Title = "Edit NOTAM";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
+                    vm.SeparatorAfter = definition.SeparatorAfter;
                     vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
                     {
                         if (result == DialogResult.Ok)
@@ -286,7 +304,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                             Definitions.Remove(definition);
                             Definitions.Insert(currentIndex ?? 0,
                                 new StaticDefinition(vm.TextDocument?.Text.ToUpperInvariant() ?? string.Empty, currentIndex ?? 0,
-                                    definition.Enabled));
+                                    definition.Enabled) { SeparatorAfter = vm.SeparatorAfter });
                             Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         }
                     };
@@ -312,6 +330,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
             {
                 vm.Title = "New NOTAM";
                 vm.ContractionCompletionData = ContractionCompletionData;
+                vm.SpokenTextSource = SpokenTextSource;
                 vm.DialogResultChanged += (_, result) =>
                 {
                     if (result == DialogResult.Ok)
@@ -333,7 +352,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                             return;
 
                         Definitions.Add(new StaticDefinition(vm.DefinitionText?.Trim().ToUpperInvariant() ?? string.Empty,
-                            Definitions.Count + 1));
+                            Definitions.Count + 1) { SeparatorAfter = vm.SeparatorAfter });
                         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         HasDefinitions = Definitions.Count != 0;
                     }

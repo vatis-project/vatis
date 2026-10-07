@@ -26,6 +26,14 @@ public class Profile
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the user has renamed the profile locally.
+    /// When true, the local <see cref="Name"/> is preserved when the profile is updated from its update URL.
+    /// </summary>
+    [DefaultValue(false)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsNameOverridden { get; set; }
+
+    /// <summary>
     /// Gets or sets the unique identifier for the profile.
     /// </summary>
     public string Id { get; set; } = Guid.NewGuid().ToString();

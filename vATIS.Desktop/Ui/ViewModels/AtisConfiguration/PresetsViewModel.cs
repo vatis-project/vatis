@@ -1,4 +1,4 @@
-// <copyright file="PresetsViewModel.cs" company="Justin Shannon">
+﻿// <copyright file="PresetsViewModel.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
@@ -39,7 +41,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Provides the ViewModel for managing ATIS presets and configurations.
 /// </summary>
-public class PresetsViewModel : ReactiveViewModelBase, IDisposable
+public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private readonly IMetarRepository _metarRepository;
     private readonly IProfileRepository _profileRepository;
@@ -382,6 +384,29 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _isSandboxPlaybackActive, value);
     }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
+    /// <summary>
+    /// Gets the spoken form of a built-in template token for the selected station.
+    /// </summary>
+    /// <param name="token">The template token.</param>
+    /// <returns>The spoken text, or null if no station is selected or the token could not be converted.</returns>
+    public string? GetSpokenText(string token)
+    {
+        if (SelectedStation == null)
+            return null;
+
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, SelectedStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -468,35 +493,77 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
         return _changeTracker.ApplyChangesIfNeeded();
     }
 
-    private static void HandleTemplateVariableClicked(string? variable)
+    private static void InsertTemplateVariable(IInputElement? focusedElement, string variable)
     {
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        if (focusedElement is TemplateVariableTextBox focusedTextBox)
         {
-            if (lifetime.MainWindow == null)
+            var caretIndex = focusedTextBox.CaretIndex;
+            focusedTextBox.Text = focusedTextBox.Text?.Insert(focusedTextBox.CaretIndex, variable);
+            focusedTextBox.CaretIndex = variable.Length + caretIndex;
+        }
+
+        if (focusedElement is TextArea focusedTextEditor)
+        {
+            var caretIndex = focusedTextEditor.Caret.Offset;
+            focusedTextEditor.Document.Text =
+                focusedTextEditor.Document.Text.Insert(focusedTextEditor.Caret.Offset, variable);
+            focusedTextEditor.Caret.Offset = variable.Length + caretIndex;
+        }
+    }
+
+    private void HandleTemplateVariableClicked(string? variable)
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime ||
+            lifetime.MainWindow is null)
+        {
+            return;
+        }
+
+        var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
+        var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
+
+        variable = variable?.Replace("__", "_") ?? string.Empty;
+
+        if (variable.StartsWith("[QFE|", StringComparison.OrdinalIgnoreCase))
+        {
+            PromptForQfeElevation(lifetime.MainWindow, focusedElement);
+            return;
+        }
+
+        InsertTemplateVariable(focusedElement, variable);
+    }
+
+    private void PromptForQfeElevation(Window owner, IInputElement? focusedElement)
+    {
+        var dialog = _windowFactory.CreateUserInputDialog();
+        dialog.Topmost = owner.Topmost;
+        if (dialog.DataContext is not UserInputDialogViewModel context)
+        {
+            return;
+        }
+
+        context.Title = "Threshold QFE";
+        context.Prompt = "Runway threshold elevation (feet):";
+        context.DialogResultChanged += (_, dialogResult) =>
+        {
+            if (dialogResult != DialogResult.Ok)
             {
                 return;
             }
 
-            var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
-            var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
+            context.ClearError();
 
-            variable = variable?.Replace("__", "_") ?? string.Empty;
-
-            if (focusedElement is TemplateVariableTextBox focusedTextBox)
+            if (!int.TryParse(context.UserValue?.Trim(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture,
+                    out var elevation))
             {
-                var caretIndex = focusedTextBox.CaretIndex;
-                focusedTextBox.Text = focusedTextBox.Text?.Insert(focusedTextBox.CaretIndex, variable);
-                focusedTextBox.CaretIndex = variable.Length + caretIndex;
+                context.SetError("Enter the elevation as a whole number of feet.");
+                return;
             }
 
-            if (focusedElement is TextArea focusedTextEditor)
-            {
-                var caretIndex = focusedTextEditor.Caret.Offset;
-                focusedTextEditor.Document.Text =
-                    focusedTextEditor.Document.Text.Insert(focusedTextEditor.Caret.Offset, variable);
-                focusedTextEditor.Caret.Offset = variable.Length + caretIndex;
-            }
-        }
+            InsertTemplateVariable(focusedElement, $"[QFE|{elevation}]");
+        };
+
+        dialog.ShowDialog(owner);
     }
 
     private async Task HandleFetchSandboxMetar()
@@ -506,7 +573,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, false, false);
+        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, false, false, SelectedStation.CustomMetarUrl);
         SandboxMetar = metar?.RawMetar;
     }
 

@@ -21,7 +21,6 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using ReactiveUI;
-using Sentry;
 using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
@@ -58,31 +57,12 @@ public class App : Application
     /// </summary>
     public override void Initialize()
     {
-        if (!Debugger.IsAttached)
-        {
-            SentrySdk.Init(options =>
-            {
-                options.Dsn = "https://0df6303309d591db70c9848473373990@o477107.ingest.us.sentry.io/4508223788548096";
-                options.StackTraceMode = StackTraceMode.Enhanced;
-                options.IsGlobalModeEnabled = true;
-                options.AutoSessionTracking = true;
-                options.TracesSampleRate = 1.0;
-                options.CacheDirectoryPath = _appDataPath;
-            });
-        }
-
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
         Dispatcher.UIThread.UnhandledException += UIThread_UnhandledException;
         RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
         {
             Log.Error(ex, "RxAppException");
-
-            if (SentrySdk.IsEnabled)
-            {
-                SentrySdk.CaptureException(ex);
-                SentrySdk.FlushAsync().SafeFireAndForget();
-            }
 
             ShowErrorAsync(ex.Message);
         });
@@ -176,7 +156,6 @@ public class App : Application
                     Log.Information("Checking for new client version...");
                     if (await _serviceProvider.GetService<IClientUpdater>().Run())
                     {
-                        SentrySdk.Close();
                         await Log.CloseAndFlushAsync();
                         Shutdown();
                         return;
@@ -194,18 +173,30 @@ public class App : Application
                     Log.Error(ex, "Error running client updater.");
                 }
 
-                await CheckForProfileUpdatesAsync();
-                await UpdateNavDataAsync();
-                await UpdateAvailableVoicesAsync();
+                // Profile updates, navdata and the voice list are independent network round trips, so run them
+                // concurrently instead of one after another.
+                var profileUpdatesTask = CheckForProfileUpdatesAsync();
+                var voicesTask = UpdateAvailableVoicesAsync();
+                try
+                {
+                    await UpdateNavDataAsync();
+                }
+                catch (NavDataUnavailableException ex)
+                {
+                    HandleError(ex, "Required navdata is unavailable", true);
+                    return;
+                }
+
+                await profileUpdatesTask;
+                await voicesTask;
 
                 // Show release notes of new version
                 if (Program.IsUpdated && !appConfig.SuppressReleaseNotes)
                 {
                     try
                     {
-                        var locator = VelopackLocator.GetDefault(NullLogger.Instance);
-                        var currentRelease = locator.GetLocalPackages()
-                            .FirstOrDefault(x => x.Version == locator.CurrentlyInstalledVersion);
+                        var currentRelease = VelopackLocator.Current.GetLocalPackages()
+                            .FirstOrDefault(x => x.Version == VelopackLocator.Current.CurrentlyInstalledVersion);
                         if (currentRelease?.NotesMarkdown != null)
                         {
                             var releaseNotes = _serviceProvider.GetService<ReleaseNotesDialog>();
@@ -229,7 +220,22 @@ public class App : Application
                 _startupWindow.Close();
 
                 var sessionManager = _serviceProvider.GetService<ISessionManager>();
-                if (arguments.TryGetValue("--profile", out var profileId))
+                if (arguments.TryGetValue("--import-profile", out var importProfilePath))
+                {
+                    try
+                    {
+                        Log.Information($"Launching vATIS with --import-profile {importProfilePath}");
+                        var importedProfile =
+                            await _serviceProvider.GetService<IProfileRepository>().ImportWithId(importProfilePath);
+                        await sessionManager.StartSession(importedProfile.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Failed to import profile from path {importProfilePath}");
+                        sessionManager.Run();
+                    }
+                }
+                else if (arguments.TryGetValue("--profile", out var profileId))
                 {
                     Log.Information($"Launching vATIS with --profile {profileId}");
                     await sessionManager.StartSession(profileId);
@@ -406,12 +412,6 @@ public class App : Application
         {
             Log.Error(ex.Exception, "UIThread_UnhandledException");
 
-            if (SentrySdk.IsEnabled)
-            {
-                SentrySdk.CaptureException(ex.Exception);
-                SentrySdk.FlushAsync().SafeFireAndForget();
-            }
-
             ShowErrorAsync(ex.Exception.Message);
         }
         finally
@@ -460,17 +460,7 @@ public class App : Application
         if (e.ExceptionObject is not Exception ex)
             return;
 
-        if (SentrySdk.IsEnabled)
-        {
-            ex.SetSentryMechanism("UnhandledException", handled: false);
-            SentrySdk.CaptureException(ex);
-            SentrySdk.FlushAsync().SafeFireAndForget();
-            Log.Warning(ex, "Unhandled {Type}: {Message}", ex.GetType().Name, ex.Message);
-        }
-        else
-        {
-            Log.Fatal(ex, "Unhandled {Type}: {Message}", ex.GetType().Name, ex.Message);
-        }
+        Log.Fatal(ex, "Unhandled {Type}: {Message}", ex.GetType().Name, ex.Message);
 
         ShowErrorAsync(ex.Message);
     }
@@ -484,13 +474,6 @@ public class App : Application
         {
             var originalException = unobservedEx.InnerException ?? unobservedEx;
             Log.Error(originalException, "OnUnobservedTaskException");
-
-            if (SentrySdk.IsEnabled)
-            {
-                originalException.SetSentryMechanism("UnobservedTaskException");
-                SentrySdk.CaptureException(originalException);
-                SentrySdk.FlushAsync().SafeFireAndForget();
-            }
 
             ShowErrorAsync(originalException.Message);
 
@@ -508,12 +491,6 @@ public class App : Application
         _startupWindow?.Close();
 
         Log.Error(ex, context);
-
-        if (SentrySdk.IsEnabled)
-        {
-            SentrySdk.CaptureException(ex);
-            SentrySdk.FlushAsync().SafeFireAndForget();
-        }
 
         ShowErrorAsync(ex.Message, fatal);
     }

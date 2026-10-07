@@ -19,6 +19,7 @@ using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Windows;
@@ -36,6 +37,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     private bool _showOverlay;
     private bool _hasDefinitions;
     private bool _includeBeforeFreeText;
+    private string _separator = ". ";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticAirportConditionsDialogViewModel"/> class.
@@ -147,6 +149,15 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     }
 
     /// <summary>
+    /// Gets or sets the separator placed between the selected airport conditions definitions. Used exactly as typed.
+    /// </summary>
+    public string Separator
+    {
+        get => _separator;
+        set => this.RaiseAndSetIfChanged(ref _separator, value);
+    }
+
+    /// <summary>
     /// Gets or sets the list of contraction completion data used for providing completion suggestions.
     /// </summary>
     public List<ICompletionData> ContractionCompletionData
@@ -154,6 +165,11 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         get => _contractionCompletionData;
         set => this.RaiseAndSetIfChanged(ref _contractionCompletionData, value);
     }
+
+    /// <summary>
+    /// Gets or sets the source used to underline contractions and show spoken text in the editors.
+    /// </summary>
+    public ISpokenTextSource? SpokenTextSource { get; set; }
 
     /// <summary>
     /// Gets or sets the definitions associated with the airport conditions.
@@ -251,7 +267,9 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                 {
                     vm.Title = "Edit Airport Condition";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
+                    vm.SeparatorAfter = definition.SeparatorAfter;
                     vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
                     {
                         if (result == DialogResult.Ok)
@@ -277,7 +295,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
                             Definitions.Remove(definition);
                             Definitions.Insert(currentIndex,
-                                new StaticDefinition(text, currentIndex, definition.Enabled));
+                                new StaticDefinition(text, currentIndex, definition.Enabled) { SeparatorAfter = vm.SeparatorAfter });
                             Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         }
                     };
@@ -303,6 +321,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
             {
                 vm.Title = "New Airport Condition";
                 vm.ContractionCompletionData = ContractionCompletionData;
+                vm.SpokenTextSource = SpokenTextSource;
                 vm.DialogResultChanged += (_, result) =>
                 {
                     if (result == DialogResult.Ok)
@@ -325,7 +344,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
                         var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";
 
-                        Definitions.Add(new StaticDefinition(text, Definitions.Count + 1));
+                        Definitions.Add(new StaticDefinition(text, Definitions.Count + 1) { SeparatorAfter = vm.SeparatorAfter });
                         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         HasDefinitions = Definitions.Count != 0;
                     }

@@ -19,6 +19,7 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     private string? _variable;
     private string? _text;
     private string? _spoken;
+    private bool _addToAllStations;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NewContractionDialogViewModel"/> class.
@@ -78,6 +79,15 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _spoken;
         set => this.RaiseAndSetIfChanged(ref _spoken, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the contraction should be added to all ATIS stations in the profile.
+    /// </summary>
+    public bool AddToAllStations
+    {
+        get => _addToAllStations;
+        set => this.RaiseAndSetIfChanged(ref _addToAllStations, value);
     }
 
     /// <inheritdoc />

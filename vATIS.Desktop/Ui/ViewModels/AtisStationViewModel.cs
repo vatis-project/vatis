@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
@@ -25,6 +26,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Container.Factory;
 using Vatsim.Vatis.Events;
@@ -37,6 +39,7 @@ using Vatsim.Vatis.Networking.AtisHub.Dto;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Ui.Services.Websocket;
@@ -56,9 +59,12 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// <summary>
 /// Represents a ViewModel for managing ATIS station information and operations.
 /// </summary>
-public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
+public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private const int TransceiverHeightM = 10;
+    private static readonly System.Text.RegularExpressions.Regex s_windDirectionRegex =
+        new(@"(?<![0-9])[0-9]{3}(?=[0-9]{2,3}|V[0-9]{3}|\b)", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private readonly IAppConfig _appConfig;
     private readonly IProfileRepository _profileRepository;
     private readonly IAtisBuilder _atisBuilder;
@@ -426,13 +432,24 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 });
             }
         }));
-        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ => { SubscribeToAtis(); }));
+        _disposables.Add(EventBus.Instance.Subscribe<HubConnected>(_ =>
+        {
+            SubscribeToAtis();
+
+            // After a hub reconnect the hub no longer has our ATIS published under the new connection.
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+            {
+                Task.Run(PublishAtisToHub);
+            }
+        }));
         _disposables.Add(EventBus.Instance.Subscribe<SessionEnded>(_ =>
         {
             if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
             {
                 _atisHubConnection.DisconnectAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
                     AtisLetter));
+
+                _atisBuilder.DisconnectIds(AtisStation, CancellationToken.None).SafeFireAndForget();
 
                 _voiceServerConnection.RemoveBot(_networkConnection.Callsign);
             }
@@ -442,6 +459,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }));
 
         this.WhenAnyValue(x => x.IsNewAtis).Subscribe(HandleIsNewAtisChanged);
+
+        MiniWindowTopMostViewModel.Instance.WhenAnyValue(x => x.UseMagneticWind)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(MiniWindowWind)));
 
         this.WhenAnyValue(x => x.AtisLetter)
             .Select(_ => Observable.FromAsync(() => PublishAtisToWebsocket()))
@@ -606,7 +626,32 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     public string? Wind
     {
         get => _wind;
-        set => this.RaiseAndSetIfChanged(ref _wind, value?.Trim());
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _wind, value?.Trim());
+            this.RaisePropertyChanged(nameof(MiniWindowWind));
+        }
+    }
+
+    /// <summary>
+    /// Gets the wind shown in the mini-window. When the mini-window magnetic wind option is enabled and
+    /// magnetic variation is configured for this station, the wind directions have it applied.
+    /// </summary>
+    public string? MiniWindowWind
+    {
+        get
+        {
+            var magVar = AtisStation.AtisFormat.SurfaceWind.MagneticVariation;
+            if (string.IsNullOrEmpty(_wind) ||
+                !MiniWindowTopMostViewModel.Instance.UseMagneticWind ||
+                !magVar.Enabled)
+            {
+                return _wind;
+            }
+
+            return s_windDirectionRegex.Replace(_wind, m =>
+                int.Parse(m.Value).ApplyMagVar(true, magVar.MagneticDegrees).ToString("000"));
+        }
     }
 
     /// <summary>
@@ -759,6 +804,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _ordinal, value);
     }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
     private ReactiveCommand<char, Unit> SetAtisLetterCommand { get; }
 
     private WindowNotificationManager? NotificationManager { get; }
@@ -795,6 +843,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to disconnect ATIS from hub.");
+        }
+
+        // Clear the ATIS on the configured IDS endpoint
+        try
+        {
+            await _atisBuilder.DisconnectIds(AtisStation, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to disconnect ATIS from IDS.");
         }
 
         // Set network connection status as disconnected
@@ -856,6 +914,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         _debounceCts.Dispose();
 
         GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, AtisStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 
     private void HandleSetAtisLetter(char letter)
@@ -970,6 +1041,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
+
+        this.RaisePropertyChanged(nameof(ContractionCompletionData));
     }
 
     private async Task HandleOpenStaticNotamsDialog()
@@ -986,7 +1059,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.NotamsBeforeFreeText;
+            viewModel.Separator = AtisStation.NotamsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                AtisStation.NotamsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -1042,7 +1124,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.AirportConditionsBeforeFreeText;
+            viewModel.Separator = AtisStation.AirportConditionsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                AtisStation.AirportConditionsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -1129,7 +1220,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                     var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
                         _decodedMetar, localToken.Token);
 
-                    vm.AtisScript = textAtis;
+                    // Show the airport name in the recording script so the identifier is easier to read aloud.
+                    vm.AtisScript = string.IsNullOrEmpty(textAtis) || string.IsNullOrEmpty(_atisStationAirport.Name)
+                        ? textAtis
+                        : Regex.Replace(textAtis, $@"(?<![\w\d]){Regex.Escape(_atisStationAirport.Id)}(?![\w\d])",
+                            _atisStationAirport.Name.Replace("$", "$$"), RegexOptions.IgnoreCase);
                     window.Topmost = lifetime.MainWindow.Topmost;
 
                     if (await window.ShowDialog<bool>(lifetime.MainWindow))
@@ -1357,9 +1452,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
                 NetworkConnectionStatus = NetworkConnectionStatus.Connecting;
 
                 // Fetch the real-world ATIS letter if the user has enabled this option.
+                var letterSynced = false;
                 if (_websocketSyncAtisLetter || _appConfig.AutoFetchAtisLetter)
                 {
-                    await SyncAtisLetter();
+                    letterSynced = await SyncAtisLetter();
+                }
+
+                if (!letterSynced && AtisStation.RandomizeAtisLetterOnConnect)
+                {
+                    var range = AtisStation.CodeRange;
+                    AtisLetter = (char)Random.Shared.Next(range.Low, range.High + 1);
                 }
 
                 await _networkConnection.Connect();
@@ -1424,6 +1526,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
     {
         Dispatcher.UIThread.Post(() =>
         {
+            if (NetworkConnectionStatus == NetworkConnectionStatus.Connected)
+            {
+                Disconnect().SafeFireAndForget();
+            }
+
             NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
             Metar = null;
             Wind = null;
@@ -1795,7 +1902,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         NotamsTextDocument.Text = "";
         _notamFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, AtisStation.NotamsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(AtisStation.NotamsSeparator);
 
         // Insert static definitions before free-text
         if (AtisStation.NotamsBeforeFreeText)
@@ -1879,7 +1988,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         AirportConditionsTextDocument.Text = "";
         _airportConditionsFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, AtisStation.AirportConditionsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(AtisStation.AirportConditionsSeparator);
 
         // Insert static definitions before free-text
         if (AtisStation.AirportConditionsBeforeFreeText)
@@ -2229,10 +2340,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private async Task SyncAtisLetter()
+    private async Task<bool> SyncAtisLetter()
     {
         if (string.IsNullOrEmpty(Identifier))
-            return;
+            return false;
 
         try
         {
@@ -2241,12 +2352,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable
             if (atisLetter != null)
             {
                 await SetAtisLetterCommand.Execute(atisLetter.Value);
+                return true;
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to sync ATIS letter");
         }
+
+        return false;
     }
 
     private void AcknowledgeOrIncrementAtisLetter()

@@ -47,6 +47,9 @@ public class AppConfig : IAppConfig
     public bool MiniWindowShowMetarDetails { get; set; }
 
     /// <inheritdoc />
+    public bool MiniWindowUseMagneticWind { get; set; }
+
+    /// <inheritdoc />
     public WindowPosition? MainWindowPosition { get; set; }
 
     /// <inheritdoc />
@@ -108,6 +111,7 @@ public class AppConfig : IAppConfig
             AlwaysOnTop = config.AlwaysOnTop;
             MiniWindowAlwaysOnTop = config.MiniWindowAlwaysOnTop;
             MiniWindowShowMetarDetails = config.MiniWindowShowMetarDetails;
+            MiniWindowUseMagneticWind = config.MiniWindowUseMagneticWind;
             MainWindowPosition = config.MainWindowPosition;
             MiniWindowPosition = config.MiniWindowPosition;
             ProfileListDialogWindowPosition = config.ProfileListDialogWindowPosition;

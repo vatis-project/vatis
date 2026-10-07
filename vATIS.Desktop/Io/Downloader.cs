@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -20,6 +21,8 @@ namespace Vatsim.Vatis.Io;
 public class Downloader : IDownloader
 {
     private const int BufferSize = 131072;
+    private const int MinConnectAttempts = 4;
+    private static readonly TimeSpan ConnectHeadStart = TimeSpan.FromMilliseconds(250);
     private readonly HttpClient _httpClient;
 
     /// <summary>
@@ -37,20 +40,9 @@ public class Downloader : IDownloader
                 var entry = await Dns.GetHostEntryAsync(context.DnsEndPoint.Host, AddressFamily.InterNetwork,
                     cancellationToken);
 
-                // Open the connection to the target host/port and disable Nagle's algorithm
-                var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                socket.NoDelay = true;
-
-                try
-                {
-                    await socket.ConnectAsync(entry.AddressList, context.DnsEndPoint.Port, cancellationToken);
-                    return new NetworkStream(socket, true);
-                }
-                catch
-                {
-                    socket.Dispose();
-                    throw;
-                }
+                // Open the connection to the target host/port (racing the addresses, see ConnectToAnyAsync)
+                var socket = await ConnectToAnyAsync(entry.AddressList, context.DnsEndPoint.Port, cancellationToken);
+                return new NetworkStream(socket, true);
             }
         });
 
@@ -172,6 +164,97 @@ public class Downloader : IDownloader
         }
 
         await _httpClient.SendAsync(request, cancellationToken: cancellationToken.GetValueOrDefault());
+    }
+
+    /// <summary>
+    /// Connects to the first address that accepts the connection. Rather than waiting for a slow attempt to time out,
+    /// another attempt is started after a short head start (like Happy Eyeballs), cycling through the addresses. This
+    /// covers both an unreachable address in a round-robin DNS record and a connection attempt that is silently
+    /// dropped (e.g. a lost SYN on a flaky mobile network), either of which can otherwise stall a request for many
+    /// seconds.
+    /// </summary>
+    private static async Task<Socket> ConnectToAnyAsync(IPAddress[] addresses, int port,
+        CancellationToken cancellationToken)
+    {
+        if (addresses.Length == 0)
+            throw new SocketException((int)SocketError.HostNotFound);
+
+        var maxAttempts = Math.Max(addresses.Length, MinConnectAttempts);
+        using var raceCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var pending = new List<Task<Socket>>();
+        var started = 0;
+        Socket? winner = null;
+        Exception? lastError = null;
+
+        while (winner == null)
+        {
+            if (pending.Count == 0)
+            {
+                // Every attempt so far has failed outright: move on to the next untried address, or give up.
+                if (started >= addresses.Length)
+                {
+                    throw lastError ?? new SocketException((int)SocketError.HostUnreachable);
+                }
+
+                pending.Add(ConnectOneAsync(addresses[started++ % addresses.Length], port, raceCts.Token));
+            }
+
+            var waitOn = new List<Task>(pending);
+            Task? headStart = null;
+            if (started < maxAttempts)
+            {
+                headStart = Task.Delay(ConnectHeadStart);
+                waitOn.Add(headStart);
+            }
+
+            var finished = await Task.WhenAny(waitOn);
+            if (finished == headStart)
+            {
+                // Still waiting on the in-flight attempt(s); race another one.
+                pending.Add(ConnectOneAsync(addresses[started++ % addresses.Length], port, raceCts.Token));
+                continue;
+            }
+
+            var attempt = (Task<Socket>)finished;
+            pending.Remove(attempt);
+            if (attempt.IsCompletedSuccessfully)
+            {
+                winner = attempt.Result;
+            }
+            else
+            {
+                lastError = attempt.Exception?.GetBaseException();
+            }
+        }
+
+        // Abandon the attempts that lost the race and release any socket that still manages to connect.
+        raceCts.Cancel();
+        foreach (var loser in pending)
+        {
+            _ = loser.ContinueWith(t =>
+            {
+                if (t.IsCompletedSuccessfully)
+                    t.Result.Dispose();
+            }, TaskScheduler.Default);
+        }
+
+        return winner;
+    }
+
+    private static async Task<Socket> ConnectOneAsync(IPAddress address, int port, CancellationToken cancellationToken)
+    {
+        // Disable Nagle's algorithm on the connection
+        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+        try
+        {
+            await socket.ConnectAsync(new IPEndPoint(address, port), cancellationToken);
+            return socket;
+        }
+        catch
+        {
+            socket.Dispose();
+            throw;
+        }
     }
 
     private async Task DownloadToStreamAsync(string url, Stream stream, IProgress<int>? progress)

@@ -18,13 +18,13 @@ public interface ICacheService
     /// </summary>
     /// <param name="connectionId">The connection ID.</param>
     /// <param name="dto">The subscription data.</param>
-    void AddSubscriber(string connectionId, SubscribeDto dto);
+    public void AddSubscriber(string connectionId, SubscribeDto dto);
 
     /// <summary>
     /// Removes a subscriber from the cache.
     /// </summary>
     /// <param name="connectionId">The connection ID.</param>
-    void RemoveSubscriber(string connectionId);
+    public void RemoveSubscriber(string connectionId);
 
     /// <summary>
     /// Gets the cached ATIS data.
@@ -32,12 +32,12 @@ public interface ICacheService
     /// <param name="stationId">The station identifier.</param>
     /// <param name="type">The ATIS type.</param>
     /// <returns>The cached ATIS data.</returns>
-    AtisHubDto? GetCachedAtis(string stationId, AtisType type);
+    public AtisHubDto? GetCachedAtis(string stationId, AtisType type);
 
     /// <summary>
     /// Caches ATIS data.
     /// </summary>
     /// <param name="key">The cache key.</param>
     /// <param name="dto">The ATIS data.</param>
-    void CacheAtis(string key, ServerDto dto);
+    public void CacheAtis(string key, ServerDto dto);
 }

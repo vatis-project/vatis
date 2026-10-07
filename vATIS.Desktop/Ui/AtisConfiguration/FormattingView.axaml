@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -134,7 +134,7 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__spd}
@@ -178,14 +178,14 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__spd}
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The gust speed of the wind (e.g. 25010G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
+										ToolTip.Tip="The gust speed of the wind (e.g. 25010G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}. In text, add :# to drop the leading zero (e.g. {wind_gust:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__gust}
@@ -252,14 +252,14 @@
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 08). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 08). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__spd}
 									</Button>
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}."
+										ToolTip.Tip="The speed of the wind (e.g. VRB08G15KT would yield 15). The value can optionally be converted to another unit using {wind_gust|kt} or {wind_gust|mps}. In text, add :# to drop the leading zero (e.g. {wind_gust:#} yields 9 instead of 09)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{wind__gust}
@@ -349,7 +349,7 @@
 										</Button>
 										<Button
 											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}."
+											ToolTip.Tip="The speed of the wind (e.g. 25010KT would yield 10). The value can optionally be converted to another unit using {wind_spd|kt} or {wind_spd|mps}. In text, add :# to drop the leading zero (e.g. {wind_spd:#} yields 9 instead of 09)."
 											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 											CommandParameter="{Binding $self.Content}">
 											{wind__spd}
@@ -407,16 +407,16 @@
 									</TextBox>
 								</StackPanel>
 							</StackPanel>
-							<StackPanel Orientation="Horizontal" Spacing="10">
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="10">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
-									<TextBox Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								</StackPanel>
-							</StackPanel>
+							<Grid ColumnDefinitions="Auto,10,Auto,20,Auto,10,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
+								<TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
+								<TextBox Grid.Row="0" Grid.Column="2" Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBlock Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
+								<TextBox Grid.Row="0" Grid.Column="6" Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the METAR reports CAVOK">CAVOK (Voice):</TextBlock>
+								<TextBox Grid.Row="1" Grid.Column="2" Text="{Binding VisibilityCavokVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBlock Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the METAR reports CAVOK">CAVOK (Text):</TextBlock>
+								<TextBox Grid.Row="1" Grid.Column="6" Text="{Binding VisibilityCavokText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+							</Grid>
 							<groupBox:GroupBoxControl Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
 								<Grid ColumnDefinitions="80,*,15,80,*" RowDefinitions="*,5,*,5,*,5,*">
 									<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">North:</TextBlock>
@@ -443,6 +443,12 @@
 			</StackPanel>
             <!--Runway Visual Range-->
 			<StackPanel Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
+                <groupBox:GroupBoxControl Header="Runway Visual Range (Spoken)" Theme="{StaticResource GroupBoxClassic}">
+                    <Grid ColumnDefinitions="130,*">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text used to announce runway visual range, e.g. R-V-R or Runway Visual Range">Spoken text:</TextBlock>
+                        <TextBox Grid.Column="1" Text="{Binding RvrSpokenText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                </groupBox:GroupBoxControl>
                 <groupBox:GroupBoxControl Header="Tendencies (Spoken)" Theme="{StaticResource GroupBoxClassic}">
                     <StackPanel Orientation="Vertical" Spacing="10">
                         <Grid ColumnDefinitions="130,*">
@@ -679,7 +685,7 @@
 							<StackPanel Orientation="Horizontal" Spacing="10">
 								<Button
 									Theme="{StaticResource DarkVariable}"
-									ToolTip.Tip="The temperature value from the METAR"
+									ToolTip.Tip="The temperature value from the METAR. In text, add :## to set the digit count, followed by M to drop the M prefix, - to replace it with a dash, or 'text' to replace it with custom text (e.g. {temp:##-} yields -05, {temp:##'MS'} yields MS05)."
 									Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 									CommandParameter="{Binding $self.Content}">
 									{temp}
@@ -716,7 +722,7 @@
 							<StackPanel Orientation="Horizontal" Spacing="10">
 								<Button
 									Theme="{StaticResource DarkVariable}"
-									ToolTip.Tip="The dewpoint value from the METAR"
+									ToolTip.Tip="The dewpoint value from the METAR. In text, add :## to set the digit count, followed by M to drop the M prefix, - to replace it with a dash, or 'text' to replace it with custom text (e.g. {dewpoint:##-} yields -05, {dewpoint:##'MS'} yields MS05)."
 									Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 									CommandParameter="{Binding $self.Content}">
 									{dewpoint}
@@ -786,6 +792,56 @@
 					</StackPanel>
 				</groupBox:GroupBoxControl>
 			</StackPanel>
+            <!--Remark Wind-->
+            <StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Remark Wind'}">
+                <StackPanel Orientation="Vertical" Spacing="10">
+                    <Grid ColumnDefinitions="100,10,*,10,*">
+                        <TextBlock Grid.Column="2">Text</TextBlock>
+                        <TextBlock Grid.Column="4">Voice</TextBlock>
+                    </Grid>
+                    <Grid ColumnDefinitions="100,10,*,10,*">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">Template</TextBlock>
+                        <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Text" Text="{Binding RemarkWindText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        <controls:TemplateVariableTextBox Grid.Column="4" Watermark="Voice" Text="{Binding RemarkWindVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    </Grid>
+                    <WrapPanel>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,8,0"
+                            ToolTip.Tip="The height of the wind observation in feet."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {height}
+                        </Button>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,8,0"
+                            ToolTip.Tip="The wind direction in degrees, or VRB if variable."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {dir}
+                        </Button>
+                        <Button
+                            Theme="{StaticResource DarkVariable}" Margin="0,8,8,0"
+                            ToolTip.Tip="The wind speed in knots, including any gust (e.g. 03G10)."
+                            Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                            CommandParameter="{Binding $self.Content}">
+                            {speed}
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
+            </StackPanel>
+            <!--Automatic Observation-->
+            <StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Automatic Observation'}">
+                <TextBlock TextWrapping="Wrap">Used by the [AUTO] variable. Only output when the METAR is flagged AUTO.</TextBlock>
+                <Grid ColumnDefinitions="100,10,*,10,*">
+                    <TextBlock Grid.Column="2">Text</TextBlock>
+                    <TextBlock Grid.Column="4">Voice</TextBlock>
+                </Grid>
+                <Grid ColumnDefinitions="100,10,*,10,*">
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center">Template</TextBlock>
+                    <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Text" Text="{Binding AutoObservationText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                    <controls:TemplateVariableTextBox Grid.Column="4" Watermark="Voice" Text="{Binding AutoObservationVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                </Grid>
+            </StackPanel>
             <!--Wind Shear-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind Shear'}">
                 <StackPanel Orientation="Vertical" Spacing="10">
@@ -862,7 +918,7 @@
 								<StackPanel Orientation="Horizontal" Spacing="10">
 									<Button
 										Theme="{StaticResource DarkVariable}"
-										ToolTip.Tip="The transition level altitude value (e.g. &quot;65&quot;)."
+										ToolTip.Tip="The transition level altitude value (e.g. &quot;65&quot;). Add :### to zero-pad to a digit count (e.g. {trl:###} yields 065)."
 										Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 										CommandParameter="{Binding $self.Content}">
 										{trl}

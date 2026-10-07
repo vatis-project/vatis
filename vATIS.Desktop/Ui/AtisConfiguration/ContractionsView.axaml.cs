@@ -49,7 +49,7 @@ public partial class ContractionsView : UserControl
             {
                 if (e.Column.Header.ToString() == "Variable")
                 {
-                    var slug = s_slug.GenerateSlug(textBox.Text).Replace("-", "_").ToUpperInvariant();
+                    var slug = s_slug.GenerateSlug(textBox.Text ?? string.Empty).Replace("-", "_").ToUpperInvariant();
 
                     if (vm.CurrentContractions.Any(x => x.Item1 != e.Row.Index && string.Equals(x.Item2.VariableName,
                             slug, StringComparison.InvariantCultureIgnoreCase)))

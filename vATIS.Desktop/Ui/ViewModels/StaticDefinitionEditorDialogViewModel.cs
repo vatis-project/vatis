@@ -9,6 +9,7 @@ using System.Reactive;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using ReactiveUI;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -17,13 +18,14 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// Represents the ViewModel for the Static Definition Editor Dialog.
 /// Provides functionality for editing static definitions with data-binding support.
 /// </summary>
-public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDisposable
+public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private TextDocument? _textDocument = new();
     private List<ICompletionData> _contractionCompletionData = [];
     private DialogResult _dialogResult;
     private string? _title = "Definition Editor";
     private string? _dataValidation;
+    private string? _separatorAfter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticDefinitionEditorDialogViewModel"/> class.
@@ -100,6 +102,24 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     }
 
     /// <summary>
+    /// Gets or sets the source that provides the built-in contractions and spoken text for the editor.
+    /// </summary>
+    public ISpokenTextSource? SpokenTextSource { get; set; }
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions =>
+        SpokenTextSource?.BuiltInContractions ?? new Dictionary<string, string>();
+
+    /// <summary>
+    /// Gets or sets an optional separator placed after this definition. Blank uses the default separator.
+    /// </summary>
+    public string? SeparatorAfter
+    {
+        get => _separatorAfter;
+        set => this.RaiseAndSetIfChanged(ref _separatorAfter, value);
+    }
+
+    /// <summary>
     /// Gets or sets the validation message associated with data input. This property provides feedback
     /// or error messages related to the data validation process.
     /// </summary>
@@ -107,6 +127,12 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         get => _dataValidation;
         set => this.RaiseAndSetIfChanged(ref _dataValidation, value);
+    }
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        return SpokenTextSource?.GetSpokenText(token);
     }
 
     /// <inheritdoc />

@@ -256,11 +256,6 @@ vpk upload s3 \
     --secret "$AWS_SECRET_ACCESS_KEY" \
     --prefix "macos"
 
-# Upload Debug Symbols
-npm install -g @sentry/cli
-sentry-cli login --auth-token $SENTRY_AUTH_TOKEN
-sentry-cli debug-files upload -o clowd -p vatis $BIN_DIR
-
 # Upload to R2
 brew install awscli
 

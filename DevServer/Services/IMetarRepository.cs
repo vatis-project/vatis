@@ -15,5 +15,5 @@ public interface IMetarRepository
     /// </summary>
     /// <param name="id">The ICAO airport identifier.</param>
     /// <returns>The METAR data for the specified airport identifier.</returns>
-    Task<string?> GetVatsimMetar(string id);
+    public Task<string?> GetVatsimMetar(string id);
 }

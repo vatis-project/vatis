@@ -9,7 +9,7 @@
         x:Class="Vatsim.Vatis.Ui.Dialogs.StaticDefinitionEditorDialog"
         Title="StaticDefinitionEditorDialog"
         x:Name="Window"
-        Width="500" Height="325"
+        Width="500" d:DesignHeight="325"
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -66,8 +66,13 @@
 						<Interaction.Behaviors>
 							<behaviors:TextEditorUpperCaseBehavior/>
 							<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
+							<behaviors:TextEditorSpokenTextBehavior/>
 						</Interaction.Behaviors>
 					</editor:TextEditor>
+					<Grid ColumnDefinitions="Auto,*">
+						<TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Leave blank to use the list's default separator. Ignored for the last entry." />
+						<TextBox Grid.Column="1" FontFamily="{StaticResource Monospace}" Watermark="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
+					</Grid>
 					<TextBox Name="DataValidation" Theme="{StaticResource Hidden}" Text="{Binding DataValidation, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
 				</StackPanel>
 				<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5">

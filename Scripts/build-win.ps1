@@ -6,11 +6,6 @@ param (
 Write-Host "Publishing project with version $env:VERSION..."
 dotnet publish -c Release -r win-x64 -o .\Publish\win-x64 .\vATIS.Desktop\vATIS.Desktop.csproj -p:Version=$env:VERSION
 
-# Upload debug symbols to Sentry
-npm install -g @sentry/cli
-sentry-cli login --auth-token $env:SENTRY_AUTH_TOKEN
-sentry-cli debug-files upload -o clowd -p vatis .\Publish\win-x64
-
 vpk download s3 --outputDir ".\Publish" `
     --bucket vatis-releases --endpoint "$env:AWS_ENDPOINT" `
     --keyId "$env:AWS_ACCESS_KEY_ID" --secret "$env:AWS_SECRET_ACCESS_KEY" `

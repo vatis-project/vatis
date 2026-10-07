@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -44,6 +44,7 @@
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:PresetsViewModel}"/>
+						<behaviors:TextEditorSpokenTextBehavior/>
                         <behaviors:DocumentTextBindingBehavior Text="{Binding AtisTemplateText, DataType=vm:PresetsViewModel, Mode=TwoWay}"/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>
@@ -71,6 +72,14 @@
 						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
 						CommandParameter="{Binding $self.Content}">
 						[WX]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="The complete, raw METAR as received (e.g. KSFO 031856Z 28012KT 10SM FEW015 18/11 A3002). Does not include a leading &quot;METAR&quot; keyword."
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[METAR]
 					</Button>
 					<Button
 						Margin="0,0,5,5"
@@ -147,6 +156,14 @@
 					<Button
 						Margin="0,0,5,5"
 						Theme="{StaticResource DarkVariable}"
+						ToolTip.Tip="Runway threshold QFE&#x0a;&#x0a;Replace ELEVATION__FT with the runway threshold elevation in feet."
+						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+						CommandParameter="{Binding $self.Content}">
+						[QFE|ELEVATION__FT]
+					</Button>
+					<Button
+						Margin="0,0,5,5"
+						Theme="{StaticResource DarkVariable}"
 						ToolTip.Tip="The TREND forecast from the METAR"
 						Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
 						CommandParameter="{Binding $self.Content}">
@@ -167,6 +184,22 @@
                         Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
                         CommandParameter="{Binding $self.Content}">
                         [WS]
+                    </Button>
+                    <Button
+                        Margin="0,0,5,5"
+                        Theme="{StaticResource DarkVariable}"
+                        ToolTip.Tip="The wind reported in the METAR remarks"
+                        Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+                        CommandParameter="{Binding $self.Content}">
+                        [RMK__WIND]
+                    </Button>
+                    <Button
+                        Margin="0,0,5,5"
+                        Theme="{StaticResource DarkVariable}"
+                        ToolTip.Tip="Inserts the Automatic Observation text only when the METAR is flagged AUTO."
+                        Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+                        CommandParameter="{Binding $self.Content}">
+                        [AUTO]
                     </Button>
                     <Button
 						Margin="0,0,5,5"
@@ -212,7 +245,7 @@
                     <StackPanel Orientation="Vertical" Spacing="5">
                         <StackPanel Spacing="5">
 						    <TextBlock Text="Text ATIS URL:" ToolTip.Tip="The URL used to generate the text ATIS."/>
-						    <TextBox Text="{Binding ExternalGeneratorTextUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+						    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorTextUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 							    <Interaction.Behaviors>
 								    <behaviors:SelectAllTextOnFocusBehavior/>
 							    </Interaction.Behaviors>
@@ -220,7 +253,7 @@
 					    </StackPanel>
                         <StackPanel Spacing="5">
                             <TextBlock Text="Voice ATIS URL:" ToolTip.Tip="The URL used to generate the voice ATIS. If you don't have a separate URL, use the same URL as the text ATIS."/>
-                            <TextBox Text="{Binding ExternalGeneratorVoiceUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+                            <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorVoiceUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
                                 <Interaction.Behaviors>
                                     <behaviors:SelectAllTextOnFocusBehavior/>
                                 </Interaction.Behaviors>

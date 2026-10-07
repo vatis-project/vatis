@@ -8,7 +8,7 @@
         x:Class="Vatsim.Vatis.Ui.Dialogs.UserInputDialog"
         Title="UserInputDialog"
 		Name="Window"
-		Width="360" Height="160" 
+		d:DesignWidth="360" d:DesignHeight="160" 
 		WindowStartupLocation="CenterOwner" 
 		CanResize="False"
 		ShowInTaskbar="False"

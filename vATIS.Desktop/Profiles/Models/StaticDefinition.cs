@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Text.Json.Serialization;
 using ReactiveUI;
 
 namespace Vatsim.Vatis.Profiles.Models;
@@ -38,6 +39,13 @@ public class StaticDefinition : ReactiveObject
     public int Ordinal { get; set; }
 
     /// <summary>
+    /// Gets or sets an optional separator placed after this definition, used exactly as typed. When null or empty,
+    /// the station separator is used. Ignored for the last enabled definition.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SeparatorAfter { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the static definition is enabled.
     /// </summary>
     public bool Enabled
@@ -61,6 +69,6 @@ public class StaticDefinition : ReactiveObject
     /// <returns>A new <see cref="StaticDefinition"/> instance that is a copy of this instance.</returns>
     public StaticDefinition Clone()
     {
-        return new StaticDefinition(Text, Ordinal, Enabled);
+        return new StaticDefinition(Text, Ordinal, Enabled) { SeparatorAfter = SeparatorAfter };
     }
 }

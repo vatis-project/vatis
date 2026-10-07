@@ -52,11 +52,6 @@ vpk upload s3 \
     --secret "$AWS_SECRET_ACCESS_KEY" \
     --prefix "linux"
 
-# Upload Debug Symbols
-npm install -g @sentry/cli
-sentry-cli login --auth-token $SENTRY_AUTH_TOKEN
-sentry-cli debug-files upload -o clowd -p vatis $BIN_DIR
-
 mv ./velopack/org.vatsim.vatis.AppImage ./velopack/vATIS-$VERSION.AppImage
 
 aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"

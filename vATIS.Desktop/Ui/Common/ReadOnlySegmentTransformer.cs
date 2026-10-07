@@ -27,6 +27,19 @@ public class ReadOnlySegmentTransformer : DocumentColorizingTransformer
     }
 
     /// <summary>
+    /// Removes any <see cref="ReadOnlySegmentTransformer"/> from the text view, leaving other transformers intact.
+    /// </summary>
+    /// <param name="textView">The text view.</param>
+    public static void RemoveFrom(TextView textView)
+    {
+        for (var i = textView.LineTransformers.Count - 1; i >= 0; i--)
+        {
+            if (textView.LineTransformers[i] is ReadOnlySegmentTransformer)
+                textView.LineTransformers.RemoveAt(i);
+        }
+    }
+
+    /// <summary>
     /// Colorizes the specified line by applying color to the overlapping read-only segments.
     /// </summary>
     /// <param name="line">The document line to colorize.</param>

@@ -21,12 +21,14 @@ internal sealed class WindowsMachineInfoProvider : IMachineInfoProvider
     {
         using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
         using var localKey = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-
         if (localKey == null)
             return null;
 
         var guid = localKey.GetValue("MachineGuid");
+        if (guid == null)
+            return null;
 
-        return guid == null ? null : Encoding.UTF8.GetBytes(guid.ToString() ?? "");
+        var guidString = guid.ToString()?.Trim().TrimEnd('\0') ?? "";
+        return Encoding.UTF8.GetBytes(guidString);
     }
 }

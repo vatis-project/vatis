@@ -17,40 +17,40 @@ public interface ISessionManager
     /// <summary>
     /// Gets the current profile associated with the session.
     /// </summary>
-    Profile? CurrentProfile { get; }
+    public Profile? CurrentProfile { get; }
 
     /// <summary>
     /// Gets the maximum number of connections allowed for the session.
     /// </summary>
-    int MaxConnectionCount { get; }
+    public int MaxConnectionCount { get; }
 
     /// <summary>
     /// Gets or sets the current count of active connections associated with the session.
     /// </summary>
-    int CurrentConnectionCount { get; set; }
+    public int CurrentConnectionCount { get; set; }
 
     /// <summary>
     /// Starts the session manager.
     /// </summary>
-    void Run();
+    public void Run();
 
     /// <summary>
     /// Starts a new session using the specified profile identifier.
     /// </summary>
     /// <param name="profileId">The identifier of the profile to use for the session.</param>
     /// <returns>A task representing the asynchronous operation of starting the session.</returns>
-    Task StartSession(string profileId);
+    public Task StartSession(string profileId);
 
     /// <summary>
     /// Ends the current active session, resets session data,
     /// and closes the main application window if applicable.
     /// </summary>
-    void EndSession();
+    public void EndSession();
 
     /// <summary>
     /// Used by websocket to end and start a new session with the specified profile ID.
     /// </summary>
     /// <param name="profileId">The profile ID.</param>
     /// <returns>A task.</returns>
-    Task ChangeProfile(string profileId);
+    public Task ChangeProfile(string profileId);
 }

@@ -406,3 +406,7 @@ FodyWeavers.xsd
 # Windows builds
 build/**
 NativeAudio/Out/**
+
+# NativeAudio macOS cross-compile output
+NativeAudio/build-macos-*/
+NativeAudio/build-macos-tmp/

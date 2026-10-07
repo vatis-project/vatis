@@ -73,6 +73,16 @@ public class AtisFormat
     public WindShear WindShear { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the formatting for the remark wind component.
+    /// </summary>
+    public RemarkWind RemarkWind { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the automatic observation component of the ATIS format.
+    /// </summary>
+    public AutoObservation AutoObservation { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the transition level component of the ATIS format.
     /// </summary>
     public TransitionLevel TransitionLevel { get; set; } = new();
@@ -107,6 +117,8 @@ public class AtisFormat
             Altimeter = Altimeter.Clone(),
             Trend = Trend.Clone(),
             WindShear = WindShear.Clone(),
+            RemarkWind = RemarkWind.Clone(),
+            AutoObservation = AutoObservation.Clone(),
             TransitionLevel = TransitionLevel.Clone(),
             Notams = Notams.Clone(),
             ClosingStatement = ClosingStatement.Clone(),

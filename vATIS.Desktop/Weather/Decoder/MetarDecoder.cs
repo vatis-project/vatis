@@ -4,6 +4,7 @@
 // https://github.com/afonsoft/metar-decoder
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
@@ -116,8 +117,17 @@ public class MetarDecoder
         var cleanMetar = rawMetar.ToUpper().Trim();
         cleanMetar = Regex.Replace(cleanMetar, "=$", string.Empty);
         cleanMetar = Regex.Replace(cleanMetar, "[ ]{2,}", " ") + " ";
-        var remainingMetar = cleanMetar;
+
+        // Remarks are free text that the chunk decoders cannot parse, and would prevent the trailing
+        // trend group from matching. Exclude them from decoding but keep them in the raw METAR.
+        var remarksIndex = cleanMetar.IndexOf(" RMK ", StringComparison.Ordinal);
+        var remainingMetar = remarksIndex >= 0 ? cleanMetar[..(remarksIndex + 1)] : cleanMetar;
         var decodedMetar = new DecodedMetar(cleanMetar);
+        if (remarksIndex >= 0)
+        {
+            decodedMetar.RemarkWind = ParseRemarkWind(cleanMetar[remarksIndex..]);
+        }
+
         var withCavok = false;
 
         // call each decoder in the chain and use results to populate decoded metar
@@ -178,6 +188,24 @@ public class MetarDecoder
         }
 
         return decodedMetar;
+    }
+
+    private static RemarkWind? ParseRemarkWind(string remarks)
+    {
+        var match = Regex.Match(remarks,
+            @"\bWIND (?<height>\d{3,4})FT (?<dir>\d{3}|VRB)(?<speed>\d{2,3})(?:G(?<gust>\d{2,3}))?KT\b");
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        return new RemarkWind
+        {
+            HeightFeet = int.Parse(match.Groups["height"].Value),
+            Direction = match.Groups["dir"].Value == "VRB" ? null : int.Parse(match.Groups["dir"].Value),
+            Speed = int.Parse(match.Groups["speed"].Value),
+            Gust = match.Groups["gust"].Success ? int.Parse(match.Groups["gust"].Value) : null,
+        };
     }
 
     private static Dictionary<string, object> TryParsing(IMetarChunkDecoder chunkDecoder, bool strict,

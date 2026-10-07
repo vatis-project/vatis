@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using Vatsim.Vatis.Events;
@@ -32,8 +33,23 @@ public class MockMetarRepository : IMetarRepository
     }
 
     /// <inheritdoc />
-    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true)
+    public async Task<DecodedMetar?> GetMetar(string station, bool monitor = false, bool triggerMessageBus = true,
+        string? customUrl = null)
     {
+        if (!string.IsNullOrWhiteSpace(customUrl))
+        {
+            var customMetar = await FetchCustomMetarAsync(station, customUrl.Trim());
+            if (customMetar != null)
+            {
+                if (triggerMessageBus)
+                {
+                    EventBus.Instance.Publish(new MetarReceived(customMetar));
+                }
+
+                return customMetar;
+            }
+        }
+
         var metar = await _downloader.DownloadStringAsync(_localMetarServiceUrl + station);
         if (!string.IsNullOrEmpty(metar))
         {
@@ -49,5 +65,28 @@ public class MockMetarRepository : IMetarRepository
     public void RemoveMetar(string station)
     {
         // Ignore
+    }
+
+    private async Task<DecodedMetar?> FetchCustomMetarAsync(string station, string urlTemplate)
+    {
+        try
+        {
+            var url = urlTemplate.Replace("{icao}", station, StringComparison.OrdinalIgnoreCase);
+            var response = await _downloader.DownloadStringAsync(url);
+            foreach (var line in response.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                var metar = _metarDecoder.ParseNotStrict(line.Trim());
+                if (string.Equals(metar.Icao, station, StringComparison.OrdinalIgnoreCase))
+                {
+                    return metar;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Fall back to the local mock service.
+        }
+
+        return null;
     }
 }

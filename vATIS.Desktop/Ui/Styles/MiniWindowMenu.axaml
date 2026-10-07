@@ -108,6 +108,7 @@
 
     <ControlTheme x:Key="MiniWindow_MenuItem" TargetType="MenuItem">
         <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="StaysOpenOnClick" Value="True"/>
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel>

@@ -49,6 +49,7 @@
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:AtisStationViewModel}"/>
+						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
                     <editor:TextEditor.ContextMenu>
                         <ContextMenu IsEnabled="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel}">
@@ -62,6 +63,7 @@
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:AtisStationViewModel}"/>
+						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
                     <editor:TextEditor.ContextMenu>
                         <ContextMenu IsEnabled="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel}">

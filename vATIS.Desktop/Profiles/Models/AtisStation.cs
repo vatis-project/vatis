@@ -65,6 +65,16 @@ public class AtisStation : ReactiveObject
     public bool AirportConditionsBeforeFreeText { get; set; }
 
     /// <summary>
+    /// Gets or sets the separator placed between static NOTAM definitions. Used exactly as typed.
+    /// </summary>
+    public string NotamsSeparator { get; set; } = ". ";
+
+    /// <summary>
+    /// Gets or sets the separator placed between static airport condition definitions. Used exactly as typed.
+    /// </summary>
+    public string AirportConditionsSeparator { get; set; } = ". ";
+
+    /// <summary>
     /// Gets or sets the frequency of the ATIS station.
     /// </summary>
     public uint Frequency { get; set; }
@@ -75,9 +85,21 @@ public class AtisStation : ReactiveObject
     public string? IdsEndpoint { get; set; }
 
     /// <summary>
+    /// Gets or sets an optional custom METAR source URL. May contain an {icao} placeholder.
+    /// When empty, or if the source fails, the default VATSIM METAR source is used.
+    /// </summary>
+    public string? CustomMetarUrl { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether decimal terminology should be used in the ATIS station.
     /// </summary>
     public bool UseDecimalTerminology { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the ATIS letter should be randomized within the code range when
+    /// connecting.
+    /// </summary>
+    public bool RandomizeAtisLetterOnConnect { get; set; }
 
     /// <summary>
     /// Gets or sets the metadata related to the ATIS voice configuration.
@@ -254,9 +276,13 @@ public class AtisStation : ReactiveObject
             AtisFormat = AtisFormat.Clone(),
             NotamsBeforeFreeText = NotamsBeforeFreeText,
             AirportConditionsBeforeFreeText = AirportConditionsBeforeFreeText,
+            NotamsSeparator = NotamsSeparator,
+            AirportConditionsSeparator = AirportConditionsSeparator,
             Frequency = Frequency,
             IdsEndpoint = IdsEndpoint,
+            CustomMetarUrl = CustomMetarUrl,
             UseDecimalTerminology = UseDecimalTerminology,
+            RandomizeAtisLetterOnConnect = RandomizeAtisLetterOnConnect,
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),
             Contractions = Contractions.Select(x => x.Clone()).ToList(),

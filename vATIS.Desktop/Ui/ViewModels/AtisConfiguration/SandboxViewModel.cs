@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -19,11 +20,13 @@ using DynamicData.Binding;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Voice.Audio;
@@ -35,7 +38,7 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// <summary>
 /// Represents the view model for the sandbox environment.
 /// </summary>
-public class SandboxViewModel : ReactiveViewModelBase, IDisposable
+public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
@@ -283,6 +286,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
     /// </summary>
     public TextSegmentCollection<TextSegment> ReadOnlyNotams { get; set; }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions => _atisBuilder.BuiltInContractions;
+
     /// <summary>
     /// Gets or sets the contraction completion data.
     /// </summary>
@@ -333,6 +339,22 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         NativeAudio.StopBufferPlayback();
 
         return true;
+    }
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        if (SelectedStation == null)
+            return null;
+
+        try
+        {
+            return _atisBuilder.GetSpokenText(token, SelectedStation);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 
     private void HandleAtisStationChanged(AtisStation? station)
@@ -469,7 +491,16 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(SelectedStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.NotamsBeforeFreeText;
+            viewModel.Separator = SelectedStation.NotamsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                SelectedStation.NotamsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -547,7 +578,16 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             viewModel.Definitions =
                 new ObservableCollection<StaticDefinition>(SelectedStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.AirportConditionsBeforeFreeText;
+            viewModel.Separator = SelectedStation.AirportConditionsSeparator;
+
+            viewModel.WhenAnyValue(x => x.Separator).Skip(1).Subscribe(val =>
+            {
+                SelectedStation.AirportConditionsSeparator = val;
+                if (_sessionManager.CurrentProfile != null)
+                    _profileRepository.Save(_sessionManager.CurrentProfile);
+            });
 
             viewModel.WhenAnyValue(x => x.IncludeBeforeFreeText).Subscribe(val =>
             {
@@ -621,7 +661,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
             return;
 
         var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, monitor: false,
-            triggerMessageBus: false);
+            triggerMessageBus: false, customUrl: SelectedStation.CustomMetarUrl);
         SandboxMetar = metar?.RawMetar;
     }
 
@@ -678,7 +718,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         // Reset offset
         _notamFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, SelectedStation.NotamsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(SelectedStation.NotamsSeparator);
 
         // Insert static definitions before free-text
         if (SelectedStation.NotamsBeforeFreeText)
@@ -770,7 +812,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable
         // Reset offset
         _airportConditionsFreeTextOffset = 0;
 
-        var staticDefinitionsString = string.Join(". ", staticDefinitions.Select(s => s.Text.TrimEnd('.'))) + ". ";
+        var staticDefinitionsString = StaticDefinitionJoiner.Join(
+            staticDefinitions, SelectedStation.AirportConditionsSeparator, trimTrailingPeriod: true)
+                                      + StaticDefinitionJoiner.Normalize(SelectedStation.AirportConditionsSeparator);
 
         // Insert static definitions before free-text
         if (SelectedStation.AirportConditionsBeforeFreeText)

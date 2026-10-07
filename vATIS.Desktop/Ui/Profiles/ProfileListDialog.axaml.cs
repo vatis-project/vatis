@@ -27,6 +27,7 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         InitializeComponent();
 
         ViewModel = viewModel;
+        RestorePositionBeforeShow();
 
         Opened += OnOpened;
         Loaded += OnLoaded;
@@ -66,7 +67,22 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
     {
         PositionChanged += OnPositionChanged;
         ViewModel?.InitializeCommand.Execute().Subscribe();
+        if (WindowStartupLocation != WindowStartupLocation.Manual)
+        {
+            ViewModel?.RestorePosition(this);
+        }
+    }
+
+    private void RestorePositionBeforeShow()
+    {
+        // Restore the saved position before the window is shown. Restoring after it has been shown makes the window
+        // appear at the default (centered) location first and then visibly jump to the saved one.
+        var defaultPosition = Position;
         ViewModel?.RestorePosition(this);
+        if (Position != defaultPosition)
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+        }
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)

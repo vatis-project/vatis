@@ -65,6 +65,19 @@ public class AtisHubConnection : IAtisHubConnection
                 .Build();
 
             _hubConnection.Closed += OnHubConnectionClosed;
+            _hubConnection.Reconnecting += _ =>
+            {
+                SetConnectionState(ConnectionState.Connecting);
+                return Task.CompletedTask;
+            };
+            _hubConnection.Reconnected += connectionId =>
+            {
+                // The hub assigns a new connection ID on reconnect, so subscriptions and published ATISes
+                // are lost. Raising HubConnected makes stations re-subscribe and republish.
+                Log.Information("Reconnected to AtisHub with ID: " + connectionId);
+                SetConnectionState(ConnectionState.Connected);
+                return Task.CompletedTask;
+            };
             _hubConnection.On<List<AtisHubDto>>("AtisReceived", (dtoList) =>
             {
                 foreach (var dto in dtoList)
@@ -113,6 +126,7 @@ public class AtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("PublishAtis", dto);
+        Log.Information("PublishAtis: {DtoStationId}", dto.StationId);
     }
 
     /// <inheritdoc />
@@ -122,6 +136,7 @@ public class AtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("SubscribeToAtis", dto);
+        Log.Information("SubscribeToAtis: {DtoStationId}", dto.StationId);
     }
 
     /// <inheritdoc />
@@ -130,6 +145,7 @@ public class AtisHubConnection : IAtisHubConnection
         if (_hubConnection is not { State: HubConnectionState.Connected })
             return null;
 
+        Log.Information("GetDigitalAtisLetter: {DtoStationId}", dto.Id);
         return await _hubConnection.InvokeAsync<char>("GetDigitalAtisLetter", dto);
     }
 
@@ -140,6 +156,7 @@ public class AtisHubConnection : IAtisHubConnection
             return;
 
         await _hubConnection.InvokeAsync("DisconnectAtis", dto);
+        Log.Information("DisconnectAtis: {DtoStationId}", dto.StationId);
     }
 
     private Task OnHubConnectionClosed(Exception? exception)

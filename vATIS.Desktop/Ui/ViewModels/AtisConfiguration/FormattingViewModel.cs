@@ -91,8 +91,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _visibilityNorthWest;
     private string? _visibilityUnlimitedVisibilityVoice;
     private string? _visibilityUnlimitedVisibilityText;
+    private string? _visibilityCavokVoice;
+    private string? _visibilityCavokText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
+    private string? _rvrSpokenText;
     private string? _rvrTendencyNeutralText;
     private string? _rvrTendencyGoingUpText;
     private string? _rvrTendencyGoingDownText;
@@ -120,6 +123,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _temporaryVoiceValue;
     private string? _trendNotAvailableText;
     private string? _trendNotAvailableVoice;
+    private string? _remarkWindText;
+    private string? _remarkWindVoice;
+    private string? _autoObservationText;
+    private string? _autoObservationVoice;
     private string? _runwayWindShearText;
     private string? _runwayWindShearVoice;
     private string? _allRunwayWindShearText;
@@ -864,6 +871,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the CAVOK voice value.
+    /// </summary>
+    public string? VisibilityCavokVoice
+    {
+        get => _visibilityCavokVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityCavokVoice, value);
+            _changeTracker.TrackChange(nameof(VisibilityCavokVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the CAVOK text value.
+    /// </summary>
+    public string? VisibilityCavokText
+    {
+        get => _visibilityCavokText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityCavokText, value);
+            _changeTracker.TrackChange(nameof(VisibilityCavokText), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to include visibility suffix.
     /// </summary>
     public bool VisibilityIncludeVisibilitySuffix
@@ -886,6 +919,19 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _visibilityMetersCutoff, value);
             _changeTracker.TrackChange(nameof(VisibilityMetersCutoff), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken text used to announce runway visual range.
+    /// </summary>
+    public string? RvrSpokenText
+    {
+        get => _rvrSpokenText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rvrSpokenText, value);
+            _changeTracker.TrackChange(nameof(RvrSpokenText), value);
         }
     }
 
@@ -1242,6 +1288,58 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _trendNotAvailableVoice, value);
             _changeTracker.TrackChange(nameof(TrendNotAvailableVoiceValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the text template for the remark wind.
+    /// </summary>
+    public string? RemarkWindText
+    {
+        get => _remarkWindText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _remarkWindText, value);
+            _changeTracker.TrackChange(nameof(RemarkWindText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the remark wind.
+    /// </summary>
+    public string? RemarkWindVoice
+    {
+        get => _remarkWindVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _remarkWindVoice, value);
+            _changeTracker.TrackChange(nameof(RemarkWindVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the text template for the automatic observation.
+    /// </summary>
+    public string? AutoObservationText
+    {
+        get => _autoObservationText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoObservationText, value);
+            _changeTracker.TrackChange(nameof(AutoObservationText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the automatic observation.
+    /// </summary>
+    public string? AutoObservationVoice
+    {
+        get => _autoObservationVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoObservationVoice, value);
+            _changeTracker.TrackChange(nameof(AutoObservationVoice), value);
         }
     }
 
@@ -1721,6 +1819,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 VisibilityUnlimitedVisibilityText ?? string.Empty;
         }
 
+        if (SelectedStation.AtisFormat.Visibility.CavokVoice != VisibilityCavokVoice)
+        {
+            SelectedStation.AtisFormat.Visibility.CavokVoice = VisibilityCavokVoice ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Visibility.CavokText != VisibilityCavokText)
+        {
+            SelectedStation.AtisFormat.Visibility.CavokText = VisibilityCavokText ?? string.Empty;
+        }
+
         if (SelectedStation.AtisFormat.Visibility.IncludeVisibilitySuffix !=
             VisibilityIncludeVisibilitySuffix)
         {
@@ -1730,6 +1838,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedStation.AtisFormat.Visibility.MetersCutoff != VisibilityMetersCutoff)
         {
             SelectedStation.AtisFormat.Visibility.MetersCutoff = VisibilityMetersCutoff;
+        }
+
+        if (SelectedStation.AtisFormat.RunwayVisualRange.SpokenText != RvrSpokenText)
+        {
+            SelectedStation.AtisFormat.RunwayVisualRange.SpokenText = RvrSpokenText;
         }
 
         if (SelectedStation.AtisFormat.RunwayVisualRange.NeutralTendency != RvrTendencyNeutralText)
@@ -1893,6 +2006,26 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.Trend.NotAvailableVoice = TrendNotAvailableVoiceValue;
         }
 
+        if (SelectedStation.AtisFormat.RemarkWind.TextTemplate != RemarkWindText)
+        {
+            SelectedStation.AtisFormat.RemarkWind.TextTemplate = RemarkWindText;
+        }
+
+        if (SelectedStation.AtisFormat.RemarkWind.VoiceTemplate != RemarkWindVoice)
+        {
+            SelectedStation.AtisFormat.RemarkWind.VoiceTemplate = RemarkWindVoice;
+        }
+
+        if (SelectedStation.AtisFormat.AutoObservation.TextTemplate != AutoObservationText)
+        {
+            SelectedStation.AtisFormat.AutoObservation.TextTemplate = AutoObservationText;
+        }
+
+        if (SelectedStation.AtisFormat.AutoObservation.VoiceTemplate != AutoObservationVoice)
+        {
+            SelectedStation.AtisFormat.AutoObservation.VoiceTemplate = AutoObservationVoice;
+        }
+
         if (SelectedStation.AtisFormat.WindShear.RunwayText != RunwayWindShearText)
         {
             SelectedStation.AtisFormat.WindShear.RunwayText = RunwayWindShearText;
@@ -1982,10 +2115,12 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         if (!station.IsFaaAtis)
         {
             items.Add("Wind Shear");
+            items.Add("Remark Wind");
             items.Add("Trend Forecast");
             items.Add("Transition Level");
         }
 
+        items.Add("Automatic Observation");
         items.Add("NOTAMs");
         items.Add("Closing Statement");
 
@@ -2037,8 +2172,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         VisibilityNorthWest = station.AtisFormat.Visibility.NorthWest;
         VisibilityUnlimitedVisibilityVoice = station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
+        VisibilityCavokVoice = station.AtisFormat.Visibility.CavokVoice;
+        VisibilityCavokText = station.AtisFormat.Visibility.CavokText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
+        RvrSpokenText = station.AtisFormat.RunwayVisualRange.SpokenText;
         RvrTendencyNeutralText = station.AtisFormat.RunwayVisualRange.NeutralTendency;
         RvrTendencyGoingUpText = station.AtisFormat.RunwayVisualRange.GoingUpTendency;
         RvrTendencyGoingDownText = station.AtisFormat.RunwayVisualRange.GoingDownTendency;
@@ -2064,6 +2202,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         TemporaryVoiceValue = station.AtisFormat.Trend.TemporaryVoice;
         TrendNotAvailableTextValue = station.AtisFormat.Trend.NotAvailableText;
         TrendNotAvailableVoiceValue = station.AtisFormat.Trend.NotAvailableVoice;
+        RemarkWindText = station.AtisFormat.RemarkWind.TextTemplate;
+        RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
+        AutoObservationText = station.AtisFormat.AutoObservation.TextTemplate;
+        AutoObservationVoice = station.AtisFormat.AutoObservation.VoiceTemplate;
         RunwayWindShearText = station.AtisFormat.WindShear.RunwayText;
         RunwayWindShearVoice = station.AtisFormat.WindShear.RunwayVoice;
         AllRunwayWindShearText = station.AtisFormat.WindShear.AllRunwayText;

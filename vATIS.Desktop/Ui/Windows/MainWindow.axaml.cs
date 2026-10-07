@@ -34,6 +34,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         ViewModel = viewModel;
         ViewModel.Owner = this;
+        RestorePositionBeforeShow();
 
         Opened += OnOpened;
         Closed += OnClosed;
@@ -60,7 +61,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         PositionChanged += OnPositionChanged;
 
+        if (WindowStartupLocation != WindowStartupLocation.Manual)
+        {
+            ViewModel?.RestorePosition(this);
+        }
+    }
+
+    private void RestorePositionBeforeShow()
+    {
+        // Restore the saved position before the window is shown so it doesn't appear centered and then jump.
+        var defaultPosition = Position;
         ViewModel?.RestorePosition(this);
+        if (Position != defaultPosition)
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+        }
     }
 
     private async void OnClosing(object? sender, WindowClosingEventArgs e)

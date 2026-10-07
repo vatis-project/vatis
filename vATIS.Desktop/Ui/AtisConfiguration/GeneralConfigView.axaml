@@ -118,7 +118,10 @@
                         <TextBlock VerticalAlignment="Center" ToolTip.Tip="{StaticResource SpeechRateTooltip}">Speech Rate (WPM):</TextBlock>
                         <ComboBox Width="100" Classes="Dark" ItemsSource="{Binding SpeechRates, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding SelectedSpeechRate, DataType=vm:GeneralConfigViewModel}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" ToolTip.Tip="{StaticResource SpeechRateTooltip}"/>
                     </StackPanel>
-					<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
+					<StackPanel Orientation="Horizontal" Spacing="20">
+						<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
+						<CheckBox Theme="{StaticResource CheckBox}" Content="Randomize ATIS letter on connect" ToolTip.Tip="Start with a random letter within the code range each time this ATIS connects. Ignored when the letter is synced from the real-world ATIS." IsChecked="{Binding RandomizeAtisLetterOnConnect, DataType=vm:GeneralConfigViewModel}" />
+					</StackPanel>
 				</StackPanel>
 			</Border>
 		</StackPanel>
@@ -126,7 +129,19 @@
 			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 				<StackPanel Spacing="5">
 					<TextBlock Text="IDS Endpoint:"/>
-					<TextBox Name="IdsEndpoint" Text="{Binding IdsEndpoint, DataType=vm:GeneralConfigViewModel}" Theme="{StaticResource DarkTextBox}">
+					<TextBox FontFamily="{StaticResource Monospace}" Name="IdsEndpoint" Text="{Binding IdsEndpoint, DataType=vm:GeneralConfigViewModel}" Theme="{StaticResource DarkTextBox}">
+						<Interaction.Behaviors>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+			</Border>
+		</StackPanel>
+		<StackPanel>
+			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+				<StackPanel Spacing="5">
+					<TextBlock Text="Custom METAR URL (optional):" ToolTip.Tip="Overrides the default VATSIM METAR source. The URL must return a single METAR or SPECI report. Use {icao} as a placeholder for the airport identifier. If the source fails, the default VATSIM source is used."/>
+					<TextBox Name="CustomMetarUrl" FontFamily="{StaticResource Monospace}" Text="{Binding CustomMetarUrl, DataType=vm:GeneralConfigViewModel}" Watermark="https://example.com/metar/{icao}" Theme="{StaticResource DarkTextBox}">
 						<Interaction.Behaviors>
 							<behaviors:SelectAllTextOnFocusBehavior/>
 						</Interaction.Behaviors>

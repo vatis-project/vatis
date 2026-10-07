@@ -1,38 +1,42 @@
+<div align="center">
+
 # vATIS
 
-vATIS is a simple and intuitive program for generating ATIS broadcasts on the VATSIM network.
+**A simple and intuitive program for generating ATIS broadcasts on the VATSIM network.**
 
-## Download
+[![Download](https://img.shields.io/badge/Download-00489C?style=for-the-badge)](https://vatis.app)
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/rTMZhjhu9Q)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge)](LICENSE)
 
-[![Download](https://img.shields.io/badge/Download-00489C?style=for-the-badge)][1]  
+[Download](https://vatis.app) · [Documentation](https://vatis.app) · [Discord](https://discord.gg/rTMZhjhu9Q) · [Contributing](CONTRIBUTING.md)
 
-[1]: https://vatis.app
+</div>
 
-## Resources
+---
 
-🌍 **[Documentation](https://vatis.app)**  
-👋 **[Discord](https://discord.gg/rTMZhjhu9Q)**  
+## Getting Started
+
+Download the latest release from **[vatis.app](https://vatis.app)** and see the
+**[documentation](https://vatis.app)** for setup and usage instructions.
+Questions or feedback? Join us on **[Discord](https://discord.gg/rTMZhjhu9Q)**.
 
 ## Contributing
 
-vATIS is written in **C# (.NET 8.0)** using the **[Avalonia UI](https://github.com/avaloniaui/avalonia)** framework.  
-Please read the [Contribution Guide](CONTRIBUTING.md) for details on how to contribute to the project.  
+vATIS is written in **C# (.NET 10)** using the **[Avalonia UI](https://github.com/avaloniaui/avalonia)** framework.
 
-Changes to the vATIS navdata can be contributed in the **[vATIS NavData](https://github.com/vatis-project/navdata)** repository.
+| I want to...                  | Go to                                                              |
+| ----------------------------- | ------------------------------------------------------------------ |
+| Contribute code               | [Contribution Guide](CONTRIBUTING.md)                              |
+| Update navdata                | [vATIS NavData repository](https://github.com/vatis-project/navdata) |
 
-## Licensing
+## License
 
 vATIS is licensed under the **[GPLv3 open-source license](LICENSE)**.
 
 ## Third-Party Libraries
 
-This application relies on the following third-party libraries:
-
-- **[WatsonWebsocket](https://github.com/jchristn/WatsonWebsocket)**  
-  Licensed under the [MIT License](licenses/WatsonWebsocket-License.txt).
-
-- **[MetarDecoder](https://github.com/afonsoft/metar-decoder)**  
-  Licensed under the [GPLv3 License](licenses/MetarDecoder-License.txt).
-
-- **[MiniAudio](https://github.com/mackron/miniaudio)**  
-  Licensed under the [MIT License](licenses/MiniAudio-License.txt).
+| Library                                                        | Purpose                 | License                                     |
+| -------------------------------------------------------------- | ----------------------- | ------------------------------------------- |
+| [WatsonWebsocket](https://github.com/jchristn/WatsonWebsocket) | WebSocket server/client | [MIT](licenses/WatsonWebsocket-License.txt) |
+| [MetarDecoder](https://github.com/afonsoft/metar-decoder)      | METAR parsing           | [GPLv3](licenses/MetarDecoder-License.txt)  |
+| [MiniAudio](https://github.com/mackron/miniaudio)              | Audio playback          | [MIT](licenses/MiniAudio-License.txt)       |

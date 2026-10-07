@@ -32,7 +32,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (value.IsCavok)
         {
-            return "CAVOK";
+            return Station.AtisFormat.Visibility.CavokText;
         }
 
         if (value.PrevailingVisibility is { ActualUnit: Value.Unit.Meter } &&
@@ -42,7 +42,11 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         }
 
         if (value.RawValue != null)
-            return Regex.Replace(format, "{visibility}", value.RawValue, RegexOptions.IgnoreCase);
+        {
+            // A directional minimum (e.g. "7000 4000E") already carries its units; drop a unit suffix in the template.
+            var pattern = value.MinimumVisibility != null ? "{visibility}M?" : "{visibility}";
+            return Regex.Replace(format, pattern, value.RawValue, RegexOptions.IgnoreCase);
+        }
 
         return "";
     }
@@ -59,7 +63,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (node.IsCavok)
         {
-            return "CAVOK";
+            return Station.AtisFormat.Visibility.CavokVoice;
         }
         else
         {
@@ -70,47 +74,29 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
                     return Station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
                 }
 
-                if (!string.IsNullOrEmpty(node.MinimumVisibilityDirection))
+                if (!string.IsNullOrEmpty(node.MinimumVisibilityDirection) && node.MinimumVisibility != null)
                 {
-                    if (node.MinimumVisibility != null)
-                    {
-                        var minVisibility = (int)node.MinimumVisibility.ActualValue;
-                        switch (node.MinimumVisibilityDirection)
-                        {
-                            case "N":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.North} {minVisibility.ToGroupForm()}");
-                                break;
-                            case "NE":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.NorthEast} {minVisibility.ToGroupForm()}");
-                                break;
-                            case "E":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.East} {minVisibility.ToGroupForm()}");
-                                break;
-                            case "SE":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.SouthEast} {minVisibility.ToGroupForm()}");
-                                break;
-                            case "S":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.South} {minVisibility.ToGroupForm()}");
-                                break;
-                            case "SW":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.SouthWest} {minVisibility.ToGroupForm()}");
-                                break;
-                            case "W":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.West} {minVisibility.ToGroupForm()}");
-                                break;
-                            case "NW":
-                                parsedValue.Add($"{Station.AtisFormat.Visibility.NorthWest} {minVisibility.ToGroupForm()}");
-                                break;
-                        }
-                    }
+                    var suffix = Station.AtisFormat.Visibility.IncludeVisibilitySuffix;
+                    var prevailing = node.PrevailingVisibility.ActualValue;
+                    var prevailingText = prevailing > Station.AtisFormat.Visibility.MetersCutoff
+                        ? $"{prevailing / 1000}{(suffix ? " kilometers" : "")}"
+                        : $"{((int)prevailing).ToWordString()}{(suffix ? " meters" : "")}";
 
-                    if (Station.AtisFormat.Visibility.IncludeVisibilitySuffix)
+                    var direction = node.MinimumVisibilityDirection switch
                     {
-                        parsedValue.Add(
-                            node.PrevailingVisibility.ActualValue > Station.AtisFormat.Visibility.MetersCutoff
-                                ? "kilometers"
-                                : "meters");
-                    }
+                        "N" => Station.AtisFormat.Visibility.North,
+                        "NE" => Station.AtisFormat.Visibility.NorthEast,
+                        "E" => Station.AtisFormat.Visibility.East,
+                        "SE" => Station.AtisFormat.Visibility.SouthEast,
+                        "S" => Station.AtisFormat.Visibility.South,
+                        "SW" => Station.AtisFormat.Visibility.SouthWest,
+                        "W" => Station.AtisFormat.Visibility.West,
+                        "NW" => Station.AtisFormat.Visibility.NorthWest,
+                        _ => string.Empty,
+                    };
+
+                    var minimum = (int)node.MinimumVisibility.ActualValue;
+                    parsedValue.Add($"{prevailingText} and {direction} {minimum.ToGroupForm()}{(suffix ? " meters" : "")}".Replace("  ", " "));
                 }
                 else
                 {

@@ -1001,7 +1001,7 @@ public class FsdSession
         }
         try
         {
-            var bytes = Encoding.Default.GetBytes(data);
+            var bytes = Encoding.Latin1.GetBytes(data);
             _clientSocket?.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, SendCallback, _clientSocket);
 
             RaiseRawDataSent(data);
@@ -1175,7 +1175,7 @@ public class FsdSession
                 return;
             }
             var chars = new char[bytesReceived + 1];
-            Decoder d = Encoding.Default.GetDecoder();
+            Decoder d = Encoding.Latin1.GetDecoder();
             d.GetChars(theSockId.DataBuffer, 0, bytesReceived, chars, 0);
             string data = new(chars);
             ProcessData(data);

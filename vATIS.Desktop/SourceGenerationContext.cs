@@ -40,6 +40,7 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(List<Airport>))]
 [JsonSerializable(typeof(List<Navaid>))]
 [JsonSerializable(typeof(List<VoiceMetaData>))]
+[JsonSerializable(typeof(Dictionary<string, string>))]
 [JsonSerializable(typeof(List<int>))]
 [JsonSerializable(typeof(TextToSpeechRequestDto))]
 [JsonSerializable(typeof(Clouds))]

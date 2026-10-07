@@ -95,7 +95,7 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
     /// <inheritdoc />
     public Task Connect(string? serverAddress)
     {
-        _metarRepository.GetMetar(Station.Identifier, monitor: true);
+        _metarRepository.GetMetar(Station.Identifier, monitor: true, customUrl: Station.CustomMetarUrl);
 
         NetworkConnected?.Invoke(this, EventArgs.Empty);
         IsConnected = true;

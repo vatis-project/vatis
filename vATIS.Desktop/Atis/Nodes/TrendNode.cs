@@ -179,8 +179,8 @@ public class TrendNode : BaseNode<TrendForecast>
 
         if (decodedTrend.Cavok)
         {
-            voiceAtis.Add("CAVOK");
-            textAtis.Add("CAVOK");
+            voiceAtis.Add(Station.AtisFormat.Visibility.CavokVoice);
+            textAtis.Add(Station.AtisFormat.Visibility.CavokText);
         }
         else if (decodedTrend.Visibility != null)
         {
