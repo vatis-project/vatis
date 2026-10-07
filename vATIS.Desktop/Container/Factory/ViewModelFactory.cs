@@ -121,7 +121,8 @@ internal class ViewModelFactory : IViewModelFactory
             _provider.GetService<IAtisBuilder>(),
             _provider.GetService<IMetarRepository>(),
             _provider.GetService<IProfileRepository>(),
-            _provider.GetService<ISessionManager>());
+            _provider.GetService<ISessionManager>(),
+            _provider.GetService<IDatisRepository>());
     }
 
     /// <summary>
