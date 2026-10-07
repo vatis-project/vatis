@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -12,6 +13,7 @@ using Xunit;
 
 namespace Vatsim.Vatis.Tests.Profiles;
 
+[Collection("AppData")]
 public sealed class ProfileRepositoryTests : IDisposable
 {
     private const string UpdateUrl = "https://profiles.example.com/profile.json";
@@ -94,6 +96,37 @@ public sealed class ProfileRepositoryTests : IDisposable
         Assert.NotNull(renamed);
         Assert.Equal("Renamed", renamed.Name);
         Assert.True(renamed.IsNameOverridden);
+    }
+
+    [Fact]
+    public async Task Update_PreservesLocalVoicePackSettings()
+    {
+        var (repository, downloader) = Create();
+        var profile = SaveLocalProfile(repository, "Original Name");
+        var local = new AtisStation { Identifier = "EGLL", Name = "Heathrow", AtisType = AtisType.Combined };
+        local.AtisVoice.UseTextToSpeech = false;
+        local.AtisVoice.UseWavPack = true;
+        local.AtisVoice.WavPackId = "pack-1";
+        var localTts = new AtisStation { Identifier = "EGKK", Name = "Gatwick", AtisType = AtisType.Combined };
+        profile.Stations!.AddRange([local, localTts]);
+        repository.Save(profile);
+
+        var remote = CreateRemoteProfile("Remote Name", updateSerial: 2);
+        remote.Stations!.Add(new AtisStation { Identifier = "EGLL", Name = "Heathrow", AtisType = AtisType.Combined });
+        remote.Stations.Add(new AtisStation { Identifier = "EGKK", Name = "Gatwick", AtisType = AtisType.Combined });
+        downloader.RemoteProfile = remote;
+
+        await repository.CheckForProfileUpdates();
+
+        var updated = await repository.LoadById(profile.Id);
+        Assert.NotNull(updated);
+        var egll = updated.Stations!.Single(x => x.Identifier == "EGLL").AtisVoice;
+        Assert.True(egll.UseWavPack);
+        Assert.False(egll.UseTextToSpeech);
+        Assert.Equal("pack-1", egll.WavPackId);
+        var egkk = updated.Stations!.Single(x => x.Identifier == "EGKK").AtisVoice;
+        Assert.False(egkk.UseWavPack);
+        Assert.True(egkk.UseTextToSpeech);
     }
 
     private static Profile CreateRemoteProfile(string name, int updateSerial) => new()

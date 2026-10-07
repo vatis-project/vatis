@@ -1,4 +1,4 @@
-// <copyright file="GeneralConfigViewModel.cs" company="Justin Shannon">
+﻿// <copyright file="GeneralConfigViewModel.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -19,6 +19,7 @@ using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Utils;
+using Vatsim.Vatis.Voice.WavPack;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -42,6 +43,11 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     private char _codeRangeLow = 'A';
     private char _codeRangeHigh = 'Z';
     private bool _useTextToSpeech;
+    private bool _useWavPack;
+    private string? _wavPackId;
+    private string? _wavPackPath;
+    private WavPackInfo? _selectedWavPack;
+    private bool _refreshingWavPacks;
     private string? _textToSpeechVoice;
     private bool _useDecimalTerminology;
     private bool _randomizeAtisLetterOnConnect;
@@ -178,6 +184,74 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _useTextToSpeech, value);
             _changeTracker.TrackChange(nameof(UseTextToSpeech), value);
+            if (value && _useWavPack)
+            {
+                UseWavPack = false;
+            }
+
+            this.RaisePropertyChanged(nameof(UseRecordedVoice));
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the voice ATIS is stitched from WAV clips.
+    /// </summary>
+    public bool UseWavPack
+    {
+        get => _useWavPack;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useWavPack, value);
+            _changeTracker.TrackChange(nameof(UseWavPack), value);
+            if (value && _useTextToSpeech)
+            {
+                UseTextToSpeech = false;
+            }
+
+            this.RaisePropertyChanged(nameof(UseRecordedVoice));
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the user records the voice ATIS manually.
+    /// </summary>
+    public bool UseRecordedVoice
+    {
+        get => !_useTextToSpeech && !_useWavPack;
+        set
+        {
+            if (value)
+            {
+                UseTextToSpeech = false;
+                UseWavPack = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the voice packs in vATIS's voice pack library.
+    /// </summary>
+    public ObservableCollection<WavPackInfo> AvailableWavPacks { get; } = [];
+
+    /// <summary>
+    /// Gets or sets the voice pack the station uses.
+    /// </summary>
+    public WavPackInfo? SelectedWavPack
+    {
+        get => _selectedWavPack;
+        set
+        {
+            // The combo box reports a null selection whenever its list is rebuilt; the list has no "none" item, so a
+            // null is never a user choice and must not clear the station's pack.
+            if (_refreshingWavPacks || value == null)
+            {
+                return;
+            }
+
+            this.RaiseAndSetIfChanged(ref _selectedWavPack, value);
+            _wavPackId = value?.Id;
+            _wavPackPath = value?.Id == null ? value?.Folder : null;
+            _changeTracker.TrackChange(nameof(SelectedWavPack), value?.Folder);
         }
     }
 
@@ -307,6 +381,8 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         UseDecimalTerminology = false;
         RandomizeAtisLetterOnConnect = false;
         UseTextToSpeech = true;
+        UseWavPack = false;
+        SelectedWavPack = null;
         IdsEndpoint = null;
         CustomMetarUrl = null;
         _changeTracker.ResetChanges();
@@ -405,10 +481,24 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.CustomMetarUrl = CustomMetarUrl?.Trim();
         }
 
-        if (SelectedStation.AtisVoice.UseTextToSpeech != UseTextToSpeech)
+        if (UseWavPack && _selectedWavPack == null)
         {
-            SelectedStation.AtisVoice.UseTextToSpeech = UseTextToSpeech;
-            EventBus.Instance.Publish(new AtisVoiceTypeChanged(SelectedStation.Id, UseTextToSpeech));
+            RaiseError(nameof(SelectedWavPack),
+                _wavPackId != null
+                    ? "The voice pack this station used is not installed. Choose another or import it."
+                    : "Choose a voice pack.");
+        }
+
+        var voiceChanged = SelectedStation.AtisVoice.UseTextToSpeech != UseTextToSpeech ||
+                           SelectedStation.AtisVoice.UseWavPack != UseWavPack;
+        SelectedStation.AtisVoice.UseTextToSpeech = UseTextToSpeech;
+        SelectedStation.AtisVoice.UseWavPack = UseWavPack;
+        SelectedStation.AtisVoice.WavPackId = _wavPackId;
+        SelectedStation.AtisVoice.WavPackPath = _wavPackPath;
+        if (voiceChanged)
+        {
+            EventBus.Instance.Publish(new AtisVoiceTypeChanged(SelectedStation.Id,
+                SelectedStation.AtisVoice.IsAutomatic));
         }
 
         if (SelectedStation.AtisVoice.Voice != TextToSpeechVoice)
@@ -437,6 +527,63 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         return _changeTracker.ApplyChangesIfNeeded();
     }
 
+    /// <summary>
+    /// Reloads the list of voice packs, e.g. after the voice pack manager has been used.
+    /// </summary>
+    public void RefreshWavPacks()
+    {
+        _refreshingWavPacks = true;
+        try
+        {
+            var packs = WavPackLibrary.List().ToList();
+
+            // a station configured by path to a folder that is now in the library uses that library pack
+            if (_wavPackId == null && !string.IsNullOrWhiteSpace(_wavPackPath))
+            {
+                var wanted = System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(_wavPackPath));
+                var inLibrary = packs.FirstOrDefault(p => string.Equals(
+                    System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(p.Folder)), wanted,
+                    StringComparison.OrdinalIgnoreCase));
+                if (inLibrary != null)
+                {
+                    _wavPackId = inLibrary.Id;
+                    _wavPackPath = null;
+                }
+            }
+
+            // a pack configured by folder path before the voice pack library existed
+            if (_wavPackId == null && !string.IsNullOrWhiteSpace(_wavPackPath) &&
+                System.IO.Directory.Exists(_wavPackPath))
+            {
+                var name = System.IO.Path.GetFileName(_wavPackPath.TrimEnd('/', '\\'));
+                packs.Add(new WavPackInfo(null, _wavPackPath, name, 0, $"{name} (custom folder)"));
+            }
+
+            // leave the list alone when it hasn't changed, so the combo box keeps its selection
+            if (!AvailableWavPacks.SequenceEqual(packs))
+            {
+                AvailableWavPacks.Clear();
+                foreach (var pack in packs)
+                {
+                    AvailableWavPacks.Add(pack);
+                }
+            }
+
+            var selected = AvailableWavPacks.FirstOrDefault(p => _wavPackId != null
+                ? p.Id == _wavPackId
+                : p.Id == null && string.Equals(p.Folder, _wavPackPath, StringComparison.OrdinalIgnoreCase));
+
+            // Always notify: refilling the list clears the combo box's selection, and because WavPackInfo is a record a
+            // freshly built "selected" can compare equal to the previous one, which would otherwise raise nothing.
+            _selectedWavPack = selected;
+            this.RaisePropertyChanged(nameof(SelectedWavPack));
+        }
+        finally
+        {
+            _refreshingWavPacks = false;
+        }
+    }
+
     private void HandleUpdateProperties(AtisStation? station)
     {
         if (station == null)
@@ -462,6 +609,10 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         IdsEndpoint = station.IdsEndpoint;
         CustomMetarUrl = station.CustomMetarUrl;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
+        UseWavPack = station.AtisVoice.UseWavPack;
+        _wavPackId = station.AtisVoice.WavPackId;
+        _wavPackPath = station.AtisVoice.WavPackPath;
+        RefreshWavPacks();
         TextToSpeechVoice = station.AtisVoice.Voice;
 
         // Ensure speech rate is a valid value.

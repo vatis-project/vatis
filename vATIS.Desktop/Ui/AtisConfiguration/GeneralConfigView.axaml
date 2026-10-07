@@ -5,6 +5,7 @@
              xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
              xmlns:tts="using:Vatsim.Vatis.TextToSpeech"
+             xmlns:wavpack="using:Vatsim.Vatis.Voice.WavPack"
              xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
              xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -109,15 +110,15 @@
 		<StackPanel>
 			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 				<StackPanel Orientation="Vertical" Spacing="10">
-					<StackPanel Spacing="20" Orientation="Horizontal">
-						<RadioButton Theme="{StaticResource RadioButton}" Content="Text to Speech" Name="UseTextToSpeech" IsChecked="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
-						<ComboBox Width="280" Classes="Dark" HorizontalAlignment="Stretch" ItemsSource="{Binding AvailableVoices, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding TextToSpeechVoice, DataType=vm:GeneralConfigViewModel}" DisplayMemberBinding="{Binding Name, DataType=tts:VoiceMetaData}" SelectedValueBinding="{Binding Name, DataType=tts:VoiceMetaData}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
-						<RadioButton Theme="{StaticResource RadioButton}" Content="Voice Recorded" IsChecked="{Binding !UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
-					</StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="13">
-                        <TextBlock VerticalAlignment="Center" ToolTip.Tip="{StaticResource SpeechRateTooltip}">Speech Rate (WPM):</TextBlock>
-                        <ComboBox Width="100" Classes="Dark" ItemsSource="{Binding SpeechRates, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding SelectedSpeechRate, DataType=vm:GeneralConfigViewModel}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" ToolTip.Tip="{StaticResource SpeechRateTooltip}"/>
-                    </StackPanel>
+					<Grid ColumnDefinitions="150,280,20,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+						<RadioButton Grid.Row="0" Grid.Column="0" Theme="{StaticResource RadioButton}" Content="Text to Speech" Name="UseTextToSpeech" IsChecked="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel}"/>
+						<ComboBox Grid.Row="0" Grid.Column="1" Width="280" Classes="Dark" HorizontalAlignment="Stretch" ItemsSource="{Binding AvailableVoices, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding TextToSpeechVoice, DataType=vm:GeneralConfigViewModel}" DisplayMemberBinding="{Binding Name, DataType=tts:VoiceMetaData}" SelectedValueBinding="{Binding Name, DataType=tts:VoiceMetaData}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
+						<RadioButton Grid.Row="0" Grid.Column="3" Theme="{StaticResource RadioButton}" Content="Voice Recorded" IsChecked="{Binding UseRecordedVoice, DataType=vm:GeneralConfigViewModel}"/>
+						<TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="{StaticResource SpeechRateTooltip}">Speech Rate (WPM):</TextBlock>
+						<ComboBox Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Classes="Dark" ItemsSource="{Binding SpeechRates, DataType=vm:GeneralConfigViewModel}" SelectedValue="{Binding SelectedSpeechRate, DataType=vm:GeneralConfigViewModel}" IsEnabled="{Binding UseTextToSpeech, DataType=vm:GeneralConfigViewModel, FallbackValue=False}" ToolTip.Tip="{StaticResource SpeechRateTooltip}"/>
+						<RadioButton Grid.Row="2" Grid.Column="0" Theme="{StaticResource RadioButton}" Content="WAV Voice Pack" IsChecked="{Binding UseWavPack, DataType=vm:GeneralConfigViewModel}" ToolTip.Tip="Build the voice ATIS from a pre-recorded WAV voice pack."/>
+						<ComboBox Grid.Row="2" Grid.Column="1" Width="280" Classes="Dark" HorizontalAlignment="Stretch" PlaceholderText="Choose a voice pack" ItemsSource="{Binding AvailableWavPacks, DataType=vm:GeneralConfigViewModel}" SelectedItem="{Binding SelectedWavPack, DataType=vm:GeneralConfigViewModel}" DisplayMemberBinding="{Binding DisplayName, DataType=wavpack:WavPackInfo}" IsEnabled="{Binding UseWavPack, DataType=vm:GeneralConfigViewModel, FallbackValue=False}"/>
+					</Grid>
 					<StackPanel Orientation="Horizontal" Spacing="20">
 						<CheckBox Theme="{StaticResource CheckBox}" Content="Use &quot;decimal&quot; terminology in spoken text" ToolTip.Tip="Spoken decimal numbers will be spoken using &quot;decimal&quot; instead of &quot;point&quot; (e.g. one two one decimal three five)." IsChecked="{Binding UseDecimalTerminology, DataType=vm:GeneralConfigViewModel}" />
 						<CheckBox Theme="{StaticResource CheckBox}" Content="Randomize ATIS letter on connect" ToolTip.Tip="Start with a random letter within the code range each time this ATIS connects. Ignored when the letter is synced from the real-world ATIS." IsChecked="{Binding RandomizeAtisLetterOnConnect, DataType=vm:GeneralConfigViewModel}" />
@@ -149,7 +150,9 @@
 				</StackPanel>
 			</Border>
 		</StackPanel>
-		<TextBlock Foreground="#FFA500" TextWrapping="Wrap" FontWeight="Medium">Note: Saving changes to the ATIS configuration will automatically<LineBreak/>disconnect it from the network if it is currently connected.</TextBlock>
-		<TextBlock Foreground="White" FontWeight="Medium" Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}"/>
+		<Grid ColumnDefinitions="*,Auto">
+			<TextBlock Grid.Column="0" Foreground="#FFA500" TextWrapping="Wrap" FontWeight="Medium">Note: Saving changes to the ATIS configuration will automatically<LineBreak/>disconnect it from the network if it is currently connected.</TextBlock>
+			<TextBlock Grid.Column="1" Foreground="White" FontWeight="Medium" VerticalAlignment="Bottom" Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}"/>
+		</Grid>
 	</StackPanel>
 </UserControl>

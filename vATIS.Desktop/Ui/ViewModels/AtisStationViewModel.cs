@@ -265,7 +265,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _networkConnection.KillRequestReceived += OnKillRequestedReceived;
         _voiceServerConnection = voiceServerConnectionFactory.CreateVoiceServerConnection();
 
-        UseTexToSpeech = !AtisStation.AtisVoice.UseTextToSpeech;
+        UseTexToSpeech = !AtisStation.AtisVoice.IsAutomatic;
         _disposables.Add(EventBus.Instance.Subscribe<AcknowledgeAllAtisUpdates>(_ =>
         {
             AcknowledgeAtisUpdateCommand.Execute().Subscribe();
@@ -274,7 +274,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             if (evt.Id == AtisStation.Id)
             {
-                UseTexToSpeech = !evt.UseTextToSpeech;
+                UseTexToSpeech = !evt.UseAutomaticVoice;
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
@@ -1562,7 +1562,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 await AcknowledgeOrIncrementAtisLetterCommand.Execute();
                 IsNewAtis = true;
 
-                if (!AtisStation.AtisVoice.UseTextToSpeech)
+                if (!AtisStation.AtisVoice.IsAutomatic)
                 {
                     RecordedAtisState = RecordedAtisState.Expired;
                 }
@@ -1595,7 +1595,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 throw;
             }
 
-            if (AtisStation.AtisVoice.UseTextToSpeech)
+            if (AtisStation.AtisVoice.IsAutomatic)
             {
                 try
                 {
@@ -1785,7 +1785,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         if (_decodedMetar == null || _voiceServerConnection == null || _networkConnection == null)
             return;
 
-        if (AtisStation.AtisVoice.UseTextToSpeech)
+        if (AtisStation.AtisVoice.IsAutomatic)
         {
             await Task.Run(async () =>
             {
@@ -2010,7 +2010,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
     private async Task HandleAtisLetterChanged()
     {
-        if (!AtisStation.AtisVoice.UseTextToSpeech ||
+        if (!AtisStation.AtisVoice.IsAutomatic ||
             NetworkConnectionStatus != NetworkConnectionStatus.Connected ||
             SelectedAtisPreset == null ||
             _networkConnection == null ||

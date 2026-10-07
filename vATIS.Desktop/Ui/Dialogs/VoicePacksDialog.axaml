@@ -1,0 +1,131 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:acvm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
+        xmlns:wavpack="using:Vatsim.Vatis.Voice.WavPack"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="640"
+        x:Class="Vatsim.Vatis.Ui.Dialogs.VoicePacksDialog"
+        Title="Voice Packs"
+        x:Name="Window"
+        Width="900" Height="640"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+		<Grid RowDefinitions="40,*">
+			<Border Grid.Row="0" CornerRadius="5,5,0,0" Background="#282828" PointerPressed="OnPointerPressed">
+				<Grid ColumnDefinitions="1*,1*">
+					<TextBlock Text="Voice Packs" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
+					<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CloseWindowCommand, DataType=vm:VoicePacksDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
+				</Grid>
+			</Border>
+			<Grid Grid.Row="1" ColumnDefinitions="260,12,*" Margin="16" >
+				<Grid Grid.Column="0" RowDefinitions="*,Auto" RowSpacing="8">
+					<Border Grid.Row="0" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4">
+						<ListBox ItemsSource="{Binding Packs, DataType=vm:VoicePacksDialogViewModel}" SelectedItem="{Binding SelectedPack, DataType=vm:VoicePacksDialogViewModel}" Background="Transparent">
+							<ListBox.ItemTemplate>
+								<DataTemplate x:DataType="wavpack:WavPackInfo">
+									<StackPanel>
+										<TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis"/>
+										<TextBlock Text="{Binding ClipCount, StringFormat='{}{0} clips'}" FontSize="12" Opacity="0.7"/>
+									</StackPanel>
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
+					</Border>
+					<Button Grid.Row="1" Theme="{StaticResource Dark}" Height="28" HorizontalAlignment="Stretch" Content="Import voice pack..." Command="{Binding ImportCommand, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Choose a folder containing manifest.json (or a legacy ATIS.txt, which is converted) and its WAV files. The clips are copied into vATIS's data folder, so the original folder isn't needed afterwards."/>
+				</Grid>
+				<Grid Grid.Column="2" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+					<Border Grid.Row="0" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10" IsEnabled="{Binding SelectedPack, DataType=vm:VoicePacksDialogViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
+						<StackPanel Spacing="8">
+							<Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
+								<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="Voice pack name" Text="{Binding PackName, DataType=vm:VoicePacksDialogViewModel}"/>
+								<Button Grid.Column="1" Theme="{StaticResource Dark}" Height="28" Content="Rename" Command="{Binding RenameCommand, DataType=vm:VoicePacksDialogViewModel}"/>
+								<Button Grid.Column="2" Theme="{StaticResource Dark}" Height="28" Content="Open folder" Command="{Binding OpenFolderCommand, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Show the voice pack's files in your file manager."/>
+								<Button Grid.Column="3" Theme="{StaticResource Dark}" Height="28" Content="Delete" Command="{Binding DeleteCommand, DataType=vm:VoicePacksDialogViewModel}"/>
+							</Grid>
+							<TextBlock Text="{Binding UsageText, DataType=vm:VoicePacksDialogViewModel}" Opacity="0.8" IsVisible="{Binding UsageText, DataType=vm:VoicePacksDialogViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+						</StackPanel>
+					</Border>
+					<Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding ImportSummary, DataType=vm:VoicePacksDialogViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+						<Button Grid.Column="0" Padding="0" Background="Transparent" BorderThickness="0" Foreground="#4DA3FF" VerticalAlignment="Center" Content="{Binding ImportSummary, DataType=vm:VoicePacksDialogViewModel}">
+							<Button.Flyout>
+								<Flyout Placement="BottomEdgeAlignedLeft">
+									<Border MinWidth="420" MaxWidth="560">
+										<StackPanel Spacing="6">
+											<TextBlock FontWeight="SemiBold" Text="Import results"/>
+											<TextBlock Text="Nothing was skipped or duplicated." IsVisible="{Binding !HasImportDetails, DataType=vm:VoicePacksDialogViewModel}"/>
+											<ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto" IsVisible="{Binding HasImportDetails, DataType=vm:VoicePacksDialogViewModel}">
+												<ItemsControl ItemsSource="{Binding ImportDetails, DataType=vm:VoicePacksDialogViewModel}">
+													<ItemsControl.ItemTemplate>
+														<DataTemplate x:DataType="x:String">
+															<TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,1"/>
+														</DataTemplate>
+													</ItemsControl.ItemTemplate>
+												</ItemsControl>
+											</ScrollViewer>
+										</StackPanel>
+									</Border>
+								</Flyout>
+							</Button.Flyout>
+						</Button>
+						<TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ClipEditor.Status, DataType=vm:VoicePacksDialogViewModel}" Text="{Binding ClipEditor.Status, DataType=vm:VoicePacksDialogViewModel}"/>
+					</Grid>
+					<Border Grid.Row="2" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10" IsVisible="{Binding ClipEditor.IsLoaded, DataType=vm:VoicePacksDialogViewModel}">
+						<Grid RowDefinitions="Auto,*" RowSpacing="8">
+							<Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+								<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="Filter clips by phrase or file" Text="{Binding ClipEditor.Filter, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Each phrase is matched against the spoken ATIS text, longest phrase first. A phrase ending in a comma is used when a comma follows it. Edits apply to every station using this pack."/>
+								<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+									<Button Theme="{StaticResource Dark}" MinWidth="70" Height="28" Command="{Binding ClipEditor.PlayClipCommand, DataType=vm:VoicePacksDialogViewModel}" CommandParameter="{Binding #ClipGrid.SelectedItem}" Content="{Binding ClipEditor.PlayButtonText, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Play the selected clip, or stop it while it is playing.">
+										<Button.IsEnabled>
+											<MultiBinding Converter="{x:Static BoolConverters.Or}">
+												<Binding Path="#ClipGrid.SelectedItem" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+												<Binding Path="ClipEditor.IsPlaying" x:DataType="vm:VoicePacksDialogViewModel"/>
+											</MultiBinding>
+										</Button.IsEnabled>
+									</Button>
+									<Button Theme="{StaticResource Dark}" MinWidth="80" Height="28" Command="{Binding ClipEditor.AddClipsCommand, DataType=vm:VoicePacksDialogViewModel}">Add clips...</Button>
+									<Button Theme="{StaticResource Dark}" MinWidth="80" Height="28" Command="{Binding ClipEditor.RemoveClipCommand, DataType=vm:VoicePacksDialogViewModel}" CommandParameter="{Binding #ClipGrid.SelectedItem}" IsEnabled="{Binding #ClipGrid.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">Remove</Button>
+									<Button Theme="{StaticResource Dark}" MinWidth="110" Height="28" Command="{Binding ClipEditor.SaveCommand, DataType=vm:VoicePacksDialogViewModel}" IsEnabled="{Binding ClipEditor.IsDirty, DataType=vm:VoicePacksDialogViewModel}">Save manifest</Button>
+								</StackPanel>
+							</Grid>
+							<DataGrid Grid.Row="1" x:Name="ClipGrid" MinHeight="80" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding ClipEditor.Clips, DataType=vm:VoicePacksDialogViewModel}" SelectionMode="Single">
+								<DataGrid.Columns>
+									<DataGridTemplateColumn Header="Phrase" Width="2*" SortMemberPath="Key">
+										<DataGridTemplateColumn.CellTemplate>
+											<DataTemplate x:DataType="acvm:WavPackClipEntry">
+												<TextBlock Text="{Binding Key}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="12,4" ToolTip.Tip="{Binding Key}"/>
+											</DataTemplate>
+										</DataGridTemplateColumn.CellTemplate>
+										<DataGridTemplateColumn.CellEditingTemplate>
+											<DataTemplate x:DataType="acvm:WavPackClipEntry">
+												<TextBox Text="{Binding Key}" TextWrapping="Wrap" AcceptsReturn="False" MinHeight="0" VerticalAlignment="Center"/>
+											</DataTemplate>
+										</DataGridTemplateColumn.CellEditingTemplate>
+									</DataGridTemplateColumn>
+									<DataGridTemplateColumn Header="WAV file" Width="1*" SortMemberPath="File">
+										<DataGridTemplateColumn.CellTemplate>
+											<DataTemplate x:DataType="acvm:WavPackClipEntry">
+												<TextBlock Text="{Binding File}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="12,4" ToolTip.Tip="{Binding File}"/>
+											</DataTemplate>
+										</DataGridTemplateColumn.CellTemplate>
+										<DataGridTemplateColumn.CellEditingTemplate>
+											<DataTemplate x:DataType="acvm:WavPackClipEntry">
+												<TextBox Text="{Binding File}" TextWrapping="Wrap" AcceptsReturn="False" MinHeight="0" VerticalAlignment="Center"/>
+											</DataTemplate>
+										</DataGridTemplateColumn.CellEditingTemplate>
+									</DataGridTemplateColumn>
+								</DataGrid.Columns>
+							</DataGrid>
+						</Grid>
+					</Border>
+				</Grid>
+			</Grid>
+		</Grid>
+	</Border>
+</Window>

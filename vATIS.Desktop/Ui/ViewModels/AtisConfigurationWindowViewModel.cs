@@ -33,6 +33,7 @@ using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 using Vatsim.Vatis.Utils;
 using Vatsim.Vatis.Voice.Audio;
+using Vatsim.Vatis.Voice.WavPack;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -52,6 +53,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     private bool _hasUnsavedChanges;
     private bool _requiresDisconnect;
     private bool _showOverlay;
+    private const int SandboxTabIndex = 4;
     private int _selectedTabControlTabIndex;
     private AtisStation? _selectedAtisStation;
     private IDialogOwner? _dialogOwner;
@@ -92,6 +94,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         CopyAtisCommand = ReactiveCommand.CreateFromTask(HandleCopyAtis);
         ImportAtisStationCommand = ReactiveCommand.Create(HandleImportAtisStation);
         OpenSortAtisStationsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenSortAtisStationsDialog);
+        OpenVoicePacksDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenVoicePacksDialog);
 
         _disposables.Add(CloseWindowCommand);
         _disposables.Add(SaveAndCloseCommand);
@@ -104,6 +107,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         _disposables.Add(CopyAtisCommand);
         _disposables.Add(ImportAtisStationCommand);
         _disposables.Add(OpenSortAtisStationsDialogCommand);
+        _disposables.Add(OpenVoicePacksDialogCommand);
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
@@ -230,6 +234,11 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     public ReactiveCommand<Unit, Unit> OpenSortAtisStationsDialogCommand { get; }
 
     /// <summary>
+    /// Gets the command that opens the voice pack manager.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenVoicePacksDialogCommand { get; }
+
+    /// <summary>
     /// Gets or sets the collection of <see cref="AtisStation"/> objects used to represent ATIS stations in the configuration window.
     /// </summary>
     public ReadOnlyObservableCollection<AtisStation> AtisStations { get; set; }
@@ -299,6 +308,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         PresetsViewModel = _viewModelFactory.CreatePresetsViewModel();
         PresetsViewModel.DialogOwner = _dialogOwner;
         PresetsViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val => { HasUnsavedChanges = val; });
+        PresetsViewModel.TestInSandboxRequested += OnTestInSandboxRequested;
 
         FormattingViewModel = _viewModelFactory.CreateFormattingViewModel();
         FormattingViewModel.DialogOwner = _dialogOwner;
@@ -503,6 +513,23 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         }
     }
 
+    private async Task HandleOpenVoicePacksDialog()
+    {
+        if (_dialogOwner == null)
+        {
+            return;
+        }
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime &&
+            lifetime.MainWindow != null)
+        {
+            var dialog = _windowFactory.CreateVoicePacksDialog();
+            dialog.Topmost = lifetime.MainWindow.Topmost;
+            await dialog.ShowDialog((Window)_dialogOwner);
+            GeneralConfigViewModel?.RefreshWavPacks();
+        }
+    }
+
     private async Task HandleOpenSortAtisStationsDialog()
     {
         try
@@ -598,7 +625,10 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             if (_sessionManager.CurrentProfile == null)
                 return;
 
-            var filters = new List<FilePickerFileType> { new("ATIS Station (*.station)") { Patterns = ["*.station"] } };
+            var filters = new List<FilePickerFileType>
+            {
+                new("ATIS Station (*.station, *.zip)") { Patterns = ["*.station", "*.zip"] }
+            };
             var files = await FilePickerExtensions.OpenFilePickerAsync(filters, "Import ATIS Station");
 
             if (files == null)
@@ -606,8 +636,22 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
 
             foreach (var file in files)
             {
-                var fileContent = await File.ReadAllTextAsync(file);
-                var station = JsonSerializer.Deserialize(fileContent, SourceGenerationContext.NewDefault.AtisStation);
+                AtisStation? station;
+                if (file.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    var (json, packIds) = WavPackBundler.ReadBundle(file, WavPackBundler.StationEntry);
+                    station = JsonSerializer.Deserialize(json, SourceGenerationContext.NewDefault.AtisStation);
+                    if (station != null)
+                    {
+                        WavPackBundler.ResolvePacks([station], packIds);
+                    }
+                }
+                else
+                {
+                    var fileContent = await File.ReadAllTextAsync(file);
+                    station = JsonSerializer.Deserialize(fileContent, SourceGenerationContext.NewDefault.AtisStation);
+                }
+
                 if (station != null)
                 {
                     if (_sessionManager.CurrentProfile?.Stations == null)
@@ -705,12 +749,40 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         if (_dialogOwner == null)
             return;
 
-        var filters = new List<FilePickerFileType> { new("ATIS Station (*.station)") { Patterns = ["*.station"] } };
+        var withVoicePack = SelectedAtisStation.AtisVoice.UseWavPack;
+        var filters = withVoicePack
+            ? new List<FilePickerFileType> { new("ATIS Station with voice pack (*.zip)") { Patterns = ["*.zip"] } }
+            : new List<FilePickerFileType> { new("ATIS Station (*.station)") { Patterns = ["*.station"] } };
         var file = await FilePickerExtensions.SaveFileAsync("Export ATIS Station", filters,
             $"{SelectedAtisStation.Name} ({SelectedAtisStation.AtisType})");
 
         if (file == null)
             return;
+
+        if (withVoicePack)
+        {
+            try
+            {
+                var clone = JsonSerializer.Deserialize(
+                    JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation),
+                    SourceGenerationContext.NewDefault.AtisStation)!;
+                clone.Id = null!;
+                var zipPath = file.Path.LocalPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)
+                    ? file.Path.LocalPath
+                    : file.Path.LocalPath + ".zip";
+                WavPackBundler.CreateBundle(zipPath, WavPackBundler.StationEntry, [clone],
+                    () => JsonSerializer.Serialize(clone, SourceGenerationContext.NewDefault.AtisStation));
+                await MessageBox.ShowDialog((Window)_dialogOwner, "ATIS Station and voice pack successfully exported.",
+                    "Success", MessageBoxButton.Ok, MessageBoxIcon.Information);
+            }
+            catch (WavPackException ex)
+            {
+                await MessageBox.ShowDialog((Window)_dialogOwner, ex.Message, "Export Error", MessageBoxButton.Ok,
+                    MessageBoxIcon.Error);
+            }
+
+            return;
+        }
 
         SelectedAtisStation.Id = null!;
 
@@ -862,6 +934,23 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         if (!hasGeneralErrors && !hasPresetsErrors && !hasFormattingErrors)
         {
             window?.Close();
+        }
+    }
+
+    private async void OnTestInSandboxRequested(AtisPreset preset)
+    {
+        if (SandboxViewModel == null)
+            return;
+
+        SelectedTabControlTabIndex = SandboxTabIndex;
+
+        try
+        {
+            await SandboxViewModel.SelectPresetAndRefresh(preset);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to refresh sandbox ATIS for preset {PresetId}", preset.Id);
         }
     }
 

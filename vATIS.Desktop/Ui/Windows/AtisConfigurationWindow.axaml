@@ -8,7 +8,7 @@
         x:Class="Vatsim.Vatis.Ui.Windows.AtisConfigurationWindow"
 		x:Name="Window"
         x:DataType="vm:AtisConfigurationWindowViewModel"
-        Height="640"
+        Height="710"
         Width="1000"
         SystemDecorations="None"
         Background="Transparent"
@@ -109,6 +109,7 @@
                         <Button Grid.Column="1" Theme="{StaticResource Dark}" Height="28" Command="{Binding OpenSortAtisStationsDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}" Margin="0,0,5,0" HorizontalAlignment="Stretch">Sort</Button>
                         <Button Grid.Column="2" Theme="{StaticResource Dark}" Height="28" Command="{Binding ImportAtisStationCommand, DataType=vm:AtisConfigurationWindowViewModel}" HorizontalAlignment="Stretch">Import</Button>
 					</Grid>
+					<Button Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" Margin="13,0,0,0" Theme="{StaticResource Dark}" Height="28" Command="{Binding OpenVoicePacksDialogCommand, DataType=vm:AtisConfigurationWindowViewModel}" ToolTip.Tip="Import, rename, edit and delete the voice packs your stations can use.">Manage Voice Packs</Button>
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Spacing="5">
 						<Button Theme="{StaticResource Dark}" Height="28" Command="{Binding SaveAndCloseCommand, DataType=vm:AtisConfigurationWindowViewModel}" CommandParameter="{Binding ElementName=Window}">Save &amp; Close</Button>
 						<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding ApplyChangesCommand, DataType=vm:AtisConfigurationWindowViewModel}">Apply</Button>

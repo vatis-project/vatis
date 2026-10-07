@@ -25,6 +25,7 @@ using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Utils;
+using Vatsim.Vatis.Voice.WavPack;
 using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Visibility = Vatsim.Vatis.Weather.Decoder.Entity.Visibility;
@@ -41,6 +42,7 @@ public class AtisBuilder : IAtisBuilder
     private readonly INavDataRepository? _navDataRepository;
     private readonly ITextToSpeechService? _textToSpeechService;
     private readonly IClientAuth _clientAuth;
+    private readonly IWavPackService _wavPackService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisBuilder"/> class.
@@ -50,9 +52,12 @@ public class AtisBuilder : IAtisBuilder
     /// <param name="textToSpeechService">The text to speech service.</param>
     /// <param name="metarRepository">The METAR repository.</param>
     /// <param name="clientAuth">The client auth service.</param>
+    /// <param name="wavPackService">The WAV voice pack service.</param>
     public AtisBuilder(IDownloader downloader, INavDataRepository navDataRepository,
-        ITextToSpeechService textToSpeechService, IMetarRepository metarRepository, IClientAuth clientAuth)
+        ITextToSpeechService textToSpeechService, IMetarRepository metarRepository, IClientAuth clientAuth,
+        IWavPackService wavPackService)
     {
+        _wavPackService = wavPackService;
         _downloader = downloader;
         _metarRepository = metarRepository;
         _navDataRepository = navDataRepository;
@@ -154,9 +159,6 @@ public class AtisBuilder : IAtisBuilder
     public async Task<AtisBuilderVoiceAtisResponse?> GetExternalVoiceAtis(AtisStation station, AtisPreset preset,
         string currentAtisLetter, string? rawMetar, CancellationToken cancellationToken)
     {
-        if (_textToSpeechService == null)
-            return null;
-
         var result = await GetExternalAtis(preset.ExternalGenerator?.VoiceUrl, currentAtisLetter, rawMetar,
             preset.ExternalGenerator);
 
@@ -167,6 +169,15 @@ public class AtisBuilder : IAtisBuilder
 
         // Format for text-to-speech (replace text parsing characters, etc).
         result = FormatForTextToSpeech(result, station);
+
+        if (station.AtisVoice.UseWavPack)
+        {
+            var (spokenText, pcm) = BuildWavPackAudio(result, station);
+            return new AtisBuilderVoiceAtisResponse(spokenText, pcm);
+        }
+
+        if (_textToSpeechService == null)
+            return null;
 
         var audioBytes = await _textToSpeechService.RequestAudio(result, station, cancellationToken);
         return audioBytes != null ? new AtisBuilderVoiceAtisResponse(result, audioBytes) : null;
@@ -439,7 +450,33 @@ public class AtisBuilder : IAtisBuilder
             return (text, synthesizedAudio);
         }
 
+        if (station.AtisVoice.UseWavPack)
+            return BuildWavPackAudio(text, station);
+
         return (text, null);
+    }
+
+    private (string SpokenText, byte[] Pcm) BuildWavPackAudio(string text, AtisStation station)
+    {
+        var packFolder = WavPackLibrary.ResolveFolder(station.AtisVoice) ??
+                         throw new AtisBuilderException(
+                             "This station's WAV voice pack was not found. Choose a voice pack in the ATIS configuration.");
+
+        try
+        {
+            var result = _wavPackService.Build(text, packFolder);
+            if (result.Pcm == null)
+            {
+                throw new AtisBuilderException(
+                    $"Voice pack is missing clips for: {string.Join(", ", result.MissingTokens)}. Spoken text: {text}");
+            }
+
+            return (text, result.Pcm);
+        }
+        catch (Exception ex) when (ex is WavPackException or InvalidOperationException or System.IO.IOException)
+        {
+            throw new AtisBuilderException($"Failed to build voice ATIS from WAV pack: {ex.Message}");
+        }
     }
 
     private async Task<string> CreateTextAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,

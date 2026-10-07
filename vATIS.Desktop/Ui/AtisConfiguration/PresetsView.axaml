@@ -9,9 +9,11 @@
              xmlns:converters="clr-namespace:Vatsim.Vatis.Ui.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.PresetsView">
-    <UserControl.Resources>
-        <converters:AtisPlaybackButtonLabelConverter x:Key="PlaybackLabelConverter"/>
-    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="CheckBox#UseExternalAtisGenerator.external">
+            <Setter Property="Margin" Value="0,12"/>
+        </Style>
+    </UserControl.Styles>
     <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 		<StackPanel Orientation="Vertical">
 			<Grid ColumnDefinitions="*,Auto">
@@ -37,10 +39,10 @@
 					</DropDownButton>
 				</StackPanel>
 			</Grid>
-			<CheckBox Name="UseExternalAtisGenerator" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
+			<CheckBox Name="UseExternalAtisGenerator" Classes.external="{Binding $self.IsChecked}" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
 			<StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !#UseExternalAtisGenerator.IsChecked}">
 				<TextBlock Text="ATIS Template:"/>
-				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" WordWrap="True" Height="300" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
+				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" WordWrap="True" Height="370" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:PresetsViewModel}"/>
@@ -235,15 +237,15 @@
 					</Button>
 				</WrapPanel>
 			</StackPanel>
-			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="410" MaxHeight="410">
+			<groupBox:GroupBoxControl Header="External ATIS Generator" Margin="0,4,0,0" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="450" MaxHeight="450">
                 <ScrollViewer AllowAutoHide="False" Margin="0,0,-10,0" VerticalScrollBarVisibility="Visible">
                     <ScrollViewer.Styles>
                         <Style Selector="ScrollBar">
                             <Setter Property="Opacity" Value="1" />
                         </Style>
                     </ScrollViewer.Styles>
-                    <StackPanel Orientation="Vertical" Spacing="5">
-                        <StackPanel Spacing="5">
+                    <StackPanel Orientation="Vertical" Spacing="18" Margin="8,8,18,8">
+                        <StackPanel Spacing="8">
 						    <TextBlock Text="Text ATIS URL:" ToolTip.Tip="The URL used to generate the text ATIS."/>
 						    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorTextUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 							    <Interaction.Behaviors>
@@ -251,7 +253,7 @@
 							    </Interaction.Behaviors>
 						    </TextBox>
 					    </StackPanel>
-                        <StackPanel Spacing="5">
+                        <StackPanel Spacing="8">
                             <TextBlock Text="Voice ATIS URL:" ToolTip.Tip="The URL used to generate the voice ATIS. If you don't have a separate URL, use the same URL as the text ATIS."/>
                             <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorVoiceUrl, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
                                 <Interaction.Behaviors>
@@ -259,8 +261,8 @@
                                 </Interaction.Behaviors>
                             </TextBox>
                         </StackPanel>
-					    <Grid ColumnDefinitions="*,5,*" RowDefinitions="*,10,*">
-						    <StackPanel Spacing="5" Grid.Column="0">
+					    <Grid ColumnDefinitions="*,20,*" RowDefinitions="*,18,*">
+						    <StackPanel Spacing="8" Grid.Column="0">
 							    <TextBlock Text="Arrival Runways:"/>
 							    <TextBox Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
@@ -269,7 +271,7 @@
 								    </Interaction.Behaviors>
 							    </TextBox>
 						    </StackPanel>
-						    <StackPanel Spacing="5" Grid.Row="0" Grid.Column="2">
+						    <StackPanel Spacing="8" Grid.Row="0" Grid.Column="2">
 							    <TextBlock Text="Departure Runways:"/>
 							    <TextBox Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
@@ -278,7 +280,7 @@
 								    </Interaction.Behaviors>
 							    </TextBox>
 						    </StackPanel>
-						    <StackPanel Spacing="5" Grid.Column="0" Grid.Row="2">
+						    <StackPanel Spacing="8" Grid.Column="0" Grid.Row="2">
 							    <TextBlock Text="Approaches In Use:"/>
 							    <TextBox Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
@@ -287,7 +289,7 @@
 								    </Interaction.Behaviors>
 							    </TextBox>
 						    </StackPanel>
-						    <StackPanel Spacing="5" Grid.Column="2" Grid.Row="2">
+						    <StackPanel Spacing="8" Grid.Column="2" Grid.Row="2">
 							    <TextBlock Text="Remarks:"/>
 							    <TextBox Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
@@ -297,37 +299,7 @@
 							    </TextBox>
 						    </StackPanel>
 					    </Grid>
-					    <StackPanel Orientation="Vertical" Spacing="5">
-						    <TextBlock Text="Sandbox:"/>
-						    <Grid ColumnDefinitions="100*,5,15*">
-							    <TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:PresetsViewModel}">
-								    <Interaction.Behaviors>
-									    <behaviors:TextBoxUppercaseBehavior/>
-								    </Interaction.Behaviors>
-							    </TextBox>
-							    <Button Grid.Column="2" Theme="{StaticResource Dark}" Content="Fetch" Command="{Binding FetchSandboxMetarCommand, DataType=vm:PresetsViewModel}"/>
-						    </Grid>
-                            <Grid ColumnDefinitions="*,5,*" Margin="0,0,5,0">
-                                <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="5">
-                                    <TextBlock>Text ATIS</TextBlock>
-                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseText, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
-                                        <Interaction.Behaviors>
-                                            <behaviors:TextBoxUppercaseBehavior/>
-                                        </Interaction.Behaviors>
-                                    </TextBox>
-                                    <Button Theme="{StaticResource Dark}" Content="Refresh ATIS" Command="{Binding GenerateSandboxAtisCommand, DataType=vm:PresetsViewModel}"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="5">
-                                    <TextBlock>Voice ATIS</TextBlock>
-                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseVoice, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
-                                        <Interaction.Behaviors>
-                                            <behaviors:TextBoxUppercaseBehavior/>
-                                        </Interaction.Behaviors>
-                                    </TextBox>
-                                    <Button Theme="{StaticResource Dark}" Command="{Binding PlaySandboxVoiceAtisCommand, DataType=vm:PresetsViewModel}" Content="{Binding IsSandboxPlaybackActive, DataType=vm:PresetsViewModel, Converter={StaticResource PlaybackLabelConverter}, FallbackValue=Listen}"/>
-                                </StackPanel>
-                            </Grid>
-					    </StackPanel>
+					    <Button HorizontalAlignment="Left" Margin="0,6,0,0" Padding="24,8" FontWeight="SemiBold" Theme="{StaticResource Dark}" Content="Test in Sandbox" ToolTip.Tip="Applies your changes and opens this preset in the Sandbox tab." Command="{Binding TestInSandboxCommand, DataType=vm:PresetsViewModel}"/>
 				    </StackPanel>
                 </ScrollViewer>
 			</groupBox:GroupBoxControl>

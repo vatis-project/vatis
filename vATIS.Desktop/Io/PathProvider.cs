@@ -25,6 +25,11 @@ public static class PathProvider
     public static string ProfilesFolderPath => Path.Combine(s_appDataPath, "Profiles");
 
     /// <summary>
+    /// Gets the folder that voice packs imported from bundles are extracted to.
+    /// </summary>
+    public static string VoicePacksFolderPath => Path.Combine(s_appDataPath, "VoicePacks");
+
+    /// <summary>
     /// Gets the file path for the application configuration.
     /// </summary>
     public static string AppConfigFilePath => Path.Combine(s_appDataPath, "AppConfig.json");

@@ -62,13 +62,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private string _externalGeneratorDepartureRunways = string.Empty;
     private string _externalGeneratorApproaches = string.Empty;
     private string _externalGeneratorRemarks = string.Empty;
-    private string? _externalGeneratorSandboxResponseText;
-    private string? _externalGeneratorSandboxResponseVoice;
-    private bool _isSandboxPlaybackActive;
-    private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceResponse;
-    private CancellationTokenSource _externalGeneratorCancellationTokenSource = new();
     private string _atisTemplateText = string.Empty;
-    private string? _sandboxMetar;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PresetsViewModel"/> class.
@@ -99,11 +93,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         DeletePresetCommand = ReactiveCommand.CreateFromTask(HandleDeletePreset);
         OpenSortPresetsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenSortPresetsDialog);
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
+        TestInSandboxCommand = ReactiveCommand.Create(HandleTestInSandbox);
 
-        FetchSandboxMetarCommand = ReactiveCommand.CreateFromTask(HandleFetchSandboxMetar);
-        GenerateSandboxAtisCommand = ReactiveCommand.CreateFromTask(HandleGenerateSandboxAtis);
-        PlaySandboxVoiceAtisCommand = ReactiveCommand.Create(HandlePlaySandboxVoiceAtis, this.WhenAnyValue(
-            x => x.AtisBuilderVoiceResponse, resp => resp?.AudioBytes != null));
 
         _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
         {
@@ -117,9 +108,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         _disposables.Add(CopyPresetCommand);
         _disposables.Add(DeletePresetCommand);
         _disposables.Add(OpenSortPresetsDialogCommand);
-        _disposables.Add(GenerateSandboxAtisCommand);
         _disposables.Add(TemplateVariableClicked);
-        _disposables.Add(FetchSandboxMetarCommand);
+        _disposables.Add(TestInSandboxCommand);
 
         _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
@@ -171,24 +161,19 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     public ReactiveCommand<Unit, Unit> OpenSortPresetsDialogCommand { get; }
 
     /// <summary>
-    /// Gets a command that tests the external ATIS generator.
+    /// Gets a command that applies the current preset and opens it in the sandbox.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> GenerateSandboxAtisCommand { get; }
+    public ReactiveCommand<Unit, Unit> TestInSandboxCommand { get; }
 
     /// <summary>
-    /// Gets a command that plays the voice ATIS created from the external ATIS generator.
+    /// Occurs when the user asks to test the selected preset in the sandbox, after its changes have been applied.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> PlaySandboxVoiceAtisCommand { get; }
+    public event Action<AtisPreset>? TestInSandboxRequested;
 
     /// <summary>
     /// Gets a command that handles template variable clicks.
     /// </summary>
     public ReactiveCommand<string, Unit> TemplateVariableClicked { get; }
-
-    /// <summary>
-    /// Gets a command that fetches sandbox METAR data.
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> FetchSandboxMetarCommand { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether there are unsaved changes.
@@ -327,24 +312,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     }
 
     /// <summary>
-    /// Gets or sets the external generator sandbox text response.
-    /// </summary>
-    public string? ExternalGeneratorSandboxResponseText
-    {
-        get => _externalGeneratorSandboxResponseText;
-        set => this.RaiseAndSetIfChanged(ref _externalGeneratorSandboxResponseText, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the external generator sandbox voice response.
-    /// </summary>
-    public string? ExternalGeneratorSandboxResponseVoice
-    {
-        get => _externalGeneratorSandboxResponseVoice;
-        set => this.RaiseAndSetIfChanged(ref _externalGeneratorSandboxResponseVoice, value);
-    }
-
-    /// <summary>
     /// Gets or sets the ATIS template text document.
     /// </summary>
     public string AtisTemplateText
@@ -355,33 +322,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             this.RaiseAndSetIfChanged(ref _atisTemplateText, value);
             _changeTracker.TrackChange(nameof(AtisTemplateText), value);
         }
-    }
-
-    /// <summary>
-    /// Gets or sets the sandbox METAR.
-    /// </summary>
-    public string? SandboxMetar
-    {
-        get => _sandboxMetar;
-        set => this.RaiseAndSetIfChanged(ref _sandboxMetar, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the ATIS builder response.
-    /// </summary>
-    public AtisBuilderVoiceAtisResponse? AtisBuilderVoiceResponse
-    {
-        get => _atisBuilderVoiceResponse;
-        set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceResponse, value);
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether sandbox playback is active.
-    /// </summary>
-    public bool IsSandboxPlaybackActive
-    {
-        get => _isSandboxPlaybackActive;
-        set => this.RaiseAndSetIfChanged(ref _isSandboxPlaybackActive, value);
     }
 
     /// <inheritdoc/>
@@ -426,9 +366,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             hasErrors = false;
             return false;
         }
-
-        IsSandboxPlaybackActive = false;
-        NativeAudio.StopBufferPlayback();
 
         if (SelectedPreset.Template != AtisTemplateText)
         {
@@ -566,73 +503,15 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         dialog.ShowDialog(owner);
     }
 
-    private async Task HandleFetchSandboxMetar()
+    private void HandleTestInSandbox()
     {
-        if (SelectedStation == null || string.IsNullOrEmpty(SelectedStation.Identifier))
-        {
-            return;
-        }
-
-        var metar = await _metarRepository.GetMetar(SelectedStation.Identifier, false, false, SelectedStation.CustomMetarUrl);
-        SandboxMetar = metar?.RawMetar;
-    }
-
-    private async Task HandleGenerateSandboxAtis()
-    {
-        try
-        {
-            if (SelectedStation == null || SelectedPreset == null)
-                return;
-
-            NativeAudio.StopBufferPlayback();
-            AtisBuilderVoiceResponse = null;
-
-            await _externalGeneratorCancellationTokenSource.CancelAsync();
-            _externalGeneratorCancellationTokenSource.Dispose();
-            _externalGeneratorCancellationTokenSource = new CancellationTokenSource();
-            var localToken = _externalGeneratorCancellationTokenSource;
-
-            ExternalGeneratorSandboxResponseText = "Loading...";
-            ExternalGeneratorSandboxResponseVoice = "Loading...";
-
-            var randomLetter = StringExtensions.RandomLetter();
-
-            if (!string.IsNullOrEmpty(ExternalGeneratorTextUrl))
-            {
-                ExternalGeneratorSandboxResponseText =
-                    await _atisBuilder.GetExternalTextAtis(SelectedStation, SelectedPreset, randomLetter, SandboxMetar);
-            }
-
-            if (!string.IsNullOrEmpty(ExternalGeneratorVoiceUrl))
-            {
-                var voiceAtis = await _atisBuilder.GetExternalVoiceAtis(SelectedStation, SelectedPreset, randomLetter,
-                    SandboxMetar, localToken.Token);
-                ExternalGeneratorSandboxResponseVoice = voiceAtis?.SpokenText;
-                AtisBuilderVoiceResponse = voiceAtis;
-            }
-        }
-        catch (Exception ex)
-        {
-            ExternalGeneratorSandboxResponseText = "Error fetching text ATIS. See log for details.";
-            ExternalGeneratorSandboxResponseVoice = "Error fetching voice ATIS. See log for details.";
-            Log.Error(ex, "Failed to generate sandbox ATIS.");
-        }
-    }
-
-    private void HandlePlaySandboxVoiceAtis()
-    {
-        if (AtisBuilderVoiceResponse?.AudioBytes == null)
+        if (SelectedPreset == null)
             return;
 
-        if (!IsSandboxPlaybackActive)
+        ApplyConfig(out var hasErrors);
+        if (!hasErrors)
         {
-            IsSandboxPlaybackActive = NativeAudio.StartBufferPlayback(AtisBuilderVoiceResponse.AudioBytes,
-                AtisBuilderVoiceResponse.AudioBytes.Length);
-        }
-        else
-        {
-            IsSandboxPlaybackActive = false;
-            NativeAudio.StopBufferPlayback();
+            TestInSandboxRequested?.Invoke(SelectedPreset);
         }
     }
 
@@ -856,7 +735,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         _changeTracker.ResetChanges();
 
         SelectedPreset = preset;
-        ExternalGeneratorSandboxResponseText = null;
         AtisTemplateText = SelectedPreset?.Template ?? string.Empty;
 
         if (SelectedPreset?.ExternalGenerator != null)
@@ -970,19 +848,12 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         SelectedStation = station;
         Presets = new ObservableCollection<AtisPreset>(station.Presets);
         UseExternalAtisGenerator = false;
-        SandboxMetar = null;
         AtisTemplateText = "";
         ExternalGeneratorTextUrl = "";
         ExternalGeneratorArrivalRunways = "";
         ExternalGeneratorDepartureRunways = "";
         ExternalGeneratorApproaches = "";
         ExternalGeneratorRemarks = "";
-        ExternalGeneratorSandboxResponseText = null;
-        ExternalGeneratorSandboxResponseVoice = null;
-
-        IsSandboxPlaybackActive = false;
-        NativeAudio.StopBufferPlayback();
-
         PopulateContractions();
     }
 

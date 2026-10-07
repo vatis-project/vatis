@@ -185,14 +185,15 @@ public static class NumberFormatExtensions
     /// <returns>Returns the number formatted in serial format. For example, 1530 would yield "one five three zero".</returns>
     public static string? ToSerialFormat(this string? number, bool useDecimalTerminology = false)
     {
-        if (string.IsNullOrEmpty(number) || !Regex.IsMatch(number, @"^-?[0-9]+(\.[0-9]+)?$"))
+        if (string.IsNullOrEmpty(number) || !Regex.IsMatch(number, @"^[+-]?[0-9]+(\.[0-9]+)?$"))
         {
             return number;
         }
 
         var group = new List<string>();
         var isNegative = number.StartsWith('-');
-        var normalizedNumber = isNegative ? number[1..] : number;
+        var isPositive = number.StartsWith('+');
+        var normalizedNumber = isNegative || isPositive ? number[1..] : number;
 
         foreach (var numberPart in normalizedNumber.Split('.'))
         {
@@ -206,7 +207,7 @@ public static class NumberFormatExtensions
         }
 
         var result = string.Join(useDecimalTerminology ? " decimal " : " point ", group);
-        return isNegative ? "minus " + result : result;
+        return isNegative ? "minus " + result : isPositive ? "plus " + result : result;
     }
 
     /// <summary>

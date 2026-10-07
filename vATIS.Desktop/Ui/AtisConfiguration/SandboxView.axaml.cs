@@ -24,6 +24,8 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
     public SandboxView()
     {
         InitializeComponent();
+        TextAtis.TextArea.TextView.LineTransformers.Add(new ErrorTextTransformer());
+        VoiceAtis.TextArea.TextView.LineTransformers.Add(new ErrorTextTransformer());
         Loaded += OnLoaded;
     }
 
