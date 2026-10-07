@@ -91,11 +91,13 @@ publish() { # <rid>
         -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version="$VERSION" "$PROJECT"
 }
 
-# Extracts this version's section of CHANGELOG.md for Velopack release notes.
+# Extracts this version's section ("## v<version>") of CHANGELOG.md for the release notes. The heading must
+# match exactly, so 4.1.0-beta.1 does not pick up 4.1.0-beta.19.
 release_notes() {
     local f="$BUILD_DIR/RELEASE_NOTES.md"
-    awk -v version="$VERSION" '/## v/{if(p) exit; if(index($0, version)) p=1; if(p) print; next} p' CHANGELOG.md \
+    awk -v version="v$VERSION" '/^## /{if(p) exit; if($2 == version) p=1; if(p) print; next} p' CHANGELOG.md \
         | sed 's/^\s*-/*/' > "$f"
+    [ -s "$f" ] || err "WARNING: no '## v$VERSION' section in CHANGELOG.md; this release will have no release notes"
     echo "$f"
 }
 
