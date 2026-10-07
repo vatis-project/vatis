@@ -330,7 +330,7 @@ jobs:
           codesign --deep --force --verify --verbose \
             --sign "$APPLE_SIGNING_IDENTITY" \
             --options runtime \
-            --entitlements ./Scripts/app.entitlements \
+            --entitlements ./scripts/app.entitlements \
             --keychain "$KEYCHAIN_PATH" \
             "./velopack/vATIS.app"
 
@@ -341,7 +341,7 @@ jobs:
           brew install create-dmg
 
           create-dmg \
-            --background ./Scripts/dmg-background.tiff \
+            --background ./scripts/dmg-background.tiff \
             --window-size 660 400 \
             --window-pos 200 120 \
             --app-drop-link 475 170 \

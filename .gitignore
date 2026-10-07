@@ -410,3 +410,7 @@ NativeAudio/Out/**
 # NativeAudio macOS cross-compile output
 NativeAudio/build-macos-*/
 NativeAudio/build-macos-tmp/
+NativeAudio/build-windows-x64/
+
+# Local build secrets
+scripts/env-setup.sh
