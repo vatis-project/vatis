@@ -1,0 +1,46 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.24442,0.56870,1.00000,1.00000",
+      "display-p3:0.17169,0.38869,0.72642,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "radar.svg",
+          "name" : "radar"
+        },
+        {
+          "glass" : true,
+          "image-name" : "bolt.svg",
+          "name" : "bolt"
+        },
+        {
+          "image-name" : "cloud.svg",
+          "name" : "cloud"
+        },
+        {
+          "fill" : "automatic",
+          "image-name" : "sun.svg",
+          "name" : "sun"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.3
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

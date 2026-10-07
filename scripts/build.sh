@@ -312,7 +312,9 @@ build_macos() {
     for lib in libAvaloniaNative.dylib libHarfBuzzSharp.dylib libNativeAudio.dylib libSkiaSharp.dylib; do
         cp "$BUILD_DIR/osx-arm64/$lib" "$bundle/Contents/MacOS/$lib"
     done
-    cp ./vATIS.Desktop/Assets/MainIcon.icns "$bundle/Contents/Resources/app.icns"
+    # App icon: Assets.car (compiled from scripts/macos/AppIcon.icon, used by macOS 26 and later) plus the .icns
+    # fallback that actool generated alongside it. See scripts/macos/README.md.
+    cp ./scripts/macos/AppIcon.icns ./scripts/macos/Assets.car "$bundle/Contents/Resources/"
 
     # CFBundleVersion: <major.minor.patch>.<prerelease number or 0>
     local base beta cfbundle
@@ -341,7 +343,9 @@ build_macos() {
     <key>CFBundleExecutable</key>
     <string>$APP_NAME</string>
     <key>CFBundleIconFile</key>
-    <string>app.icns</string>
+    <string>AppIcon</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
@@ -367,7 +371,7 @@ EOF
     info "vpk pack (macos)"
     env "${env_args[@]}" dotnet "$VPK_PATCHED" "[osx]" pack -y --skip-updates --packId "$PACK_ID" \
         --packTitle "$APP_NAME" --packVersion "$VERSION" --packAuthors "$AUTHORS" --packDir "$bundle" \
-        --mainExe "$APP_NAME" --noInst --delta BestSize --icon ./vATIS.Desktop/Assets/MainIcon.icns \
+        --mainExe "$APP_NAME" --noInst --delta BestSize --icon ./scripts/macos/AppIcon.icns \
         --signEntitlements "$ROOT/scripts/app.entitlements" --releaseNotes "$(release_notes)" \
         --outputDir "$out" --verbose
 
