@@ -1,6 +1,9 @@
 <div align="center">
 
-# vATIS
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/logo-dark.png">
+  <img src="docs/images/logo-light.png" alt="vATIS" width="420">
+</picture>
 
 **A simple and intuitive program for generating ATIS broadcasts on the VATSIM network.**
 

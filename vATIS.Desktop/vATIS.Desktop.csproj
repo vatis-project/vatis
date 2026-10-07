@@ -24,21 +24,31 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$([System.OperatingSystem]::IsWindows())">
+	<!-- Select the native library by target runtime so cross-compiling (e.g. publishing osx-* from Linux) picks the right one; fall back to the host OS when no RID is given. -->
+	<PropertyGroup>
+		<NativeAudioOs Condition="$(RuntimeIdentifier.StartsWith('win'))">win</NativeAudioOs>
+		<NativeAudioOs Condition="$(RuntimeIdentifier.StartsWith('linux'))">linux</NativeAudioOs>
+		<NativeAudioOs Condition="$(RuntimeIdentifier.StartsWith('osx'))">osx</NativeAudioOs>
+		<NativeAudioOs Condition="'$(NativeAudioOs)' == '' And $([System.OperatingSystem]::IsWindows())">win</NativeAudioOs>
+		<NativeAudioOs Condition="'$(NativeAudioOs)' == '' And $([System.OperatingSystem]::IsLinux())">linux</NativeAudioOs>
+		<NativeAudioOs Condition="'$(NativeAudioOs)' == '' And $([System.OperatingSystem]::IsMacOS())">osx</NativeAudioOs>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(NativeAudioOs)' == 'win'">
 		<ContentWithTargetPath Include=".\Voice\Audio\Native\win\NativeAudio.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<TargetPath>NativeAudio.dll</TargetPath>
 		</ContentWithTargetPath>
 	</ItemGroup>
 
-	<ItemGroup Condition="$([System.OperatingSystem]::IsLinux())">
+	<ItemGroup Condition="'$(NativeAudioOs)' == 'linux'">
 		<ContentWithTargetPath Include=".\Voice\Audio\Native\lin\libNativeAudio.so">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<TargetPath>libNativeAudio.so</TargetPath>
 		</ContentWithTargetPath>
 	</ItemGroup>
 
-	<ItemGroup Condition="$([System.OperatingSystem]::IsMacOS())">
+	<ItemGroup Condition="'$(NativeAudioOs)' == 'osx'">
 		<ContentWithTargetPath Include=".\Voice\Audio\Native\macos\libNativeAudio.dylib">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<TargetPath>libNativeAudio.dylib</TargetPath>
