@@ -1141,13 +1141,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     {
         NativeAudio.EmitSound(SoundType.Error);
 
+        var message = string.IsNullOrEmpty(e.Reason)
+            ? $"{_networkConnection?.Callsign} forcefully disconnected from the network."
+            : $"{_networkConnection?.Callsign} forcefully disconnected from network.\nReason: {e.Reason}";
         NotificationManager?.Show(
-            new Notification("Disconnected", string.IsNullOrEmpty(e.Reason)
-                ? $"{_networkConnection?.Callsign} forcefully disconnected from the network."
-                : $"{_networkConnection?.Callsign} forcefully disconnected from network.\nReason: {e.Reason}"),
+            new Notification("Disconnected", message),
             type: NotificationType.Error,
             expiration: TimeSpan.Zero
         );
+        PublishConnectionError(ConnectionErrorReason.Killed, message);
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -1372,6 +1374,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             if (_appConfig.ConfigRequired)
             {
+                PublishConnectionError(ConnectionErrorReason.ConfigurationRequired,
+                    "The VATSIM user ID, password, and real name have not been set.");
+
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                 {
                     if (lifetime.MainWindow == null)
@@ -1401,13 +1406,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             {
                 if (_sessionManager.CurrentConnectionCount >= _sessionManager.MaxConnectionCount)
                 {
+                    const string message = "You've exceeded the maximum number of allowed ATIS connections.";
                     NotificationManager?.Show(
-                        new Notification("Too Many ATIS Connections",
-                            "You've exceeded the maximum number of allowed ATIS connections."),
+                        new Notification("Too Many ATIS Connections", message),
                         type: NotificationType.Warning,
                         expiration: TimeSpan.FromSeconds(15)
                     );
                     NativeAudio.EmitSound(SoundType.Error);
+                    PublishConnectionError(ConnectionErrorReason.TooManyConnections, message);
                     return;
                 }
 
@@ -1433,6 +1439,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 Log.Error(e, "HandleNetworkConnect Exception");
                 NativeAudio.EmitSound(SoundType.Error);
                 NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
+                PublishConnectionError(ConnectionErrorReason.ConnectionFailed, e.Message);
                 await Disconnect();
             }
         }
@@ -1461,12 +1468,21 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             Altimeter = null;
         });
         NativeAudio.EmitSound(SoundType.Error);
+        PublishConnectionError(ConnectionErrorReason.ConnectionFailed, "Unable to connect to the network.");
     }
 
     private void OnNetworkErrorReceived(object? sender, NetworkErrorReceived e)
     {
         NotificationManager?.Show(new Notification("Network Error", e.Error), NotificationType.Error);
         NativeAudio.EmitSound(SoundType.Error);
+        PublishConnectionError(ConnectionErrorReason.NetworkError, e.Error);
+    }
+
+    // Connection errors are shown as notifications in this window, which a websocket client cannot see.
+    private void PublishConnectionError(ConnectionErrorReason reason, string message)
+    {
+        _websocketService.SendConnectionErrorAsync(ConnectionErrorMessage.FromStation(AtisStation, reason, message))
+            .SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to publish connection error"));
     }
 
     private void OnNetworkConnected(object? sender, EventArgs e)

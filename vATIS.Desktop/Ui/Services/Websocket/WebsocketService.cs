@@ -146,6 +146,12 @@ public class WebsocketService : IWebsocketService
         }
     }
 
+    /// <inheritdoc />
+    public async Task SendConnectionErrorAsync(ConnectionErrorMessage message)
+    {
+        await SendAsync(JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.ConnectionErrorMessage));
+    }
+
     /// <summary>
     /// Handles messages received via the websocket and fires the appropriate event handler.
     /// </summary>
