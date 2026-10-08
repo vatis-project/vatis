@@ -75,6 +75,13 @@ public interface IWebsocketService
     public Task SendAtisStationsAsync(ClientMetadata? session, AtisStationMessage value);
 
     /// <summary>
+    /// Sends a connection error message to all connected clients.
+    /// </summary>
+    /// <param name="message">The message to send.</param>
+    /// <returns>A task.</returns>
+    public Task SendConnectionErrorAsync(ConnectionErrorMessage message);
+
+    /// <summary>
     /// Starts the WebSocket server.
     /// </summary>
     /// <returns>A task.</returns>

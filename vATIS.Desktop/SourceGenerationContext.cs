@@ -61,6 +61,7 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(AtisMessage))]
 [JsonSerializable(typeof(CommandMessage))]
 [JsonSerializable(typeof(ErrorMessage))]
+[JsonSerializable(typeof(ConnectionErrorMessage))]
 [JsonSerializable(typeof(AtisStationMessage))]
 [JsonSerializable(typeof(ConfigureAtisMessage))]
 [JsonSerializable(typeof(ConnectAtisMessage))]
