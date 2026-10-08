@@ -48,6 +48,11 @@ public interface IWebsocketService
     public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived;
 
     /// <summary>
+    /// Event that is raised by a websocket client to change the ATIS letter of a station.
+    /// </summary>
+    public event EventHandler<GetSetAtisLetterReceived> SetAtisLetterReceived;
+
+    /// <summary>
     /// Event that is raised by a websocket client to change the active profile.
     /// </summary>
     public event EventHandler<GetChangeProfileReceived> ChangeProfileReceived;

@@ -252,6 +252,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _websocketService.ConfigureAtisReceived += OnConfigureAtisReceived;
         _websocketService.ConnectAtisReceived += OnConnectAtisReceived;
         _websocketService.DisconnectAtisReceived += OnDisconnectAtisReceived;
+        _websocketService.SetAtisLetterReceived += OnSetAtisLetterReceived;
 
         LoadContractionData();
 
@@ -841,6 +842,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _websocketService.ConfigureAtisReceived -= OnConfigureAtisReceived;
         _websocketService.ConnectAtisReceived -= OnConnectAtisReceived;
         _websocketService.DisconnectAtisReceived -= OnDisconnectAtisReceived;
+        _websocketService.SetAtisLetterReceived -= OnSetAtisLetterReceived;
 
         if (_networkConnection != null)
         {
@@ -2269,6 +2271,29 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             Dispatcher.UIThread.Invoke(async () => { await Disconnect(); });
         }
+    }
+
+    private void OnSetAtisLetterReceived(object? sender, GetSetAtisLetterReceived e)
+    {
+        if (e.Payload == null)
+            return;
+
+        var isMatchingId = !string.IsNullOrEmpty(e.Payload.Id) && AtisStation.Id == e.Payload.Id;
+        var isMatchingStation = !string.IsNullOrEmpty(e.Payload.Station) &&
+                                AtisStation.Identifier == e.Payload.Station &&
+                                AtisStation.AtisType == e.Payload.AtisType;
+
+        if (!isMatchingId && !isMatchingStation)
+            return;
+
+        // An observed ATIS belongs to another controller, and its letter follows theirs.
+        if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            throw new Exception("Cannot change the letter of an ATIS another controller is publishing.");
+
+        // Worked out before reaching the UI thread, so a letter outside the code range throws back to the
+        // websocket client.
+        var letter = e.Payload.Resolve(AtisLetter, AtisStation.CodeRange);
+        Dispatcher.UIThread.Invoke(() => { AtisLetter = letter; });
     }
 
     private void HandleAcknowledgeAtisUpdate(PointerPressedEventArgs? args = null)
