@@ -1,4 +1,4 @@
-// <copyright file="MainWindow.axaml.cs" company="Justin Shannon">
+﻿// <copyright file="MainWindow.axaml.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -10,6 +10,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Serilog;
+using Vatsim.Vatis.Ui.Extensions;
 using Vatsim.Vatis.Ui.Controls.Notification;
 using Vatsim.Vatis.Ui.ViewModels;
 
@@ -39,6 +40,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Opened += OnOpened;
         Closed += OnClosed;
         Closing += OnClosing;
+        KeyDown += OnWindowKeyDown;
     }
 
     /// <summary>
@@ -126,6 +128,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Opened -= OnOpened;
         Closed -= OnClosed;
         Closing -= OnClosing;
+        KeyDown -= OnWindowKeyDown;
         PositionChanged -= OnPositionChanged;
 
         ViewModel?.DisconnectFromHub();
@@ -138,6 +141,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         {
             BeginMoveDrag(e);
         }
+    }
+
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        AppDataShortcut.HandleKeyDown(this, e);
     }
 
     private void OnMinimizeWindow(object sender, RoutedEventArgs e)

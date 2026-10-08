@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
+using Vatsim.Vatis.Ui.Extensions;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Profiles;
@@ -33,6 +34,7 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
         Loaded += OnLoaded;
         Closed += OnClosed;
         Closing += OnClosing;
+        KeyDown += OnWindowKeyDown;
     }
 
     /// <summary>
@@ -41,6 +43,11 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
     public ProfileListDialog()
     {
         InitializeComponent();
+    }
+
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        AppDataShortcut.HandleKeyDown(this, e);
     }
 
     private void OnOpened(object? sender, EventArgs e)
@@ -60,6 +67,7 @@ public partial class ProfileListDialog : ReactiveWindow<ProfileListViewModel>, I
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        KeyDown -= OnWindowKeyDown;
         ViewModel?.Dispose();
     }
 

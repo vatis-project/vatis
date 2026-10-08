@@ -29,6 +29,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
 {
+    private static readonly TimeSpan MinimumRecordingDuration = TimeSpan.FromSeconds(5);
     private readonly CompositeDisposable _disposables = new();
     private readonly IWindowLocationService _windowLocationService;
     private readonly Stopwatch _recordingStopwatch;
@@ -38,6 +39,8 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     private byte[] _audioBuffer = [];
     private string? _atisScript;
     private bool _isPlaybackEnabled;
+    private bool _isPreviousRecording;
+    private bool _showMinimumDurationWarning;
     private bool _isPlaybackActive;
     private bool _isRecordingActive;
     private bool _isRecordingEnabled;
@@ -87,29 +90,32 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
             this.WhenAnyValue(
                 x => x.AudioBuffer,
                 x => x.ElapsedTime,
-                (buffer, elapsed) => buffer.Length > 0 && elapsed >= TimeSpan.FromSeconds(5)));
+                (buffer, elapsed) => buffer.Length > 0 && elapsed >= MinimumRecordingDuration));
         CancelCommand = ReactiveCommand.Create<ICloseable>(HandleCancelCommand);
-        StartRecordingCommand = ReactiveCommand.Create(HandleStartRecordingCommand, this.WhenAnyValue(
+        ToggleRecordingCommand = ReactiveCommand.Create(HandleToggleRecordingCommand, this.WhenAnyValue(
             x => x.SelectedCaptureDevice,
             x => x.SelectedPlaybackDevice,
             x => x.IsPlaybackActive,
             x => x.IsRecordingActive,
             (capture, playback, playbackActive, recordingActive) =>
-                !string.IsNullOrEmpty(capture) && !string.IsNullOrEmpty(playback) && !playbackActive &&
-                !recordingActive));
-        StopRecordingCommand = ReactiveCommand.Create(HandleStopRecordingCommand, this.WhenAnyValue(
-            x => x.IsPlaybackActive,
-            x => x.IsRecordingActive,
-            (playbackActive, recordingActive) => !playbackActive && recordingActive));
+                !playbackActive && (recordingActive || (!string.IsNullOrEmpty(capture) &&
+                                                         !string.IsNullOrEmpty(playback)))));
         ListenCommand = ReactiveCommand.Create(HandleListenCommand, this.WhenAnyValue(
             x => x.IsRecordingActive,
             x => x.AudioBuffer,
             (recordingActive, audioBuffer) => !recordingActive && audioBuffer.Length > 0));
 
+        this.WhenAnyValue(
+                x => x.ElapsedTime,
+                x => x.IsRecordingActive,
+                x => x.AudioBuffer,
+                (elapsed, recording, buffer) =>
+                    !_isPreviousRecording && elapsed < MinimumRecordingDuration && (recording || buffer.Length > 0))
+            .Subscribe(show => ShowMinimumDurationWarning = show);
+
         _disposables.Add(CancelCommand);
         _disposables.Add(SaveCommand);
-        _disposables.Add(StartRecordingCommand);
-        _disposables.Add(StopRecordingCommand);
+        _disposables.Add(ToggleRecordingCommand);
         _disposables.Add(ListenCommand);
 
         NativeAudio.GetCaptureDevices((idPtr, namePtr, _) =>
@@ -194,6 +200,15 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _audioBuffer;
         private set => this.RaiseAndSetIfChanged(ref _audioBuffer, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the recording is, or was, shorter than the minimum duration required to save it.
+    /// </summary>
+    public bool ShowMinimumDurationWarning
+    {
+        get => _showMinimumDurationWarning;
+        private set => this.RaiseAndSetIfChanged(ref _showMinimumDurationWarning, value);
     }
 
     /// <summary>
@@ -323,14 +338,9 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<ICloseable, Unit> SaveCommand { get; }
 
     /// <summary>
-    /// Gets the command that is executed to initiate the recording process.
+    /// Gets the command that is executed to start the recording, or stop it if one is in progress.
     /// </summary>
-    public ReactiveCommand<Unit, Unit> StartRecordingCommand { get; }
-
-    /// <summary>
-    /// Gets the command that is executed to stop the recording process.
-    /// </summary>
-    public ReactiveCommand<Unit, Unit> StopRecordingCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleRecordingCommand { get; }
 
     /// <summary>
     /// Gets the command that is executed to play back the recorded audio for listening.
@@ -366,6 +376,20 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         _windowLocationService.Restore(window);
     }
 
+    /// <summary>
+    /// Loads a previously saved recording so it can be reviewed with the Listen button.
+    /// </summary>
+    /// <param name="audio">The previously saved recording.</param>
+    public void SetPreviousRecording(byte[] audio)
+    {
+        if (audio.Length == 0)
+            return;
+
+        AudioBuffer = audio;
+        _isPreviousRecording = true;
+        IsPlaybackEnabled = true;
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -399,11 +423,30 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         return result;
     }
 
+    private bool StopAllPlayback()
+    {
+        // Stop the buffer device as well, which is used to review a previously saved recording.
+        NativeAudio.StopBufferPlayback();
+        return NativeAudio.StopPlayback();
+    }
+
     private void HandleSaveCommand(ICloseable window)
     {
-        if (NativeAudio.StopPlayback())
+        if (StopAllPlayback())
         {
             window.Close(true);
+        }
+    }
+
+    private void HandleToggleRecordingCommand()
+    {
+        if (IsRecordingActive)
+        {
+            HandleStopRecordingCommand();
+        }
+        else
+        {
+            HandleStartRecordingCommand();
         }
     }
 
@@ -415,11 +458,13 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         if (NativeAudio.StartRecording(SelectedCaptureDevice))
         {
             AudioBuffer = [];
+            _isPreviousRecording = false;
             IsRecordingEnabled = false;
             IsRecordingActive = true;
             IsPlaybackEnabled = false;
 
             ElapsedRecordingTime = "00:00:00";
+            ElapsedTime = TimeSpan.Zero;
             _elapsedTimeUpdateTimer.Start();
             _recordingStopwatch.Start();
             _maxRecordingDurationTimer.Start();
@@ -449,6 +494,9 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
             Marshal.Copy(data, buffer, 0, dataSize);
             temp.Add(buffer);
         });
+        _isPreviousRecording = false;
+        ElapsedTime = _recordingStopwatch.Elapsed;
+        ElapsedRecordingTime = ElapsedTime.ToString(@"hh\:mm\:ss");
         AudioBuffer = CombineAudioBuffers(temp);
         IsRecordingEnabled = true;
         IsRecordingActive = false;
@@ -466,7 +514,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
 
         if (IsPlaybackActive)
         {
-            if (NativeAudio.StopPlayback())
+            if (_isPreviousRecording ? NativeAudio.StopBufferPlayback() : NativeAudio.StopPlayback())
             {
                 IsRecordingEnabled = true;
                 IsPlaybackActive = false;
@@ -475,7 +523,10 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        if (NativeAudio.StartPlayback(SelectedPlaybackDevice))
+        var started = _isPreviousRecording
+            ? NativeAudio.StartBufferPlayback(AudioBuffer, AudioBuffer.Length, SelectedPlaybackDevice)
+            : NativeAudio.StartPlayback(SelectedPlaybackDevice);
+        if (started)
         {
             IsPlaybackActive = true;
             IsRecordingEnabled = false;
@@ -484,7 +535,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleCancelCommand(ICloseable window)
     {
-        if (NativeAudio.StopPlayback())
+        if (StopAllPlayback())
         {
             window.Close(false);
         }

@@ -110,6 +110,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private TextDocument? _notamsTextDocument = new();
     private bool _useTexToSpeech;
     private RecordedAtisState _recordedAtisState = RecordedAtisState.Disconnected;
+    private byte[]? _lastRecordedAtisAudio;
     private NetworkConnectionStatus _networkConnectionStatus = NetworkConnectionStatus.Disconnected;
     private List<ICompletionData> _contractionCompletionData = [];
     private bool _hasUnsavedAirportConditions;
@@ -821,6 +822,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         // Set network connection status as disconnected
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
         RecordedAtisState = RecordedAtisState.Disconnected;
+        _lastRecordedAtisAudio = null;
     }
 
     /// <summary>
@@ -1189,6 +1191,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                             _atisStationAirport.Name.Replace("$", "$$"), RegexOptions.IgnoreCase);
                     window.Topmost = lifetime.MainWindow.Topmost;
 
+                    // Allow the previously saved recording to be reviewed with the Listen button.
+                    if (_lastRecordedAtisAudio != null)
+                    {
+                        vm.SetPreviousRecording(_lastRecordedAtisAudio);
+                    }
+
                     if (await window.ShowDialog<bool>(lifetime.MainWindow))
                     {
                         try
@@ -1214,6 +1222,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                             await _voiceServerConnection.AddOrUpdateBot(_networkConnection.Callsign, dto,
                                 localToken.Token);
 
+                            _lastRecordedAtisAudio = vm.AudioBuffer;
                             RecordedAtisState = RecordedAtisState.Connected;
                             IsNewAtis = false;
                         }

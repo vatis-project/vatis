@@ -119,13 +119,14 @@ public static class NativeAudio
     /// </summary>
     /// <param name="buffer">The audio buffer containing the audio data to be played back.</param>
     /// <param name="bufferSize">The size of the audio buffer in bytes.</param>
+    /// <param name="deviceName">The name of the playback device to use, or null for the system default.</param>
     /// <returns>
     /// A boolean value indicating whether the buffer playback was successfully started.
     /// </returns>
-    public static bool StartBufferPlayback(byte[] buffer, int bufferSize)
+    public static bool StartBufferPlayback(byte[] buffer, int bufferSize, string? deviceName = null)
     {
         var bufferPtr = GetAudioDataPointer(buffer);
-        var result = Internal_StartBufferPlayback(s_handle, bufferPtr, bufferSize);
+        var result = Internal_StartBufferPlayback(s_handle, bufferPtr, bufferSize, deviceName);
         DestroyDataPointer(bufferPtr);
         return result;
     }
@@ -207,7 +208,8 @@ public static class NativeAudio
 
     [DllImport(LibNativeAudio, EntryPoint = "StartBufferPlayback")]
     [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool Internal_StartBufferPlayback(nint handle, IntPtr buffer, int bufferSize);
+    private static extern bool Internal_StartBufferPlayback(nint handle, IntPtr buffer, int bufferSize,
+        [MarshalAs(UnmanagedType.LPStr)] string? deviceName);
 
     [DllImport(LibNativeAudio, EntryPoint = "StopBufferPlayback")]
     [return: MarshalAs(UnmanagedType.I1)]
