@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -15,6 +16,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -36,6 +38,7 @@ public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
     private ReadOnlyObservableCollection<AtisStationViewModel> _filteredStations;
     private IDialogOwner? _dialogOwner;
     private bool _hasAnyStations;
+    private bool _hasExpiredRecording;
     private bool _statusLabelVisible;
     private string? _statusLabel;
 
@@ -72,6 +75,16 @@ public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _hasAnyStations;
         set => this.RaiseAndSetIfChanged(ref _hasAnyStations, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether any visible ATIS station has an expired recording,
+    /// in which case space is reserved for the indicator dot.
+    /// </summary>
+    public bool HasExpiredRecording
+    {
+        get => _hasExpiredRecording;
+        set => this.RaiseAndSetIfChanged(ref _hasExpiredRecording, value);
     }
 
     /// <summary>
@@ -141,6 +154,17 @@ public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
 
         // Now subscribe to future updates
         connection.Subscribe(_ => UpdateStations(stations)).DisposeWith(_disposables);
+
+        // Track whether any visible station has an expired recording. This is kept separate from the station
+        // list so that recording state changes (raised from background threads) never rebuild the list.
+        UpdateHasExpiredRecording(sharedSource);
+        sharedSource.Connect()
+            .AutoRefresh(x => x.RecordedAtisState)
+            .AutoRefresh(x => x.NetworkConnectionStatus)
+            .AutoRefresh(x => x.IsVisibleOnMiniWindow)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => UpdateHasExpiredRecording(sharedSource))
+            .DisposeWith(_disposables);
     }
 
     /// <summary>
@@ -183,6 +207,14 @@ public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
         InvokeMainWindowCommand.Dispose();
         EndClientSessionCommand.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private void UpdateHasExpiredRecording(SourceList<AtisStationViewModel> sharedSource)
+    {
+        HasExpiredRecording = sharedSource.Items.Any(x =>
+            x.IsVisibleOnMiniWindow &&
+            x.NetworkConnectionStatus is NetworkConnectionStatus.Connected or NetworkConnectionStatus.Observer &&
+            x.RecordedAtisState == RecordedAtisState.Expired);
     }
 
     private void UpdateStations(ReadOnlyObservableCollection<AtisStationViewModel> readonlyStations)
