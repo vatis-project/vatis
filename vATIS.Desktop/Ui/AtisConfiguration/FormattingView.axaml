@@ -842,11 +842,24 @@
 						</StackPanel>
 					</TabItem>
 					<TabItem Header="Wording">
-						<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding RunwayConditionTerms, DataType=vm:FormattingViewModel}">
+						<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" MaxHeight="350" Margin="0,0,0,10" ItemsSource="{Binding RunwayConditionTerms, DataType=vm:FormattingViewModel}">
 							<Interaction.Behaviors>
 								<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="RunwayConditionTerms"/>
 							</Interaction.Behaviors>
+							<DataGrid.Resources>
+								<x:Double x:Key="ScrollBarSize">14</x:Double>
+								<x:Double x:Key="ScrollBarVerticalThumbWidth">10</x:Double>
+								<x:Double x:Key="ScrollBarVerticalThumbMinHeight">40</x:Double>
+							</DataGrid.Resources>
 							<DataGrid.Styles>
+								<Style Selector="ScrollBar">
+									<Setter Property="AllowAutoHide" Value="False" />
+									<Setter Property="Opacity" Value="1" />
+								</Style>
+								<Style Selector="ScrollBar Thumb">
+									<Setter Property="Background" Value="#9A9A9A" />
+									<Setter Property="CornerRadius" Value="5" />
+								</Style>
 								<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
 									<Setter Property="IsVisible" Value="False" />
 								</Style>
