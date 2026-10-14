@@ -145,6 +145,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
     private ObservableCollection<TextOverrideMeta>? _visibilityDirectionText;
     private ObservableCollection<VariableFormatMeta>? _altimeterVariableFormats;
+    private ObservableCollection<VariableFormatMeta>? _windVariableFormats;
     private ObservableCollection<VariableFormatMeta>? _temperatureVariableFormats;
     private ObservableCollection<VariableFormatMeta>? _dewpointVariableFormats;
     private ObservableCollection<TextOverrideMeta>? _rvrTendencyTexts;
@@ -1608,6 +1609,15 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the wind variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? WindVariableFormats
+    {
+        get => _windVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _windVariableFormats, value);
+    }
+
+    /// <summary>
     /// Gets or sets the altimeter variable format options.
     /// </summary>
     public ObservableCollection<VariableFormatMeta>? AltimeterVariableFormats
@@ -2080,6 +2090,19 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             }
         }
 
+        if (WindVariableFormats != null)
+        {
+            foreach (var meta in WindVariableFormats)
+            {
+                var format = ToFormat(meta);
+                if (!SelectedStation.AtisFormat.SurfaceWind.VariableFormats.TryGetValue(meta.Key, out var existing) ||
+                    !FormatsEqual(existing, format))
+                {
+                    SelectedStation.AtisFormat.SurfaceWind.VariableFormats[meta.Key] = format;
+                }
+            }
+        }
+
         if (AltimeterVariableFormats != null)
         {
             foreach (var meta in AltimeterVariableFormats)
@@ -2480,6 +2503,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
             new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
 
+        WindVariableFormats = [];
+        foreach (var key in new[] { "wind_dir", "wind_spd", "wind_gust", "wind_vmin", "wind_vmax" })
+        {
+            WindVariableFormats.Add(ToMeta(
+                key, station.AtisFormat.SurfaceWind.VariableFormats.GetValueOrDefault(key) ?? new VariableFormat()));
+        }
+
+        _changeTracker.TrackChange(nameof(WindVariableFormats), WindVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+
         AltimeterVariableFormats = [];
         foreach (var key in new[] { "altimeter", "text", "inhg", "hpa", "qfe" })
         {
@@ -2721,6 +2754,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
                         new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+                    break;
+                case nameof(WindVariableFormats):
+                    _changeTracker.TrackChange(nameof(WindVariableFormats), WindVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
                     break;
                 case nameof(AltimeterVariableFormats):
                     _changeTracker.TrackChange(nameof(AltimeterVariableFormats), AltimeterVariableFormats?.Select(item =>
