@@ -9,7 +9,10 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Weather.Decoder.Entity;
+using RunwayCondition = Vatsim.Vatis.Weather.Decoder.Entity.RunwayCondition;
+using RunwayConditionFormat = Vatsim.Vatis.Profiles.AtisFormat.Nodes.RunwayCondition;
 
 namespace Vatsim.Vatis.Atis.Nodes;
 
@@ -32,8 +35,8 @@ public class RunwayConditionNode : BaseNode<RunwayCondition>
 
         foreach (var condition in metar.RunwayConditions)
         {
-            text.Add(Apply(format.TextTemplate, condition, voiceVariable: false));
-            voice.Add(Apply(format.VoiceTemplate, condition, voiceVariable: true));
+            text.Add(Apply(format, condition, voiceVariable: false));
+            voice.Add(Apply(format, condition, voiceVariable: true));
         }
 
         TextAtis = string.Join(" ", text.Where(x => !string.IsNullOrWhiteSpace(x)));
@@ -48,8 +51,9 @@ public class RunwayConditionNode : BaseNode<RunwayCondition>
     public override string ParseTextVariables(RunwayCondition node, string? format) =>
         throw new NotImplementedException();
 
-    private static string Apply(string? template, RunwayCondition condition, bool voiceVariable)
+    private static string Apply(RunwayConditionFormat format, RunwayCondition condition, bool voiceVariable)
     {
+        var template = voiceVariable ? format.VoiceTemplate : format.TextTemplate;
         var match = Regex.Match(condition.Runway, @"^(\d{2})([LCR]?)$");
         var number = match.Groups[1].Value;
         var designator = match.Groups[2].Value;
@@ -66,72 +70,52 @@ public class RunwayConditionNode : BaseNode<RunwayCondition>
 
         var result = (template ?? string.Empty)
             .Replace("{runway}", runway, StringComparison.OrdinalIgnoreCase)
-            .Replace("{deposit}", Deposit(condition, voiceVariable), StringComparison.OrdinalIgnoreCase)
-            .Replace("{depth}", Depth(condition, voiceVariable), StringComparison.OrdinalIgnoreCase)
-            .Replace("{friction}", Friction(condition, voiceVariable), StringComparison.OrdinalIgnoreCase);
+            .Replace("{deposit}", Deposit(format, condition, voiceVariable), StringComparison.OrdinalIgnoreCase)
+            .Replace("{depth}", Depth(format, condition, voiceVariable), StringComparison.OrdinalIgnoreCase)
+            .Replace("{friction}", Friction(format, condition, voiceVariable), StringComparison.OrdinalIgnoreCase);
 
         return Regex.Replace(result, @"\s+", " ").Trim();
     }
 
-    private static string Deposit(RunwayCondition condition, bool voice)
+    private static string Term(RunwayConditionFormat format, string key, bool voice)
+    {
+        if (!format.Terms.TryGetValue(key, out var term) &&
+            !RunwayConditionFormat.DefaultTerms().TryGetValue(key, out term))
+        {
+            return string.Empty;
+        }
+
+        return voice ? term.Voice : term.Text;
+    }
+
+    private static string Deposit(RunwayConditionFormat format, RunwayCondition condition, bool voice)
     {
         if (condition.NotOperational)
         {
-            return voice ? "not operational due to deposits" : "NOT OPERATIONAL DUE TO DEPOSITS";
+            return Term(format, "NotOperational", voice);
         }
 
-        var text = condition.Deposit switch
-        {
-            RunwayCondition.DepositType.ClearAndDry => "clear and dry",
-            RunwayCondition.DepositType.Damp => "damp",
-            RunwayCondition.DepositType.Wet => "wet",
-            RunwayCondition.DepositType.Rime => "covered with rime",
-            RunwayCondition.DepositType.DrySnow => "covered with dry snow",
-            RunwayCondition.DepositType.WetSnow => "covered with wet snow",
-            RunwayCondition.DepositType.Slush => "covered with slush",
-            RunwayCondition.DepositType.Ice => "covered with ice",
-            RunwayCondition.DepositType.CompactedSnow => "covered with compacted snow",
-            RunwayCondition.DepositType.FrozenRuts => "frozen ruts",
-            _ => string.Empty,
-        };
-
-        return voice ? text : text.ToUpperInvariant();
+        return condition.Deposit is { } deposit ? Term(format, deposit.ToString(), voice) : string.Empty;
     }
 
-    private static string Depth(RunwayCondition condition, bool voice)
+    private static string Depth(RunwayConditionFormat format, RunwayCondition condition, bool voice)
     {
         if (condition.DepthMillimeters is not { } mm)
         {
             return string.Empty;
         }
 
-        if (mm >= 100)
-        {
-            var cm = mm / 10;
-            return voice ? $"{cm.ToGroupForm()} centimeters" : $"{cm}CM";
-        }
+        var (key, value) = mm >= 100
+            ? ("DepthCentimeters", mm / 10)
+            : (mm == 1 ? "DepthMillimeter" : "DepthMillimeters", mm);
 
-        return voice ? $"{mm.ToGroupForm()} {(mm == 1 ? "millimeter" : "millimeters")}" : $"{mm}MM";
+        return Term(format, key, voice)
+            .Replace("{value}", voice ? value.ToGroupForm() : value.ToString(CultureInfo.InvariantCulture),
+                StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string Friction(RunwayCondition condition, bool voice)
+    private static string Friction(RunwayConditionFormat format, RunwayCondition condition, bool voice)
     {
-        var quality = condition.Friction switch
-        {
-            RunwayCondition.FrictionType.Good => "good",
-            RunwayCondition.FrictionType.MediumToGood => "medium to good",
-            RunwayCondition.FrictionType.Medium => "medium",
-            RunwayCondition.FrictionType.MediumToPoor => "medium to poor",
-            RunwayCondition.FrictionType.Poor => "poor",
-            RunwayCondition.FrictionType.Unreliable => "unreliable",
-            _ => null,
-        };
-
-        if (quality == null)
-        {
-            return string.Empty;
-        }
-
-        return voice ? $"estimated surface friction {quality}" : $"FRICTION {quality.ToUpperInvariant()}";
+        return condition.Friction is { } friction ? Term(format, $"Friction{friction}", voice) : string.Empty;
     }
 }

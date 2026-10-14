@@ -834,6 +834,22 @@
                             {friction}
                         </Button>
                     </WrapPanel>
+                    <TextBlock Text="Wording" FontSize="16" Margin="0,10,0,0" ToolTip.Tip="The wording used for {deposit}, {depth} and {friction}. Use {value} in the depth wording for the depth."/>
+                    <DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" Height="300" ItemsSource="{Binding RunwayConditionTerms, DataType=vm:FormattingViewModel}">
+                        <Interaction.Behaviors>
+                            <behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="RunwayConditionTerms"/>
+                        </Interaction.Behaviors>
+                        <DataGrid.Styles>
+                            <Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+                                <Setter Property="IsVisible" Value="False" />
+                            </Style>
+                        </DataGrid.Styles>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Term" Width="200" IsReadOnly="True" Binding="{Binding Description, DataType=models:RunwayConditionTermMeta}"/>
+                            <DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Spoken, DataType=models:RunwayConditionTermMeta}"/>
+                            <DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:RunwayConditionTermMeta}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </StackPanel>
             </StackPanel>
             <!--Remark Wind-->
