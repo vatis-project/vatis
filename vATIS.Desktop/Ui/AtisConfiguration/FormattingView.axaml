@@ -16,7 +16,7 @@
 	<Border Name="PartFormattingBorder" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 		<StackPanel Margin="5">
 			<TextBlock Text="Select Component:"/>
-			<ComboBox Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10" MaxDropDownHeight="500" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
+			<ComboBox Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10" MaxDropDownHeight="300" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
 				<ComboBox.ItemTemplate>
 					<DataTemplate>
 						<TextBlock Text="{Binding}" />
