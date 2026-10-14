@@ -861,6 +861,12 @@
 									<x:Double x:Key="ScrollBarVerticalThumbMinHeight">40</x:Double>
 								</DataGrid.Resources>
 								<DataGrid.Styles>
+									<Style Selector="DataGridCell TextBlock">
+										<Setter Property="TextWrapping" Value="Wrap" />
+									</Style>
+									<Style Selector="DataGridCell TextBox">
+										<Setter Property="TextWrapping" Value="Wrap" />
+									</Style>
 									<Style Selector="ScrollBar">
 										<Setter Property="AllowAutoHide" Value="False" />
 										<Setter Property="Opacity" Value="1" />
