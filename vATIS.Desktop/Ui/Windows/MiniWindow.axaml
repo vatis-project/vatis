@@ -124,7 +124,7 @@
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
                                     <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" />
-                                    <TextBlock Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" FontSize="15" FontWeight="Medium" IsHitTestVisible="False"/>
+                                    <TextBlock FontFamily="{StaticResource Monospace}" Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" FontSize="15" FontWeight="Medium" IsHitTestVisible="False"/>
                                 </StackPanel>
                                 <TextBlock Grid.Column="4" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
                                 <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding MiniWindowWind, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
