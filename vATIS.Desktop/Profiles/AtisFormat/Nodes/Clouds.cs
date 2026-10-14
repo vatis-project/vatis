@@ -58,6 +58,11 @@ public class Clouds : BaseFormat
     public UndeterminedLayer UndeterminedLayerAltitude { get; set; } = new("undetermined", "undetermined");
 
     /// <summary>
+    /// Gets or sets the vertical visibility altitude used when the height is not available.
+    /// </summary>
+    public UndeterminedLayer UndeterminedVerticalVisibility { get; set; } = new("undetermined", "undetermined");
+
+    /// <summary>
     /// Gets or sets the automatic CB detection text and voice ATIS values.
     /// </summary>
     public AutomaticCbDetection AutomaticCbDetection { get; set; } = new("//////CB", "RADAR DETECTED C-B CLOUDS");
