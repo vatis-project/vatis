@@ -244,7 +244,7 @@
 							</StackPanel>
 						</groupBox:GroupBoxControl>
 					</TabItem>
-					<TabItem Header="Variable Gust">
+					<TabItem Header="Var. Gust">
 						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
@@ -288,7 +288,7 @@
 							</StackPanel>
 						</groupBox:GroupBoxControl>
 					</TabItem>
-					<TabItem Header="Variable Direction">
+					<TabItem Header="Var. Direction">
 						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
@@ -379,7 +379,7 @@
 							</groupBox:GroupBoxControl>
 						</StackPanel>
 					</TabItem>
-					<TabItem Header="Style" ToolTip.Tip="Variable format: number style and suffix for wind variables, separately for text and voice">
+					<TabItem Header="Variable Format">
 						<StackPanel Orientation="Vertical" Spacing="10" Margin="0,10,0,0">
 							<TextBlock TextWrapping="Wrap" Text="Style changes how the number is written (Digits: 1013, Serial: ONE ZERO ONE THREE, Group: words in groups). Suffix is appended exactly as typed, so include a leading space if needed."/>
 							<DataGrid MaxHeight="230" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding WindVariableFormats, DataType=vm:FormattingViewModel}">
