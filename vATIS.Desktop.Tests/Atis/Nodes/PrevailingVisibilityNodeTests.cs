@@ -60,4 +60,30 @@ public class PrevailingVisibilityNodeTests
         Assert.Equal("7000 4000EAST", node.ParseTextVariables(visibility, "{visibility}"));
         Assert.DoesNotContain("EAST", node.ParseVoiceVariables(visibility, "{visibility}"));
     }
+
+    [Fact]
+    public void UnitWords_AreCustomizable()
+    {
+        var node = CreateNode();
+        var visibility = new MetarDecoder().ParseNotStrict("EDDG 011650Z 25009KT 7000 15/10 Q1015").Visibility!;
+        Assert.Equal("7 kilometers", node.ParseVoiceVariables(visibility, "{visibility}").Trim());
+
+        node.Station!.AtisFormat.Visibility.KilometersUnitVoice = "kay em";
+        Assert.Equal("7 kay em", node.ParseVoiceVariables(visibility, "{visibility}").Trim());
+
+        var short3 = new MetarDecoder().ParseNotStrict("EDDG 011650Z 25009KT 0800 15/10 Q1015").Visibility!;
+        node.Station.AtisFormat.Visibility.MetersUnitVoice = "metres";
+        Assert.EndsWith("metres", node.ParseVoiceVariables(short3, "{visibility}").Trim());
+    }
+
+    [Fact]
+    public void FractionVoice_DefaultAndCustom()
+    {
+        var node = CreateNode();
+        var visibility = new MetarDecoder().ParseNotStrict("KJFK 011651Z 25009KT 1/2SM CLR 20/10 A3000").Visibility!;
+        Assert.Equal("one half.", node.ParseVoiceVariables(visibility, "{visibility}"));
+
+        node.Station!.AtisFormat.Visibility.FractionVoice["1/2SM"] = "half a mile";
+        Assert.Equal("half a mile", node.ParseVoiceVariables(visibility, "{visibility}"));
+    }
 }

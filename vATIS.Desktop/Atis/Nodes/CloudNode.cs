@@ -191,7 +191,9 @@ public class CloudNode : BaseNode<CloudLayer>
                         minDigits = specifiedDigits;
                     }
 
-                    return height.ToString(new string('0', minDigits));
+                    var padded = height.ToString(new string('0', minDigits));
+                    return VariableFormatter.Apply(
+                        padded, height.ToString(), Station.AtisFormat.Clouds.AltitudeFormat.Text, true);
                 },
                 RegexOptions.IgnoreCase
             );
@@ -239,10 +241,15 @@ public class CloudNode : BaseNode<CloudLayer>
         {
             var height = (int)layer.BaseHeight.ActualValue;
             height *= Station.AtisFormat.Clouds.ConvertToMetric ? 30 : 100;
+            var altitudeWords = Station.AtisFormat.Clouds.ConvertToMetric && height < 1000
+                ? height.ToGroupForm()
+                : height.ToWordString();
+            var altitudeVoice = VariableFormatter.Apply(
+                altitudeWords, height.ToString(), Station.AtisFormat.Clouds.AltitudeFormat.Voice);
             template = Regex.Replace(template, "{altitude}",
-                Station.AtisFormat.Clouds.ConvertToMetric
-                    ? (height < 1000 ? $" {height.ToGroupForm()} " : $" {height.ToWordString()} ") + " meters "
-                    : $" {height.ToWordString()} ", RegexOptions.IgnoreCase);
+                _ => Station.AtisFormat.Clouds.ConvertToMetric
+                    ? $" {altitudeVoice} " + " meters "
+                    : $" {altitudeVoice} ", RegexOptions.IgnoreCase);
         }
 
         template = ReplaceFeet(template, layer, "feet");

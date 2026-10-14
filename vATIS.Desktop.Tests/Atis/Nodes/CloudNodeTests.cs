@@ -82,4 +82,25 @@ public class CloudNodeTests
         Assert.Equal("BKN030CUMULONIMBUS", node.TextAtis);
         Assert.Contains("CUMULONIMBUS", node.VoiceAtis.ToUpperInvariant());
     }
+
+    [Fact]
+    public void AltitudeFormat_TextAndVoiceAreIndependent()
+    {
+        var station = new AtisStation { Identifier = "EPWA", Name = "EPWA" };
+        const string metar = "EPWA 011650Z 25009KT 9999 FEW030 05/02 Q1015";
+
+        var node = new CloudNode { Station = station };
+        node.Parse(new MetarDecoder().ParseNotStrict(metar));
+        Assert.Equal("FEW030", node.TextAtis);
+        var defaultVoice = node.VoiceAtis;
+
+        station.AtisFormat.Clouds.AltitudeFormat.Text.Suffix = "FT";
+        station.AtisFormat.Clouds.AltitudeFormat.Voice.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Digits;
+        node = new CloudNode { Station = station };
+        node.Parse(new MetarDecoder().ParseNotStrict(metar));
+        Assert.Equal("FEW030FT", node.TextAtis);
+        Assert.NotEqual(defaultVoice, node.VoiceAtis);
+        Assert.Contains("30", node.VoiceAtis);
+        Assert.DoesNotContain("FT", node.VoiceAtis);
+    }
 }

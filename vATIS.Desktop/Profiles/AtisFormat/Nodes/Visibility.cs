@@ -107,6 +107,44 @@ public class Visibility : BaseFormat
     public int MetersCutoff { get; set; } = 5000;
 
     /// <summary>
+    /// Gets or sets the spoken unit word used for meters when the visibility suffix is included.
+    /// </summary>
+    public string MetersUnitVoice { get; set; } = "meters";
+
+    /// <summary>
+    /// Gets or sets the spoken unit word used for kilometers when the visibility suffix is included.
+    /// </summary>
+    public string KilometersUnitVoice { get; set; } = "kilometers";
+
+    /// <summary>
+    /// Gets or sets the spoken form of fractional statute mile visibility, keyed by the raw METAR value.
+    /// </summary>
+    public Dictionary<string, string> FractionVoice { get; set; } = new()
+    {
+        { "M1/4SM", "less than one quarter." },
+        { "1 1/8SM", "one and one eighth." },
+        { "1 1/4SM", "one and one quarter." },
+        { "1 3/8SM", "one and three eighths." },
+        { "1 1/2SM", "one and one half." },
+        { "1 5/8SM", "one and five eighths." },
+        { "1 3/4SM", "one and three quarters." },
+        { "1 7/8SM", "one and seven eighths." },
+        { "2 1/4SM", "two and one quarter." },
+        { "2 1/2SM", "two and one half." },
+        { "2 3/4SM", "two and three quarters." },
+        { "1/16SM", "one sixteenth." },
+        { "1/8SM", "one eighth." },
+        { "3/16SM", "three sixteenths." },
+        { "1/4SM", "one quarter." },
+        { "5/16SM", "five sixteenths." },
+        { "3/8SM", "three eighths." },
+        { "1/2SM", "one half." },
+        { "5/8SM", "five eighths." },
+        { "3/4SM", "three quarters." },
+        { "7/8SM", "seven eighths." },
+    };
+
+    /// <summary>
     /// Sets the unlimited visibility voice description.
     /// </summary>
     [JsonPropertyName("UnlimitedVisibility")]
