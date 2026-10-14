@@ -244,7 +244,7 @@
 							</StackPanel>
 						</groupBox:GroupBoxControl>
 					</TabItem>
-					<TabItem Header="Var. Gust">
+					<TabItem Header="Variable Gust">
 						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
@@ -288,7 +288,7 @@
 							</StackPanel>
 						</groupBox:GroupBoxControl>
 					</TabItem>
-					<TabItem Header="Var. Direction">
+					<TabItem Header="Variable Direction">
 						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
