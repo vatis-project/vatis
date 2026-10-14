@@ -45,7 +45,17 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         {
             // A directional minimum (e.g. "7000 4000E") already carries its units; drop a unit suffix in the template.
             var pattern = value.MinimumVisibility != null ? "{visibility}M?" : "{visibility}";
-            return Regex.Replace(format, pattern, value.RawValue, RegexOptions.IgnoreCase);
+            var raw = value.RawValue;
+            if (!string.IsNullOrEmpty(value.MinimumVisibilityDirection))
+            {
+                var directionText = Station.AtisFormat.Visibility.DirectionText;
+                raw = Regex.Replace(
+                    raw,
+                    @"(?<=\d{4})(NE|NW|SE|SW|N|E|S|W)\b",
+                    m => directionText.GetValueOrDefault(m.Value, m.Value));
+            }
+
+            return Regex.Replace(format, pattern, _ => raw, RegexOptions.IgnoreCase);
         }
 
         return "";

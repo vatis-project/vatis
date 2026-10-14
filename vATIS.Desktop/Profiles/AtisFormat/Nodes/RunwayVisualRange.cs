@@ -3,6 +3,8 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 
 /// <summary>
@@ -29,6 +31,16 @@ public class RunwayVisualRange : BaseFormat
     /// Gets or sets the going down tendency.
     /// </summary>
     public string? GoingDownTendency { get; set; } = "Going Down";
+
+    /// <summary>
+    /// Gets or sets the text ATIS output for each tendency, keyed by METAR tendency code (N, U, D).
+    /// </summary>
+    public Dictionary<string, string> TendencyText { get; set; } = new()
+    {
+        { "N", "N" },
+        { "U", "U" },
+        { "D", "D" },
+    };
 
     /// <summary>
     /// Creates a new instance of <see cref="RunwayVisualRange"/> that is a copy of the current instance.

@@ -143,6 +143,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<PresentWeatherMeta>? _presentWeatherTypes;
     private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
+    private ObservableCollection<TextOverrideMeta>? _visibilityDirectionText;
+    private ObservableCollection<TextOverrideMeta>? _rvrTendencyTexts;
     private string _presentWeatherSearchTerm = string.Empty;
     private ObservableCollection<PresentWeatherMeta>? _filteredPresentWeatherTypes;
     private bool _presentWeatherFilterAcronym = true;
@@ -1584,6 +1586,24 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _convectiveCloudTypes, value);
     }
 
+    /// <summary>
+    /// Gets or sets the text ATIS output for directional visibility.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? VisibilityDirectionText
+    {
+        get => _visibilityDirectionText;
+        set => this.RaiseAndSetIfChanged(ref _visibilityDirectionText, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text ATIS output for RVR tendencies.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? RvrTendencyTexts
+    {
+        get => _rvrTendencyTexts;
+        set => this.RaiseAndSetIfChanged(ref _rvrTendencyTexts, value);
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -2021,6 +2041,33 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 ConvectiveCloudTypes.ToDictionary(x => x.Key, x => x.Value);
         }
 
+        if (ConvectiveCloudTypes != null)
+        {
+            var convectiveText = ConvectiveCloudTypes.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.Clouds.ConvectiveTypesText.SequenceEqual(convectiveText))
+            {
+                SelectedStation.AtisFormat.Clouds.ConvectiveTypesText = convectiveText;
+            }
+        }
+
+        if (VisibilityDirectionText != null)
+        {
+            var directionText = VisibilityDirectionText.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.Visibility.DirectionText.SequenceEqual(directionText))
+            {
+                SelectedStation.AtisFormat.Visibility.DirectionText = directionText;
+            }
+        }
+
+        if (RvrTendencyTexts != null)
+        {
+            var tendencyText = RvrTendencyTexts.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.RunwayVisualRange.TendencyText.SequenceEqual(tendencyText))
+            {
+                SelectedStation.AtisFormat.RunwayVisualRange.TendencyText = tendencyText;
+            }
+        }
+
         if (SelectedStation.AtisFormat.Temperature.UsePlusPrefix != TemperatureUsePlusPrefix)
         {
             SelectedStation.AtisFormat.Temperature.UsePlusPrefix = TemperatureUsePlusPrefix;
@@ -2362,12 +2409,35 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         ConvectiveCloudTypes = [];
         foreach (var item in station.AtisFormat.Clouds.ConvectiveTypes)
         {
-            ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(item.Key, item.Value));
+            ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(
+                item.Key,
+                item.Value,
+                station.AtisFormat.Clouds.ConvectiveTypesText.GetValueOrDefault(item.Key, item.Key)));
         }
 
         // Track initial ConvectiveCloudTypes.
         _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
-            new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
+            new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+
+        VisibilityDirectionText = [];
+        foreach (var key in new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" })
+        {
+            VisibilityDirectionText.Add(new TextOverrideMeta(
+                key, station.AtisFormat.Visibility.DirectionText.GetValueOrDefault(key, key)));
+        }
+
+        _changeTracker.TrackChange(nameof(VisibilityDirectionText), VisibilityDirectionText.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
+
+        RvrTendencyTexts = [];
+        foreach (var key in new[] { "N", "U", "D" })
+        {
+            RvrTendencyTexts.Add(new TextOverrideMeta(
+                key, station.AtisFormat.RunwayVisualRange.TendencyText.GetValueOrDefault(key, key)));
+        }
+
+        _changeTracker.TrackChange(nameof(RvrTendencyTexts), RvrTendencyTexts.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
 
         TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
         TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
@@ -2546,7 +2616,15 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                     break;
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
-                        new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
+                        new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+                    break;
+                case nameof(VisibilityDirectionText):
+                    _changeTracker.TrackChange(nameof(VisibilityDirectionText), VisibilityDirectionText?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
+                    break;
+                case nameof(RvrTendencyTexts):
+                    _changeTracker.TrackChange(nameof(RvrTendencyTexts), RvrTendencyTexts?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
                     break;
                 case nameof(TransitionLevels):
                     _changeTracker.TrackChange(nameof(TransitionLevels), TransitionLevels?.Select(item =>

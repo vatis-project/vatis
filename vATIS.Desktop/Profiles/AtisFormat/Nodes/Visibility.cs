@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
@@ -59,6 +60,21 @@ public class Visibility : BaseFormat
     /// Gets or sets the visibility description to the north-west.
     /// </summary>
     public string NorthWest { get; set; } = "to the north-west";
+
+    /// <summary>
+    /// Gets or sets the text ATIS output for the directional minimum visibility, keyed by compass direction.
+    /// </summary>
+    public Dictionary<string, string> DirectionText { get; set; } = new()
+    {
+        { "N", "N" },
+        { "NE", "NE" },
+        { "E", "E" },
+        { "SE", "SE" },
+        { "S", "S" },
+        { "SW", "SW" },
+        { "W", "W" },
+        { "NW", "NW" },
+    };
 
     /// <summary>
     /// Gets or sets the voice description for unlimited visibility.
