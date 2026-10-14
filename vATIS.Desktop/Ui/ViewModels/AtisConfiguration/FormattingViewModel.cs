@@ -2526,6 +2526,12 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
             if (focusedElement is TemplateVariableTextBox focusedTextBox)
             {
+                // The raw runway condition is only meaningful in the text ATIS.
+                if (variable == "{raw}" && focusedTextBox.Name == "RunwayConditionVoiceTextBox")
+                {
+                    return;
+                }
+
                 focusedTextBox.Text += variable?.Replace("__", "_");
                 focusedTextBox.CaretIndex = focusedTextBox.Text.Length;
             }

@@ -805,7 +805,7 @@
 									</StackPanel>
 									<StackPanel Orientation="Vertical">
 										<TextBlock Text="Voice:" VerticalAlignment="Center"/>
-										<controls:TemplateVariableTextBox Text="{Binding RunwayConditionVoice, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
+										<controls:TemplateVariableTextBox Name="RunwayConditionVoiceTextBox" Text="{Binding RunwayConditionVoice, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
 									</StackPanel>
 									<StackPanel Orientation="Horizontal" Spacing="10">
 										<Button
@@ -838,7 +838,7 @@
 										</Button>
 										<Button
 											Theme="{StaticResource DarkVariable}"
-											ToolTip.Tip="The raw runway state group as it appears in the METAR (e.g. R25/290150)."
+											ToolTip.Tip="The raw runway state group as it appears in the METAR (e.g. R25/290150). Text template only."
 											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
 											CommandParameter="{Binding $self.Content}">
 											{raw}

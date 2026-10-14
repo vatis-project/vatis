@@ -69,7 +69,7 @@ public class RunwayConditionNode : BaseNode<RunwayCondition>
             : condition.Runway;
 
         var result = (template ?? string.Empty)
-            .Replace("{raw}", condition.RawValue, StringComparison.OrdinalIgnoreCase)
+            .Replace("{raw}", voiceVariable ? string.Empty : condition.RawValue, StringComparison.OrdinalIgnoreCase)
             .Replace("{runway}", runway, StringComparison.OrdinalIgnoreCase)
             .Replace("{deposit}", Deposit(format, condition, voiceVariable), StringComparison.OrdinalIgnoreCase)
             .Replace("{depth}", Depth(format, condition, voiceVariable), StringComparison.OrdinalIgnoreCase)
