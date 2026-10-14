@@ -784,19 +784,8 @@ public class AtisBuilder : IAtisBuilder
         // letters
         input = Regex.Replace(input, @"\*([A-Z]{1,2}[0-9]{0,2})", m => m.Value.ToAlphaNumericWordGroup()).Trim();
 
-        // parse taxiways
-        input = Regex.Replace(input, @"\bTWY ([A-Z]{1,2}[0-9]{0,2})\b",
-            m => $"TWY {m.Groups[1].Value.ToAlphaNumericWordGroup()}");
-        input = Regex.Replace(input, @"\bTWYS ([A-Z]{1,2}[0-9]{0,2})\b",
-            m => $"TWYS {m.Groups[1].Value.ToAlphaNumericWordGroup()}");
-
-        // parse runways
-        input = Regex.Replace(input, @"\b(RY|RWY|RWYS|RUNWAY|RUNWAYS)\s?([0-9]{1,2})([LRC]?)\b",
-            m => StringExtensions.RwyNumbersToWords(int.Parse(m.Groups[2].Value), m.Groups[3].Value,
-                prefix: !string.IsNullOrEmpty(m.Groups[1].Value),
-                plural: !string.IsNullOrEmpty(m.Groups[1].Value) &&
-                        (m.Groups[1].Value == "RWYS" || m.Groups[1].Value == "RUNWAYS"),
-                leadingZero: !station.IsFaaAtis));
+        // parse taxiways and runways
+        input = TaxiwayRunwayFormatter.Format(input, leadingZero: !station.IsFaaAtis);
 
         // parse individual runway: ^18R, ^01C, ^36
         var runwayMatches = Regex.Matches(input, @"\^(0[1-9]|1[0-9]|2[0-9]|3[0-6]|[1-9])([RLC]?)");

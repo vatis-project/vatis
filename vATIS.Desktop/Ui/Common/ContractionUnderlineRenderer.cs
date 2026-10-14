@@ -42,7 +42,7 @@ public partial class ContractionUnderlineRenderer : IBackgroundRenderer
     /// Matches the built-in tokens that are rewritten into spoken words when building the voice ATIS.
     /// </summary>
     /// <returns>The built-in token regex.</returns>
-    [GeneratedRegex(@"\+[A-Z0-9]{3,4}\b|\*[A-Z]{1,2}[0-9]{0,2}\b|\^(?:0[1-9]|[12][0-9]|3[0-6]|[1-9])[RLC]?\b|\*-?[\,0-9]+|\{-?[\,0-9]+\}|\b(?:RY|RWYS?|RUNWAYS?)\s?[0-9]{1,2}[LRC]?\b|\bTWYS? [A-Z]{1,2}[0-9]{0,2}\b|&")]
+    [GeneratedRegex(@"\+[A-Z0-9]{3,4}\b|\*[A-Z]{1,2}[0-9]{0,2}\b|\^(?:0[1-9]|[12][0-9]|3[0-6]|[1-9])[RLC]?\b|\*-?[\,0-9]+|\{-?[\,0-9]+\}|\b(?:R\s?Y|RWYS?|RUNWAYS?)\b,?\s?[0-9]{1,2}[LRC]?\b(?:\s?L/R\b)?(?:(?:\s*,\s*(?:(?:AND|&)\s+)?|\s+(?:AND|&)\s*,?\s*|\s*/\s*)(?:0?[1-9]|[12][0-9]|3[0-6])[LRC]?\b)*|\b(?:TWYS?|TXY|TAXIWAYS?|TAXILANES?)\b(?:\s+(?:CLSD|CLOSED)\b)?\s*,?\s*[A-Z]{1,2}(?:\s[0-9]{1,2}\b|[0-9]{0,2}\b)(?:(?:\s*,\s*(?:(?:AND|&)\s+)?|\s+(?:AND|&)\s*,?\s*)[A-Z]{1,2}(?:\s[0-9]{1,2}\b|[0-9]{0,2}\b)|\s+[A-Z]{1,2}[0-9]{1,2}\b)*|(?<=\b(?:BTN|BTWN|BETWEEN)\b,?\s*)[A-Z]{1,2}(?:\s[0-9]{1,2}\b|[0-9]{0,2}\b)(?:\s*,?\s*AND\b\s*,?\s*[A-Z]{1,2}(?:\s[0-9]{1,2}\b|[0-9]{0,2}\b)(?:\s+[A-Z]{1,2}[0-9]{1,2}\b)*)?|(?<=\b(?:NORTH|SOUTH|EAST|WEST)\s+OF\s+|\b(?:INTERSECTION|INT)\s+)[B-HJ-Z][0-9]{0,2}\b(?![/\-])|(?<=\b(?:AT|FROM|TO)\s+)[A-Z][0-9]{1,2}\b(?![/\-])|(?<=(?:^|[.;:,])\s*)[A-Z]{1,2}[0-9]{0,2}(?:\s+[A-Z]{1,2}[0-9]{1,2})*(?=\s+(?:CLSD|CLOSED|BTN|BTWN|BETWEEN)\b)|(?<![\w.^*+#])(?:0?[1-9]|[12][0-9]|3[0-6])[LRC]\b|&")]
     public static partial Regex BuiltInTokenRegex();
 
     /// <summary>
