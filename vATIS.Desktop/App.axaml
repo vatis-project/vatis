@@ -33,7 +33,7 @@
         </ResourceDictionary>
         <FontFamily x:Key="UiFont">/Assets/Fonts#Nunito</FontFamily>
         <FontFamily x:Key="Icons">/Assets/Fonts#mdl2</FontFamily>
-        <FontFamily x:Key="Monospace">/Assets/Fonts#DM Mono</FontFamily>
+        <FontFamily x:Key="Monospace">/Assets/Fonts#Intel One Mono</FontFamily>
         <StaticResource x:Key="ContentControlThemeFontFamily" ResourceKey="UiFont" />
         <x:Double x:Key="ControlContentThemeFontSize">13</x:Double>
     </Application.Resources>
