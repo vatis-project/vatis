@@ -31,10 +31,11 @@
                 <ResourceInclude Source="/Ui/Styles/MiniWindowMenu.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-        <FontFamily x:Key="UiFont">/Assets/Fonts#Nunito</FontFamily>
+        <FontFamily x:Key="UiFont">/Assets/Fonts#IBM Plex Sans</FontFamily>
         <FontFamily x:Key="Icons">/Assets/Fonts#mdl2</FontFamily>
         <FontFamily x:Key="Monospace">/Assets/Fonts#Intel One Mono</FontFamily>
         <StaticResource x:Key="ContentControlThemeFontFamily" ResourceKey="UiFont" />
-        <x:Double x:Key="ControlContentThemeFontSize">13</x:Double>
+        <x:Double x:Key="UiFontSize">14</x:Double>
+        <StaticResource x:Key="ControlContentThemeFontSize" ResourceKey="UiFontSize" />
     </Application.Resources>
 </Application>

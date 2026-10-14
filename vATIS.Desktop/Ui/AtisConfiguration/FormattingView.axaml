@@ -717,7 +717,7 @@
 							    </DataGrid.Columns>
 						    </DataGrid>
                             <StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
-                                <TextBlock Text="Automatic CB Detection" FontSize="16" Margin="0,10,0,0" ToolTip.Tip="When //////CB is presented in the METAR"/>
+                                <TextBlock Text="Automatic CB Detection" Margin="0,10,0,0" ToolTip.Tip="When //////CB is presented in the METAR"/>
                                 <TextBlock ToolTip.Tip="The value presented in the text ATIS">Text:</TextBlock>
                                 <TextBox Text="{Binding AutomaticCbDetectionText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="The value presented in the text ATIS" FontFamily="{StaticResource Monospace}"/>
                                 <TextBlock ToolTip.Tip="The spoken value in the voice ATIS">Voice:</TextBlock>
