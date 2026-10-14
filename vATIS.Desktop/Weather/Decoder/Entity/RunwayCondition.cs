@@ -76,6 +76,11 @@ public class RunwayCondition
     public string Runway { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the raw runway state group as it appeared in the METAR, e.g. R25/290150.
+    /// </summary>
+    public string RawValue { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the deposit type, if reported.
     /// </summary>
     public DepositType? Deposit { get; set; }

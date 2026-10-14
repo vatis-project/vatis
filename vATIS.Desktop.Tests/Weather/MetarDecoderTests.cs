@@ -64,6 +64,7 @@ public class MetarDecoderTests
         Assert.Equal(2, metar.RunwayConditions.Count);
         var condition = metar.RunwayConditions[0];
         Assert.Equal("24L", condition.Runway);
+        Assert.Equal("R24L/290145", condition.RawValue);
         Assert.Equal(RunwayCondition.DepositType.Wet, condition.Deposit);
         Assert.Equal(1, condition.DepthMillimeters);
         Assert.Equal(RunwayCondition.FrictionType.Good, condition.Friction);

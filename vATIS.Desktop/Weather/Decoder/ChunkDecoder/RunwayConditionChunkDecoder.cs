@@ -75,6 +75,7 @@ public sealed class RunwayConditionChunkDecoder : MetarChunkDecoder
         var condition = new RunwayCondition
         {
             Runway = match.Groups["rwy"].Value,
+            RawValue = match.Value,
             Deposit = (RunwayCondition.DepositType)int.Parse(a, CultureInfo.InvariantCulture),
         };
 

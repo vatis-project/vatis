@@ -836,6 +836,13 @@
 											CommandParameter="{Binding $self.Content}">
 											{friction}
 										</Button>
+										<Button
+											Theme="{StaticResource DarkVariable}"
+											ToolTip.Tip="The raw runway state group as it appears in the METAR (e.g. R25/290150)."
+											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+											CommandParameter="{Binding $self.Content}">
+											{raw}
+										</Button>
 									</StackPanel>
 								</StackPanel>
 							</groupBox:GroupBoxControl>
