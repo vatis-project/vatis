@@ -10,6 +10,11 @@
              xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.FormattingView">
+	<UserControl.Styles>
+		<Style Selector="controls|TemplateVariableTextBox">
+			<Setter Property="FontFamily" Value="{StaticResource Monospace}"/>
+		</Style>
+	</UserControl.Styles>
 	<UserControl.Resources>
 		<converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
 	</UserControl.Resources>
@@ -27,7 +32,7 @@
 			<StackPanel Orientation="Vertical" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Observation Time'}">
 				<StackPanel Orientation="Vertical" Margin="0,0,0,10" Spacing="5">
 					<TextBlock Text="Routine Observation Time:" VerticalAlignment="Center" ToolTip.Tip="The routine observation time (minutes) of this METAR station. For example, if the METAR is normally updated at 53 minutes past the hour, enter 53. If the METAR has multiple routine observation times, enter the intervals separated by a comma (e.g. 15, 45)"/>
-					<TextBox Text="{Binding RoutineObservationTime, DataType=vm:FormattingViewModel}" MinWidth="150" Theme="{StaticResource DarkTextBox}">
+					<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding RoutineObservationTime, DataType=vm:FormattingViewModel}" MinWidth="150" Theme="{StaticResource DarkTextBox}">
 						<Interaction.Behaviors>
 							<behaviors:RoutineObservationTimeFormatBehavior/>
 							<behaviors:SelectAllTextOnFocusBehavior/>
@@ -98,7 +103,7 @@
                     <CheckBox IsEnabled="{Binding !#SpeakWindSpeedGroupFormat.IsChecked}" IsChecked="{Binding SpeakWindSpeedLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Speak wind speed leading zero</CheckBox>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<CheckBox IsChecked="{Binding MagneticVariationEnabled, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" Name="MagneticVariation">Magnetic Variation</CheckBox>
-						<TextBox Text="{Binding MagneticVariationValue, DataType=vm:FormattingViewModel}" MaxLength="3" MinWidth="60" IsEnabled="{Binding #MagneticVariation.IsChecked}" Theme="{StaticResource DarkTextBox}">
+						<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding MagneticVariationValue, DataType=vm:FormattingViewModel}" MaxLength="3" MinWidth="60" IsEnabled="{Binding #MagneticVariation.IsChecked}" Theme="{StaticResource DarkTextBox}">
 							<Interaction.Behaviors>
 								<behaviors:TextBoxNumericNegativeBehavior/>
 							</Interaction.Behaviors>
@@ -316,7 +321,7 @@
 						<StackPanel Orientation="Vertical">
 							<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
 								<TextBlock VerticalAlignment="Center" ToolTip.Tip="The minimum wind speed before it is considered &quot;calm&quot;">Calm Wind Speed:</TextBlock>
-								<TextBox Text="{Binding CalmWindSpeed, DataType=vm:FormattingViewModel}" MaxLength="3" MinWidth="60" Name="CalmWindSpeed" Theme="{StaticResource DarkTextBox}">
+								<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding CalmWindSpeed, DataType=vm:FormattingViewModel}" MaxLength="3" MinWidth="60" Name="CalmWindSpeed" Theme="{StaticResource DarkTextBox}">
 									<Interaction.Behaviors>
 										<behaviors:TextBoxNumericOnlyBehavior/>
 									</Interaction.Behaviors>
@@ -400,7 +405,7 @@
 								<CheckBox IsChecked="{Binding VisibilityIncludeVisibilitySuffix, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the visibility unit type will be appended to the visibility value (e.g. &quot;5000 meters&quot; or &quot;8 kilometers&quot;)">Include visibility unit suffix</CheckBox>
 								<StackPanel Orientation="Horizontal" Spacing="10" Margin="20,0,0,0">
 									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The cutoff value for when to transition to &quot;kilometers&quot; suffix instead of &quot;meters&quot;">Meters Cutoff:</TextBlock>
-									<TextBox Text="{Binding VisibilityMetersCutoff, DataType=vm:FormattingViewModel}" MinWidth="60" Theme="{StaticResource DarkTextBox}">
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityMetersCutoff, DataType=vm:FormattingViewModel}" MinWidth="60" Theme="{StaticResource DarkTextBox}">
 										<Interaction.Behaviors>
 											<behaviors:TextBoxNumericOnlyBehavior/>
 										</Interaction.Behaviors>
@@ -409,32 +414,32 @@
 							</StackPanel>
 							<Grid ColumnDefinitions="Auto,10,Auto,20,Auto,10,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
 								<TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
-								<TextBox Grid.Row="0" Grid.Column="2" Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="2" Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
 								<TextBlock Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
-								<TextBox Grid.Row="0" Grid.Column="6" Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="6" Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
 								<TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the METAR reports CAVOK">CAVOK (Voice):</TextBlock>
-								<TextBox Grid.Row="1" Grid.Column="2" Text="{Binding VisibilityCavokVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="2" Text="{Binding VisibilityCavokVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
 								<TextBlock Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the METAR reports CAVOK">CAVOK (Text):</TextBlock>
-								<TextBox Grid.Row="1" Grid.Column="6" Text="{Binding VisibilityCavokText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
+								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="6" Text="{Binding VisibilityCavokText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
 							</Grid>
 							<groupBox:GroupBoxControl Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
 								<Grid ColumnDefinitions="80,*,15,80,*" RowDefinitions="*,5,*,5,*,5,*">
 									<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">North:</TextBlock>
-									<TextBox Text="{Binding VisibilityNorth, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityNorth, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
 									<TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">North East:</TextBlock>
-									<TextBox Text="{Binding VisibilityNorthEast, DataType=vm:FormattingViewModel}"  Grid.Column="1" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityNorthEast, DataType=vm:FormattingViewModel}"  Grid.Column="1" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
 									<TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center">East:</TextBlock>
-									<TextBox Text="{Binding VisibilityEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
 									<TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center">South East:</TextBlock>
-									<TextBox Text="{Binding VisibilitySouthEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilitySouthEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
 									<TextBlock Grid.Column="3" Grid.Row="0" VerticalAlignment="Center">South:</TextBlock>
-									<TextBox Text="{Binding VisibilitySouth, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilitySouth, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
 									<TextBlock Grid.Column="3" Grid.Row="2" VerticalAlignment="Center">South West:</TextBlock>
-									<TextBox Text="{Binding VisibilitySouthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilitySouthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
 									<TextBlock Grid.Column="3" Grid.Row="4" VerticalAlignment="Center">West:</TextBlock>
-									<TextBox Text="{Binding VisibilityWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
 									<TextBlock Grid.Column="3" Grid.Row="6" VerticalAlignment="Center">North West:</TextBlock>
-									<TextBox Text="{Binding VisibilityNorthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityNorthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
 								</Grid>
 							</groupBox:GroupBoxControl>
 						</StackPanel>
@@ -446,22 +451,22 @@
                 <groupBox:GroupBoxControl Header="Runway Visual Range (Spoken)" Theme="{StaticResource GroupBoxClassic}">
                     <Grid ColumnDefinitions="130,*">
                         <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text used to announce runway visual range, e.g. R-V-R or Runway Visual Range">Spoken text:</TextBlock>
-                        <TextBox Grid.Column="1" Text="{Binding RvrSpokenText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding RvrSpokenText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                     </Grid>
                 </groupBox:GroupBoxControl>
                 <groupBox:GroupBoxControl Header="Tendencies (Spoken)" Theme="{StaticResource GroupBoxClassic}">
                     <StackPanel Orientation="Vertical" Spacing="10">
                         <Grid ColumnDefinitions="130,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is N">Neutral (N):</TextBlock>
-                            <TextBox Grid.Column="1" Text="{Binding RvrTendencyNeutralText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding RvrTendencyNeutralText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                         <Grid ColumnDefinitions="130,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is U">Going Up (U):</TextBlock>
-                            <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingUpText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding RvrTendencyGoingUpText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                         </Grid>
                         <Grid ColumnDefinitions="130,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the tendency is D">Going Down (D):</TextBlock>
-                            <TextBox Grid.Column="1" Text="{Binding RvrTendencyGoingDownText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding RvrTendencyGoingDownText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                     </StackPanel>
 				</groupBox:GroupBoxControl>
@@ -539,9 +544,9 @@
 									</Style>
 								</DataGrid.Styles>
 								<DataGrid.Columns>
-									<DataGridTextColumn Header="Acronym" Width="140" Binding="{Binding Key, DataType=models:PresentWeatherMeta}" IsReadOnly="True"/>
-									<DataGridTextColumn Header="Text" Width="140" Binding="{Binding Text, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
-									<DataGridTextColumn Header="Spoken" Width="1*" Binding="{Binding Spoken, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
+									<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Acronym" Width="140" Binding="{Binding Key, DataType=models:PresentWeatherMeta}" IsReadOnly="True"/>
+									<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="140" Binding="{Binding Text, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
+									<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Spoken" Width="1*" Binding="{Binding Spoken, DataType=models:PresentWeatherMeta}" IsReadOnly="False"/>
 								</DataGrid.Columns>
 							</DataGrid>
 						</StackPanel>
@@ -602,7 +607,7 @@
                                 <CheckBox Grid.Column="0" IsChecked="{Binding CloudsIdentifyCeilingLayer, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Prefix ceiling layer in voice ATIS with "ceiling"</CheckBox>
                                 <Grid Grid.Column="2" ColumnDefinitions="Auto,5,*">
                                     <CheckBox Name="PrefixCeilingTextAtis" IsChecked="{Binding CloudsIdentifyCeilingLayerTextAtis, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Prefix the ceiling layer in the text ATIS with:</CheckBox>
-                                    <TextBox IsEnabled="{Binding #PrefixCeilingTextAtis.IsChecked}" Text="{Binding CloudCeilingLayerPrefixTextAtis, DataType=vm:FormattingViewModel}" Grid.Column="1" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBox FontFamily="{StaticResource Monospace}" IsEnabled="{Binding #PrefixCeilingTextAtis.IsChecked}" Text="{Binding CloudCeilingLayerPrefixTextAtis, DataType=vm:FormattingViewModel}" Grid.Column="1" Theme="{StaticResource DarkTextBox}"/>
                                 </Grid>
                             </Grid>
                             <Grid ColumnDefinitions="300,10,*">
@@ -612,11 +617,11 @@
 							<Grid ColumnDefinitions="*,10,*">
                                 <Grid Grid.Column="0" ColumnDefinitions="Auto,5,*">
                                     <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the cloud layer height is ///">Undetermined (Voice):</TextBlock>
-                                    <TextBox Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                                 </Grid>
                                 <Grid Grid.Column="2" ColumnDefinitions="Auto,5,*">
                                     <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the cloud layer height is ///">Undetermined (Text):</TextBlock>
-                                    <TextBox Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                                 </Grid>
 							</Grid>
                         </StackPanel>
@@ -632,9 +637,9 @@
 								</Style>
 							</DataGrid.Styles>
 							<DataGrid.Columns>
-								<DataGridTextColumn Header="Acronym" Width="150" IsReadOnly="True" Binding="{Binding Acronym, DataType=models:CloudTypeMeta}"/>
-								<DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Spoken, DataType=models:CloudTypeMeta}"/>
-								<DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:CloudTypeMeta}"/>
+								<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Acronym" Width="150" IsReadOnly="True" Binding="{Binding Acronym, DataType=models:CloudTypeMeta}"/>
+								<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Spoken, DataType=models:CloudTypeMeta}"/>
+								<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:CloudTypeMeta}"/>
 							</DataGrid.Columns>
 						</DataGrid>
 					</TabItem>
@@ -650,8 +655,8 @@
 								    </Style>
 							    </DataGrid.Styles>
 							    <DataGrid.Columns>
-								    <DataGridTextColumn Header="Acronym" Width="1*" IsReadOnly="True" Binding="{Binding Key, DataType=models:ConvectiveCloudTypeMeta}"/>
-								    <DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Value, DataType=models:ConvectiveCloudTypeMeta}"/>
+								    <DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Acronym" Width="1*" IsReadOnly="True" Binding="{Binding Key, DataType=models:ConvectiveCloudTypeMeta}"/>
+								    <DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Value, DataType=models:ConvectiveCloudTypeMeta}"/>
 							    </DataGrid.Columns>
 						    </DataGrid>
                             <StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
@@ -880,23 +885,23 @@
                         </Grid>
                         <Grid ColumnDefinitions="100,10,*,10,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center">NOSIG</TextBlock>
-                            <TextBox Grid.Column="2" Text="{Binding NosigTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            <TextBox Grid.Column="4" Text="{Binding NosigVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="2" Text="{Binding NosigTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="4" Text="{Binding NosigVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                         <Grid ColumnDefinitions="100,10,*,10,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center">BECMG</TextBlock>
-                            <TextBox Grid.Column="2" Text="{Binding BecomingTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            <TextBox Grid.Column="4" Text="{Binding BecomingVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="2" Text="{Binding BecomingTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="4" Text="{Binding BecomingVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                         <Grid ColumnDefinitions="100,10,*,10,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center">TEMPO</TextBlock>
-                            <TextBox Grid.Column="2" Text="{Binding TemporaryTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            <TextBox Grid.Column="4" Text="{Binding TemporaryVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="2" Text="{Binding TemporaryTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="4" Text="{Binding TemporaryVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                         <Grid ColumnDefinitions="100,10,*,10,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Text to print and/or say when the TREND is not available in the METAR">Not Available</TextBlock>
-                            <TextBox Grid.Column="2" Text="{Binding TrendNotAvailableTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
-                            <TextBox Grid.Column="4" Text="{Binding TrendNotAvailableVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="2" Text="{Binding TrendNotAvailableTextValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
+                            <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="4" Text="{Binding TrendNotAvailableVoiceValue, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"></TextBox>
                         </Grid>
                     </StackPanel>
                 </groupBox:GroupBoxControl>
@@ -946,9 +951,9 @@
 									</Style>
 								</DataGrid.Styles>
 								<DataGrid.Columns>
-									<DataGridTextColumn Header="QNH Low" Width="1*" Binding="{Binding Low, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
-									<DataGridTextColumn Header="QNH High" Width="1*" Binding="{Binding High, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
-									<DataGridTextColumn Header="Transition Level" Width="1*" Binding="{Binding Altitude, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
+									<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="QNH Low" Width="1*" Binding="{Binding Low, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
+									<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="QNH High" Width="1*" Binding="{Binding High, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
+									<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Transition Level" Width="1*" Binding="{Binding Altitude, DataType=models:TransitionLevelMeta}" IsReadOnly="False"/>
 								</DataGrid.Columns>
 							</DataGrid>
 							<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
