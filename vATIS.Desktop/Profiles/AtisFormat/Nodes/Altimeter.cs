@@ -3,6 +3,8 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 
 /// <summary>
@@ -22,6 +24,19 @@ public class Altimeter : BaseFormat
     /// Gets or sets a value indicating whether to pronounce the decimal in the altimeter value.
     /// </summary>
     public bool PronounceDecimal { get; set; }
+
+    /// <summary>
+    /// Gets or sets independent text and voice rendering options per variable variant.
+    /// Keys: altimeter, text, inhg, hpa, qfe.
+    /// </summary>
+    public Dictionary<string, VariableFormat> VariableFormats { get; set; } = new()
+    {
+        { "altimeter", new VariableFormat() },
+        { "text", new VariableFormat() },
+        { "inhg", new VariableFormat() },
+        { "hpa", new VariableFormat() },
+        { "qfe", new VariableFormat() },
+    };
 
     /// <summary>
     /// Creates a new instance of <see cref="Altimeter"/> that is a copy of the current instance.
