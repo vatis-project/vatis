@@ -48,6 +48,7 @@ public class MetarDecoder
         new PressureChunkDecoder(),
         new RecentWeatherChunkDecoder(),
         new WindShearChunkDecoder(),
+        new RunwayConditionChunkDecoder(),
         new TrendChunkDecoder()
     ]);
 
