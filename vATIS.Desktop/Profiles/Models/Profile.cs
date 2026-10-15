@@ -18,7 +18,7 @@ public class Profile
     /// <summary>
     /// The current version of the profile.
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 4;
 
     /// <summary>
     /// Gets or sets the name of the profile.
