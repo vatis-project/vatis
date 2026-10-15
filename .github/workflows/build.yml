@@ -62,7 +62,7 @@ jobs:
       - name: Cache NativeAudio
         id: native-cache
         if: needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vATIS.Desktop/Voice/Audio/Native
           key: nativeaudio-${{ runner.os }}-${{ hashFiles('NativeAudio/**') }}
@@ -116,7 +116,7 @@ jobs:
       - name: Cache NativeAudio
         id: native-cache
         if: needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vATIS.Desktop/Voice/Audio/Native
           key: nativeaudio-${{ runner.os }}-${{ hashFiles('NativeAudio/**') }}
