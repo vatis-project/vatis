@@ -41,7 +41,7 @@ public class AtisBuilderFormatCustomizationTests
         var station = NewStation();
         customize?.Invoke(station);
 
-        var builder = new AtisBuilder(null!, new FakeNavData(), null!, new FakeMetarRepository(), null!);
+        var builder = new AtisBuilder(null!, new FakeNavData(), null!, new FakeMetarRepository(), null!, null!);
         var preset = new AtisPreset { Name = "P", Template = Template };
         var metar = new MetarDecoder().ParseNotStrict(RawMetar);
 
