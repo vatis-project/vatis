@@ -5,6 +5,8 @@
 
 using Vatsim.Vatis.Profiles.Models;
 
+using System.Collections.Generic;
+
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 
 /// <summary>
@@ -81,6 +83,19 @@ public class SurfaceWind
     /// Gets or sets the calm wind format.
     /// </summary>
     public CalmWind Calm { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets independent text and voice rendering options per wind variable.
+    /// Keys: wind_dir, wind_spd, wind_gust, wind_vmin, wind_vmax. Unit variants ({wind_spd|kt}) share their base key.
+    /// </summary>
+    public Dictionary<string, VariableFormat> VariableFormats { get; set; } = new()
+    {
+        { "wind_dir", new VariableFormat() },
+        { "wind_spd", new VariableFormat() },
+        { "wind_gust", new VariableFormat() },
+        { "wind_vmin", new VariableFormat() },
+        { "wind_vmax", new VariableFormat() },
+    };
 
     /// <summary>
     /// Creates a new instance of <see cref="SurfaceWind"/> that is a copy of the current instance.
