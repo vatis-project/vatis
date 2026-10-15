@@ -65,4 +65,21 @@ public class CloudNodeTests
         Assert.NotNull(clouds);
         Assert.True(clouds!.Types.ContainsKey("UND"));
     }
+
+    [Fact]
+    public void ConvectiveText_DefaultsToAcronym_AndIsCustomizable()
+    {
+        var station = new AtisStation { Identifier = "EPWA", Name = "EPWA" };
+        const string metar = "EPWA 011650Z 25009KT 9999 BKN030CB 05/02 Q1015";
+
+        var node = new CloudNode { Station = station };
+        node.Parse(new MetarDecoder().ParseNotStrict(metar));
+        Assert.Equal("BKN030CB", node.TextAtis);
+
+        station.AtisFormat.Clouds.ConvectiveTypesText["CB"] = "CUMULONIMBUS";
+        node = new CloudNode { Station = station };
+        node.Parse(new MetarDecoder().ParseNotStrict(metar));
+        Assert.Equal("BKN030CUMULONIMBUS", node.TextAtis);
+        Assert.Contains("CUMULONIMBUS", node.VoiceAtis.ToUpperInvariant());
+    }
 }

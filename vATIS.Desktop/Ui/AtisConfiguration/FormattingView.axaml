@@ -452,10 +452,26 @@
 							</groupBox:GroupBoxControl>
 						</StackPanel>
 					</TabItem>
+					<TabItem Header="Direction (Text)" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
+						<groupBox:GroupBoxControl Header="Visibility Direction (Text)" Theme="{StaticResource GroupBoxClassic}">
+								<DataGrid MaxHeight="230" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityDirectionText, DataType=vm:FormattingViewModel}">
+									<Interaction.Behaviors>
+										<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityDirectionText"/>
+									</Interaction.Behaviors>
+									<DataGrid.Columns>
+										<DataGridTextColumn Header="Code" Width="140" IsReadOnly="True" Binding="{Binding Key, DataType=models:TextOverrideMeta}"/>
+										<DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:TextOverrideMeta}"/>
+									</DataGrid.Columns>
+								</DataGrid>
+							</groupBox:GroupBoxControl>
+					</TabItem>
 				</TabControl>
 			</StackPanel>
             <!--Runway Visual Range-->
 			<StackPanel Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
+				<TabControl Margin="-3">
+					<TabItem Header="Spoken">
+						<StackPanel Spacing="10">
                 <groupBox:GroupBoxControl Header="Runway Visual Range (Spoken)" Theme="{StaticResource GroupBoxClassic}">
                     <Grid ColumnDefinitions="130,*">
                         <TextBlock Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text used to announce runway visual range, e.g. R-V-R or Runway Visual Range">Spoken text:</TextBlock>
@@ -478,6 +494,23 @@
                         </Grid>
                     </StackPanel>
 				</groupBox:GroupBoxControl>
+
+						</StackPanel>
+					</TabItem>
+					<TabItem Header="Text">
+						<groupBox:GroupBoxControl Header="Tendencies (Text)" Theme="{StaticResource GroupBoxClassic}">
+								<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding RvrTendencyTexts, DataType=vm:FormattingViewModel}">
+									<Interaction.Behaviors>
+										<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="RvrTendencyTexts"/>
+									</Interaction.Behaviors>
+									<DataGrid.Columns>
+										<DataGridTextColumn Header="Code" Width="140" IsReadOnly="True" Binding="{Binding Key, DataType=models:TextOverrideMeta}"/>
+										<DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:TextOverrideMeta}"/>
+									</DataGrid.Columns>
+								</DataGrid>
+							</groupBox:GroupBoxControl>
+					</TabItem>
+				</TabControl>
 			</StackPanel>
 			<!--Weather-->
 			<StackPanel Spacing="10" Margin="10,10,0,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
@@ -717,6 +750,7 @@
 							    <DataGrid.Columns>
 								    <DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Acronym" Width="1*" IsReadOnly="True" Binding="{Binding Key, DataType=models:ConvectiveCloudTypeMeta}"/>
 								    <DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Value, DataType=models:ConvectiveCloudTypeMeta}"/>
+								    <DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:ConvectiveCloudTypeMeta}"/>
 							    </DataGrid.Columns>
 						    </DataGrid>
                             <StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">

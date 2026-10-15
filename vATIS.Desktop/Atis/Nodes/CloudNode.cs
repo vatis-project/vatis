@@ -48,6 +48,12 @@ public class CloudNode : BaseNode<CloudLayer>
         };
     }
 
+    private string ConvectiveText(CloudLayer.CloudType type)
+    {
+        var key = TypeToString(type);
+        return Station?.AtisFormat.Clouds.ConvectiveTypesText.GetValueOrDefault(key, key) ?? key;
+    }
+
     private static string AmountToString(CloudLayer.CloudAmount amount)
     {
         return amount switch
@@ -194,7 +200,7 @@ public class CloudNode : BaseNode<CloudLayer>
         template = ReplaceFeet(template, layer, "feet");
 
         template = layer.Type != CloudLayer.CloudType.None
-            ? Regex.Replace(template, "{convective}", TypeToString(layer.Type), RegexOptions.IgnoreCase)
+            ? Regex.Replace(template, "{convective}", ConvectiveText(layer.Type), RegexOptions.IgnoreCase)
             : Regex.Replace(template, "{convective}", "", RegexOptions.IgnoreCase);
 
         return Station.AtisFormat.Clouds.IdentifyCeilingLayerTextAtis && layer == ceiling

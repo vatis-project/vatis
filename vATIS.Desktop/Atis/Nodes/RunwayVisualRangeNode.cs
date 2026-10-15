@@ -57,7 +57,16 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                 continue;
             }
 
-            acars.Add(rvr.RawValue);
+            var tendencyGroup = match.Groups[8];
+            var acarsValue = rvr.RawValue;
+            if (tendencyGroup.Success && Station != null)
+            {
+                var tendencyText = Station.AtisFormat.RunwayVisualRange.TendencyText
+                    .GetValueOrDefault(tendencyGroup.Value, tendencyGroup.Value);
+                acarsValue = acarsValue[..tendencyGroup.Index] + tendencyText;
+            }
+
+            acars.Add(acarsValue);
 
             var rwyNumber = match.Groups[1].Value;
 

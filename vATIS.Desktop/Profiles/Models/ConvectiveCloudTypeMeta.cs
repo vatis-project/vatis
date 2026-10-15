@@ -9,16 +9,16 @@ using ReactiveUI;
 namespace Vatsim.Vatis.Profiles.Models;
 
 /// <summary>
-/// Represents metadata information for a convective cloud type, including a key and its corresponding value.
+/// Represents metadata information for a convective cloud type, including a key, its spoken value and its text value.
 /// </summary>
-public record ConvectiveCloudTypeMeta(string Key, string Value) : ReactiveRecord
+public record ConvectiveCloudTypeMeta(string Key, string Value, string Text = "") : ReactiveRecord
 {
     /// <inheritdoc />
     public virtual bool Equals(ConvectiveCloudTypeMeta? other)
     {
         if (other != null)
         {
-            return Key == other.Key && Value == other.Value;
+            return Key == other.Key && Value == other.Value && Text == other.Text;
         }
 
         return false;
@@ -27,6 +27,6 @@ public record ConvectiveCloudTypeMeta(string Key, string Value) : ReactiveRecord
     /// <inheritdoc />
     public override int GetHashCode()
     {
-        return HashCode.Combine(Key, Value);
+        return HashCode.Combine(Key, Value, Text);
     }
 }

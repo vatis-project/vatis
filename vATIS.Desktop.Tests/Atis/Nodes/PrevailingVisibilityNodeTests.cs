@@ -38,4 +38,26 @@ public class PrevailingVisibilityNodeTests
         Assert.Equal("CAVOK.", node.ParseTextVariables(visibility, "{visibility}"));
         Assert.Equal("clouds and visibility OK", node.ParseVoiceVariables(visibility, "{visibility}"));
     }
+
+    private const string DirectionalMetar = "EDDG 011650Z 25009KT 7000 4000E 15/10 Q1015";
+
+    [Fact]
+    public void DirectionText_DefaultsToRawValue()
+    {
+        var node = CreateNode();
+        var visibility = new MetarDecoder().ParseNotStrict(DirectionalMetar).Visibility!;
+
+        Assert.Equal("7000 4000E", node.ParseTextVariables(visibility, "{visibility}"));
+    }
+
+    [Fact]
+    public void DirectionText_UsesCustomText()
+    {
+        var node = CreateNode();
+        node.Station!.AtisFormat.Visibility.DirectionText["E"] = "EAST";
+        var visibility = new MetarDecoder().ParseNotStrict(DirectionalMetar).Visibility!;
+
+        Assert.Equal("7000 4000EAST", node.ParseTextVariables(visibility, "{visibility}"));
+        Assert.DoesNotContain("EAST", node.ParseVoiceVariables(visibility, "{visibility}"));
+    }
 }
