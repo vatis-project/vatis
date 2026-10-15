@@ -168,7 +168,7 @@ public class AtisBuilder : IAtisBuilder
         // Format for text-to-speech (replace text parsing characters, etc).
         result = FormatForTextToSpeech(result, station);
 
-        var audioBytes = await _textToSpeechService.RequestAudio(result, station, cancellationToken);
+        var audioBytes = await _textToSpeechService.RequestAudio(result, station, currentAtisLetter[0], cancellationToken);
         return audioBytes != null ? new AtisBuilderVoiceAtisResponse(result, audioBytes) : null;
     }
 
@@ -435,7 +435,7 @@ public class AtisBuilder : IAtisBuilder
             if (_textToSpeechService == null)
                 throw new AtisBuilderException("TextToSpeech service not initialized");
 
-            var synthesizedAudio = await _textToSpeechService.RequestAudio(text, station, cancellationToken);
+            var synthesizedAudio = await _textToSpeechService.RequestAudio(text, station, currentAtisLetter, cancellationToken);
             return (text, synthesizedAudio);
         }
 
