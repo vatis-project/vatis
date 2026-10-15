@@ -337,8 +337,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 return;
             }
 
+            var datisPreset = SelectedAtisPreset;
             Dispatcher.UIThread.Post(() =>
             {
+                // Update the preset immediately (in memory only). The text documents are only applied to the
+                // preset after a throttle, and connecting rebuilds them from the preset, which would otherwise
+                // wipe the D-ATIS text if the user connects right after it was fetched.
+                datisPreset.AirportConditions = evt.Result.AirportConditions;
+                datisPreset.Notams = evt.Result.Notams;
+
                 if (AirportConditionsTextDocument != null)
                 {
                     AirportConditionsTextDocument.Text = evt.Result.AirportConditions;
@@ -348,6 +355,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 {
                     NotamsTextDocument.Text = evt.Result.Notams;
                 }
+
+                // Fetched text isn't a user edit; don't flag it as unsaved.
+                HasUnsavedAirportConditions = false;
+                HasUnsavedNotams = false;
 
                 if (evt.Result.AtisLetter.HasValue)
                 {
@@ -1798,7 +1809,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
             if (preset != _previousAtisPreset)
             {
-                if (_previousAtisPreset != null && (HasUnsavedNotams || HasUnsavedAirportConditions))
+                // Auto-fetched D-ATIS text is never persisted, so there is nothing to save when leaving it.
+                var leavingAutoFetchedDatis = _appConfig.AutoFetchDatis && _previousAtisPreset != null &&
+                                              string.Equals(_previousAtisPreset.Name, "D-ATIS",
+                                                  StringComparison.OrdinalIgnoreCase);
+
+                if (_previousAtisPreset != null && !leavingAutoFetchedDatis &&
+                    (HasUnsavedNotams || HasUnsavedAirportConditions))
                 {
                     if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                     {
