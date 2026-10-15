@@ -104,6 +104,11 @@ public class Clouds : BaseFormat
     };
 
     /// <summary>
+    /// Gets or sets independent text and voice rendering options for the cloud layer altitude.
+    /// </summary>
+    public VariableFormat AltitudeFormat { get; set; } = new();
+
+    /// <summary>
     /// Creates a new instance of <see cref="Clouds"/> that is a copy of the current instance.
     /// </summary>
     /// <returns>A new <see cref="Clouds"/> instance that is a copy of this instance.</returns>

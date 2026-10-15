@@ -92,6 +92,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _visibilityUnlimitedVisibilityVoice;
     private string? _visibilityUnlimitedVisibilityText;
     private string? _visibilityCavokVoice;
+    private string? _visibilityMetersUnitVoice;
+    private string? _visibilityKilometersUnitVoice;
+    private ObservableCollection<TextOverrideMeta>? _visibilityFractionVoice;
+    private ObservableCollection<VariableFormatMeta>? _cloudAltitudeFormats;
     private string? _visibilityCavokText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
@@ -1609,6 +1613,50 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the spoken unit word for meters.
+    /// </summary>
+    public string? VisibilityMetersUnitVoice
+    {
+        get => _visibilityMetersUnitVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityMetersUnitVoice, value);
+            _changeTracker.TrackChange(nameof(VisibilityMetersUnitVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken unit word for kilometers.
+    /// </summary>
+    public string? VisibilityKilometersUnitVoice
+    {
+        get => _visibilityKilometersUnitVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityKilometersUnitVoice, value);
+            _changeTracker.TrackChange(nameof(VisibilityKilometersUnitVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken fractional visibility values.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? VisibilityFractionVoice
+    {
+        get => _visibilityFractionVoice;
+        set => this.RaiseAndSetIfChanged(ref _visibilityFractionVoice, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the cloud altitude variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? CloudAltitudeFormats
+    {
+        get => _cloudAltitudeFormats;
+        set => this.RaiseAndSetIfChanged(ref _cloudAltitudeFormats, value);
+    }
+
+    /// <summary>
     /// Gets or sets the wind variable format options.
     /// </summary>
     public ObservableCollection<VariableFormatMeta>? WindVariableFormats
@@ -1943,6 +1991,34 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityText =
                 VisibilityUnlimitedVisibilityText ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Visibility.MetersUnitVoice != VisibilityMetersUnitVoice)
+        {
+            SelectedStation.AtisFormat.Visibility.MetersUnitVoice = VisibilityMetersUnitVoice ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Visibility.KilometersUnitVoice != VisibilityKilometersUnitVoice)
+        {
+            SelectedStation.AtisFormat.Visibility.KilometersUnitVoice = VisibilityKilometersUnitVoice ?? string.Empty;
+        }
+
+        if (VisibilityFractionVoice != null)
+        {
+            var fractions = VisibilityFractionVoice.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.Visibility.FractionVoice.SequenceEqual(fractions))
+            {
+                SelectedStation.AtisFormat.Visibility.FractionVoice = fractions;
+            }
+        }
+
+        if (CloudAltitudeFormats is { Count: > 0 })
+        {
+            var altitude = ToFormat(CloudAltitudeFormats[0]);
+            if (!FormatsEqual(SelectedStation.AtisFormat.Clouds.AltitudeFormat, altitude))
+            {
+                SelectedStation.AtisFormat.Clouds.AltitudeFormat = altitude;
+            }
         }
 
         if (SelectedStation.AtisFormat.Visibility.CavokVoice != VisibilityCavokVoice)
@@ -2402,6 +2478,21 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         VisibilityUnlimitedVisibilityVoice = station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
         VisibilityCavokVoice = station.AtisFormat.Visibility.CavokVoice;
+        VisibilityMetersUnitVoice = station.AtisFormat.Visibility.MetersUnitVoice;
+        VisibilityKilometersUnitVoice = station.AtisFormat.Visibility.KilometersUnitVoice;
+
+        VisibilityFractionVoice = [];
+        foreach (var kvp in station.AtisFormat.Visibility.FractionVoice)
+        {
+            VisibilityFractionVoice.Add(new TextOverrideMeta(kvp.Key, kvp.Value));
+        }
+
+        _changeTracker.TrackChange(nameof(VisibilityFractionVoice), VisibilityFractionVoice.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
+
+        CloudAltitudeFormats = [ToMeta("altitude", station.AtisFormat.Clouds.AltitudeFormat)];
+        _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
         VisibilityCavokText = station.AtisFormat.Visibility.CavokText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
@@ -2754,6 +2845,14 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
                         new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+                    break;
+                case nameof(VisibilityFractionVoice):
+                    _changeTracker.TrackChange(nameof(VisibilityFractionVoice), VisibilityFractionVoice?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
+                    break;
+                case nameof(CloudAltitudeFormats):
+                    _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
                     break;
                 case nameof(WindVariableFormats):
                     _changeTracker.TrackChange(nameof(WindVariableFormats), WindVariableFormats?.Select(item =>
