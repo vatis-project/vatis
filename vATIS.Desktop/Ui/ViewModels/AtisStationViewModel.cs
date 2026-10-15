@@ -253,6 +253,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _websocketService.ConfigureAtisReceived += OnConfigureAtisReceived;
         _websocketService.ConnectAtisReceived += OnConnectAtisReceived;
         _websocketService.DisconnectAtisReceived += OnDisconnectAtisReceived;
+        _websocketService.SetAtisLetterReceived += OnSetAtisLetterReceived;
 
         LoadContractionData();
 
@@ -843,6 +844,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _websocketService.ConfigureAtisReceived -= OnConfigureAtisReceived;
         _websocketService.ConnectAtisReceived -= OnConnectAtisReceived;
         _websocketService.DisconnectAtisReceived -= OnDisconnectAtisReceived;
+        _websocketService.SetAtisLetterReceived -= OnSetAtisLetterReceived;
 
         if (_networkConnection != null)
         {
@@ -1143,13 +1145,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     {
         NativeAudio.EmitSound(SoundType.Error);
 
+        var message = string.IsNullOrEmpty(e.Reason)
+            ? $"{_networkConnection?.Callsign} forcefully disconnected from the network."
+            : $"{_networkConnection?.Callsign} forcefully disconnected from network.\nReason: {e.Reason}";
         NotificationManager?.Show(
-            new Notification("Disconnected", string.IsNullOrEmpty(e.Reason)
-                ? $"{_networkConnection?.Callsign} forcefully disconnected from the network."
-                : $"{_networkConnection?.Callsign} forcefully disconnected from network.\nReason: {e.Reason}"),
+            new Notification("Disconnected", message),
             type: NotificationType.Error,
             expiration: TimeSpan.Zero
         );
+        PublishConnectionError(ConnectionErrorReason.Killed, message);
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -1381,6 +1385,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             if (_appConfig.ConfigRequired)
             {
+                PublishConnectionError(ConnectionErrorReason.ConfigurationRequired,
+                    "The VATSIM user ID, password, and real name have not been set.");
+
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                 {
                     if (lifetime.MainWindow == null)
@@ -1410,13 +1417,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             {
                 if (_sessionManager.CurrentConnectionCount >= _sessionManager.MaxConnectionCount)
                 {
+                    const string message = "You've exceeded the maximum number of allowed ATIS connections.";
                     NotificationManager?.Show(
-                        new Notification("Too Many ATIS Connections",
-                            "You've exceeded the maximum number of allowed ATIS connections."),
+                        new Notification("Too Many ATIS Connections", message),
                         type: NotificationType.Warning,
                         expiration: TimeSpan.FromSeconds(15)
                     );
                     NativeAudio.EmitSound(SoundType.Error);
+                    PublishConnectionError(ConnectionErrorReason.TooManyConnections, message);
                     return;
                 }
 
@@ -1442,6 +1450,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 Log.Error(e, "HandleNetworkConnect Exception");
                 NativeAudio.EmitSound(SoundType.Error);
                 NotificationManager?.Show(new Notification("Error", e.Message), NotificationType.Error);
+                PublishConnectionError(ConnectionErrorReason.ConnectionFailed, e.Message);
                 await Disconnect();
             }
         }
@@ -1470,12 +1479,21 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             Altimeter = null;
         });
         NativeAudio.EmitSound(SoundType.Error);
+        PublishConnectionError(ConnectionErrorReason.ConnectionFailed, "Unable to connect to the network.");
     }
 
     private void OnNetworkErrorReceived(object? sender, NetworkErrorReceived e)
     {
         NotificationManager?.Show(new Notification("Network Error", e.Error), NotificationType.Error);
         NativeAudio.EmitSound(SoundType.Error);
+        PublishConnectionError(ConnectionErrorReason.NetworkError, e.Error);
+    }
+
+    // Connection errors are shown as notifications in this window, which a websocket client cannot see.
+    private void PublishConnectionError(ConnectionErrorReason reason, string message)
+    {
+        _websocketService.SendConnectionErrorAsync(ConnectionErrorMessage.FromStation(AtisStation, reason, message))
+            .SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to publish connection error"));
     }
 
     private void OnNetworkConnected(object? sender, EventArgs e)
@@ -2278,6 +2296,29 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             Dispatcher.UIThread.Invoke(async () => { await Disconnect(); });
         }
+    }
+
+    private void OnSetAtisLetterReceived(object? sender, GetSetAtisLetterReceived e)
+    {
+        if (e.Payload == null)
+            return;
+
+        var isMatchingId = !string.IsNullOrEmpty(e.Payload.Id) && AtisStation.Id == e.Payload.Id;
+        var isMatchingStation = !string.IsNullOrEmpty(e.Payload.Station) &&
+                                AtisStation.Identifier == e.Payload.Station &&
+                                AtisStation.AtisType == e.Payload.AtisType;
+
+        if (!isMatchingId && !isMatchingStation)
+            return;
+
+        // An observed ATIS belongs to another controller, and its letter follows theirs.
+        if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            throw new Exception("Cannot change the letter of an ATIS another controller is publishing.");
+
+        // Worked out before reaching the UI thread, so a letter outside the code range throws back to the
+        // websocket client.
+        var letter = e.Payload.Resolve(AtisLetter, AtisStation.CodeRange);
+        Dispatcher.UIThread.Invoke(() => { AtisLetter = letter; });
     }
 
     private void HandleAcknowledgeAtisUpdate(PointerPressedEventArgs? args = null)

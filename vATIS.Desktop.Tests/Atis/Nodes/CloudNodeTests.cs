@@ -33,6 +33,31 @@ public class CloudNodeTests
         Assert.Equal("FEW030", node.TextAtis);
     }
 
+    private static CloudNode ParseWith(string clouds, string voiceTemplate)
+    {
+        var station = new AtisStation { Identifier = "EPWA", Name = "EPWA" };
+        station.AtisFormat.Clouds.Types["BKN"] = new CloudType("BKN{altitude}{convective}", voiceTemplate);
+        station.AtisFormat.Clouds.Types["VV"] = new CloudType("VV{altitude}", "vertical visibility {altitude} {feet}");
+        station.AtisFormat.Clouds.UndeterminedVerticalVisibility = new UndeterminedLayer("///", "not reported");
+        var node = new CloudNode { Station = station };
+        node.Parse(new MetarDecoder().ParseNotStrict($"EPWA 011650Z 25009KT 9999 {clouds} 05/02 Q1015"));
+        return node;
+    }
+
+    [Fact]
+    public void FeetToken_KnownHeight_IsSpoken()
+    {
+        var node = ParseWith("BKN030", "{altitude} {feet} broken");
+        Assert.Contains("THREE THOUSAND  FEET BROKEN", node.VoiceAtis.ToUpperInvariant());
+    }
+
+    [Fact]
+    public void VerticalVisibility_UsesOwnUndeterminedPhrase()
+    {
+        var node = ParseWith("VV///", "{altitude} {feet} broken");
+        Assert.Equal("VERTICAL VISIBILITY  NOT REPORTED", node.VoiceAtis.ToUpperInvariant());
+    }
+
     [Fact]
     public void LegacyProfile_GetsUndeterminedTypeAdded()
     {

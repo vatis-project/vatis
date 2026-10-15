@@ -63,7 +63,7 @@
 			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
 				<StackPanel Spacing="5">
 					<TextBlock Text="Airport Identifier (e.g. KLAX):"/>
-					<TextBox MaxLength="4" Theme="{StaticResource DarkTextBox}" Name="AirportIdentifier" Text="{Binding AirportIdentifier, DataType=vm:NewAtisStationDialogViewModel}">
+					<TextBox FontFamily="{StaticResource Monospace}" MaxLength="4" Theme="{StaticResource DarkTextBox}" Name="AirportIdentifier" Text="{Binding AirportIdentifier, DataType=vm:NewAtisStationDialogViewModel}">
 						<Interaction.Behaviors>
 							<behaviors:FocusOnAttachedToVisualTree/>
 							<behaviors:TextBoxUppercaseBehavior/>
@@ -81,7 +81,7 @@
 				</StackPanel>
                 <StackPanel Spacing="5">
                     <TextBlock Text="Frequency:"/>
-                    <TextBox Name="Frequency" Text="{Binding Frequency, DataType=vm:NewAtisStationDialogViewModel}" Theme="{StaticResource DarkTextBox}">
+                    <TextBox FontFamily="{StaticResource Monospace}" Name="Frequency" Text="{Binding Frequency, DataType=vm:NewAtisStationDialogViewModel}" Theme="{StaticResource DarkTextBox}">
                         <Interaction.Behaviors>
                             <behaviors:VhfFrequencyFormatBehavior/>
                             <behaviors:SelectAllTextOnFocusBehavior/>

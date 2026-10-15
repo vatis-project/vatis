@@ -19,7 +19,7 @@
 			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 				<StackPanel Spacing="5">
 					<TextBlock Text="Frequency:"/>
-					<TextBox Name="Frequency" Text="{Binding Frequency, DataType=vm:GeneralConfigViewModel}" Theme="{StaticResource DarkTextBox}">
+					<TextBox FontFamily="{StaticResource Monospace}" Name="Frequency" Text="{Binding Frequency, DataType=vm:GeneralConfigViewModel}" Theme="{StaticResource DarkTextBox}">
 						<Interaction.Behaviors>
 							<behaviors:VhfFrequencyFormatBehavior/>
 							<behaviors:SelectAllTextOnFocusBehavior/>
@@ -44,7 +44,7 @@
 						<StackPanel Grid.Column="1" Spacing="5">
 							<TextBlock Text="Code Range:"/>
 							<StackPanel Orientation="Horizontal" Spacing="10">
-								<TextBox Text="{Binding CodeRangeLow, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}" MaxLength="1" MinWidth="60" Name="CodeRangeLow" Theme="{StaticResource DarkTextBox}">
+								<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding CodeRangeLow, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}" MaxLength="1" MinWidth="60" Name="CodeRangeLow" Theme="{StaticResource DarkTextBox}">
 									<Interaction.Behaviors>
 										<behaviors:SelectAllTextOnFocusBehavior/>
 										<behaviors:TextBoxUppercaseBehavior/>
@@ -52,7 +52,7 @@
 									</Interaction.Behaviors>
 								</TextBox>
 								<TextBlock Text="to" VerticalAlignment="Center"/>
-								<TextBox Text="{Binding CodeRangeHigh, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}" MaxLength="1" MinWidth="60" Name="CodeRangeHigh" Theme="{StaticResource DarkTextBox}">
+								<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding CodeRangeHigh, DataType=vm:GeneralConfigViewModel, Converter={StaticResource CharToStringConverter}}" MaxLength="1" MinWidth="60" Name="CodeRangeHigh" Theme="{StaticResource DarkTextBox}">
 									<Interaction.Behaviors>
 										<behaviors:SelectAllTextOnFocusBehavior/>
 										<behaviors:TextBoxUppercaseBehavior/>
@@ -137,19 +137,7 @@
 				</StackPanel>
 			</Border>
 		</StackPanel>
-		<StackPanel>
-			<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-				<StackPanel Spacing="5">
-					<TextBlock Text="Custom METAR URL (optional):" ToolTip.Tip="Overrides the default VATSIM METAR source. The URL must return a single METAR or SPECI report. Use {icao} as a placeholder for the airport identifier. If the source fails, the default VATSIM source is used."/>
-					<TextBox Name="CustomMetarUrl" FontFamily="{StaticResource Monospace}" Text="{Binding CustomMetarUrl, DataType=vm:GeneralConfigViewModel}" Watermark="https://example.com/metar/{icao}" Theme="{StaticResource DarkTextBox}">
-						<Interaction.Behaviors>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>
-					</TextBox>
-				</StackPanel>
-			</Border>
-		</StackPanel>
 		<TextBlock Foreground="#FFA500" TextWrapping="Wrap" FontWeight="Medium">Note: Saving changes to the ATIS configuration will automatically<LineBreak/>disconnect it from the network if it is currently connected.</TextBlock>
-		<TextBlock Foreground="White" FontWeight="Medium" Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}"/>
+		<TextBlock Foreground="White" FontWeight="Medium" FontFamily="{StaticResource Monospace}" Text="{Binding ProfileSerialNumber, DataType=vm:GeneralConfigViewModel}"/>
 	</StackPanel>
 </UserControl>

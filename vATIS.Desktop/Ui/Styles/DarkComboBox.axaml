@@ -115,7 +115,7 @@
 
 		<Style Selector="^ ComboBoxItem">
 			<Setter Property="Foreground" Value="Silver" />
-			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontSize" Value="{DynamicResource UiFontSize}"/>
 			<Setter Property="Padding" Value="5,3"/>
 
 			<!--  PointerOver state  -->

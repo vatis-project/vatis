@@ -48,6 +48,11 @@ public interface IWebsocketService
     public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived;
 
     /// <summary>
+    /// Event that is raised by a websocket client to change the ATIS letter of a station.
+    /// </summary>
+    public event EventHandler<GetSetAtisLetterReceived> SetAtisLetterReceived;
+
+    /// <summary>
     /// Event that is raised by a websocket client to change the active profile.
     /// </summary>
     public event EventHandler<GetChangeProfileReceived> ChangeProfileReceived;
@@ -73,6 +78,13 @@ public interface IWebsocketService
     /// <param name="value">The value to send.</param>
     /// <returns>A task.</returns>
     public Task SendAtisStationsAsync(ClientMetadata? session, AtisStationMessage value);
+
+    /// <summary>
+    /// Sends a connection error message to all connected clients.
+    /// </summary>
+    /// <param name="message">The message to send.</param>
+    /// <returns>A task.</returns>
+    public Task SendConnectionErrorAsync(ConnectionErrorMessage message);
 
     /// <summary>
     /// Starts the WebSocket server.

@@ -73,6 +73,9 @@ public class WebsocketService : IWebsocketService
     public event EventHandler<GetDisconnectAtisReceived> DisconnectAtisReceived = (_, _) => { };
 
     /// <inheritdoc />
+    public event EventHandler<GetSetAtisLetterReceived> SetAtisLetterReceived = (_, _) => { };
+
+    /// <inheritdoc />
     public event EventHandler<GetChangeProfileReceived> ChangeProfileReceived = (_, _) => { };
 
     /// <inheritdoc />
@@ -144,6 +147,12 @@ public class WebsocketService : IWebsocketService
         {
             await SendAsync(JsonSerializer.Serialize(value, SourceGenerationContext.NewDefault.AtisStationMessage));
         }
+    }
+
+    /// <inheritdoc />
+    public async Task SendConnectionErrorAsync(ConnectionErrorMessage message)
+    {
+        await SendAsync(JsonSerializer.Serialize(message, SourceGenerationContext.NewDefault.ConnectionErrorMessage));
     }
 
     /// <summary>
@@ -296,6 +305,18 @@ public class WebsocketService : IWebsocketService
                                       SourceGenerationContext.NewDefault.DisconnectAtisMessage) ??
                                   throw new ArgumentException("Invalid request: no message value specified");
                     DisconnectAtisReceived(this, new GetDisconnectAtisReceived(session, request.Payload));
+                    break;
+                }
+
+                case "setAtisLetter":
+                {
+                    var request = JsonSerializer.Deserialize(root.GetRawText(),
+                                      SourceGenerationContext.NewDefault.SetAtisLetterMessage) ??
+                                  throw new ArgumentException("Invalid request: no message value specified");
+                    var payload = request.Payload ??
+                                  throw new ArgumentException("Invalid request: no message value specified");
+                    payload.Validate();
+                    SetAtisLetterReceived(this, new GetSetAtisLetterReceived(session, payload));
                     break;
                 }
 

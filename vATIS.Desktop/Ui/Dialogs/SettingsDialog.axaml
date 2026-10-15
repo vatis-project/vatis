@@ -29,7 +29,7 @@
 				</StackPanel>
 				<StackPanel>
 					<TextBlock Text="VATSIM ID:"/>
-					<TextBox Name="VatsimId" Text="{Binding UserId, DataType=vm:SettingsDialogViewModel}" Theme="{StaticResource DarkTextBox}">
+					<TextBox FontFamily="{StaticResource Monospace}" Name="VatsimId" Text="{Binding UserId, DataType=vm:SettingsDialogViewModel}" Theme="{StaticResource DarkTextBox}">
 						<Interaction.Behaviors>
 							<behaviors:TextBoxNumericOnlyBehavior/>
 						</Interaction.Behaviors>

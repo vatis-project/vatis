@@ -20,6 +20,12 @@
 		<Grid ColumnDefinitions="85,*,150" RowDefinitions="*,130,Auto">
 			<!--Atis Letter-->
 			<Button Name="AtisLetter" IsVisible="{Binding !IsAtisLetterInputMode, DataType=vm:AtisStationViewModel}" CornerRadius="3" Classes="AtisLetter" Foreground="White" Grid.Column="0" Grid.Row="0" Content="{Binding AtisLetter, DataType=vm:AtisStationViewModel, FallbackValue=A}" IsEnabled="True" FontFamily="{DynamicResource Monospace}">
+				<Button.ContentTemplate>
+					<DataTemplate x:DataType="x:Object">
+						<!-- The monospace font sits low in its line box; raise the letter so it is optically centered. -->
+						<TextBlock Text="{Binding}" Margin="0,-19,0,0"/>
+					</DataTemplate>
+				</Button.ContentTemplate>
 				<Interaction.Behaviors>
                     <behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, FallbackValue=False, Mode=TwoWay}" BlinkOffColor="White"/>
 				</Interaction.Behaviors>
@@ -97,6 +103,9 @@
 		</Grid>
 	</Border>
 	<UserControl.Styles>
+		<Style Selector="TextBox#TypeAtisLetter /template/ TextPresenter#PART_TextPresenter">
+			<Setter Property="Margin" Value="0,-19,0,0"/>
+		</Style>
 		<Style Selector="Button.AtisLetter">
 			<Setter Property="FontSize" Value="60"/>
 			<Setter Property="FontWeight" Value="Medium"/>

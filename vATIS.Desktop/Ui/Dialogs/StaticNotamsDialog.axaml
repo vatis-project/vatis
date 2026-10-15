@@ -62,7 +62,7 @@
 			<StackPanel Orientation="Vertical">
 				<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
 					<Grid ColumnDefinitions="1*,1*">
-						<TextBlock Text="NOTAMs" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
+						<TextBlock Text="NOTAMs" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="{DynamicResource UiFontSize}" Grid.Column="0" />
 						<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CloseWindowCommand, DataType=vm:StaticNotamsDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
 					</Grid>
 				</Border>
@@ -80,6 +80,9 @@
 									</Style>
 									<Style Selector="TreeDataGrid /template/ Border#RootBorder">
 										<Setter Property="Padding" Value="10"/>
+									</Style>
+									<Style Selector="TreeDataGridTextCell">
+										<Setter Property="FontFamily" Value="{StaticResource Monospace}"/>
 									</Style>
 									<Style Selector="TreeDataGridCheckBoxCell /template/ CheckBox">
 										<Setter Property="Theme" Value="{StaticResource CheckBox}"/>

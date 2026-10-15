@@ -270,7 +270,7 @@
 					    <Grid ColumnDefinitions="*,5,*" RowDefinitions="*,10,*">
 						    <StackPanel Spacing="5" Grid.Column="0">
 							    <TextBlock Text="Arrival Runways:"/>
-							    <TextBox Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -279,7 +279,7 @@
 						    </StackPanel>
 						    <StackPanel Spacing="5" Grid.Row="0" Grid.Column="2">
 							    <TextBlock Text="Departure Runways:"/>
-							    <TextBox Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -288,7 +288,7 @@
 						    </StackPanel>
 						    <StackPanel Spacing="5" Grid.Column="0" Grid.Row="2">
 							    <TextBlock Text="Approaches In Use:"/>
-							    <TextBox Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -297,7 +297,7 @@
 						    </StackPanel>
 						    <StackPanel Spacing="5" Grid.Column="2" Grid.Row="2">
 							    <TextBlock Text="Remarks:"/>
-							    <TextBox Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -308,7 +308,7 @@
 					    <StackPanel Orientation="Vertical" Spacing="5">
 						    <TextBlock Text="Sandbox:"/>
 						    <Grid ColumnDefinitions="100*,5,15*">
-							    <TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:PresetsViewModel}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:PresetsViewModel}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 								    </Interaction.Behaviors>
@@ -318,7 +318,7 @@
                             <Grid ColumnDefinitions="*,5,*" Margin="0,0,5,0">
                                 <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="5">
                                     <TextBlock>Text ATIS</TextBlock>
-                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseText, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
+                                    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorSandboxResponseText, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
                                         <Interaction.Behaviors>
                                             <behaviors:TextBoxUppercaseBehavior/>
                                         </Interaction.Behaviors>
@@ -327,7 +327,7 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="5">
                                     <TextBlock>Voice ATIS</TextBlock>
-                                    <TextBox Text="{Binding ExternalGeneratorSandboxResponseVoice, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
+                                    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorSandboxResponseVoice, DataType=vm:PresetsViewModel}" Height="90" AcceptsReturn="True" IsReadOnly="True" TextWrapping="Wrap" Theme="{StaticResource DarkTextBox}" ScrollViewer.IsScrollChainingEnabled="False">
                                         <Interaction.Behaviors>
                                             <behaviors:TextBoxUppercaseBehavior/>
                                         </Interaction.Behaviors>

@@ -20,9 +20,9 @@
 					</Style>
 				</DataGrid.Styles>
 				<DataGrid.Columns>
-					<DataGridTextColumn Header="Variable" Width="1*" IsReadOnly="False" Binding="{Binding VariableName, DataType=models:ContractionMeta}"></DataGridTextColumn>
-					<DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:ContractionMeta}"/>
-					<DataGridTextColumn Header="Voice" Width="1*" IsReadOnly="False" Binding="{Binding Voice, DataType=models:ContractionMeta}"/>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Variable" Width="1*" IsReadOnly="False" Binding="{Binding VariableName, DataType=models:ContractionMeta}"></DataGridTextColumn>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:ContractionMeta}"/>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Voice" Width="1*" IsReadOnly="False" Binding="{Binding Voice, DataType=models:ContractionMeta}"/>
 				</DataGrid.Columns>
 			</DataGrid>
 		</Border>

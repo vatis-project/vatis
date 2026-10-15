@@ -20,7 +20,7 @@
         <Grid RowDefinitions="40,*,Auto">
             <Border CornerRadius="5,5,0,0" Background="#1E1E1E" Height="40" Grid.Row="0">
                 <Grid ColumnDefinitions="1*,1*">
-                    <TextBlock Text="Release Notes" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
+                    <TextBlock Text="Release Notes" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="{DynamicResource UiFontSize}" Grid.Column="0" />
                     <Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CloseWindowCommand, DataType=vm:ReleaseNotesDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
                 </Grid>
             </Border>
@@ -37,7 +37,7 @@
                             <Setter Property="FontSize" Value="18"/>
                         </Style>
                         <Style Selector=".Markdown_Avalonia_MarkdownViewer .List ctxt|CTextBlock">
-                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="FontSize" Value="{DynamicResource UiFontSize}"/>
                         </Style>
                         <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CHyperlink">
                             <Style.Setters>
@@ -63,7 +63,7 @@
             </Panel>
             <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="10">
                 <CheckBox Grid.Column="0" VerticalAlignment="Center" Theme="{StaticResource CheckBox}" Content="Don't show this window after future updates." IsChecked="{Binding SuppressReleaseNotes, DataType=vm:ReleaseNotesDialogViewModel}" />
-                <Button Grid.Column="1" VerticalAlignment="Center" Theme="{StaticResource Dark}" FontSize="14" Content="Close Release Notes" Click="CloseWindow"/>
+                <Button Grid.Column="1" VerticalAlignment="Center" Theme="{StaticResource Dark}" FontSize="{DynamicResource UiFontSize}" Content="Close Release Notes" Click="CloseWindow"/>
             </Grid>
         </Grid>
     </Border>

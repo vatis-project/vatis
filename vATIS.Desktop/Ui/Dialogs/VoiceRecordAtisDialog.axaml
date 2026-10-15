@@ -80,7 +80,7 @@
 					<StackPanel Orientation="Vertical" Spacing="5" HorizontalAlignment="Left" Width="145">
 						<Grid ColumnDefinitions="145,10,100">
 							<Button Theme="{StaticResource Dark}" Command="{Binding ToggleRecordingCommand, DataType=vm:VoiceRecordAtisDialogViewModel}" Content="{Binding IsRecordingActive, DataType=vm:VoiceRecordAtisDialogViewModel, Converter={StaticResource RecordingButtonLabelConverter}, FallbackValue=Start Recording}"/>
-							<TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding ElapsedRecordingTime, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=00:00:00}"/>
+							<TextBlock Grid.Column="2" VerticalAlignment="Center" FontFamily="{StaticResource Monospace}" Text="{Binding ElapsedRecordingTime, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=00:00:00}"/>
 						</Grid>
 						<Button Theme="{StaticResource Dark}" Command="{Binding ListenCommand, DataType=vm:VoiceRecordAtisDialogViewModel}" Content="{Binding IsPlaybackActive, DataType=vm:VoiceRecordAtisDialogViewModel, Converter={StaticResource ButtonLabelConverter}, FallbackValue=Listen}"/>
 					</StackPanel>

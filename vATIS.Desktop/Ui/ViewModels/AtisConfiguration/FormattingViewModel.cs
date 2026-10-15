@@ -107,6 +107,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private bool _cloudsConvertToMetric;
     private string? _undeterminedLayerAltitudeText;
     private string? _undeterminedLayerAltitudeVoice;
+    private string? _undeterminedVerticalVisibilityText;
+    private string? _undeterminedVerticalVisibilityVoice;
     private string? _automaticCbDetectionText;
     private string? _automaticCbDetectionVoice;
     private bool _cloudHeightAltitudeInHundreds;
@@ -1074,6 +1076,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the undetermined vertical visibility text.
+    /// </summary>
+    public string? UndeterminedVerticalVisibilityText
+    {
+        get => _undeterminedVerticalVisibilityText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _undeterminedVerticalVisibilityText, value);
+            _changeTracker.TrackChange(nameof(UndeterminedVerticalVisibilityText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the undetermined vertical visibility voice.
+    /// </summary>
+    public string? UndeterminedVerticalVisibilityVoice
+    {
+        get => _undeterminedVerticalVisibilityVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _undeterminedVerticalVisibilityVoice, value);
+            _changeTracker.TrackChange(nameof(UndeterminedVerticalVisibilityVoice), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the "automatic CB detection" text ATIS value.
     /// </summary>
     public string? AutomaticCbDetectionText
@@ -1953,6 +1981,20 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 UndeterminedLayerAltitudeVoice ?? string.Empty;
         }
 
+        if (SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Text !=
+            UndeterminedVerticalVisibilityText)
+        {
+            SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Text =
+                UndeterminedVerticalVisibilityText ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Voice !=
+            UndeterminedVerticalVisibilityVoice)
+        {
+            SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Voice =
+                UndeterminedVerticalVisibilityVoice ?? string.Empty;
+        }
+
         if (SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Text != AutomaticCbDetectionText)
         {
             SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Text = AutomaticCbDetectionText;
@@ -2243,6 +2285,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
         UndeterminedLayerAltitudeText = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text;
         UndeterminedLayerAltitudeVoice = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice;
+        UndeterminedVerticalVisibilityText = station.AtisFormat.Clouds.UndeterminedVerticalVisibility.Text;
+        UndeterminedVerticalVisibilityVoice = station.AtisFormat.Clouds.UndeterminedVerticalVisibility.Voice;
         AutomaticCbDetectionText = station.AtisFormat.Clouds.AutomaticCbDetection.Text;
         AutomaticCbDetectionVoice = station.AtisFormat.Clouds.AutomaticCbDetection.Voice;
         TemperatureUsePlusPrefix = station.AtisFormat.Temperature.UsePlusPrefix;
