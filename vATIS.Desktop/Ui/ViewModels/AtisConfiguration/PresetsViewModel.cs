@@ -96,7 +96,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
         TestInSandboxCommand = ReactiveCommand.Create(HandleTestInSandbox);
 
-
         _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
         {
             HasUnsavedChanges = hasUnsavedChanges;
@@ -120,6 +119,11 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             }
         }));
     }
+
+    /// <summary>
+    /// Occurs when the user asks to test the selected preset in the sandbox, after its changes have been applied.
+    /// </summary>
+    public event Action<AtisPreset>? TestInSandboxRequested;
 
     /// <summary>
     /// Gets or sets the owner of a dialog associated with this instance.
@@ -165,11 +169,6 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     /// Gets a command that applies the current preset and opens it in the sandbox.
     /// </summary>
     public ReactiveCommand<Unit, Unit> TestInSandboxCommand { get; }
-
-    /// <summary>
-    /// Occurs when the user asks to test the selected preset in the sandbox, after its changes have been applied.
-    /// </summary>
-    public event Action<AtisPreset>? TestInSandboxRequested;
 
     /// <summary>
     /// Gets a command that handles template variable clicks.

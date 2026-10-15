@@ -20,7 +20,7 @@ public class VariableFormatSerializationTests
         Assert.Contains("\"Group\"", json);
 
         var loaded = JsonSerializer.Deserialize(json, SourceGenerationContext.NewDefault.Profile)!;
-        var loadedFormat = loaded.Stations[0].AtisFormat;
+        var loadedFormat = loaded.Stations![0].AtisFormat;
         Assert.Equal(NumberStyle.Group, loadedFormat.Altimeter.VariableFormats["hpa"].Voice.Style);
         Assert.Equal(" HPA", loadedFormat.Altimeter.VariableFormats["hpa"].Text.Suffix);
         Assert.Equal(" degrees", loadedFormat.Temperature.Format.Voice.Suffix);

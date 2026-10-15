@@ -75,7 +75,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly IWebsocketService _websocketService;
     private readonly ISessionManager _sessionManager;
     private readonly IDatisRepository _datisRepository;
-    private bool _autoFetchDatis;
     private readonly Airport _atisStationAirport;
     private readonly MetarDecoder _metarDecoder = new();
     private readonly CompositeDisposable _disposables = [];
@@ -83,6 +82,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly SemaphoreSlim _buildAtisLock = new(1, 1);
     private readonly string? _identifier;
     private readonly TimeSpan _debounceDelay = TimeSpan.FromSeconds(5);
+    private bool _autoFetchDatis;
     private CancellationTokenSource _buildAtisCts = new();
     private CancellationTokenSource _selectedPresetCts = new();
     private CancellationTokenSource _voiceRecordAtisCts = new();

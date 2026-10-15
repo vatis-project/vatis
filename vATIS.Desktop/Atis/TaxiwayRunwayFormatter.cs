@@ -26,8 +26,10 @@ public static class TaxiwayRunwayFormatter
     // also spelled-out numbers ("H ELEVEN"); never a path/hyphenated token ("P/MIL")
     private const string TaxiwayId =
         @"[A-Z]{1,2}(?:\s[0-9]{1,2}\b" + Units + @"|\s" + NumberWords + @"\b|[0-9]{0,2}\b)(?![/\-])";
+
     private const string RunwayId = @"(?:0?[1-9]|[12][0-9]|3[0-6])";
     private const string Separator = @"(?:\s*,\s*(?:(?:AND|&)\s+)?|\s+(?:AND|&)\s*,?\s*)";
+
     // runway lists also allow a slash pair such as "15/33"
     private const string RunwaySeparator = @"(?:" + Separator + @"|\s*/\s*)";
 

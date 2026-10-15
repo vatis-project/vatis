@@ -91,42 +91,6 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
         }
     }
 
-    private static DigitalAtisResponseDto? FindMatchingAtis(List<DigitalAtisResponseDto> datisList, AtisType atisType)
-    {
-        return atisType switch
-        {
-            AtisType.Combined => datisList.FirstOrDefault(a => a.AtisType == "combined")
-                                 ?? datisList.FirstOrDefault(a => a.AtisType == "dep"),
-            AtisType.Arrival => datisList.FirstOrDefault(a => a.AtisType == "arr"),
-            AtisType.Departure => datisList.FirstOrDefault(a => a.AtisType == "dep"),
-            _ => null,
-        };
-    }
-
-    private static DatisResult NotAvailable(AtisStation station)
-    {
-        return new DatisResult(station.Id, "D-ATIS NOT AVBL.", string.Empty, null);
-    }
-
-    private async Task UpdateAsync()
-    {
-        foreach (var station in _monitoredStations.Values.ToList())
-        {
-            await FetchForStationAsync(station);
-        }
-    }
-
-    private async Task FetchForStationAsync(AtisStation station)
-    {
-        var result = await FetchAsync(station);
-
-        // Drop results from a fetch that was in flight when the station stopped being monitored.
-        if (_monitoredStations.TryGetValue(station.Id, out var current) && ReferenceEquals(current, station))
-        {
-            EventBus.Instance.Publish(new DatisReceived(result));
-        }
-    }
-
     /// <inheritdoc />
     public async Task<DatisResult> FetchAsync(AtisStation station)
     {
@@ -177,6 +141,42 @@ public sealed class DatisRepository : IDatisRepository, IDisposable
         {
             Log.Error(ex, "Error fetching D-ATIS for {Station}", station.Identifier);
             return NotAvailable(station);
+        }
+    }
+
+    private static DigitalAtisResponseDto? FindMatchingAtis(List<DigitalAtisResponseDto> datisList, AtisType atisType)
+    {
+        return atisType switch
+        {
+            AtisType.Combined => datisList.FirstOrDefault(a => a.AtisType == "combined")
+                                 ?? datisList.FirstOrDefault(a => a.AtisType == "dep"),
+            AtisType.Arrival => datisList.FirstOrDefault(a => a.AtisType == "arr"),
+            AtisType.Departure => datisList.FirstOrDefault(a => a.AtisType == "dep"),
+            _ => null,
+        };
+    }
+
+    private static DatisResult NotAvailable(AtisStation station)
+    {
+        return new DatisResult(station.Id, "D-ATIS NOT AVBL.", string.Empty, null);
+    }
+
+    private async Task UpdateAsync()
+    {
+        foreach (var station in _monitoredStations.Values.ToList())
+        {
+            await FetchForStationAsync(station);
+        }
+    }
+
+    private async Task FetchForStationAsync(AtisStation station)
+    {
+        var result = await FetchAsync(station);
+
+        // Drop results from a fetch that was in flight when the station stopped being monitored.
+        if (_monitoredStations.TryGetValue(station.Id, out var current) && ReferenceEquals(current, station))
+        {
+            EventBus.Instance.Publish(new DatisReceived(result));
         }
     }
 }

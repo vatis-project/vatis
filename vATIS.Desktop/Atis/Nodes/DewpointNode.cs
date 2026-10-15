@@ -42,12 +42,13 @@ public class DewpointNode : BaseNode<Value>
 
         var settings = Station.AtisFormat.Dewpoint;
         var digits = Math.Abs((int)node.ActualValue).ToString(settings.SpeakLeadingZero ? "00" : "");
-        var spoken = settings.Format.Voice.Style switch
+        var spokenNumber = settings.Format.Voice.Style switch
         {
             NumberStyle.Digits => digits,
             NumberStyle.Group => ((int)Math.Abs((int)node.ActualValue)).ToGroupForm(),
             _ => digits.ToSerialFormat(),
-        } + settings.Format.Voice.Suffix;
+        };
+        var spoken = spokenNumber + settings.Format.Voice.Suffix;
 
         var prefix = node.ActualValue < 0 ? "minus " : settings.UsePlusPrefix ? "plus " : string.Empty;
         return Regex.Replace(format, "{dewpoint}", _ => prefix + spoken, RegexOptions.IgnoreCase);

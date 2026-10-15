@@ -26,7 +26,7 @@ public interface IDatisTextProcessor
     /// <param name="prependNotams">Text to prepend to NOTAMs after processing.</param>
     /// <param name="appendNotams">Text to append to NOTAMs after processing.</param>
     /// <returns>A <see cref="DatisResult"/> with processed airport conditions and NOTAMs.</returns>
-    DatisResult Process(
+    public DatisResult Process(
         string rawBody,
         string stationId,
         char? atisLetter,

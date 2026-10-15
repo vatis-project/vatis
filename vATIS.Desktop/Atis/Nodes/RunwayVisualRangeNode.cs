@@ -35,6 +35,14 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
         throw new NotImplementedException();
     }
 
+    private static string Fill(string phrase, string? value = null, string? min = null, string? max = null)
+    {
+        return phrase
+            .Replace("{value}", value, StringComparison.OrdinalIgnoreCase)
+            .Replace("{min}", min, StringComparison.OrdinalIgnoreCase)
+            .Replace("{max}", max, StringComparison.OrdinalIgnoreCase);
+    }
+
     private void Parse(List<RunwayVisualRange> runwayVisualRanges)
     {
         var tts = new List<string>();
@@ -150,13 +158,5 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 
         TextAtis = string.Join(" ", acars);
         VoiceAtis = string.Join(" ", tts).TrimEnd('.');
-    }
-
-    private static string Fill(string phrase, string? value = null, string? min = null, string? max = null)
-    {
-        return phrase
-            .Replace("{value}", value, StringComparison.OrdinalIgnoreCase)
-            .Replace("{min}", min, StringComparison.OrdinalIgnoreCase)
-            .Replace("{max}", max, StringComparison.OrdinalIgnoreCase);
     }
 }

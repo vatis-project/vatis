@@ -19,6 +19,9 @@ public class WavPackService : IWavPackService
     private const int FrameSamples = 960; // 20 ms at 48 kHz, the Opus frame size used by the bot encoder
     private const string ManifestFileName = "manifest.json";
     private static readonly char[] s_pauseChars = [',', '.', ':', '!', '?'];
+    private static readonly System.Text.RegularExpressions.Regex s_tenKmOrMore = new(
+        @"\bONE ZERO ?(?:KM|KILOMET(?:RE|ER)S?) OR MORE(,)?",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
 
     private readonly ConcurrentDictionary<string, (DateTime Stamp, short[] Samples)> _clipCache =
         new(StringComparer.OrdinalIgnoreCase);
@@ -45,10 +48,10 @@ public class WavPackService : IWavPackService
         }
 
         // A bare letter (e.g. the information letter from an external generator) uses its phonetic clip.
-        for (var letter = 0; letter < WavPackImporter.s_letters.Length; letter++)
+        for (var letter = 0; letter < WavPackImporter.Letters.Length; letter++)
         {
             var single = ((char)('A' + letter)).ToString();
-            var phonetic = WavPackImporter.s_letters[letter];
+            var phonetic = WavPackImporter.Letters[letter];
             if (!plain.ContainsKey(single) && plain.TryGetValue(phonetic, out var plainFile))
             {
                 plain[single] = plainFile;
@@ -186,10 +189,6 @@ public class WavPackService : IWavPackService
 
         return (manifest.Clips.Count, problems);
     }
-
-    private static readonly System.Text.RegularExpressions.Regex s_tenKmOrMore = new(
-        @"\bONE ZERO ?(?:KM|KILOMET(?:RE|ER)S?) OR MORE(,)?",
-        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
 
     private static string Normalize(string phrase)
     {

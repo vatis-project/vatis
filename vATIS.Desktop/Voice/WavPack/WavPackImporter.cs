@@ -16,15 +16,18 @@ namespace Vatsim.Vatis.Voice.WavPack;
 /// </summary>
 public static class WavPackImporter
 {
-    private static readonly string[] s_digits =
-        ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINER"];
-
-    internal static readonly string[] s_letters =
+    /// <summary>
+    /// The spoken (phonetic) words for the letters A to Z.
+    /// </summary>
+    internal static readonly string[] Letters =
     [
         "ALPHA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOXTROT", "GOLF", "HOTEL", "INDIA", "JULIET", "KILO", "LIMA",
         "MIKE", "NOVEMBER", "OSCAR", "PAPA", "QUEBEC", "ROMEO", "SIERRA", "TANGO", "UNIFORM", "VICTOR", "WHISKEY",
         "X-RAY", "YANKEE", "ZULU"
     ];
+
+    private static readonly string[] s_digits =
+        ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINER"];
 
     /// <summary>
     /// Reads <c>ATIS.txt</c> in the folder and writes <c>manifest.json</c> next to it.
@@ -135,7 +138,7 @@ public static class WavPackImporter
 
         if (core.Length == 1 && char.IsAsciiLetter(core[0]))
         {
-            return [s_letters[char.ToUpperInvariant(core[0]) - 'A'] + suffix];
+            return [Letters[char.ToUpperInvariant(core[0]) - 'A'] + suffix];
         }
 
         return core switch

@@ -10,8 +10,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Serilog;
-using Vatsim.Vatis.Ui.Extensions;
 using Vatsim.Vatis.Ui.Controls.Notification;
+using Vatsim.Vatis.Ui.Extensions;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Windows;

@@ -17,18 +17,18 @@ public interface IDatisRepository
     /// Begins monitoring a station for D-ATIS data, fetching immediately and then on each timer tick.
     /// </summary>
     /// <param name="station">The ATIS station to monitor.</param>
-    void MonitorStation(AtisStation station);
+    public void MonitorStation(AtisStation station);
 
     /// <summary>
     /// Stops monitoring a station for D-ATIS data.
     /// </summary>
     /// <param name="stationId">The unique identifier of the station to remove.</param>
-    void RemoveStation(string stationId);
+    public void RemoveStation(string stationId);
 
     /// <summary>
     /// Fetches and processes D-ATIS data for a station once, without monitoring it or publishing an event.
     /// </summary>
     /// <param name="station">The ATIS station to fetch.</param>
     /// <returns>The processed result, or a "D-ATIS NOT AVBL." result if no data could be retrieved.</returns>
-    Task<DatisResult> FetchAsync(AtisStation station);
+    public Task<DatisResult> FetchAsync(AtisStation station);
 }

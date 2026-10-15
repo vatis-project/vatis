@@ -23,7 +23,7 @@ public class CloudNodeTests
     {
         var node = Parse(metar);
         Assert.Equal(text, node.TextAtis);
-        Assert.Equal(voice, node.VoiceAtis.ToUpperInvariant());
+        Assert.Equal(voice, node.VoiceAtis!.ToUpperInvariant());
     }
 
     [Fact]
@@ -48,14 +48,14 @@ public class CloudNodeTests
     public void FeetToken_KnownHeight_IsSpoken()
     {
         var node = ParseWith("BKN030", "{altitude} {feet} broken");
-        Assert.Contains("THREE THOUSAND  FEET BROKEN", node.VoiceAtis.ToUpperInvariant());
+        Assert.Contains("THREE THOUSAND  FEET BROKEN", node.VoiceAtis!.ToUpperInvariant());
     }
 
     [Fact]
     public void VerticalVisibility_UsesOwnUndeterminedPhrase()
     {
         var node = ParseWith("VV///", "{altitude} {feet} broken");
-        Assert.Equal("VERTICAL VISIBILITY  NOT REPORTED", node.VoiceAtis.ToUpperInvariant());
+        Assert.Equal("VERTICAL VISIBILITY  NOT REPORTED", node.VoiceAtis!.ToUpperInvariant());
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class CloudNodeTests
         node = new CloudNode { Station = station };
         node.Parse(new MetarDecoder().ParseNotStrict(metar));
         Assert.Equal("BKN030CUMULONIMBUS", node.TextAtis);
-        Assert.Contains("CUMULONIMBUS", node.VoiceAtis.ToUpperInvariant());
+        Assert.Contains("CUMULONIMBUS", node.VoiceAtis!.ToUpperInvariant());
     }
 
     [Fact]

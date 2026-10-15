@@ -42,6 +42,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposable
 {
+    private const int SandboxTabIndex = 4;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly INavDataRepository _navDataRepository;
@@ -53,7 +54,6 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     private bool _hasUnsavedChanges;
     private bool _requiresDisconnect;
     private bool _showOverlay;
-    private const int SandboxTabIndex = 4;
     private int _selectedTabControlTabIndex;
     private AtisStation? _selectedAtisStation;
     private IDialogOwner? _dialogOwner;

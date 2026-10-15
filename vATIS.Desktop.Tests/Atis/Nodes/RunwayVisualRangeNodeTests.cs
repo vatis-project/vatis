@@ -15,7 +15,7 @@ public class RunwayVisualRangeNodeTests
         station.AtisFormat.RunwayVisualRange.SpokenText = spokenText;
         var node = new RunwayVisualRangeNode { Station = station };
         node.Parse(new MetarDecoder().ParseNotStrict(Metar));
-        return node.VoiceAtis;
+        return node.VoiceAtis!;
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class RunwayVisualRangeNodeTests
             station.AtisFormat.RunwayVisualRange.TendencyText["U"] = tendencyOverride;
         var node = new RunwayVisualRangeNode { Station = station };
         node.Parse(new MetarDecoder().ParseNotStrict(metar));
-        return node.TextAtis;
+        return node.TextAtis!;
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class RunwayVisualRangeNodeTests
         configure?.Invoke(station.AtisFormat.RunwayVisualRange);
         var node = new RunwayVisualRangeNode { Station = station };
         node.Parse(new MetarDecoder().ParseNotStrict(metar));
-        return System.Text.RegularExpressions.Regex.Replace(node.VoiceAtis, @"\s+", " ");
+        return System.Text.RegularExpressions.Regex.Replace(node.VoiceAtis!, @"\s+", " ");
     }
 
     [Theory]
