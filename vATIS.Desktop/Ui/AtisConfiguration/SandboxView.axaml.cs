@@ -4,6 +4,8 @@
 // </copyright>
 
 using System;
+using System.ComponentModel;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using AvaloniaEdit.Document;
@@ -18,6 +20,8 @@ namespace Vatsim.Vatis.Ui.AtisConfiguration;
 /// </summary>
 public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
 {
+    private SandboxViewModel? _observedViewModel;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SandboxView"/> class.
     /// </summary>
@@ -33,6 +37,19 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+
+        if (_observedViewModel != null)
+        {
+            _observedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _observedViewModel = null;
+        }
+
+        if (ViewModel != null)
+        {
+            _observedViewModel = ViewModel;
+            _observedViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            UpdateConditionsRowHeight();
+        }
 
         if (ViewModel != null)
         {
@@ -56,6 +73,22 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
             NotamFreeText.TextArea.TextView.LineTransformers.Add(
                 new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
         }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SandboxViewModel.IsExternalPreset))
+        {
+            UpdateConditionsRowHeight();
+        }
+    }
+
+    // Airport conditions and NOTAMs do not apply to an external preset, so the row that holds them is collapsed
+    // and the ATIS boxes fill the space instead of leaving it empty.
+    private void UpdateConditionsRowHeight()
+    {
+        Layout.RowDefinitions[2].Height =
+            ViewModel?.IsExternalPreset == true ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
