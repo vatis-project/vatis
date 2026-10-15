@@ -1221,25 +1221,12 @@
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="RunwayConditionTerms"/>
 								</Interaction.Behaviors>
-								<DataGrid.Resources>
-									<x:Double x:Key="ScrollBarSize">14</x:Double>
-									<x:Double x:Key="ScrollBarVerticalThumbWidth">10</x:Double>
-									<x:Double x:Key="ScrollBarVerticalThumbMinHeight">40</x:Double>
-								</DataGrid.Resources>
 								<DataGrid.Styles>
 									<Style Selector="DataGridCell TextBlock">
 										<Setter Property="TextWrapping" Value="Wrap" />
 									</Style>
 									<Style Selector="DataGridCell TextBox">
 										<Setter Property="TextWrapping" Value="Wrap" />
-									</Style>
-									<Style Selector="ScrollBar">
-										<Setter Property="AllowAutoHide" Value="False" />
-										<Setter Property="Opacity" Value="1" />
-									</Style>
-									<Style Selector="ScrollBar Thumb">
-										<Setter Property="Background" Value="#9A9A9A" />
-										<Setter Property="CornerRadius" Value="5" />
 									</Style>
 									<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
 										<Setter Property="IsVisible" Value="False" />
