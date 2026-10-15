@@ -25,7 +25,7 @@
                 </Grid>
             </Border>
             <Panel Grid.Row="1" Background="#323232">
-                <mdxaml:MarkdownScrollViewer Markdown="{Binding ReleaseNotes, DataType=vm:ReleaseNotesDialogViewModel}" Margin="10" ScrollViewer.AllowAutoHide="False">
+                <mdxaml:MarkdownScrollViewer Markdown="{Binding ReleaseNotes, DataType=vm:ReleaseNotesDialogViewModel}" Margin="10">
                     <mdxaml:MarkdownScrollViewer.Styles>
                         <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CTextBlock.Heading1">
                             <Setter Property="FontSize" Value="28"/>

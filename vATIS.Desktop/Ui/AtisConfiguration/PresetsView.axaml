@@ -253,12 +253,7 @@
 				</WrapPanel>
 			</Grid>
 			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="410">
-                <ScrollViewer AllowAutoHide="False" Margin="0,0,-10,0" VerticalScrollBarVisibility="Visible">
-                    <ScrollViewer.Styles>
-                        <Style Selector="ScrollBar">
-                            <Setter Property="Opacity" Value="1" />
-                        </Style>
-                    </ScrollViewer.Styles>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Orientation="Vertical" Spacing="18" Margin="8,8,18,8">
                         <StackPanel Spacing="8">
 						    <TextBlock Text="Text ATIS URL:" ToolTip.Tip="The URL used to generate the text ATIS."/>
