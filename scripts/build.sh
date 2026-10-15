@@ -84,11 +84,31 @@ mkdir -p "$BUILD_DIR" "$OUT_DIR" "$TOOLS_DIR"
 command -v dotnet >/dev/null || die "dotnet not found"
 has() { local p; for p in "${PLATFORMS[@]}"; do [ "$p" = "$1" ] && return 0; done; return 1; }
 
+# Fails the build if a native library the app needs at startup is missing from the publish output. A package
+# without them builds and packs fine, but the app then exits at startup without any message.
+verify_native_libs() { # <rid>
+    local rid="$1" dir="$BUILD_DIR/$1" libs lib
+    local missing=()
+    case "$rid" in
+        linux-x64) libs=(libSkiaSharp.so libHarfBuzzSharp.so libNativeAudio.so) ;;
+        win-x64) libs=(libSkiaSharp.dll libHarfBuzzSharp.dll NativeAudio.dll av_libglesv2.dll) ;;
+        osx-*) libs=(libSkiaSharp.dylib libHarfBuzzSharp.dylib libNativeAudio.dylib libAvaloniaNative.dylib) ;;
+        *) die "No native library list for $rid" ;;
+    esac
+    for lib in "${libs[@]}"; do
+        [ -s "$dir/$lib" ] || missing+=("$lib")
+    done
+    [ ${#missing[@]} -eq 0 ] || die "Publish output for $rid is missing native libraries: ${missing[*]} (in $dir)"
+}
+
 publish() { # <rid>
     local rid="$1"
     info "dotnet publish $rid"
+    # Start from an empty folder so files left over from an earlier build cannot end up in the package.
+    rm -rf "${BUILD_DIR:?}/$rid"
     dotnet publish -c Release -r "$rid" -o "$BUILD_DIR/$rid" \
         -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version="$VERSION" "$PROJECT"
+    verify_native_libs "$rid"
 }
 
 # Extracts this version's section ("## v<version>") of CHANGELOG.md for the release notes. The heading must
