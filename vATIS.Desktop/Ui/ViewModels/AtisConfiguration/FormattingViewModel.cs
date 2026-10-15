@@ -144,6 +144,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
     private ObservableCollection<TextOverrideMeta>? _visibilityDirectionText;
+    private ObservableCollection<VariableFormatMeta>? _altimeterVariableFormats;
+    private ObservableCollection<VariableFormatMeta>? _windVariableFormats;
+    private ObservableCollection<VariableFormatMeta>? _temperatureVariableFormats;
+    private ObservableCollection<VariableFormatMeta>? _dewpointVariableFormats;
     private ObservableCollection<TextOverrideMeta>? _rvrTendencyTexts;
     private string _presentWeatherSearchTerm = string.Empty;
     private ObservableCollection<PresentWeatherMeta>? _filteredPresentWeatherTypes;
@@ -1604,6 +1608,42 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _rvrTendencyTexts, value);
     }
 
+    /// <summary>
+    /// Gets or sets the wind variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? WindVariableFormats
+    {
+        get => _windVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _windVariableFormats, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the altimeter variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? AltimeterVariableFormats
+    {
+        get => _altimeterVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _altimeterVariableFormats, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the temperature variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? TemperatureVariableFormats
+    {
+        get => _temperatureVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _temperatureVariableFormats, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the dewpoint variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? DewpointVariableFormats
+    {
+        get => _dewpointVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _dewpointVariableFormats, value);
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -2050,6 +2090,50 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             }
         }
 
+        if (WindVariableFormats != null)
+        {
+            foreach (var meta in WindVariableFormats)
+            {
+                var format = ToFormat(meta);
+                if (!SelectedStation.AtisFormat.SurfaceWind.VariableFormats.TryGetValue(meta.Key, out var existing) ||
+                    !FormatsEqual(existing, format))
+                {
+                    SelectedStation.AtisFormat.SurfaceWind.VariableFormats[meta.Key] = format;
+                }
+            }
+        }
+
+        if (AltimeterVariableFormats != null)
+        {
+            foreach (var meta in AltimeterVariableFormats)
+            {
+                var format = ToFormat(meta);
+                if (!SelectedStation.AtisFormat.Altimeter.VariableFormats.TryGetValue(meta.Key, out var existing) ||
+                    !FormatsEqual(existing, format))
+                {
+                    SelectedStation.AtisFormat.Altimeter.VariableFormats[meta.Key] = format;
+                }
+            }
+        }
+
+        if (TemperatureVariableFormats is { Count: > 0 })
+        {
+            var format = ToFormat(TemperatureVariableFormats[0]);
+            if (!FormatsEqual(SelectedStation.AtisFormat.Temperature.Format, format))
+            {
+                SelectedStation.AtisFormat.Temperature.Format = format;
+            }
+        }
+
+        if (DewpointVariableFormats is { Count: > 0 })
+        {
+            var format = ToFormat(DewpointVariableFormats[0]);
+            if (!FormatsEqual(SelectedStation.AtisFormat.Dewpoint.Format, format))
+            {
+                SelectedStation.AtisFormat.Dewpoint.Format = format;
+            }
+        }
+
         if (VisibilityDirectionText != null)
         {
             var directionText = VisibilityDirectionText.ToDictionary(x => x.Key, x => x.Text);
@@ -2419,6 +2503,33 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
             new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
 
+        WindVariableFormats = [];
+        foreach (var key in new[] { "wind_dir", "wind_spd", "wind_gust", "wind_vmin", "wind_vmax" })
+        {
+            WindVariableFormats.Add(ToMeta(
+                key, station.AtisFormat.SurfaceWind.VariableFormats.GetValueOrDefault(key) ?? new VariableFormat()));
+        }
+
+        _changeTracker.TrackChange(nameof(WindVariableFormats), WindVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+
+        AltimeterVariableFormats = [];
+        foreach (var key in new[] { "altimeter", "text", "inhg", "hpa", "qfe" })
+        {
+            AltimeterVariableFormats.Add(ToMeta(
+                key, station.AtisFormat.Altimeter.VariableFormats.GetValueOrDefault(key) ?? new VariableFormat()));
+        }
+
+        TemperatureVariableFormats = [ToMeta("temp", station.AtisFormat.Temperature.Format)];
+        DewpointVariableFormats = [ToMeta("dewpoint", station.AtisFormat.Dewpoint.Format)];
+
+        _changeTracker.TrackChange(nameof(AltimeterVariableFormats), AltimeterVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+        _changeTracker.TrackChange(nameof(TemperatureVariableFormats), TemperatureVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+        _changeTracker.TrackChange(nameof(DewpointVariableFormats), DewpointVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+
         VisibilityDirectionText = [];
         foreach (var key in new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" })
         {
@@ -2597,6 +2708,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _ => key,
     };
 
+    private static VariableFormatMeta ToMeta(string key, VariableFormat format)
+    {
+        return new VariableFormatMeta(
+            key, format.Text.Style.ToString(), format.Text.Suffix, format.Voice.Style.ToString(), format.Voice.Suffix);
+    }
+
+    private static NumberStyle ParseStyle(string style)
+    {
+        return Enum.TryParse<NumberStyle>(style, out var parsed) ? parsed : NumberStyle.Default;
+    }
+
+    private static VariableFormat ToFormat(VariableFormatMeta meta)
+    {
+        return new VariableFormat
+        {
+            Text = new OutputFormat { Style = ParseStyle(meta.TextStyle), Suffix = meta.TextSuffix ?? string.Empty },
+            Voice = new OutputFormat { Style = ParseStyle(meta.VoiceStyle), Suffix = meta.VoiceSuffix ?? string.Empty },
+        };
+    }
+
+    private static bool FormatsEqual(VariableFormat a, VariableFormat b)
+    {
+        return a.Text.Style == b.Text.Style && a.Text.Suffix == b.Text.Suffix &&
+               a.Voice.Style == b.Voice.Style && a.Voice.Suffix == b.Voice.Suffix;
+    }
+
     private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
     {
         if (e.Args.EditAction == DataGridEditAction.Commit)
@@ -2617,6 +2754,22 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
                         new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+                    break;
+                case nameof(WindVariableFormats):
+                    _changeTracker.TrackChange(nameof(WindVariableFormats), WindVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(AltimeterVariableFormats):
+                    _changeTracker.TrackChange(nameof(AltimeterVariableFormats), AltimeterVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(TemperatureVariableFormats):
+                    _changeTracker.TrackChange(nameof(TemperatureVariableFormats), TemperatureVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(DewpointVariableFormats):
+                    _changeTracker.TrackChange(nameof(DewpointVariableFormats), DewpointVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
                     break;
                 case nameof(VisibilityDirectionText):
                     _changeTracker.TrackChange(nameof(VisibilityDirectionText), VisibilityDirectionText?.Select(item =>

@@ -61,4 +61,44 @@ public class SurfaceWindNodeTests
         Assert.DoesNotContain("{", result);
         Assert.DoesNotContain(":", result);
     }
+
+    private static SurfaceWindNode Node(System.Action<Vatsim.Vatis.Profiles.AtisFormat.Nodes.SurfaceWind> configure)
+    {
+        var station = new AtisStation { Identifier = "KJFK", Name = "KJFK" };
+        configure(station.AtisFormat.SurfaceWind);
+        return new SurfaceWindNode { Station = station };
+    }
+
+    [Fact]
+    public void VariableFormats_Default_IsUnchanged()
+    {
+        var node = Node(_ => { });
+        var wind = new MetarDecoder().ParseNotStrict(Metar).SurfaceWind!;
+        Assert.Equal("25009G15KT", node.ParseTextVariables(wind, "{wind_dir}{wind_spd}G{wind_gust}KT"));
+        Assert.Equal("two five zero at niner gusts one five",
+            node.ParseVoiceVariables(wind, "{wind_dir} at {wind_spd} gusts {wind_gust}"), ignoreCase: true);
+    }
+
+    [Fact]
+    public void VariableFormats_TextAndVoiceAreIndependent()
+    {
+        var node = Node(w =>
+        {
+            w.VariableFormats["wind_spd"].Text.Suffix = "/";
+            w.VariableFormats["wind_spd"].Voice.Suffix = " knots";
+            w.VariableFormats["wind_dir"].Voice.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Digits;
+        });
+        var wind = new MetarDecoder().ParseNotStrict(Metar).SurfaceWind!;
+        Assert.Equal("250/09/KT", node.ParseTextVariables(wind, "{wind_dir}/{wind_spd}KT"));
+        Assert.Equal("250 at niner knots", node.ParseVoiceVariables(wind, "{wind_dir} at {wind_spd}"), ignoreCase: true);
+    }
+
+    [Fact]
+    public void VariableFormats_UnitVariantsShareBaseKey()
+    {
+        var node = Node(w => w.VariableFormats["wind_spd"].Text.Suffix = "!");
+        var wind = new MetarDecoder().ParseNotStrict(MpsMetar).SurfaceWind!;
+        Assert.Equal("04!", node.ParseTextVariables(wind, "{wind_spd}"));
+        Assert.Contains("!", node.ParseTextVariables(wind, "{wind_spd|kt}"));
+    }
 }

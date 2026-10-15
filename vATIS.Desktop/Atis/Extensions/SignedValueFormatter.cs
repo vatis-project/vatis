@@ -22,8 +22,9 @@ internal static class SignedValueFormatter
     /// <param name="format">The text template.</param>
     /// <param name="variable">The variable name, e.g. "temp" or "dewpoint".</param>
     /// <param name="value">The value to format.</param>
+    /// <param name="suffix">Text appended to the formatted value.</param>
     /// <returns>The formatted text.</returns>
-    public static string Format(string format, string variable, double value)
+    public static string Format(string format, string variable, double value, string suffix = "")
     {
         format = Regex.Replace(format, @"\{prefix_symbol\}", value < 0 ? "-" : "+", RegexOptions.IgnoreCase);
 
@@ -46,6 +47,6 @@ internal static class SignedValueFormatter
         };
 
         string number = Math.Abs(value).ToString(new string('0', digitCount));
-        return format.Replace(match.Value, (value < 0 ? prefix : string.Empty) + number);
+        return format.Replace(match.Value, (value < 0 ? prefix : string.Empty) + number + suffix);
     }
 }

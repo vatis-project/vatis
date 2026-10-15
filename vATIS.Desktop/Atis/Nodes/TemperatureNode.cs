@@ -6,6 +6,7 @@
 using System;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
@@ -27,7 +28,8 @@ public class TemperatureNode : BaseNode<Value>
         if (format == null)
             return "";
 
-        return SignedValueFormatter.Format(format, "temp", value.ActualValue);
+        return SignedValueFormatter.Format(
+            format, "temp", value.ActualValue, Station?.AtisFormat.Temperature.Format.Text.Suffix ?? string.Empty);
     }
 
     /// <inheritdoc/>
@@ -38,15 +40,17 @@ public class TemperatureNode : BaseNode<Value>
         if (format == null)
             return "";
 
-        return node.ActualValue < 0
-            ? Regex.Replace(format, "{temp}",
-                "minus " + Math.Abs(node.ActualValue)
-                    .ToString(Station.AtisFormat.Temperature.SpeakLeadingZero ? "00" : "").ToSerialFormat(),
-                RegexOptions.IgnoreCase)
-            : Regex.Replace(format, "{temp}",
-                (Station.AtisFormat.Temperature.UsePlusPrefix ? "plus " : "") + Math.Abs(node.ActualValue)
-                    .ToString(Station.AtisFormat.Temperature.SpeakLeadingZero ? "00" : "").ToSerialFormat(),
-                RegexOptions.IgnoreCase);
+        var settings = Station.AtisFormat.Temperature;
+        var digits = Math.Abs(node.ActualValue).ToString(settings.SpeakLeadingZero ? "00" : "");
+        var spoken = settings.Format.Voice.Style switch
+        {
+            NumberStyle.Digits => digits,
+            NumberStyle.Group => ((int)Math.Abs(node.ActualValue)).ToGroupForm(),
+            _ => digits.ToSerialFormat(),
+        } + settings.Format.Voice.Suffix;
+
+        var prefix = node.ActualValue < 0 ? "minus " : settings.UsePlusPrefix ? "plus " : string.Empty;
+        return Regex.Replace(format, "{temp}", _ => prefix + spoken, RegexOptions.IgnoreCase);
     }
 
     private void Parse(Value? temperature)
