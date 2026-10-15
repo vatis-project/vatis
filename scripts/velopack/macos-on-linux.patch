@@ -1,0 +1,159 @@
+Allow `vpk [osx] pack` to run on a Linux host (Velopack 1.2.161).
+
+Upstream only registers the macOS `pack` command on macOS. This registers it everywhere,
+creates the portable zip with `zip` instead of `ditto`, and signs/notarizes with rcodesign
+when not on macOS (APPLE_CERT_P12, APPLE_CERT_PASSWORD, APPLE_NOTARY_API_KEY, VPK_RCODESIGN).
+Use with --noInst; the installer .pkg needs macOS tools.
+
+Apply to a 1.2.161 source tree with: git apply macos-on-linux.patch
+---
+diff --git a/src/vpk/Velopack.Packaging.Unix/Commands/OsxPackCommandRunner.cs b/src/vpk/Velopack.Packaging.Unix/Commands/OsxPackCommandRunner.cs
+index e26584a..bde4090 100644
+--- a/src/vpk/Velopack.Packaging.Unix/Commands/OsxPackCommandRunner.cs
++++ b/src/vpk/Velopack.Packaging.Unix/Commands/OsxPackCommandRunner.cs
+@@ -6,7 +6,6 @@
+ 
+ namespace Velopack.Packaging.Unix.Commands;
+ 
+-[SupportedOSPlatform("osx")]
+ public class OsxPackCommandRunner : PackageBuilder<OsxPackOptions, OsxPackOptionsValidator>
+ {
+     public OsxPackCommandRunner(ILogger logger, IFancyConsole console)
+@@ -77,6 +76,14 @@ protected override string[] GetMainExeSearchPaths(string packDirectory, string m
+ 
+     protected override Task CodeSign(Action<int> progress, string packDir)
+     {
++        if (!VelopackRuntimeInfo.IsOSX) {
++            // No codesign/notarytool off macOS: sign with rcodesign (https://github.com/indygreg/apple-platform-rs),
++            // configured through APPLE_CERT_P12, APPLE_CERT_PASSWORD, APPLE_NOTARY_API_KEY and optionally
++            // VPK_RCODESIGN (path to the binary). Signing is skipped when APPLE_CERT_P12 is not set.
++            RcodesignSign(progress, packDir);
++            return Task.CompletedTask;
++        }
++
+         var helper = new OsxBuildTools(Log);
+         var keychainPath = Options.Keychain;
+ 
+@@ -156,6 +163,65 @@ void InnerSign(Action<int> signProgress)
+         return Task.CompletedTask;
+     }
+ 
++    private void RcodesignSign(Action<int> progress, string packDir)
++    {
++        var p12 = Environment.GetEnvironmentVariable("APPLE_CERT_P12");
++        if (String.IsNullOrEmpty(p12)) {
++            Log.Warn("Package will not be signed or notarized. Set APPLE_CERT_P12 (and APPLE_CERT_PASSWORD, APPLE_NOTARY_API_KEY) to sign with rcodesign.");
++            return;
++        }
++
++        var rcodesign = Environment.GetEnvironmentVariable("VPK_RCODESIGN");
++        if (String.IsNullOrEmpty(rcodesign)) rcodesign = "rcodesign";
++        var password = Environment.GetEnvironmentVariable("APPLE_CERT_PASSWORD") ?? "";
++        var notaryKey = Environment.GetEnvironmentVariable("APPLE_NOTARY_API_KEY");
++
++        var entitlements = Options.SignEntitlements;
++        if (String.IsNullOrEmpty(entitlements)) {
++            entitlements = HelperFile.VelopackEntitlements;
++        }
++
++        void Sign(string path, bool bundle)
++        {
++            var args = new List<string> { "sign", "--p12-file", p12, "--p12-password", password, "--code-signature-flags", "runtime" };
++            if (bundle) {
++                args.Add("--for-notarization");
++                args.Add("--entitlements-xml-path");
++                args.Add(entitlements);
++            }
++
++            args.Add(path);
++            Log.Info(Exe.InvokeAndThrowIfNonZero(rcodesign, args, null));
++        }
++
++        // Nested binaries first, so the bundle signature covers signed contents.
++        Log.Info("Code signing nested libraries and helpers with rcodesign...");
++        var macos = new OsxStructureBuilder(packDir).MacosDirectory;
++        foreach (var f in Directory.GetFiles(packDir, "*.dylib", SearchOption.AllDirectories)) Sign(f, false);
++        var updateMac = Path.Combine(macos, "UpdateMac");
++        if (File.Exists(updateMac)) Sign(updateMac, false);
++        progress(40);
++
++        Log.Info("Code signing application bundle with rcodesign...");
++        Sign(packDir, true);
++        progress(60);
++
++        if (String.IsNullOrEmpty(notaryKey)) {
++            Log.Warn("Package is signed but not notarized. Set APPLE_NOTARY_API_KEY to notarize.");
++            return;
++        }
++
++        var zipPath = Path.Combine(TempDir.FullName, "notarize.zip");
++        var parent = Path.GetDirectoryName(packDir.TrimEnd('/'));
++        Log.Info(Exe.InvokeAndThrowIfNonZero("zip", new[] { "-qry", zipPath, Path.GetFileName(packDir.TrimEnd('/')) }, parent));
++        Log.Info("Notarizing with rcodesign (this can take several minutes)...");
++        Log.Info(Exe.InvokeAndThrowIfNonZero(rcodesign, new[] { "notary-submit", "--api-key-file", notaryKey, "--wait", zipPath }, null));
++        progress(90);
++        Log.Info(Exe.InvokeAndThrowIfNonZero(rcodesign, new[] { "staple", packDir }, null));
++        File.Delete(zipPath);
++        progress(100);
++    }
++
+     protected override Task CreateSetupPackage(Action<int> progress, string releasePkg, string packDir, string pkgPath, Func<string, VelopackAssetType, string> createAsset)
+     {
+         // create installer package, sign and notarize
+@@ -192,8 +258,15 @@ protected override Task CreateSetupPackage(Action<int> progress, string releaseP
+     protected override Task CreatePortablePackage(Action<int> progress, string packDir, string outputPath)
+     {
+         progress(-1); // indeterminate
+-        var helper = new OsxBuildTools(Log);
+-        helper.CreateDittoZip(packDir, outputPath);
++        if (VelopackRuntimeInfo.IsOSX) {
++            var helper = new OsxBuildTools(Log);
++            helper.CreateDittoZip(packDir, outputPath);
++        } else {
++            if (File.Exists(outputPath)) File.Delete(outputPath);
++            var trimmed = packDir.TrimEnd('/');
++            Log.Debug(Exe.InvokeAndThrowIfNonZero("zip", new[] { "-qry", outputPath, Path.GetFileName(trimmed) }, Path.GetDirectoryName(trimmed)));
++        }
++
+         progress(100);
+         return Task.CompletedTask;
+     }
+diff --git a/src/vpk/Velopack.Packaging.Unix/OsxBuildTools.cs b/src/vpk/Velopack.Packaging.Unix/OsxBuildTools.cs
+index 3aa048e..ee2b2ac 100644
+--- a/src/vpk/Velopack.Packaging.Unix/OsxBuildTools.cs
++++ b/src/vpk/Velopack.Packaging.Unix/OsxBuildTools.cs
+@@ -6,7 +6,6 @@
+ 
+ namespace Velopack.Packaging.Unix;
+ 
+-[SupportedOSPlatform("osx")]
+ public class OsxBuildTools
+ {
+     public ILogger Log { get; }
+diff --git a/src/vpk/Velopack.Packaging/HelperFile.cs b/src/vpk/Velopack.Packaging/HelperFile.cs
+index 5699845..ab7b9fc 100644
+--- a/src/vpk/Velopack.Packaging/HelperFile.cs
++++ b/src/vpk/Velopack.Packaging/HelperFile.cs
+@@ -79,7 +79,6 @@ public static string GetMkSquashFsPath()
+         return "mksquashfs";
+     }
+ 
+-    [SupportedOSPlatform("macos")]
+     public static string VelopackEntitlements => FindHelperFile("Velopack.entitlements");
+ 
+     public static string AppImageRuntimeArm64 => FindHelperFile("appimagekit-runtime-aarch64");
+diff --git a/src/vpk/Velopack.Vpk/Program.cs b/src/vpk/Velopack.Vpk/Program.cs
+index 21e1990..6193814 100644
+--- a/src/vpk/Velopack.Vpk/Program.cs
++++ b/src/vpk/Velopack.Vpk/Program.cs
+@@ -139,9 +139,7 @@ public static async Task<int> Main(string[] args)
+             break;
+         case RuntimeOs.OSX:
+             rootCommand.AddCommand<OsxBundleCommand, OsxBundleCommandRunner, OsxBundleOptions>(provider);
+-            if (VelopackRuntimeInfo.IsOSX) {
+-                rootCommand.AddCommand<OsxPackCommand, OsxPackCommandRunner, OsxPackOptions>(provider);
+-            }
++            rootCommand.AddCommand<OsxPackCommand, OsxPackCommandRunner, OsxPackOptions>(provider);
+             break;
+         default:
+             throw new NotSupportedException("Unsupported OS platform: " + VelopackRuntimeInfo.SystemOs.GetOsLongName());

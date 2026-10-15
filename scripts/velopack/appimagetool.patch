@@ -1,0 +1,41 @@
+Build Linux AppImages with pkgforge-dev/appimagetool (Velopack 1.2.161).
+
+When VPK_APPIMAGETOOL points at the tool, `vpk pack` builds the AppImage with it (uruntime, no
+dependence on libfuse.so.2) instead of mksquashfs plus the bundled runtime, the same way xPilot does.
+Everything else in the pack, including the AppDir contents and the update packages, is unchanged.
+
+Apply to a 1.2.161 source tree with: git apply appimagetool.patch
+---
+diff --git a/src/vpk/Velopack.Packaging.Unix/AppImageTool.cs b/src/vpk/Velopack.Packaging.Unix/AppImageTool.cs
+index 9dddfed..aca168c 100644
+--- a/src/vpk/Velopack.Packaging.Unix/AppImageTool.cs
++++ b/src/vpk/Velopack.Packaging.Unix/AppImageTool.cs
+@@ -12,6 +12,28 @@ public static void CreateLinuxAppImage(string appDir, string outputFile, Runtime
+     {
+         compression ??= DefaultCompressionAlgorithm;
+ 
++        // Optionally build the AppImage with pkgforge-dev/appimagetool (uruntime) instead of squashfs plus the
++        // bundled runtime. VPK_APPIMAGETOOL is the path to that tool.
++        var externalTool = Environment.GetEnvironmentVariable("VPK_APPIMAGETOOL");
++        if (!String.IsNullOrEmpty(externalTool)) {
++            var archName = machine switch {
++                RuntimeCpu.x64 => "x86_64",
++                RuntimeCpu.arm64 => "aarch64",
++                _ => throw new NotSupportedException($"VPK_APPIMAGETOOL does not support architecture '{machine}'.")
++            };
++
++            var outputDir = Path.GetDirectoryName(Path.GetFullPath(outputFile));
++            if (File.Exists(outputFile)) File.Delete(outputFile);
++
++            logger.Info($"Creating AppImage with {Path.GetFileName(externalTool)}");
++            var env = new Dictionary<string, string> { ["APPIMAGE_ARCH"] = archName };
++            logger.Debug(Exe.InvokeAndThrowIfNonZero(externalTool,
++                [appDir, "--output", outputDir, "--name", Path.GetFileName(outputFile), "--appimage-arch", archName, "--arch", archName],
++                null, env));
++            Chmod.ChmodFileAsExecutable(outputFile);
++            return;
++        }
++
+         string runtime = machine switch {
+             RuntimeCpu.x86 => HelperFile.AppImageRuntimeX86,
+             RuntimeCpu.x64 => HelperFile.AppImageRuntimeX64,

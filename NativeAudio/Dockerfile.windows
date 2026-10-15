@@ -1,0 +1,55 @@
+# Linux-hosted Windows (MSVC ABI) cross-toolchain for NativeAudio: clang-cl + lld + xwin sysroot.
+# Same approach as the xPilot plugin build.
+ARG UBUNTU_VERSION=24.04
+FROM ubuntu:${UBUNTU_VERSION}
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ARG LLVM_VERSION=20
+ARG CMAKE_VERSION=3.28.6
+ARG XWIN_VERSION=0.6.7
+
+# hadolint ignore=DL3008
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+  ninja-build bash coreutils ca-certificates curl xz-utils \
+  clang-${LLVM_VERSION} \
+  lld-${LLVM_VERSION} \
+  llvm-${LLVM_VERSION} \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install CMake.
+RUN curl -sSL https://cmake.org/files/v${CMAKE_VERSION%.*}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz \
+  | tar -xz -C /usr/local/ --strip-components=1
+
+# Install xwin and prepare a Windows SDK + CRT sysroot for clang-cl.
+RUN set -e \
+  && XWIN_PREFIX="xwin-${XWIN_VERSION}-x86_64-unknown-linux-musl" \
+  && curl -sSL "https://github.com/Jake-Shadle/xwin/releases/download/${XWIN_VERSION}/${XWIN_PREFIX}.tar.gz" \
+  | tar -xz -C /usr/local/bin --strip-components=1 "${XWIN_PREFIX}/xwin" \
+  && XWIN_ACCEPT_LICENSE=1 xwin --accept-license splat \
+    --output /opt/winsysroot \
+    --use-winsysroot-style \
+    --preserve-ms-arch-notation \
+  && ln -s "$(echo /opt/winsysroot/VC/Tools/MSVC/*)" /opt/winsysroot/msvc \
+  && ln -s "$(echo /opt/winsysroot/Windows\ Kits/10/include/*)" /opt/winsysroot/sdk-include \
+  && ln -s "$(echo /opt/winsysroot/Windows\ Kits/10/lib/*)" /opt/winsysroot/sdk-lib
+
+# Create wrapper scripts for the Linux-hosted Windows MSVC cross-toolchain.
+RUN set -e \
+  && CLANG_BIN="$(command -v clang-${LLVM_VERSION} || command -v clang)" \
+  && LLD_LINK_BIN="$(command -v lld-link-${LLVM_VERSION} || command -v lld-link)" \
+  && LLVM_LIB_BIN="$(command -v llvm-lib-${LLVM_VERSION} || command -v llvm-lib)" \
+  && LLVM_MT_BIN="$(command -v llvm-mt-${LLVM_VERSION} || command -v llvm-mt)" \
+  && LLVM_RC_BIN="$(command -v llvm-rc-${LLVM_VERSION} || command -v llvm-rc)" \
+  && ln -sf "${LLD_LINK_BIN}" /usr/local/bin/lld-link \
+  && ln -sf "${LLVM_LIB_BIN}" /usr/local/bin/llvm-lib \
+  && ln -sf "${LLVM_MT_BIN}" /usr/local/bin/llvm-mt \
+  && ln -sf "${LLVM_RC_BIN}" /usr/local/bin/llvm-rc \
+  && printf '%s\n' \
+    '#!/bin/sh' \
+    "exec ${CLANG_BIN} --driver-mode=cl --target=x86_64-pc-windows-msvc -fuse-ld=lld-link /imsvc/opt/winsysroot/msvc/include /imsvc/opt/winsysroot/sdk-include/ucrt /imsvc/opt/winsysroot/sdk-include/shared /imsvc/opt/winsysroot/sdk-include/um /imsvc/opt/winsysroot/sdk-include/winrt /imsvc/opt/winsysroot/sdk-include/cppwinrt \"\$@\"" \
+    > /usr/local/bin/clang-cl-windows \
+  && chmod +x /usr/local/bin/clang-cl-windows
+
+WORKDIR /src

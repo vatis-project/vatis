@@ -36,8 +36,14 @@ public class AppConfigurationProvider : IAppConfigurationProvider
         _metarUrls = [];
     }
 
-    /// <inheritdoc />
-    public string VersionUrl => _appConfiguration?.VersionUrl ?? throw new ArgumentNullException(nameof(VersionUrl));
+    /// <summary>
+    /// Gets the URL of the client update feed. The <c>VATIS_VERSION_URL</c> environment variable overrides the
+    /// configured value, which allows testing the update process against a local server.
+    /// </summary>
+    public string VersionUrl =>
+        Environment.GetEnvironmentVariable("VATIS_VERSION_URL") is { Length: > 0 } versionUrlOverride
+            ? versionUrlOverride
+            : _appConfiguration?.VersionUrl ?? throw new ArgumentNullException(nameof(VersionUrl));
 
     /// <inheritdoc />
     public string MetarUrl => _metarUrls[Random.Shared.Next(_metarUrls.Count)];

@@ -1,0 +1,32 @@
+# Copy to scripts/env-setup.sh, fill in real values, then: source scripts/env-setup.sh
+# env-setup.sh is gitignored. Used by scripts/build.sh for code signing.
+
+# macOS signing / notarization (rcodesign)
+unset APPLE_CERT_P12
+unset APPLE_CERT_PASSWORD
+unset APPLE_NOTARY_API_KEY
+
+export APPLE_CERT_P12="$HOME/.secrets/vatis/certificate.p12"
+export APPLE_CERT_PASSWORD="password"
+export APPLE_NOTARY_API_KEY="$HOME/.secrets/vatis/notary-key.json"
+
+# Windows signing (jsign + Azure Trusted Signing)
+unset AZURE_TENANT_ID
+unset AZURE_CLIENT_ID
+unset AZURE_CLIENT_SECRET
+unset AZURE_TRUSTED_SIGNING_ENDPOINT
+unset AZURE_TRUSTED_SIGNING_ACCOUNT
+unset AZURE_TRUSTED_SIGNING_CERT_PROFILE
+
+export AZURE_TENANT_ID="00000000-0000-0000-0000-000000000000"
+export AZURE_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+export AZURE_CLIENT_SECRET="your-client-secret"
+export AZURE_TRUSTED_SIGNING_ENDPOINT="https://eus.codesigning.azure.net"
+export AZURE_TRUSTED_SIGNING_ACCOUNT="your-trusted-signing-account-name"
+export AZURE_TRUSTED_SIGNING_CERT_PROFILE="your-certificate-profile-name"
+
+# Optional: public base URL of your release directory (linux/, windows/, macos/ below it).
+# Used to download the previous release for delta packages when publish/release/<platform> is empty,
+# and to print where to copy the files. Defaults to https://vatis.app/downloads.
+unset VATIS_RELEASES_URL
+export VATIS_RELEASES_URL="https://vatis.app/downloads"
