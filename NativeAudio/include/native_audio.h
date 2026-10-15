@@ -27,7 +27,7 @@ extern "C" {
 	AUDIO_API void SetPlaybackDevice(AudioClientHandle handle, char* deviceName);
 	AUDIO_API bool StartRecording(AudioClientHandle handle, char* deviceName);
 	AUDIO_API void StopRecording(AudioClientHandle handle, AudioDataCallback callback);
-	AUDIO_API bool StartBufferPlayback(AudioClientHandle handle, void* buffer, size_t bufferSize);
+	AUDIO_API bool StartBufferPlayback(AudioClientHandle handle, void* buffer, size_t bufferSize, char* deviceName);
 	AUDIO_API bool StopBufferPlayback(AudioClientHandle handle);
 	AUDIO_API bool StartPlayback(AudioClientHandle handle, char* deviceName);
 	AUDIO_API bool StopPlayback(AudioClientHandle handle);
