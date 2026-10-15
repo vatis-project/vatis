@@ -29,7 +29,7 @@
 	<Border Name="PartFormattingBorder" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 		<StackPanel Margin="5">
 			<TextBlock Text="Select Component:"/>
-			<ComboBox Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10" MaxDropDownHeight="500" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
+			<ComboBox Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10" MaxDropDownHeight="300" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
 				<ComboBox.ItemTemplate>
 					<DataTemplate>
 						<TextBlock Text="{Binding}" />
@@ -853,6 +853,103 @@
 						</WrapPanel>
 					</StackPanel>
 				</groupBox:GroupBoxControl>
+			</StackPanel>
+			<!--Runway Condition-->
+			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Condition'}">
+				<TabControl Margin="-3">
+					<TabItem Header="Template">
+						<StackPanel Orientation="Vertical">
+							<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,5,0,0">
+								<StackPanel Orientation="Vertical" Spacing="10">
+									<StackPanel Orientation="Vertical">
+										<TextBlock Text="Text:" VerticalAlignment="Center"/>
+										<controls:TemplateVariableTextBox Text="{Binding RunwayConditionText, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
+									</StackPanel>
+									<StackPanel Orientation="Vertical">
+										<TextBlock Text="Voice:" VerticalAlignment="Center"/>
+										<controls:TemplateVariableTextBox Name="RunwayConditionVoiceTextBox" Text="{Binding RunwayConditionVoice, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="60" Theme="{StaticResource DarkTextBox}"/>
+									</StackPanel>
+									<StackPanel Orientation="Horizontal" Spacing="10">
+										<Button
+											Theme="{StaticResource DarkVariable}"
+											ToolTip.Tip="The runway identifier."
+											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+											CommandParameter="{Binding $self.Content}">
+											{runway}
+										</Button>
+										<Button
+											Theme="{StaticResource DarkVariable}"
+											ToolTip.Tip="The type of deposit on the runway (e.g. wet, covered with slush)."
+											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+											CommandParameter="{Binding $self.Content}">
+											{deposit}
+										</Button>
+										<Button
+											Theme="{StaticResource DarkVariable}"
+											ToolTip.Tip="The depth of the deposit in millimeters or centimeters. Empty if not reported."
+											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+											CommandParameter="{Binding $self.Content}">
+											{depth}
+										</Button>
+										<Button
+											Theme="{StaticResource DarkVariable}"
+											ToolTip.Tip="The estimated surface friction (e.g. good, medium to poor). Empty if not reported."
+											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+											CommandParameter="{Binding $self.Content}">
+											{friction}
+										</Button>
+										<Button
+											Theme="{StaticResource DarkVariable}"
+											ToolTip.Tip="The raw runway state group as it appears in the METAR (e.g. R25/290150). Text template only."
+											Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+											CommandParameter="{Binding $self.Content}">
+											{raw}
+										</Button>
+									</StackPanel>
+								</StackPanel>
+							</groupBox:GroupBoxControl>
+						</StackPanel>
+					</TabItem>
+					<TabItem Header="Wording">
+						<StackPanel Orientation="Vertical" Spacing="8">
+							<TextBlock TextWrapping="Wrap" Foreground="#B4B4B4" Text="Use {value} in the depth wording to insert the depth (e.g. {value} millimeters)."/>
+							<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" MaxHeight="320" Margin="0,0,0,10" ItemsSource="{Binding RunwayConditionTerms, DataType=vm:FormattingViewModel}">
+								<Interaction.Behaviors>
+									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="RunwayConditionTerms"/>
+								</Interaction.Behaviors>
+								<DataGrid.Resources>
+									<x:Double x:Key="ScrollBarSize">14</x:Double>
+									<x:Double x:Key="ScrollBarVerticalThumbWidth">10</x:Double>
+									<x:Double x:Key="ScrollBarVerticalThumbMinHeight">40</x:Double>
+								</DataGrid.Resources>
+								<DataGrid.Styles>
+									<Style Selector="DataGridCell TextBlock">
+										<Setter Property="TextWrapping" Value="Wrap" />
+									</Style>
+									<Style Selector="DataGridCell TextBox">
+										<Setter Property="TextWrapping" Value="Wrap" />
+									</Style>
+									<Style Selector="ScrollBar">
+										<Setter Property="AllowAutoHide" Value="False" />
+										<Setter Property="Opacity" Value="1" />
+									</Style>
+									<Style Selector="ScrollBar Thumb">
+										<Setter Property="Background" Value="#9A9A9A" />
+										<Setter Property="CornerRadius" Value="5" />
+									</Style>
+									<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+										<Setter Property="IsVisible" Value="False" />
+									</Style>
+								</DataGrid.Styles>
+								<DataGrid.Columns>
+									<DataGridTextColumn Header="Term" Width="200" IsReadOnly="True" Binding="{Binding Description, DataType=models:RunwayConditionTermMeta}"/>
+									<DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Spoken, DataType=models:RunwayConditionTermMeta}"/>
+									<DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:RunwayConditionTermMeta}"/>
+								</DataGrid.Columns>
+							</DataGrid>
+						</StackPanel>
+					</TabItem>
+				</TabControl>
 			</StackPanel>
             <!--Remark Wind-->
             <StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Remark Wind'}">

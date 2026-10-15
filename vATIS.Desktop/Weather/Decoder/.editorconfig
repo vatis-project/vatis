@@ -11,3 +11,7 @@ dotnet_diagnostic.IDE0073.severity = warning
 # RemarkWind.cs is original vATIS code, not part of the upstream metar-decoder
 [Entity/RemarkWind.cs]
 file_header_template = <copyright file="{fileName}" company="Justin Shannon">\nCopyright (c) Justin Shannon. All rights reserved.\nLicensed under the GPLv3 license. See LICENSE file in the project root for full license information.\n</copyright>
+[Entity/RunwayCondition.cs]
+file_header_template = <copyright file="{fileName}" company="Justin Shannon">\nCopyright (c) Justin Shannon. All rights reserved.\nLicensed under the GPLv3 license. See LICENSE file in the project root for full license information.\n</copyright>
+[ChunkDecoder/RunwayConditionChunkDecoder.cs]
+file_header_template = <copyright file="{fileName}" company="Justin Shannon">\nCopyright (c) Justin Shannon. All rights reserved.\nLicensed under the GPLv3 license. See LICENSE file in the project root for full license information.\n</copyright>

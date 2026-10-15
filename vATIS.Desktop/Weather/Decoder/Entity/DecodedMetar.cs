@@ -206,6 +206,11 @@ public class DecodedMetar
     public List<string>? WindshearRunways { get; set; }
 
     /// <summary>
+    /// Gets or sets the list of runway conditions (runway state groups) reported in the METAR.
+    /// </summary>
+    public List<RunwayCondition> RunwayConditions { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the wind reported in the remarks (e.g. from a weather station away from the airport).
     /// </summary>
     public RemarkWind? RemarkWind { get; set; }

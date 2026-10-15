@@ -56,6 +56,58 @@ public class MetarDecoderTests
     }
 
     [Fact]
+    public void Parse_RunwayCondition_DecodesWetWithFriction()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "METAR UUEE 071930Z 30005MPS 9000 -SHRA BKN018CB 04/02 Q1000 R24L/290145 R24C/290145 NOSIG");
+
+        Assert.Equal(2, metar.RunwayConditions.Count);
+        var condition = metar.RunwayConditions[0];
+        Assert.Equal("24L", condition.Runway);
+        Assert.Equal("R24L/290145", condition.RawValue);
+        Assert.Equal(RunwayCondition.DepositType.Wet, condition.Deposit);
+        Assert.Equal(1, condition.DepthMillimeters);
+        Assert.Equal(RunwayCondition.FrictionType.Good, condition.Friction);
+        Assert.NotNull(metar.TrendForecast);
+    }
+
+    [Fact]
+    public void Parse_RunwayCondition_DecodesFixedDepthAndMissingValues()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "METAR UNNT 071930Z 16003MPS CAVOK 03/M00 Q1010 R25/120065 R16/////// NOSIG RMK QFE748/0997");
+
+        var condition = Assert.Single(metar.RunwayConditions);
+        Assert.Equal("25", condition.Runway);
+        Assert.Equal(RunwayCondition.DepositType.Damp, condition.Deposit);
+        Assert.Null(condition.DepthMillimeters);
+        Assert.Equal(0.65, condition.FrictionCoefficient);
+        Assert.NotNull(metar.TrendForecast);
+    }
+
+    [Fact]
+    public void Parse_RunwayCondition_IgnoresClearedRunway()
+    {
+        var metar = _decoder.ParseNotStrict("METAR UNBB 071930Z 10002MPS CAVOK 04/M00 Q1010 R24/CLRD66 NOSIG RMK QFE735");
+
+        Assert.Empty(metar.RunwayConditions);
+        Assert.NotNull(metar.TrendForecast);
+    }
+
+    [Fact]
+    public void Parse_RunwayCondition_DecodesSlushDepthAndFrictionBands()
+    {
+        var metar = _decoder.ParseNotStrict("METAR UNNT 071930Z 16003MPS CAVOK 03/M00 Q1010 R25/692325 R07/499293 NOSIG");
+
+        Assert.Equal(2, metar.RunwayConditions.Count);
+        Assert.Equal(RunwayCondition.DepositType.Slush, metar.RunwayConditions[0].Deposit);
+        Assert.Equal(23, metar.RunwayConditions[0].DepthMillimeters);
+        Assert.Equal(RunwayCondition.FrictionType.Poor, metar.RunwayConditions[0].Friction);
+        Assert.Equal(100, metar.RunwayConditions[1].DepthMillimeters);
+        Assert.Equal(RunwayCondition.FrictionType.Medium, metar.RunwayConditions[1].Friction);
+    }
+
+    [Fact]
     public void Parse_NoRemarkWind_IsNull()
     {
         var metar = _decoder.ParseNotStrict("ENBR 061250Z 19005KT 9999 FEW020 17/10 Q1023 NOSIG");

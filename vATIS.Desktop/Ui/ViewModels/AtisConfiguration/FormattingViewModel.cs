@@ -125,6 +125,9 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _temporaryVoiceValue;
     private string? _trendNotAvailableText;
     private string? _trendNotAvailableVoice;
+    private ObservableCollection<RunwayConditionTermMeta>? _runwayConditionTerms;
+    private string? _runwayConditionText;
+    private string? _runwayConditionVoice;
     private string? _remarkWindText;
     private string? _remarkWindVoice;
     private string? _autoObservationText;
@@ -1320,6 +1323,41 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the editable runway condition wording terms.
+    /// </summary>
+    public ObservableCollection<RunwayConditionTermMeta>? RunwayConditionTerms
+    {
+        get => _runwayConditionTerms;
+        set => this.RaiseAndSetIfChanged(ref _runwayConditionTerms, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text template for the runway condition.
+    /// </summary>
+    public string? RunwayConditionText
+    {
+        get => _runwayConditionText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayConditionText, value);
+            _changeTracker.TrackChange(nameof(RunwayConditionText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the runway condition.
+    /// </summary>
+    public string? RunwayConditionVoice
+    {
+        get => _runwayConditionVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayConditionVoice, value);
+            _changeTracker.TrackChange(nameof(RunwayConditionVoice), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the text template for the remark wind.
     /// </summary>
     public string? RemarkWindText
@@ -2048,6 +2086,23 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.Trend.NotAvailableVoice = TrendNotAvailableVoiceValue;
         }
 
+        if (SelectedStation.AtisFormat.RunwayCondition.TextTemplate != RunwayConditionText)
+        {
+            SelectedStation.AtisFormat.RunwayCondition.TextTemplate = RunwayConditionText;
+        }
+
+        if (SelectedStation.AtisFormat.RunwayCondition.VoiceTemplate != RunwayConditionVoice)
+        {
+            SelectedStation.AtisFormat.RunwayCondition.VoiceTemplate = RunwayConditionVoice;
+        }
+
+        if (RunwayConditionTerms != null)
+        {
+            SelectedStation.AtisFormat.RunwayCondition.Terms = RunwayConditionTerms.ToDictionary(
+                x => x.Key,
+                x => new RunwayConditionTerm(x.Text, x.Spoken));
+        }
+
         if (SelectedStation.AtisFormat.RemarkWind.TextTemplate != RemarkWindText)
         {
             SelectedStation.AtisFormat.RemarkWind.TextTemplate = RemarkWindText;
@@ -2157,6 +2212,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         if (!station.IsFaaAtis)
         {
             items.Add("Wind Shear");
+            items.Add("Runway Condition");
             items.Add("Remark Wind");
             items.Add("Trend Forecast");
             items.Add("Transition Level");
@@ -2246,6 +2302,18 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         TemporaryVoiceValue = station.AtisFormat.Trend.TemporaryVoice;
         TrendNotAvailableTextValue = station.AtisFormat.Trend.NotAvailableText;
         TrendNotAvailableVoiceValue = station.AtisFormat.Trend.NotAvailableVoice;
+        RunwayConditionText = station.AtisFormat.RunwayCondition.TextTemplate;
+        RunwayConditionVoice = station.AtisFormat.RunwayCondition.VoiceTemplate;
+
+        RunwayConditionTerms = [];
+        foreach (var item in RunwayCondition.DefaultTerms())
+        {
+            var term = station.AtisFormat.RunwayCondition.Terms.GetValueOrDefault(item.Key, item.Value);
+            RunwayConditionTerms.Add(new RunwayConditionTermMeta(item.Key, DescribeRunwayConditionTerm(item.Key),
+                term.Voice, term.Text));
+        }
+
+        _changeTracker.TrackChange(nameof(RunwayConditionTerms), RunwayConditionTerms.ToList());
         RemarkWindText = station.AtisFormat.RemarkWind.TextTemplate;
         RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
         AutoObservationText = station.AtisFormat.AutoObservation.TextTemplate;
@@ -2434,6 +2502,31 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    private static string DescribeRunwayConditionTerm(string key) => key switch
+    {
+        "ClearAndDry" => "Deposit: clear and dry",
+        "Damp" => "Deposit: damp",
+        "Wet" => "Deposit: wet",
+        "Rime" => "Deposit: rime",
+        "DrySnow" => "Deposit: dry snow",
+        "WetSnow" => "Deposit: wet snow",
+        "Slush" => "Deposit: slush",
+        "Ice" => "Deposit: ice",
+        "CompactedSnow" => "Deposit: compacted snow",
+        "FrozenRuts" => "Deposit: frozen ruts",
+        "NotOperational" => "Runway not operational",
+        "DepthMillimeter" => "Depth: 1 millimeter",
+        "DepthMillimeters" => "Depth: millimeters",
+        "DepthCentimeters" => "Depth: centimeters",
+        "FrictionGood" => "Friction: good",
+        "FrictionMediumToGood" => "Friction: medium to good",
+        "FrictionMedium" => "Friction: medium",
+        "FrictionMediumToPoor" => "Friction: medium to poor",
+        "FrictionPoor" => "Friction: poor",
+        "FrictionUnreliable" => "Friction: unreliable",
+        _ => key,
+    };
+
     private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
     {
         if (e.Args.EditAction == DataGridEditAction.Commit)
@@ -2447,6 +2540,9 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 case nameof(CloudTypes):
                     _changeTracker.TrackChange(nameof(CloudTypes), CloudTypes?.Select(item =>
                         new CloudTypeMeta(item.Acronym, item.Spoken, item.Text)).ToList());
+                    break;
+                case nameof(RunwayConditionTerms):
+                    _changeTracker.TrackChange(nameof(RunwayConditionTerms), RunwayConditionTerms?.ToList());
                     break;
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
@@ -2474,6 +2570,12 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
             if (focusedElement is TemplateVariableTextBox focusedTextBox)
             {
+                // The raw runway condition is only meaningful in the text ATIS.
+                if (variable == "{raw}" && focusedTextBox.Name == "RunwayConditionVoiceTextBox")
+                {
+                    return;
+                }
+
                 focusedTextBox.Text += variable?.Replace("__", "_");
                 focusedTextBox.CaretIndex = focusedTextBox.Text.Length;
             }

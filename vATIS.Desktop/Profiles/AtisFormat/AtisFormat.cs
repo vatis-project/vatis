@@ -73,6 +73,11 @@ public class AtisFormat
     public WindShear WindShear { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the formatting for the runway condition component.
+    /// </summary>
+    public RunwayCondition RunwayCondition { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the formatting for the remark wind component.
     /// </summary>
     public RemarkWind RemarkWind { get; set; } = new();
@@ -117,6 +122,7 @@ public class AtisFormat
             Altimeter = Altimeter.Clone(),
             Trend = Trend.Clone(),
             WindShear = WindShear.Clone(),
+            RunwayCondition = RunwayCondition.Clone(),
             RemarkWind = RemarkWind.Clone(),
             AutoObservation = AutoObservation.Clone(),
             TransitionLevel = TransitionLevel.Clone(),

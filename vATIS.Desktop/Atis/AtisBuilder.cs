@@ -579,6 +579,7 @@ public class AtisBuilder : IAtisBuilder
         var trends = NodeParser.Parse<TrendNode, TrendForecast>(metar, station);
         var recentWeather = NodeParser.Parse<RecentWeatherNode, WeatherPhenomenon>(metar, station);
         var windshear = NodeParser.Parse<WindShearNode, string>(metar, station);
+        var runwayCondition = NodeParser.Parse<RunwayConditionNode, RunwayCondition>(metar, station);
         var remarkWind = NodeParser.Parse<RemarkWindNode, RemarkWind>(metar, station);
         var autoNode = new AutoObservationNode { Station = station };
         autoNode.Parse(metar);
@@ -586,9 +587,9 @@ public class AtisBuilder : IAtisBuilder
         var autoVoice = string.IsNullOrEmpty(autoNode.VoiceAtis) ? "" : $"{autoNode.VoiceAtis}.";
 
         var completeWxStringVoice =
-            $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis} {windshear.VoiceAtis} {trends.VoiceAtis}";
+            $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis} {windshear.VoiceAtis} {runwayCondition.VoiceAtis} {trends.VoiceAtis}";
         var completeWxStringAcars =
-            $"{surfaceWind.TextAtis} {visibility.TextAtis} {rvr.TextAtis} {presentWeather.TextAtis} {clouds.TextAtis} {temp.TextAtis}{(!string.IsNullOrEmpty(temp.TextAtis) || !string.IsNullOrEmpty(dew.TextAtis) ? "/" : "")}{dew.TextAtis} {pressure.TextAtis} {recentWeather.TextAtis} {windshear.TextAtis} {trends.TextAtis}";
+            $"{surfaceWind.TextAtis} {visibility.TextAtis} {rvr.TextAtis} {presentWeather.TextAtis} {clouds.TextAtis} {temp.TextAtis}{(!string.IsNullOrEmpty(temp.TextAtis) || !string.IsNullOrEmpty(dew.TextAtis) ? "/" : "")}{dew.TextAtis} {pressure.TextAtis} {recentWeather.TextAtis} {windshear.TextAtis} {runwayCondition.TextAtis} {trends.TextAtis}";
 
         var airportConditions = "";
         var acCustom = false;
@@ -683,6 +684,7 @@ public class AtisBuilder : IAtisBuilder
             new("TREND", trends.TextAtis, trends.VoiceAtis),
             new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
             new("WS", windshear.TextAtis, windshear.VoiceAtis),
+            new("RWY_COND", runwayCondition.TextAtis, runwayCondition.VoiceAtis, ["RUNWAY_CONDITION"]),
             new("RMK_WIND", remarkWind.TextAtis, remarkWind.VoiceAtis),
             new("AUTO", autoText, autoVoice),
             new("METAR", metar.RawMetar?.Trim() ?? "", metar.RawMetar?.Trim() ?? "")

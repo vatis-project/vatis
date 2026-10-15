@@ -200,6 +200,14 @@
                     <Button
                         Margin="0,0,5,5"
                         Theme="{StaticResource DarkVariable}"
+                        ToolTip.Tip="The runway conditions (runway state) reported in the METAR"
+                        Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+                        CommandParameter="{Binding $self.Content}">
+                        [RWY__COND]
+                    </Button>
+                    <Button
+                        Margin="0,0,5,5"
+                        Theme="{StaticResource DarkVariable}"
                         ToolTip.Tip="The wind reported in the METAR remarks"
                         Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
                         CommandParameter="{Binding $self.Content}">
