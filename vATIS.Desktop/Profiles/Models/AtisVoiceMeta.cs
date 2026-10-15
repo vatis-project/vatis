@@ -3,6 +3,8 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Linq;
+
 namespace Vatsim.Vatis.Profiles.Models;
 
 /// <summary>
@@ -21,6 +23,12 @@ public class AtisVoiceMeta
     public string? Voice { get; set; } = "Default";
 
     /// <summary>
+    /// Gets or sets voice names to cycle through, one per ATIS letter. When it has two or more entries it
+    /// overrides <see cref="Voice"/>. This is a JSON-only option.
+    /// </summary>
+    public string[]? AlternatingVoices { get; set; }
+
+    /// <summary>
     /// Gets or sets the speech rate multiplier.
     /// </summary>
     public int SpeechRate { get; set; } = 180;
@@ -35,6 +43,7 @@ public class AtisVoiceMeta
         {
             UseTextToSpeech = UseTextToSpeech,
             Voice = Voice,
+            AlternatingVoices = AlternatingVoices?.ToArray(),
             SpeechRate = SpeechRate
         };
     }
