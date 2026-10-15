@@ -44,6 +44,20 @@ public static class FilePickerExtensions
     }
 
     /// <summary>
+    /// Opens a folder picker dialog.
+    /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <returns>The selected folder path, or null if cancelled.</returns>
+    public static async Task<string?> OpenFolderPickerAsync(string? title = null)
+    {
+        var folders = await GetStorageProvider().OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            AllowMultiple = false, Title = title
+        });
+        return folders.Select(f => f.TryGetLocalPath()).OfType<string>().FirstOrDefault();
+    }
+
+    /// <summary>
     /// Saves a file by opening a file picker dialog configured with a specific title,
     /// file type filters, and an optional initial file name. The dialog also includes an overwrite prompt if
     /// a file with the same name already exists.
@@ -74,6 +88,32 @@ public static class FilePickerExtensions
             ShowOverwritePrompt = true,
             SuggestedFileName = initialFileName
         });
+    }
+
+    /// <summary>
+    /// Opens a folder in the system file manager using Avalonia's launcher.
+    /// </summary>
+    /// <param name="path">The folder to open.</param>
+    /// <returns>True if the folder was opened.</returns>
+    public static async Task<bool> OpenFolderInFileManagerAsync(string path)
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+            desktop.MainWindow?.Launcher is not { } launcher)
+        {
+            return false;
+        }
+
+        try
+        {
+            // LaunchDirectoryInfoAsync splits paths containing spaces (e.g. "Application Support") on some
+            // platforms, so launch the folder through an escaped file URI instead.
+            return await launcher.LaunchUriAsync(new Uri(System.IO.Path.GetFullPath(path)));
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException or System.IO.IOException or UriFormatException)
+        {
+            Serilog.Log.Warning(ex, "Failed to open folder {Path}", path);
+            return false;
+        }
     }
 
     private static IStorageProvider GetStorageProvider()

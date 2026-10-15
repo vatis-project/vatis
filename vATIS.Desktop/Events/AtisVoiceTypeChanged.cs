@@ -9,5 +9,5 @@ namespace Vatsim.Vatis.Events;
 /// Represents an event that is raised when the voice type of ATIS station is changed.
 /// </summary>
 /// <param name="Id">The ID of the ATIS station that had its voice type changed.</param>
-/// <param name="UseTextToSpeech">Whether the ATIS station should use text-to-speech.</param>
-public record AtisVoiceTypeChanged(string Id, bool UseTextToSpeech) : IEvent;
+/// <param name="UseAutomaticVoice">Whether vATIS generates the voice (text-to-speech or WAV pack) rather than a user recording.</param>
+public record AtisVoiceTypeChanged(string Id, bool UseAutomaticVoice) : IEvent;

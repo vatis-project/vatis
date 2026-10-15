@@ -32,6 +32,7 @@ using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Voice.Audio;
 using Vatsim.Vatis.Weather;
 using Vatsim.Vatis.Weather.Decoder;
+using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 
@@ -59,6 +60,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private string? _sandboxMetar;
     private bool _hasUnsavedAirportConditions;
     private bool _hasUnsavedNotams;
+    private bool _isLoading;
+    private int _refreshVersion;
     private TextDocument? _airportConditionsTextDocument = new();
     private TextDocument? _notamsTextDocument = new();
     private TextDocument _textAtisTextDocument = new();
@@ -102,7 +105,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             x => x.IsSandboxPlaybackActive,
             x => x.SandboxMetar,
             x => x.SelectedPreset,
-            (playback, metar, preset) => playback == false && !string.IsNullOrEmpty(metar) && preset is { ExternalGenerator.Enabled: false });
+            (playback, metar, preset) => playback == false && !string.IsNullOrEmpty(metar) && preset != null);
         RefreshSandboxAtisCommand = ReactiveCommand.CreateFromTask(HandleRefreshSandboxAtis, canRefreshAtis);
 
         var canPlaySandboxAtis = this.WhenAnyValue(
@@ -117,7 +120,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         {
             if (evt.Id == SelectedStation?.Id)
             {
-                Presets = [.. SelectedStation.Presets.Where(p => p.ExternalGenerator is not { Enabled: true })];
+                Presets = [.. SelectedStation.Presets];
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
@@ -194,7 +197,49 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     public AtisPreset? SelectedPreset
     {
         get => _selectedPreset;
-        set => this.RaiseAndSetIfChanged(ref _selectedPreset, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedPreset, value);
+            this.RaisePropertyChanged(nameof(IsExternalPreset));
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the sandbox ATIS is currently being generated.
+    /// </summary>
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set => this.RaiseAndSetIfChanged(ref _isLoading, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the selected preset generates its ATIS with an external generator.
+    /// </summary>
+    public bool IsExternalPreset => SelectedPreset is { ExternalGenerator.Enabled: true };
+
+    /// <summary>
+    /// Selects the given preset, as if it had been picked from the preset list, and refreshes the sandbox ATIS.
+    /// The sandbox METAR is fetched first if it is empty.
+    /// </summary>
+    /// <param name="preset">The preset to select.</param>
+    /// <returns>A task that completes when the sandbox ATIS has been refreshed.</returns>
+    public async Task SelectPresetAndRefresh(AtisPreset preset)
+    {
+        if (!Presets.Contains(preset))
+            return;
+
+        await SelectedPresetChangedCommand.Execute(preset);
+
+        if (string.IsNullOrEmpty(SandboxMetar))
+        {
+            await FetchSandboxMetarCommand.Execute();
+        }
+
+        if (!string.IsNullOrEmpty(SandboxMetar))
+        {
+            await RefreshSandboxAtisCommand.Execute();
+        }
     }
 
     /// <summary>
@@ -367,7 +412,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         SelectedPreset = null;
         SelectedStation = station;
-        Presets = [.. station.Presets.Where(p => p.ExternalGenerator is not { Enabled: true })];
+        Presets = [.. station.Presets];
         SandboxMetar = "";
         HasUnsavedAirportConditions = false;
         HasUnsavedNotams = false;
@@ -415,6 +460,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
     private async Task HandleRefreshSandboxAtis()
     {
+        var version = Interlocked.Increment(ref _refreshVersion);
         try
         {
             if (SelectedStation == null || SelectedPreset == null)
@@ -427,8 +473,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             _cancellationToken.Dispose();
             _cancellationToken = new CancellationTokenSource();
 
-            TextAtisTextDocument.Text = "Loading...";
-            VoiceAtisTextDocument.Text = "Loading...";
+            TextAtisTextDocument.Text = "";
+            VoiceAtisTextDocument.Text = "";
+            IsLoading = true;
 
             var randomLetter =
                 (char)_random.Next(SelectedStation.CodeRange.Low, SelectedStation.CodeRange.High + 1);
@@ -436,6 +483,12 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             if (SandboxMetar != null)
             {
                 var decodedMetar = _metarDecoder.ParseNotStrict(SandboxMetar);
+                if (IsExternalPreset)
+                {
+                    await RefreshExternalAtis(randomLetter, decodedMetar);
+                    return;
+                }
+
                 var preset = SelectedPreset;
 
                 // For a D-ATIS preset, build from a copy populated with the processed real-world D-ATIS
@@ -467,6 +520,60 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
                 SelectedStation?.Id, SelectedStation?.Identifier, SelectedPreset?.Id);
             TextAtisTextDocument.Text = "Error: " + ex.Message;
             VoiceAtisTextDocument.Text = "";
+        }
+        finally
+        {
+            // Only the most recent refresh clears the indicator, so a superseded refresh can't hide it early.
+            if (version == _refreshVersion)
+            {
+                IsLoading = false;
+            }
+        }
+    }
+
+    private async Task RefreshExternalAtis(char letter, DecodedMetar metar)
+    {
+        if (SelectedStation == null || SelectedPreset?.ExternalGenerator == null)
+            return;
+
+        var generator = SelectedPreset.ExternalGenerator;
+        TextAtisTextDocument.Text = "";
+        VoiceAtisTextDocument.Text = "";
+
+        if (!string.IsNullOrEmpty(generator.TextUrl))
+        {
+            try
+            {
+                var text = await _atisBuilder.GetExternalTextAtis(SelectedStation, SelectedPreset, letter.ToString(),
+                    metar.RawMetar);
+                TextAtisTextDocument.Text = text?.ToUpperInvariant() ?? "Error: Failed to fetch text ATIS.";
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Log.Error(ex, "Failed to fetch external text ATIS for sandbox");
+                TextAtisTextDocument.Text = "Error: Failed to fetch text ATIS. See log for details.";
+            }
+        }
+
+        if (!string.IsNullOrEmpty(generator.VoiceUrl))
+        {
+            try
+            {
+                AtisBuilderVoiceResponse = await _atisBuilder.GetExternalVoiceAtis(SelectedStation, SelectedPreset,
+                    letter.ToString(), metar.RawMetar, _cancellationToken.Token);
+                VoiceAtisTextDocument.Text = AtisBuilderVoiceResponse?.SpokenText?.ToUpperInvariant() ??
+                                             "Error: Failed to fetch voice ATIS.";
+            }
+            catch (AtisBuilderException ex)
+            {
+                Log.Error(ex, "Failed to build external voice ATIS for sandbox");
+                VoiceAtisTextDocument.Text = "Error: " + ex.Message;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Log.Error(ex, "Failed to fetch external voice ATIS for sandbox");
+                VoiceAtisTextDocument.Text = "Error: Failed to fetch voice ATIS. See log for details.";
+            }
         }
     }
 

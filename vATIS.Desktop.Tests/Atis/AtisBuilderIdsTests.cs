@@ -20,7 +20,7 @@ public class AtisBuilderIdsTests
     private static (AtisBuilder Builder, FakeDownloader Downloader) Create()
     {
         var downloader = new FakeDownloader();
-        var builder = new AtisBuilder(downloader, null!, null!, null!, new FakeClientAuth());
+        var builder = new AtisBuilder(downloader, null!, null!, null!, new FakeClientAuth(), null!);
         return (builder, downloader);
     }
 

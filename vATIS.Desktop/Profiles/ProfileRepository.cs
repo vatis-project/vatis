@@ -15,6 +15,7 @@ using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Voice.WavPack;
 
 namespace Vatsim.Vatis.Profiles;
 
@@ -139,7 +140,7 @@ public class ProfileRepository : IProfileRepository
     /// <inheritdoc />
     public async Task<Profile> Import(string path)
     {
-        var profile = await Load(path);
+        var profile = IsBundle(path) ? ReadBundle(path) : await Load(path);
         Log.Information($"Importing profile {profile.Name}");
         profile.Id = Guid.NewGuid().ToString();
         Save(profile);
@@ -163,10 +164,54 @@ public class ProfileRepository : IProfileRepository
     /// <inheritdoc />
     public void Export(Profile profile, string path)
     {
+        if (IsBundle(path))
+        {
+            var clone = JsonSerializer.Deserialize(
+                JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile),
+                SourceGenerationContext.NewDefault.Profile) ?? throw new JsonException("Result is null");
+            WavPackBundler.CreateBundle(path, WavPackBundler.ProfileEntry, clone.Stations ?? [],
+                () => JsonSerializer.Serialize(clone, SourceGenerationContext.NewDefault.Profile));
+            return;
+        }
+
         var scrubbed = JsonSerializer.Deserialize(
             JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile),
             SourceGenerationContext.NewDefault.Profile) ?? throw new JsonException("Result is null");
         File.WriteAllText(path, JsonSerializer.Serialize(scrubbed, SourceGenerationContext.NewDefault.Profile));
+    }
+
+    /// <summary>
+    /// Keeps a user's WAV voice pack settings when a profile is replaced by its remote version, which has none.
+    /// Stations are matched by id, then by identifier and ATIS type.
+    /// </summary>
+    private static void PreserveVoicePacks(Profile local, Profile updated)
+    {
+        foreach (var localStation in local.Stations?.Where(x => x.AtisVoice is { UseWavPack: true }) ?? [])
+        {
+            var match = updated.Stations?.FirstOrDefault(x => x.Id == localStation.Id) ??
+                        updated.Stations?.FirstOrDefault(x =>
+                            x.Identifier == localStation.Identifier && x.AtisType == localStation.AtisType);
+            if (match == null)
+            {
+                continue;
+            }
+
+            match.AtisVoice.UseWavPack = true;
+            match.AtisVoice.UseTextToSpeech = false;
+            match.AtisVoice.WavPackId = localStation.AtisVoice.WavPackId;
+            match.AtisVoice.WavPackPath = localStation.AtisVoice.WavPackPath;
+        }
+    }
+
+    private static bool IsBundle(string path) => path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+
+    private static Profile ReadBundle(string path)
+    {
+        var (json, packIds) = WavPackBundler.ReadBundle(path, WavPackBundler.ProfileEntry);
+        var profile = JsonSerializer.Deserialize(json, SourceGenerationContext.NewDefault.Profile) ??
+                      throw new JsonException("Result is null");
+        WavPackBundler.ResolvePacks(profile.Stations ?? [], packIds);
+        return profile;
     }
 
     private static void RemoveDatisText(JsonNode profileNode)
@@ -269,6 +314,7 @@ public class ProfileRepository : IProfileRepository
                                 updatedProfile.IsNameOverridden = true;
                             }
 
+                            PreserveVoicePacks(localProfile, updatedProfile);
                             Delete(localProfile);
                             Save(updatedProfile);
                         }

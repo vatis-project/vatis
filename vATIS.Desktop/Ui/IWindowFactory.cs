@@ -105,6 +105,12 @@ public interface IWindowFactory
     public SortAtisStationsDialog CreateSortAtisStationsDialog();
 
     /// <summary>
+    /// Creates and initializes a new instance of the <see cref="VoicePacksDialog"/> class.
+    /// </summary>
+    /// <returns>An instance of the <see cref="VoicePacksDialog"/> class.</returns>
+    public VoicePacksDialog CreateVoicePacksDialog();
+
+    /// <summary>
     /// Creates and initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="ReleaseNotesDialog"/> class.</returns>

@@ -225,6 +225,17 @@ internal class WindowFactory : IWindowFactory
     }
 
     /// <summary>
+    /// Creates and initializes a new instance of the <see cref="VoicePacksDialog"/> class.
+    /// </summary>
+    /// <returns>An instance of the <see cref="VoicePacksDialog"/> class.</returns>
+    public VoicePacksDialog CreateVoicePacksDialog()
+    {
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<VoicePacksDialogViewModel>();
+        return new VoicePacksDialog(viewModel);
+    }
+
+    /// <summary>
     /// Creates and initializes a new instance of the <see cref="ReleaseNotesDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="ReleaseNotesDialog"/> class.</returns>
