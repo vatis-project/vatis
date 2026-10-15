@@ -547,6 +547,9 @@
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="PresentWeatherTypes"/>
 								</Interaction.Behaviors>
 								<DataGrid.Styles>
+									<Style Selector="DataGridCell TextBlock">
+										<Setter Property="TextWrapping" Value="Wrap"/>
+									</Style>
 									<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
 										<Setter Property="IsVisible" Value="False" />
 									</Style>
