@@ -109,27 +109,32 @@
             </ContextMenu>
         </Border.ContextMenu>
         <Panel ClipToBounds="True">
-            <ItemsControl ItemsSource="{Binding FilteredStations, DataType=vm:MiniWindowViewModel}" Margin="5" IsVisible="{Binding FilteredStations.Count, DataType=vm:MiniWindowViewModel}" VerticalAlignment="Center">
+            <ItemsControl ItemsSource="{Binding FilteredStations, DataType=vm:MiniWindowViewModel}" Margin="8,5,8,5" Classes.WithGutter="{Binding HasExpiredRecording, DataType=vm:MiniWindowViewModel}" IsVisible="{Binding FilteredStations.Count, DataType=vm:MiniWindowViewModel}" VerticalAlignment="Center">
+                <ItemsControl.Styles>
+                    <!-- Space for the recording-expired dot is only reserved while at least one station shows it. -->
+                    <Style Selector="ItemsControl.WithGutter Grid.StationRow">
+                        <Setter Property="Margin" Value="12,0,0,0"/>
+                    </Style>
+                </ItemsControl.Styles>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="5">
-                            <Panel Width="7" VerticalAlignment="Center">
-                                <Ellipse Width="7" Height="7" Fill="Red" IsVisible="{Binding RecordedAtisState, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static atis:RecordedAtisState.Expired}}"><ToolTip.Tip>Voice ATIS needs recording</ToolTip.Tip></Ellipse>
-                            </Panel>
-                            <Grid ColumnDefinitions="65,10" IsVisible="{Binding !ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
+                        <Panel>
+                            <!-- The dot sits in the left gutter that is reserved while any station shows it. -->
+                            <Ellipse Width="7" Height="7" Fill="Red" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding RecordedAtisState, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static atis:RecordedAtisState.Expired}}"><ToolTip.Tip>Voice ATIS needs recording</ToolTip.Tip></Ellipse>
+                            <Grid Classes="StationRow" ColumnDefinitions="65,10" IsVisible="{Binding !ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" Grid.Column="1"/>
                             </Grid>
-                            <Grid ColumnDefinitions="65,10,60,10,Auto,15,Auto" IsVisible="{Binding ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
+                            <Grid Classes="StationRow" ColumnDefinitions="65,10,60,10,Auto,15,Auto" IsVisible="{Binding ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
                                     <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" />
-                                    <TextBlock Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" FontSize="15" FontWeight="Medium" IsHitTestVisible="False"/>
+                                    <TextBlock FontFamily="{StaticResource Monospace}" Text="{Binding ObservationTime, DataType=vm:AtisStationViewModel}" Foreground="White" FontSize="15" FontWeight="Medium" IsHitTestVisible="False"/>
                                 </StackPanel>
                                 <TextBlock Grid.Column="4" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding Altimeter, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
                                 <TextBlock Grid.Column="6" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Text="{Binding MiniWindowWind, DataType=vm:AtisStationViewModel}" Foreground="White" IsHitTestVisible="False"/>
                             </Grid>
-                        </StackPanel>
+                        </Panel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

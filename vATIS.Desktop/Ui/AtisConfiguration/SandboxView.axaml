@@ -14,7 +14,7 @@
 	<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 	<StackPanel Spacing="15" Orientation="Vertical" VerticalAlignment="Center">
 		<Grid ColumnDefinitions="100*,10*">
-			<TextBox Height="50" AcceptsReturn="True" TextWrapping="Wrap" Grid.Column="0" Margin="0,0,10,0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:SandboxViewModel}">
+			<TextBox FontFamily="{StaticResource Monospace}" Height="50" AcceptsReturn="True" TextWrapping="Wrap" Grid.Column="0" Margin="0,0,10,0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:SandboxViewModel}">
 				<Interaction.Behaviors>
 					<behaviors:TextBoxUppercaseBehavior/>
 				</Interaction.Behaviors>
