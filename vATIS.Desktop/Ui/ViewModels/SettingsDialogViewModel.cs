@@ -29,6 +29,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     private bool _muteOwnAtisUpdateSound;
     private bool _muteSharedAtisUpdateSound;
     private bool _autoFetchAtisLetter;
+    private bool _autoFetchDatis;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsDialogViewModel"/> class.
@@ -45,6 +46,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         MuteSharedAtisUpdateSound = _appConfig.MuteSharedAtisUpdateSound;
         SelectedNetworkRating = _appConfig.NetworkRating.ToString();
         AutoFetchAtisLetter = _appConfig.AutoFetchAtisLetter;
+        AutoFetchDatis = _appConfig.AutoFetchDatis;
 
         NetworkRatings =
         [
@@ -142,6 +144,23 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _autoFetchAtisLetter, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to automatically fetch and populate real-world D-ATIS data.
+    /// When enabled, <see cref="AutoFetchAtisLetter"/> is forced on.
+    /// </summary>
+    public bool AutoFetchDatis
+    {
+        get => _autoFetchDatis;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoFetchDatis, value);
+            if (value)
+            {
+                AutoFetchAtisLetter = true;
+            }
+        }
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -158,6 +177,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         _appConfig.MuteOwnAtisUpdateSound = MuteOwnAtisUpdateSound;
         _appConfig.MuteSharedAtisUpdateSound = MuteSharedAtisUpdateSound;
         _appConfig.AutoFetchAtisLetter = AutoFetchAtisLetter;
+        _appConfig.AutoFetchDatis = AutoFetchDatis;
 
         if (Enum.TryParse(SelectedNetworkRating, out NetworkRating selectedNetworkRating))
         {

@@ -46,7 +46,8 @@
 				<StackPanel>
 					<CheckBox Theme="{StaticResource CheckBox}" Content="Mute own ATIS update sound" IsChecked="{Binding MuteOwnAtisUpdateSound, DataType=vm:SettingsDialogViewModel}" />
                     <CheckBox Theme="{StaticResource CheckBox}" Content="Mute shared ATIS update sound" IsChecked="{Binding MuteSharedAtisUpdateSound, DataType=vm:SettingsDialogViewModel}" />
-					<CheckBox Theme="{StaticResource CheckBox}" Content="Automatically fetch ATIS letter" ToolTip.Tip="Fetch the real-world ATIS letter for supported stations automatically after connecting to the network." IsChecked="{Binding AutoFetchAtisLetter, DataType=vm:SettingsDialogViewModel}" />
+					<CheckBox Theme="{StaticResource CheckBox}" Content="Automatically fetch ATIS letter" ToolTip.Tip="Fetch the real-world ATIS letter for supported stations automatically after connecting to the network." IsChecked="{Binding AutoFetchAtisLetter, DataType=vm:SettingsDialogViewModel}" IsEnabled="{Binding !AutoFetchDatis, DataType=vm:SettingsDialogViewModel}" />
+					<CheckBox Theme="{StaticResource CheckBox}" Content="Automatically fetch D-ATIS" ToolTip.Tip="Fetch real-world D-ATIS data and populate airport conditions and NOTAMs for stations with a D-ATIS preset." IsChecked="{Binding AutoFetchDatis, DataType=vm:SettingsDialogViewModel}" />
 				</StackPanel>
 				<Grid ColumnDefinitions="1*,5,1*">
 					<Button Theme="{StaticResource Dark}" Grid.Column="0" HorizontalAlignment="Stretch" Content="Save" Command="{Binding SaveSettingsCommand, DataType=vm:SettingsDialogViewModel}" CommandParameter="{Binding ElementName=Window}" IsDefault="True" />

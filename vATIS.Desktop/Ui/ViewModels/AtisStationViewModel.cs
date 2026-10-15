@@ -74,6 +74,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly IAtisHubConnection _atisHubConnection;
     private readonly IWebsocketService _websocketService;
     private readonly ISessionManager _sessionManager;
+    private readonly IDatisRepository _datisRepository;
+    private bool _autoFetchDatis;
     private readonly Airport _atisStationAirport;
     private readonly MetarDecoder _metarDecoder = new();
     private readonly CompositeDisposable _disposables = [];
@@ -157,11 +159,14 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     /// <param name="websocketService">
     /// The websocket service for handling websocket communications.
     /// </param>
+    /// <param name="datisRepository">
+    /// The D-ATIS repository for fetching real-world D-ATIS data.
+    /// </param>
     public AtisStationViewModel(AtisStation station, WindowNotificationManager? windowNotificationManager,
         INetworkConnectionFactory connectionFactory, IVoiceServerConnectionFactory voiceServerConnectionFactory,
         IAppConfig appConfig, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
         INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
-        IProfileRepository profileRepository, IWebsocketService websocketService)
+        IProfileRepository profileRepository, IWebsocketService websocketService, IDatisRepository datisRepository)
     {
         Id = station.Id;
         Identifier = station.Identifier;
@@ -174,6 +179,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _atisHubConnection = hubConnection;
         _sessionManager = sessionManager;
         _profileRepository = profileRepository;
+        _datisRepository = datisRepository;
+        _autoFetchDatis = _appConfig.AutoFetchDatis;
         _atisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
 
@@ -286,12 +293,78 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 AtisPresetList = [.. AtisStation.Presets.OrderBy(x => x.Ordinal)];
             }
         }));
+        _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(_ =>
+        {
+            // Start or stop D-ATIS monitoring when the setting is toggled while a D-ATIS preset is already selected.
+            if (_appConfig.AutoFetchDatis == _autoFetchDatis)
+                return;
+
+            _autoFetchDatis = _appConfig.AutoFetchDatis;
+
+            if (SelectedAtisPreset == null ||
+                !string.Equals(SelectedAtisPreset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (_autoFetchDatis)
+            {
+                _datisRepository.MonitorStation(AtisStation);
+            }
+            else
+            {
+                _datisRepository.RemoveStation(AtisStation.Id);
+            }
+        }));
         _disposables.Add(EventBus.Instance.Subscribe<ContractionsUpdated>(evt =>
         {
             if (evt.StationId == AtisStation.Id)
             {
                 LoadContractionData();
             }
+        }));
+        _disposables.Add(EventBus.Instance.Subscribe<DatisReceived>(evt =>
+        {
+            if (evt.Result.StationId != AtisStation.Id)
+                return;
+
+            if (!_appConfig.AutoFetchDatis)
+                return;
+
+            if (SelectedAtisPreset == null ||
+                !string.Equals(SelectedAtisPreset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var datisPreset = SelectedAtisPreset;
+            Dispatcher.UIThread.Post(() =>
+            {
+                // Update the preset immediately (in memory only). The text documents are only applied to the
+                // preset after a throttle, and connecting rebuilds them from the preset, which would otherwise
+                // wipe the D-ATIS text if the user connects right after it was fetched.
+                datisPreset.AirportConditions = evt.Result.AirportConditions;
+                datisPreset.Notams = evt.Result.Notams;
+
+                if (AirportConditionsTextDocument != null)
+                {
+                    AirportConditionsTextDocument.Text = evt.Result.AirportConditions;
+                }
+
+                if (NotamsTextDocument != null)
+                {
+                    NotamsTextDocument.Text = evt.Result.Notams;
+                }
+
+                // Fetched text isn't a user edit; don't flag it as unsaved.
+                HasUnsavedAirportConditions = false;
+                HasUnsavedNotams = false;
+
+                if (evt.Result.AtisLetter.HasValue)
+                {
+                    SetAtisLetterCommand.Execute(evt.Result.AtisLetter.Value).Subscribe();
+                }
+            });
         }));
         _disposables.Add(EventBus.Instance.Subscribe<AtisHubAtisReceived>(sync =>
         {
@@ -837,6 +910,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     /// <inheritdoc />
     public void Dispose()
     {
+        _datisRepository.RemoveStation(AtisStation.Id);
         _disposables.Dispose();
 
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
@@ -1751,7 +1825,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
             if (preset != _previousAtisPreset)
             {
-                if (_previousAtisPreset != null && (HasUnsavedNotams || HasUnsavedAirportConditions))
+                // Auto-fetched D-ATIS text is never persisted, so there is nothing to save when leaving it.
+                var leavingAutoFetchedDatis = _appConfig.AutoFetchDatis && _previousAtisPreset != null &&
+                                              string.Equals(_previousAtisPreset.Name, "D-ATIS",
+                                                  StringComparison.OrdinalIgnoreCase);
+
+                if (_previousAtisPreset != null && !leavingAutoFetchedDatis &&
+                    (HasUnsavedNotams || HasUnsavedAirportConditions))
                 {
                     if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                     {
@@ -1768,6 +1848,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                     }
                 }
 
+                // Stop D-ATIS monitoring if the previous preset was D-ATIS
+                if (_previousAtisPreset != null &&
+                    string.Equals(_previousAtisPreset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
+                {
+                    _datisRepository.RemoveStation(AtisStation.Id);
+                }
+
                 SelectedAtisPreset = preset;
                 _previousAtisPreset = preset;
 
@@ -1776,6 +1863,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
                 HasUnsavedNotams = false;
                 HasUnsavedAirportConditions = false;
+
+                // Start D-ATIS monitoring if the setting is enabled and the new preset is D-ATIS
+                if (_appConfig.AutoFetchDatis &&
+                    string.Equals(preset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
+                {
+                    _datisRepository.MonitorStation(AtisStation);
+                }
 
                 if (NetworkConnectionStatus != NetworkConnectionStatus.Connected || _networkConnection == null)
                     return;
