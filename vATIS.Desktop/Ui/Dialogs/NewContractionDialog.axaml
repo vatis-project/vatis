@@ -58,7 +58,7 @@
 			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
 				<StackPanel Spacing="5">
 					<TextBlock Text="Variable:"/>
-					<TextBox Theme="{StaticResource DarkTextBox}" Name="Variable" Text="{Binding Variable, DataType=vm:NewContractionDialogViewModel}" LostFocus="Variable_OnLostFocus">
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Variable" Text="{Binding Variable, DataType=vm:NewContractionDialogViewModel}" LostFocus="Variable_OnLostFocus">
 						<Interaction.Behaviors>
 							<behaviors:FocusOnAttachedToVisualTree/>
 							<behaviors:TextBoxUppercaseBehavior/>
@@ -68,7 +68,7 @@
 				</StackPanel>
 				<StackPanel Spacing="5">
 					<TextBlock Text="Text:"/>
-					<TextBox Theme="{StaticResource DarkTextBox}" Name="String" Text="{Binding Text, DataType=vm:NewContractionDialogViewModel}">
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="String" Text="{Binding Text, DataType=vm:NewContractionDialogViewModel}">
 						<Interaction.Behaviors>
 							<behaviors:TextBoxUppercaseBehavior/>
 							<behaviors:SelectAllTextOnFocusBehavior/>
@@ -77,7 +77,7 @@
 				</StackPanel>
 				<StackPanel Spacing="5">
 					<TextBlock Text="Voice:"/>
-					<TextBox Theme="{StaticResource DarkTextBox}" Name="Spoken" Text="{Binding Spoken, DataType=vm:NewContractionDialogViewModel}">
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Spoken" Text="{Binding Spoken, DataType=vm:NewContractionDialogViewModel}">
 						<Interaction.Behaviors>
 							<behaviors:SelectAllTextOnFocusBehavior/>
 							<behaviors:TextBoxUppercaseBehavior/>

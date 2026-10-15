@@ -51,7 +51,7 @@
 					           HorizontalAlignment="Left"
 					           Padding="5"
 					           TextWrapping="Wrap"
-					           FontSize="13"
+					           FontSize="{DynamicResource UiFontSize}"
 					           Foreground="White"
 					           TextAlignment="Left"
 					           Margin="10,0,0,0"

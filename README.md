@@ -40,3 +40,5 @@ vATIS is licensed under the **[GPLv3 open-source license](LICENSE)**.
 | [WatsonWebsocket](https://github.com/jchristn/WatsonWebsocket) | WebSocket server/client | [MIT](licenses/WatsonWebsocket-License.txt) |
 | [MetarDecoder](https://github.com/afonsoft/metar-decoder)      | METAR parsing           | [GPLv3](licenses/MetarDecoder-License.txt)  |
 | [MiniAudio](https://github.com/mackron/miniaudio)              | Audio playback          | [MIT](licenses/MiniAudio-License.txt)       |
+| [Intel One Mono](https://github.com/intel/intel-one-mono)      | Monospace font          | [OFL-1.1](licenses/IntelOneMono-License.txt) |
+| [IBM Plex Sans](https://github.com/IBM/plex)                     | UI font                 | [OFL-1.1](licenses/IBMPlexSans-License.txt) |
