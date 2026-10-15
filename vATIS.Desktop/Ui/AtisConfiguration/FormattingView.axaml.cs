@@ -16,11 +16,11 @@ namespace Vatsim.Vatis.Ui.AtisConfiguration;
 /// </summary>
 public partial class FormattingView : UserControl
 {
+    private IDisposable? _tabVisibilitySubscription;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FormattingView"/> class.
     /// </summary>
-    private IDisposable? _tabVisibilitySubscription;
-
     public FormattingView()
     {
         InitializeComponent();

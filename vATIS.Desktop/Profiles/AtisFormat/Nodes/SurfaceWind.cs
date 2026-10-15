@@ -3,9 +3,8 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using Vatsim.Vatis.Profiles.Models;
-
 using System.Collections.Generic;
+using Vatsim.Vatis.Profiles.Models;
 
 namespace Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 

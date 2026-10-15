@@ -48,6 +48,20 @@ public class RunwayVisualRange : BaseFormat
     public Dictionary<string, string> VoicePhrases { get; set; } = DefaultVoicePhrases();
 
     /// <summary>
+    /// Creates the default spoken phrases, in display order.
+    /// </summary>
+    /// <returns>The default phrase dictionary.</returns>
+    public static Dictionary<string, string> DefaultVoicePhrases() => new()
+    {
+        { "Less than", "less than {value}" },
+        { "More than", "more than {value}" },
+        { "Variable", "variable between {min} and {max}" },
+        { "Variable, less than", "variable from less than {min} to {max}" },
+        { "Variable to greater than", "{min} variable to greater than {max}" },
+        { "Variable, less than to greater than", "variable from less than {min} to greater than {max}" },
+    };
+
+    /// <summary>
     /// Gets the spoken phrase for the given key, falling back to the default.
     /// </summary>
     /// <param name="key">The phrase key.</param>
@@ -67,18 +81,4 @@ public class RunwayVisualRange : BaseFormat
     {
         return (RunwayVisualRange)MemberwiseClone();
     }
-
-    /// <summary>
-    /// Creates the default spoken phrases, in display order.
-    /// </summary>
-    /// <returns>The default phrase dictionary.</returns>
-    public static Dictionary<string, string> DefaultVoicePhrases() => new()
-    {
-        { "Less than", "less than {value}" },
-        { "More than", "more than {value}" },
-        { "Variable", "variable between {min} and {max}" },
-        { "Variable, less than", "variable from less than {min} to {max}" },
-        { "Variable to greater than", "{min} variable to greater than {max}" },
-        { "Variable, less than to greater than", "variable from less than {min} to greater than {max}" },
-    };
 }

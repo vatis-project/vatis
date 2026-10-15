@@ -2411,6 +2411,57 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         return _changeTracker.ApplyChangesIfNeeded();
     }
 
+    private static string DescribeRunwayConditionTerm(string key) => key switch
+    {
+        "ClearAndDry" => "Deposit: clear and dry",
+        "Damp" => "Deposit: damp",
+        "Wet" => "Deposit: wet",
+        "Rime" => "Deposit: rime",
+        "DrySnow" => "Deposit: dry snow",
+        "WetSnow" => "Deposit: wet snow",
+        "Slush" => "Deposit: slush",
+        "Ice" => "Deposit: ice",
+        "CompactedSnow" => "Deposit: compacted snow",
+        "FrozenRuts" => "Deposit: frozen ruts",
+        "NotOperational" => "Runway not operational",
+        "DepthMillimeter" => "Depth: 1 millimeter",
+        "DepthMillimeters" => "Depth: millimeters",
+        "DepthCentimeters" => "Depth: centimeters",
+        "FrictionGood" => "Friction: good",
+        "FrictionMediumToGood" => "Friction: medium to good",
+        "FrictionMedium" => "Friction: medium",
+        "FrictionMediumToPoor" => "Friction: medium to poor",
+        "FrictionPoor" => "Friction: poor",
+        "FrictionUnreliable" => "Friction: unreliable",
+        _ => key,
+    };
+
+    private static VariableFormatMeta ToMeta(string key, VariableFormat format)
+    {
+        return new VariableFormatMeta(
+            key, format.Text.Style.ToString(), format.Text.Suffix, format.Voice.Style.ToString(), format.Voice.Suffix);
+    }
+
+    private static NumberStyle ParseStyle(string style)
+    {
+        return Enum.TryParse<NumberStyle>(style, out var parsed) ? parsed : NumberStyle.Default;
+    }
+
+    private static VariableFormat ToFormat(VariableFormatMeta meta)
+    {
+        return new VariableFormat
+        {
+            Text = new OutputFormat { Style = ParseStyle(meta.TextStyle), Suffix = meta.TextSuffix ?? string.Empty },
+            Voice = new OutputFormat { Style = ParseStyle(meta.VoiceStyle), Suffix = meta.VoiceSuffix ?? string.Empty },
+        };
+    }
+
+    private static bool FormatsEqual(VariableFormat a, VariableFormat b)
+    {
+        return a.Text.Style == b.Text.Style && a.Text.Suffix == b.Text.Suffix &&
+               a.Voice.Style == b.Voice.Style && a.Voice.Suffix == b.Voice.Suffix;
+    }
+
     private void HandleAtisStationChanged(AtisStation? station)
     {
         if (station == null)
@@ -2801,57 +2852,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 }
             }
         }
-    }
-
-    private static string DescribeRunwayConditionTerm(string key) => key switch
-    {
-        "ClearAndDry" => "Deposit: clear and dry",
-        "Damp" => "Deposit: damp",
-        "Wet" => "Deposit: wet",
-        "Rime" => "Deposit: rime",
-        "DrySnow" => "Deposit: dry snow",
-        "WetSnow" => "Deposit: wet snow",
-        "Slush" => "Deposit: slush",
-        "Ice" => "Deposit: ice",
-        "CompactedSnow" => "Deposit: compacted snow",
-        "FrozenRuts" => "Deposit: frozen ruts",
-        "NotOperational" => "Runway not operational",
-        "DepthMillimeter" => "Depth: 1 millimeter",
-        "DepthMillimeters" => "Depth: millimeters",
-        "DepthCentimeters" => "Depth: centimeters",
-        "FrictionGood" => "Friction: good",
-        "FrictionMediumToGood" => "Friction: medium to good",
-        "FrictionMedium" => "Friction: medium",
-        "FrictionMediumToPoor" => "Friction: medium to poor",
-        "FrictionPoor" => "Friction: poor",
-        "FrictionUnreliable" => "Friction: unreliable",
-        _ => key,
-    };
-
-    private static VariableFormatMeta ToMeta(string key, VariableFormat format)
-    {
-        return new VariableFormatMeta(
-            key, format.Text.Style.ToString(), format.Text.Suffix, format.Voice.Style.ToString(), format.Voice.Suffix);
-    }
-
-    private static NumberStyle ParseStyle(string style)
-    {
-        return Enum.TryParse<NumberStyle>(style, out var parsed) ? parsed : NumberStyle.Default;
-    }
-
-    private static VariableFormat ToFormat(VariableFormatMeta meta)
-    {
-        return new VariableFormat
-        {
-            Text = new OutputFormat { Style = ParseStyle(meta.TextStyle), Suffix = meta.TextSuffix ?? string.Empty },
-            Voice = new OutputFormat { Style = ParseStyle(meta.VoiceStyle), Suffix = meta.VoiceSuffix ?? string.Empty },
-        };
-    }
-
-    private static bool FormatsEqual(VariableFormat a, VariableFormat b)
-    {
-        return a.Text.Style == b.Text.Style && a.Text.Suffix == b.Text.Suffix &&
-               a.Voice.Style == b.Voice.Style && a.Voice.Suffix == b.Voice.Suffix;
     }
 
     private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)

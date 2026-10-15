@@ -48,12 +48,6 @@ public class CloudNode : BaseNode<CloudLayer>
         };
     }
 
-    private string ConvectiveText(CloudLayer.CloudType type)
-    {
-        var key = TypeToString(type);
-        return Station?.AtisFormat.Clouds.ConvectiveTypesText.GetValueOrDefault(key, key) ?? key;
-    }
-
     private static string AmountToString(CloudLayer.CloudAmount amount)
     {
         return amount switch
@@ -105,6 +99,12 @@ public class CloudNode : BaseNode<CloudLayer>
 
         var value = layer.BaseHeight != null && !Station.AtisFormat.Clouds.ConvertToMetric ? unit : string.Empty;
         return Regex.Replace(template, "{feet}", value, RegexOptions.IgnoreCase);
+    }
+
+    private string ConvectiveText(CloudLayer.CloudType type)
+    {
+        var key = TypeToString(type);
+        return Station?.AtisFormat.Clouds.ConvectiveTypesText.GetValueOrDefault(key, key) ?? key;
     }
 
     private void Parse(List<CloudLayer> cloudLayers)

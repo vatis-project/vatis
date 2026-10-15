@@ -42,12 +42,13 @@ public class TemperatureNode : BaseNode<Value>
 
         var settings = Station.AtisFormat.Temperature;
         var digits = Math.Abs(node.ActualValue).ToString(settings.SpeakLeadingZero ? "00" : "");
-        var spoken = settings.Format.Voice.Style switch
+        var spokenNumber = settings.Format.Voice.Style switch
         {
             NumberStyle.Digits => digits,
             NumberStyle.Group => ((int)Math.Abs(node.ActualValue)).ToGroupForm(),
             _ => digits.ToSerialFormat(),
-        } + settings.Format.Voice.Suffix;
+        };
+        var spoken = spokenNumber + settings.Format.Voice.Suffix;
 
         var prefix = node.ActualValue < 0 ? "minus " : settings.UsePlusPrefix ? "plus " : string.Empty;
         return Regex.Replace(format, "{temp}", _ => prefix + spoken, RegexOptions.IgnoreCase);

@@ -219,30 +219,6 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     public bool IsExternalPreset => SelectedPreset is { ExternalGenerator.Enabled: true };
 
     /// <summary>
-    /// Selects the given preset, as if it had been picked from the preset list, and refreshes the sandbox ATIS.
-    /// The sandbox METAR is fetched first if it is empty.
-    /// </summary>
-    /// <param name="preset">The preset to select.</param>
-    /// <returns>A task that completes when the sandbox ATIS has been refreshed.</returns>
-    public async Task SelectPresetAndRefresh(AtisPreset preset)
-    {
-        if (!Presets.Contains(preset))
-            return;
-
-        await SelectedPresetChangedCommand.Execute(preset);
-
-        if (string.IsNullOrEmpty(SandboxMetar))
-        {
-            await FetchSandboxMetarCommand.Execute();
-        }
-
-        if (!string.IsNullOrEmpty(SandboxMetar))
-        {
-            await RefreshSandboxAtisCommand.Execute();
-        }
-    }
-
-    /// <summary>
     /// Gets or sets the selected ATIS station.
     /// </summary>
     public AtisStation? SelectedStation
@@ -362,6 +338,30 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     {
         get => _atisBuilderVoiceResponse;
         set => this.RaiseAndSetIfChanged(ref _atisBuilderVoiceResponse, value);
+    }
+
+    /// <summary>
+    /// Selects the given preset, as if it had been picked from the preset list, and refreshes the sandbox ATIS.
+    /// The sandbox METAR is fetched first if it is empty.
+    /// </summary>
+    /// <param name="preset">The preset to select.</param>
+    /// <returns>A task that completes when the sandbox ATIS has been refreshed.</returns>
+    public async Task SelectPresetAndRefresh(AtisPreset preset)
+    {
+        if (Presets == null || !Presets.Contains(preset))
+            return;
+
+        await SelectedPresetChangedCommand.Execute(preset);
+
+        if (string.IsNullOrEmpty(SandboxMetar))
+        {
+            await FetchSandboxMetarCommand.Execute();
+        }
+
+        if (!string.IsNullOrEmpty(SandboxMetar))
+        {
+            await RefreshSandboxAtisCommand.Execute();
+        }
     }
 
     /// <inheritdoc />
