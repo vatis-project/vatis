@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
+             xmlns:views="using:Vatsim.Vatis.Ui.AtisConfiguration"
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
              xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
@@ -10,12 +11,14 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.PresetsView">
     <UserControl.Styles>
-        <Style Selector="CheckBox#UseExternalAtisGenerator.external">
-            <Setter Property="Margin" Value="0,12"/>
+        <!-- Hide the sub-tab strip when only the Template sub-tab is available. -->
+        <Style Selector="TabControl.NoStrip /template/ ItemsPresenter#PART_ItemsPresenter">
+            <Setter Property="IsVisible" Value="False"/>
         </Style>
     </UserControl.Styles>
     <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-		<StackPanel Orientation="Vertical">
+		<Grid RowDefinitions="Auto,*">
+		<StackPanel Grid.Row="0" Orientation="Vertical">
 			<Grid ColumnDefinitions="*,Auto">
 				<ComboBox Name="SelectedPreset" Grid.Column="0" Classes="Dark" Margin="0,0,10,0" ItemsSource="{Binding Presets, DataType=vm:PresetsViewModel}" SelectedItem="{Binding SelectedPreset, DataType=vm:PresetsViewModel}" SelectionChanged="SelectedPreset_OnSelectionChanged">
 					<ComboBox.ItemTemplate>
@@ -39,10 +42,14 @@
 					</DropDownButton>
 				</StackPanel>
 			</Grid>
-			<CheckBox Name="UseExternalAtisGenerator" Classes.external="{Binding $self.IsChecked}" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
-			<StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !#UseExternalAtisGenerator.IsChecked}">
-				<TextBlock Text="ATIS Template:"/>
-				<editor:TextEditor Name="AtisTemplate" FontFamily="{StaticResource Monospace}" WordWrap="True" Height="370" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
+			<CheckBox Name="UseExternalAtisGenerator" Margin="0,8,0,0" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
+		</StackPanel>
+		<TabControl Grid.Row="1" Margin="-3,10,-3,-3" Classes.NoStrip="{Binding !IsDatisPresetSelected, DataType=vm:PresetsViewModel}" SelectedIndex="{Binding SelectedSubTabIndex, DataType=vm:PresetsViewModel}">
+		<TabItem Header="Template">
+		<Grid>
+			<Grid RowDefinitions="Auto,*,Auto" RowSpacing="5" IsVisible="{Binding !#UseExternalAtisGenerator.IsChecked}">
+				<TextBlock Grid.Row="0" Text="ATIS Template:"/>
+				<editor:TextEditor Name="AtisTemplate" Grid.Row="1" FontFamily="{StaticResource Monospace}" WordWrap="True" MinHeight="150" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:PresetsViewModel}"/>
@@ -50,7 +57,7 @@
                         <behaviors:DocumentTextBindingBehavior Text="{Binding AtisTemplateText, DataType=vm:PresetsViewModel, Mode=TwoWay}"/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>
-				<WrapPanel Orientation="Horizontal" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+				<WrapPanel Grid.Row="2" Orientation="Horizontal" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
 					<Button
 						Margin="0,0,5,5"
 						Theme="{StaticResource DarkVariable}"
@@ -190,6 +197,14 @@
                     <Button
                         Margin="0,0,5,5"
                         Theme="{StaticResource DarkVariable}"
+                        ToolTip.Tip="The runway conditions (runway state) reported in the METAR"
+                        Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+                        CommandParameter="{Binding $self.Content}">
+                        [RWY__COND]
+                    </Button>
+                    <Button
+                        Margin="0,0,5,5"
+                        Theme="{StaticResource DarkVariable}"
                         ToolTip.Tip="The wind reported in the METAR remarks"
                         Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
                         CommandParameter="{Binding $self.Content}">
@@ -236,8 +251,8 @@
 						[CLOSING]
 					</Button>
 				</WrapPanel>
-			</StackPanel>
-			<groupBox:GroupBoxControl Header="External ATIS Generator" Margin="0,4,0,0" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="450" MaxHeight="450">
+			</Grid>
+			<groupBox:GroupBoxControl Header="External ATIS Generator" Theme="{StaticResource GroupBoxClassic}" IsVisible="{Binding #UseExternalAtisGenerator.IsChecked}" MinHeight="410">
                 <ScrollViewer AllowAutoHide="False" Margin="0,0,-10,0" VerticalScrollBarVisibility="Visible">
                     <ScrollViewer.Styles>
                         <Style Selector="ScrollBar">
@@ -303,6 +318,12 @@
 				    </StackPanel>
                 </ScrollViewer>
 			</groupBox:GroupBoxControl>
-		</StackPanel>
+		</Grid>
+		</TabItem>
+		<TabItem Header="D-ATIS" x:DataType="vm:PresetsViewModel" IsVisible="{Binding IsDatisPresetSelected}">
+			<views:DatisReplacementsView DataContext="{Binding DatisReplacementsViewModel}"/>
+		</TabItem>
+		</TabControl>
+		</Grid>
 	</Border>
 </UserControl>

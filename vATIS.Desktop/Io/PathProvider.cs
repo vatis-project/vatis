@@ -15,6 +15,11 @@ public static class PathProvider
     private static string s_appDataPath = "";
 
     /// <summary>
+    /// Gets the application data folder path.
+    /// </summary>
+    public static string AppDataFolderPath => s_appDataPath;
+
+    /// <summary>
     /// Gets the folder path for logs.
     /// </summary>
     public static string LogsFolderPath => Path.Combine(s_appDataPath, "Logs");

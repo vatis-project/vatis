@@ -58,6 +58,11 @@ public class Clouds : BaseFormat
     public UndeterminedLayer UndeterminedLayerAltitude { get; set; } = new("undetermined", "undetermined");
 
     /// <summary>
+    /// Gets or sets the vertical visibility altitude used when the height is not available.
+    /// </summary>
+    public UndeterminedLayer UndeterminedVerticalVisibility { get; set; } = new("undetermined", "undetermined");
+
+    /// <summary>
     /// Gets or sets the automatic CB detection text and voice ATIS values.
     /// </summary>
     public AutomaticCbDetection AutomaticCbDetection { get; set; } = new("//////CB", "RADAR DETECTED C-B CLOUDS");
@@ -88,6 +93,20 @@ public class Clouds : BaseFormat
         { "CB", "cumulonimbus" },
         { "TCU", "towering cumulus" },
     };
+
+    /// <summary>
+    /// Gets or sets the text ATIS output for convective cloud types, keyed by acronym.
+    /// </summary>
+    public Dictionary<string, string> ConvectiveTypesText { get; set; } = new()
+    {
+        { "CB", "CB" },
+        { "TCU", "TCU" },
+    };
+
+    /// <summary>
+    /// Gets or sets independent text and voice rendering options for the cloud layer altitude.
+    /// </summary>
+    public VariableFormat AltitudeFormat { get; set; } = new();
 
     /// <summary>
     /// Creates a new instance of <see cref="Clouds"/> that is a copy of the current instance.

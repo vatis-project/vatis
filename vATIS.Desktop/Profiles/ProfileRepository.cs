@@ -9,8 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Serilog;
+using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Voice.WavPack;
@@ -21,14 +23,17 @@ namespace Vatsim.Vatis.Profiles;
 public class ProfileRepository : IProfileRepository
 {
     private readonly IDownloader _downloader;
+    private readonly IAppConfig _appConfig;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProfileRepository"/> class.
     /// </summary>
     /// <param name="downloader">The downloader instance used to facilitate downloading operations.</param>
-    public ProfileRepository(IDownloader downloader)
+    /// <param name="appConfig">The application configuration.</param>
+    public ProfileRepository(IDownloader downloader, IAppConfig appConfig)
     {
         _downloader = downloader;
+        _appConfig = appConfig;
         EnsureProfilesFolderExists();
     }
 
@@ -66,7 +71,16 @@ public class ProfileRepository : IProfileRepository
     {
         var path = PathProvider.GetProfilePath(profile.Id);
         Log.Information($"Saving Profile {profile.Name} to {path}");
-        File.WriteAllText(path, JsonSerializer.Serialize(profile, SourceGenerationContext.NewDefault.Profile));
+
+        var node = JsonSerializer.SerializeToNode(profile, SourceGenerationContext.NewDefault.Profile);
+
+        // Auto-fetched D-ATIS text lives in the preset in memory only; don't persist it to the profile.
+        if (_appConfig.AutoFetchDatis && node != null)
+        {
+            RemoveDatisText(node);
+        }
+
+        File.WriteAllText(path, node?.ToJsonString(SourceGenerationContext.NewDefault.Options) ?? "null");
     }
 
     /// <inheritdoc />
@@ -198,6 +212,26 @@ public class ProfileRepository : IProfileRepository
                       throw new JsonException("Result is null");
         WavPackBundler.ResolvePacks(profile.Stations ?? [], packIds);
         return profile;
+    }
+
+    private static void RemoveDatisText(JsonNode profileNode)
+    {
+        if (profileNode["stations"] is not JsonArray stations)
+        {
+            return;
+        }
+
+        foreach (var preset in stations
+                     .Select(station => station?["presets"] as JsonArray)
+                     .OfType<JsonArray>()
+                     .SelectMany(presets => presets.OfType<JsonObject>()))
+        {
+            if (string.Equals(preset["name"]?.GetValue<string>(), "D-ATIS", StringComparison.OrdinalIgnoreCase))
+            {
+                preset.Remove("airportConditions");
+                preset.Remove("notams");
+            }
+        }
     }
 
     private static async Task<Profile> Load(string path)

@@ -32,7 +32,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (value.IsCavok)
         {
-            return "CAVOK";
+            return Station.AtisFormat.Visibility.CavokText;
         }
 
         if (value.PrevailingVisibility is { ActualUnit: Value.Unit.Meter } &&
@@ -45,7 +45,17 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         {
             // A directional minimum (e.g. "7000 4000E") already carries its units; drop a unit suffix in the template.
             var pattern = value.MinimumVisibility != null ? "{visibility}M?" : "{visibility}";
-            return Regex.Replace(format, pattern, value.RawValue, RegexOptions.IgnoreCase);
+            var raw = value.RawValue;
+            if (!string.IsNullOrEmpty(value.MinimumVisibilityDirection))
+            {
+                var directionText = Station.AtisFormat.Visibility.DirectionText;
+                raw = Regex.Replace(
+                    raw,
+                    @"(?<=\d{4})(NE|NW|SE|SW|N|E|S|W)\b",
+                    m => directionText.GetValueOrDefault(m.Value, m.Value));
+            }
+
+            return Regex.Replace(format, pattern, _ => raw, RegexOptions.IgnoreCase);
         }
 
         return "";
@@ -63,7 +73,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
         if (node.IsCavok)
         {
-            return "CAVOK";
+            return Station.AtisFormat.Visibility.CavokVoice;
         }
         else
         {
@@ -79,8 +89,8 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
                     var suffix = Station.AtisFormat.Visibility.IncludeVisibilitySuffix;
                     var prevailing = node.PrevailingVisibility.ActualValue;
                     var prevailingText = prevailing > Station.AtisFormat.Visibility.MetersCutoff
-                        ? $"{prevailing / 1000}{(suffix ? " kilometers" : "")}"
-                        : $"{((int)prevailing).ToWordString()}{(suffix ? " meters" : "")}";
+                        ? $"{prevailing / 1000}{(suffix ? " " + Station.AtisFormat.Visibility.KilometersUnitVoice : "")}"
+                        : $"{((int)prevailing).ToWordString()}{(suffix ? " " + Station.AtisFormat.Visibility.MetersUnitVoice : "")}";
 
                     var direction = node.MinimumVisibilityDirection switch
                     {
@@ -96,18 +106,18 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
                     };
 
                     var minimum = (int)node.MinimumVisibility.ActualValue;
-                    parsedValue.Add($"{prevailingText} and {direction} {minimum.ToGroupForm()}{(suffix ? " meters" : "")}".Replace("  ", " "));
+                    parsedValue.Add($"{prevailingText} and {direction} {minimum.ToGroupForm()}{(suffix ? " " + Station.AtisFormat.Visibility.MetersUnitVoice : "")}".Replace("  ", " "));
                 }
                 else
                 {
                     if (node.PrevailingVisibility.ActualValue > Station.AtisFormat.Visibility.MetersCutoff)
                     {
-                        parsedValue.Add($"{node.PrevailingVisibility.ActualValue / 1000} {(Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? "kilometers" : "")}");
+                        parsedValue.Add($"{node.PrevailingVisibility.ActualValue / 1000} {(Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? Station.AtisFormat.Visibility.KilometersUnitVoice : "")}");
                     }
                     else
                     {
                         var vis = (int)node.PrevailingVisibility.ActualValue;
-                        parsedValue.Add($"{vis.ToWordString()} {(Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? "meters" : "")}");
+                        parsedValue.Add($"{vis.ToWordString()} {(Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? Station.AtisFormat.Visibility.MetersUnitVoice : "")}");
                     }
                 }
             }
@@ -115,31 +125,7 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
             {
                 if (node.RawValue != null && node.RawValue.Contains('/'))
                 {
-                    var result = node.RawValue switch
-                    {
-                        "M1/4SM" => "less than one quarter.",
-                        "1 1/8SM" => "one and one eighth.",
-                        "1 1/4SM" => "one and one quarter.",
-                        "1 3/8SM" => "one and three eighths.",
-                        "1 1/2SM" => "one and one half.",
-                        "1 5/8SM" => "one and five eighths.",
-                        "1 3/4SM" => "one and three quarters.",
-                        "1 7/8SM" => "one and seven eighths.",
-                        "2 1/4SM" => "two and one quarter.",
-                        "2 1/2SM" => "two and one half.",
-                        "2 3/4SM" => "two and three quarters.",
-                        "1/16SM" => "one sixteenth.",
-                        "1/8SM" => "one eighth.",
-                        "3/16SM" => "three sixteenths.",
-                        "1/4SM" => "one quarter.",
-                        "5/16SM" => "five sixteenths.",
-                        "3/8SM" => "three eighths.",
-                        "1/2SM" => "one half.",
-                        "5/8SM" => "five eighths.",
-                        "3/4SM" => "three quarters.",
-                        "7/8SM" => "seven eighths.",
-                        _ => ""
-                    };
+                    var result = Station.AtisFormat.Visibility.FractionVoice.GetValueOrDefault(node.RawValue, "");
 
                     parsedValue.Add(result);
                 }

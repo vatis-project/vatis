@@ -80,9 +80,9 @@ AUDIO_API void StopRecording(AudioClientHandle handle, AudioDataCallback callbac
 	callback(data.data(), data.size());
 }
 
-AUDIO_API bool StartBufferPlayback(AudioClientHandle handle, void *buffer, size_t bufferSize)
+AUDIO_API bool StartBufferPlayback(AudioClientHandle handle, void *buffer, size_t bufferSize, char* deviceName)
 {
-    return  handle->impl->StartBufferPlayback(buffer, bufferSize);
+    return  handle->impl->StartBufferPlayback(buffer, bufferSize, deviceName ? deviceName : "");
 }
 
 AUDIO_API bool StopBufferPlayback(AudioClientHandle handle)

@@ -6,6 +6,7 @@
 using System;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
@@ -27,7 +28,8 @@ public class DewpointNode : BaseNode<Value>
         if (format == null)
             return "";
 
-        return SignedValueFormatter.Format(format, "dewpoint", value.ActualValue);
+        return SignedValueFormatter.Format(
+            format, "dewpoint", value.ActualValue, Station?.AtisFormat.Dewpoint.Format.Text.Suffix ?? string.Empty);
     }
 
     /// <inheritdoc/>
@@ -38,15 +40,17 @@ public class DewpointNode : BaseNode<Value>
         if (format == null)
             return "";
 
-        return node.ActualValue < 0
-            ? Regex.Replace(format, "{dewpoint}",
-                "minus " + Math.Abs((int)node.ActualValue)
-                    .ToString(Station.AtisFormat.Dewpoint.SpeakLeadingZero ? "00" : "").ToSerialFormat(),
-                RegexOptions.IgnoreCase)
-            : Regex.Replace(format, "{dewpoint}",
-                (Station.AtisFormat.Dewpoint.UsePlusPrefix ? "plus " : "") + Math.Abs((int)node.ActualValue)
-                    .ToString(Station.AtisFormat.Dewpoint.SpeakLeadingZero ? "00" : "").ToSerialFormat(),
-                RegexOptions.IgnoreCase);
+        var settings = Station.AtisFormat.Dewpoint;
+        var digits = Math.Abs((int)node.ActualValue).ToString(settings.SpeakLeadingZero ? "00" : "");
+        var spoken = settings.Format.Voice.Style switch
+        {
+            NumberStyle.Digits => digits,
+            NumberStyle.Group => ((int)Math.Abs((int)node.ActualValue)).ToGroupForm(),
+            _ => digits.ToSerialFormat(),
+        } + settings.Format.Voice.Suffix;
+
+        var prefix = node.ActualValue < 0 ? "minus " : settings.UsePlusPrefix ? "plus " : string.Empty;
+        return Regex.Replace(format, "{dewpoint}", _ => prefix + spoken, RegexOptions.IgnoreCase);
     }
 
     private void Parse(Value? node)

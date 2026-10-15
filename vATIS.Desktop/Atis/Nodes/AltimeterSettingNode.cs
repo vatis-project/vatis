@@ -75,17 +75,22 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         if (format == null)
             return "";
 
-        format = Regex.Replace(format, "{altimeter}", node.ActualValue.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|inhg}", _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|hpa}", _pressureHpa.ToString(), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|text}", node.ActualValue.ToString("0000").ToSerialFormat()?.ToUpperInvariant() ?? string.Empty, RegexOptions.IgnoreCase);
+        var altimeter = node.ActualValue.ToString(CultureInfo.InvariantCulture);
+        var inHg = _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US"));
+        var altimeterWords = node.ActualValue.ToString("0000").ToSerialFormat()?.ToUpperInvariant() ?? string.Empty;
+
+        format = Regex.Replace(format, "{altimeter}", _ => Render("altimeter", altimeter, altimeter, false), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|inhg}", _ => Render("inhg", inHg, inHg, false), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|hpa}", _ => Render("hpa", _pressureHpa.ToString(), _pressureHpa.ToString(), false), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|text}", _ => Render("text", altimeterWords, altimeter, false), RegexOptions.IgnoreCase);
 
         var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
         if (qfeMatch.Success)
         {
             int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
             var qfe = CalculateQfe(_pressureHpa, elevation);
-            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", qfe.ToString(CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
+            var qfeText = qfe.ToString(CultureInfo.InvariantCulture);
+            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", _ => Render("qfe", qfeText, qfeText, false), RegexOptions.IgnoreCase);
         }
 
         var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
@@ -108,16 +113,21 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         if (format == null)
             return "";
 
-        format = Regex.Replace(format, "{altimeter}", ((int)node.ActualValue).ToSerialFormat(), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|inhg}", _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US")).ToSerialFormat(Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty, RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|hpa}", _pressureHpa.ToSerialFormat(), RegexOptions.IgnoreCase);
+        var altimeter = ((int)node.ActualValue).ToString(CultureInfo.InvariantCulture);
+        var inHg = _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US"));
+
+        format = Regex.Replace(format, "{altimeter}", _ => Render("altimeter", ((int)node.ActualValue).ToSerialFormat(), altimeter, true), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|text}", _ => Render("text", ((int)node.ActualValue).ToSerialFormat(), altimeter, true), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|inhg}", _ => Render("inhg", inHg.ToSerialFormat(Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty, inHg, true), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|hpa}", _ => Render("hpa", _pressureHpa.ToSerialFormat(), _pressureHpa.ToString(), true), RegexOptions.IgnoreCase);
 
         var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
         if (qfeMatch.Success)
         {
             int.TryParse(qfeMatch.Groups[1].Value, out var elevation);
             var qfe = CalculateQfe(_pressureHpa, elevation);
-            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", qfe.ToSerialFormat(), RegexOptions.IgnoreCase);
+            var qfeDigits = qfe.ToString(CultureInfo.InvariantCulture);
+            format = Regex.Replace(format, @"\{qfe\|(\d+)\}", _ => Render("qfe", qfe.ToSerialFormat(), qfeDigits, true), RegexOptions.IgnoreCase);
         }
 
         var secondaryAltimeterMatch = Regex.Match(format, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
@@ -130,6 +140,18 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         }
 
         return format;
+    }
+
+    private string Render(string variant, string rendered, string digits, bool voice)
+    {
+        var altimeter = Station?.AtisFormat.Altimeter;
+        var format = altimeter?.VariableFormats.GetValueOrDefault(variant);
+        return VariableFormatter.Apply(
+            rendered,
+            digits,
+            voice ? format?.Voice : format?.Text,
+            !voice,
+            altimeter?.PronounceDecimal ?? false);
     }
 
     private async Task Parse(Pressure? pressure)
@@ -156,15 +178,25 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
             }
 
             // get custom altimeters
-            var matches = Regex.Matches(Station.AtisFormat.Altimeter.Template.Voice!, @"{altimeter\|(\w{4})}",
-                RegexOptions.IgnoreCase);
+            var templates = $"{Station.AtisFormat.Altimeter.Template.Voice} {Station.AtisFormat.Altimeter.Template.Text}";
+            var matches = Regex.Matches(templates, @"{altimeter\|(\w{4})}", RegexOptions.IgnoreCase);
             var tasks = new List<Task>();
 
+            var requested = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (Match match in matches)
             {
+                var icao = match.Groups[1].Value;
+
+                // "text" and "inhg" are variable variants, not ICAO identifiers.
+                if (icao.Equals("text", StringComparison.OrdinalIgnoreCase) ||
+                    icao.Equals("inhg", StringComparison.OrdinalIgnoreCase) ||
+                    !requested.Add(icao))
+                {
+                    continue;
+                }
+
                 tasks.Add(Task.Run(async () =>
                 {
-                    var icao = match.Groups[1].Value;
                     var metar = await _metarRepository?.GetMetar(icao, triggerMessageBus: false)!;
                     if (metar?.Pressure?.Value != null) _altimeterSettings[metar.Icao] = metar.Pressure.Value;
                 }));

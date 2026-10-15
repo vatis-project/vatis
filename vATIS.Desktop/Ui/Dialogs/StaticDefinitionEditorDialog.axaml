@@ -56,7 +56,7 @@
 		<StackPanel>
 			<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
 				<Grid ColumnDefinitions="1*,1*">
-					<TextBlock Text="{Binding Title, DataType=vm:StaticDefinitionEditorDialogViewModel, FallbackValue='Definition Editor'}" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="14" Grid.Column="0" />
+					<TextBlock Text="{Binding Title, DataType=vm:StaticDefinitionEditorDialogViewModel, FallbackValue='Definition Editor'}" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="{DynamicResource UiFontSize}" Grid.Column="0" />
 					<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CancelButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
 				</Grid>
 			</Border>
@@ -73,7 +73,7 @@
 						<TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Leave blank to use the list's default separator. Ignored for the last entry." />
 						<TextBox Grid.Column="1" FontFamily="{StaticResource Monospace}" Watermark="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
 					</Grid>
-					<TextBox Name="DataValidation" Theme="{StaticResource Hidden}" Text="{Binding DataValidation, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
+					<TextBox FontFamily="{StaticResource Monospace}" Name="DataValidation" Theme="{StaticResource Hidden}" Text="{Binding DataValidation, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
 				</StackPanel>
 				<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5">
 					<Button Width="80" Theme="{StaticResource Dark}" Command="{Binding SaveButtonCommand, DataType=vm:StaticDefinitionEditorDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Save</Button>

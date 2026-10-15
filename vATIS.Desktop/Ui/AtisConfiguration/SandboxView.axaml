@@ -26,16 +26,16 @@
 		<converters:AtisPlaybackButtonLabelConverter x:Key="ButtonLabelConverter"/>
 	</UserControl.Resources>
 	<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-	<Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+	<Grid RowDefinitions="Auto,Auto,*,*" RowSpacing="15">
 		<Grid Grid.Row="0" ColumnDefinitions="100*,10*">
-			<TextBox Height="50" AcceptsReturn="True" TextWrapping="Wrap" Grid.Column="0" Margin="0,0,10,0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:SandboxViewModel}">
+			<TextBox FontFamily="{StaticResource Monospace}" Height="50" AcceptsReturn="True" TextWrapping="Wrap" Grid.Column="0" Margin="0,0,10,0" Theme="{StaticResource DarkTextBox}" Watermark="METAR" VerticalContentAlignment="Center" Text="{Binding SandboxMetar, DataType=vm:SandboxViewModel}">
 				<Interaction.Behaviors>
 					<behaviors:TextBoxUppercaseBehavior/>
 				</Interaction.Behaviors>
 			</TextBox>
 			<Button Grid.Column="1" Theme="{StaticResource Dark}" Content="Fetch" Command="{Binding FetchSandboxMetarCommand, DataType=vm:SandboxViewModel}"/>
 		</Grid>
-		<Grid Grid.Row="1" Margin="0,15,0,0" ColumnDefinitions="Auto,1*">
+		<Grid Grid.Row="1" ColumnDefinitions="Auto,1*">
 			<TextBlock Grid.Column="0" Text="Preset:" VerticalAlignment="Center" Margin="0,0,10,0"/>
 			<ComboBox Grid.Column="1" Name="SandboxSelectedPreset" Classes="Dark" HorizontalAlignment="Stretch" VerticalAlignment="Center" ItemsSource="{Binding Presets, DataType=vm:SandboxViewModel}" SelectedItem="{Binding SelectedPreset, DataType=vm:SandboxViewModel, Mode=OneWay}">
 				<ComboBox.ItemTemplate>
@@ -50,39 +50,39 @@
 				</Interaction.Behaviors>
 			</ComboBox>
 		</Grid>
-		<TextBlock Grid.Row="2" Margin="0,15,0,0" IsVisible="{Binding IsExternalPreset, DataType=vm:SandboxViewModel, FallbackValue=False}" TextWrapping="Wrap" Foreground="#A0A0A0" Text="This preset uses an external ATIS generator. The ATIS is generated from the URLs and runways configured on the Presets tab, so Airport Conditions and NOTAMs do not apply."/>
-		<Grid Grid.Row="3" Margin="0,15,0,0" ColumnDefinitions="50*,10,50*" IsVisible="{Binding !IsExternalPreset, DataType=vm:SandboxViewModel, FallbackValue=True}">
-			<StackPanel Orientation="Vertical" Grid.Column="0">
+		<TextBlock Grid.Row="2" IsVisible="{Binding IsExternalPreset, DataType=vm:SandboxViewModel, FallbackValue=False}" TextWrapping="Wrap" Foreground="#A0A0A0" Text="This preset uses an external ATIS generator. The ATIS is generated from the URLs and runways configured on the Presets tab, so Airport Conditions and NOTAMs do not apply."/>
+		<Grid Grid.Row="2" ColumnDefinitions="50*,10,50*" IsVisible="{Binding !IsExternalPreset, DataType=vm:SandboxViewModel, FallbackValue=True}">
+			<Grid RowDefinitions="Auto,*" Grid.Column="0">
 				<StackPanel Orientation="Horizontal" Spacing="5">
 					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:SandboxViewModel}">AIRPORT CONDITIONS</Button>
 					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedAirportConditions, DataType=vm:SandboxViewModel, FallbackValue=False}" Command="{Binding SaveAirportConditionsTextCommand, DataType=vm:SandboxViewModel}">*SAVE CHANGES*</Button>
 				</StackPanel>
-				<editor:TextEditor Name="AirportConditions" Height="166" Padding="4" Document="{Binding AirportConditionsTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" TextChanged="AirportConditions_OnTextChanged">
+				<editor:TextEditor Name="AirportConditions" Grid.Row="1" MinHeight="60" Padding="4" Document="{Binding AirportConditionsTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" TextChanged="AirportConditions_OnTextChanged">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:SandboxViewModel}"/>
 						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>
-			</StackPanel>
-			<StackPanel Grid.Column="2" Orientation="Vertical">
+			</Grid>
+			<Grid RowDefinitions="Auto,*" Grid.Column="2">
 				<StackPanel Orientation="Horizontal" Spacing="5">
 					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:SandboxViewModel}">NOTAMS</Button>
 					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedNotams, DataType=vm:SandboxViewModel, FallbackValue=False}" Command="{Binding SaveNotamsTextCommand, DataType=vm:SandboxViewModel}">*SAVE CHANGES*</Button>
 				</StackPanel>
-				<editor:TextEditor Name="NotamFreeText" Height="166" Padding="4" Document="{Binding NotamsTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" TextChanged="NotamFreeText_OnTextChanged">
+				<editor:TextEditor Name="NotamFreeText" Grid.Row="1" MinHeight="60" Padding="4" Document="{Binding NotamsTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" TextChanged="NotamFreeText_OnTextChanged">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:SandboxViewModel}"/>
 						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
 				</editor:TextEditor>
-			</StackPanel>
+			</Grid>
 		</Grid>
-		<Grid Grid.Row="4" Margin="0,15,0,0" ColumnDefinitions="50*,10,50*" RowDefinitions="*,Auto">
-			<Grid Grid.Column="0" RowDefinitions="Auto,*">
-				<TextBlock Text="Text ATIS:" Margin="0,0,0,5"/>
-                <editor:TextEditor Name="TextAtis" Grid.Row="1" MinHeight="166" Padding="4" Document="{Binding TextAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
+		<Grid Grid.Row="3" ColumnDefinitions="50*,10,50*" RowDefinitions="*,Auto">
+			<Grid Grid.Column="0" RowDefinitions="Auto,*" RowSpacing="5">
+				<TextBlock Text="Text ATIS:"/>
+                <editor:TextEditor Name="TextAtis" Grid.Row="1" MinHeight="60" Padding="4" Document="{Binding TextAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
                     <editor:TextEditor.Options>
                         <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
                     </editor:TextEditor.Options>
@@ -95,9 +95,9 @@
 				</Border>
 			</Grid>
 			<Button Grid.Column="0" Grid.Row="1" Margin="0,10,0,0" HorizontalAlignment="Stretch" Theme="{StaticResource Dark}" Content="Refresh ATIS" Command="{Binding RefreshSandboxAtisCommand, DataType=vm:SandboxViewModel}"/>
-			<Grid Grid.Column="2" Grid.Row="0" RowDefinitions="Auto,*">
-				<TextBlock Text="Voice ATIS:" Margin="0,0,0,5"/>
-                <editor:TextEditor Name="VoiceAtis" Grid.Row="1" MinHeight="166" Padding="4" Document="{Binding VoiceAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
+			<Grid Grid.Column="2" Grid.Row="0" RowDefinitions="Auto,*" RowSpacing="5">
+				<TextBlock Text="Voice ATIS:"/>
+                <editor:TextEditor Name="VoiceAtis" Grid.Row="1" MinHeight="60" Padding="4" Document="{Binding VoiceAtisTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" IsReadOnly="True">
                     <editor:TextEditor.Options>
                         <editor:TextEditorOptions AllowScrollBelowDocument="False"/>
                     </editor:TextEditor.Options>

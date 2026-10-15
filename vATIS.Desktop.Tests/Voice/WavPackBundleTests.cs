@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
@@ -42,7 +43,7 @@ public sealed class WavPackBundleTests : IDisposable
     [Fact]
     public async Task ProfileRoundTrip_BundlesOnlyReferencedClipsAndSharesPack()
     {
-        var repo = new ProfileRepository(null!);
+        var repo = new ProfileRepository(null!, new AppConfig());
         var pack = WavPackLibrary.Import(_pack).Pack;
         var profile = new Profile { Name = "UK" };
         profile.Stations!.Add(Station("EGLL", pack.Id));
@@ -81,7 +82,7 @@ public sealed class WavPackBundleTests : IDisposable
     [Fact]
     public void Export_MissingPack_Throws()
     {
-        var repo = new ProfileRepository(null!);
+        var repo = new ProfileRepository(null!, new AppConfig());
         var profile = new Profile { Name = "UK" };
         profile.Stations!.Add(Station("EGLL", "does-not-exist"));
 

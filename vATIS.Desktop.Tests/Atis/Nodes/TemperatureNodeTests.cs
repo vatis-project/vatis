@@ -55,4 +55,34 @@ public class TemperatureNodeTests
     {
         Assert.Equal(expected, ParseDew(template));
     }
+
+    [Fact]
+    public void TextSuffix_AppliesToValueNotTemplate()
+    {
+        var station = new AtisStation { Identifier = "EPWA", Name = "EPWA" };
+        station.AtisFormat.Temperature.Format.Text.Suffix = "C";
+        var node = new TemperatureNode { Station = station };
+        var temp = new MetarDecoder().ParseNotStrict(PositiveMetar).AirTemperature!;
+        Assert.Equal("T 05C", node.ParseTextVariables(temp, "T {temp}"));
+    }
+
+    [Fact]
+    public void VoiceFormat_StyleAndSuffix()
+    {
+        var station = new AtisStation { Identifier = "EPWA", Name = "EPWA" };
+        station.AtisFormat.Temperature.Format.Voice.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Group;
+        station.AtisFormat.Temperature.Format.Voice.Suffix = " degrees";
+        var node = new TemperatureNode { Station = station };
+        var temp = new MetarDecoder().ParseNotStrict(Metar).AirTemperature!;
+        Assert.Equal("TEMPERATURE minus five degrees", node.ParseVoiceVariables(temp, "TEMPERATURE {temp}"));
+    }
+
+    [Fact]
+    public void VoiceFormat_Default_IsUnchanged()
+    {
+        var station = new AtisStation { Identifier = "EPWA", Name = "EPWA" };
+        var node = new TemperatureNode { Station = station };
+        var temp = new MetarDecoder().ParseNotStrict(Metar).AirTemperature!;
+        Assert.Equal("minus five", node.ParseVoiceVariables(temp, "{temp}"));
+    }
 }

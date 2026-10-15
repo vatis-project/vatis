@@ -179,7 +179,7 @@ public class AtisBuilder : IAtisBuilder
         if (_textToSpeechService == null)
             return null;
 
-        var audioBytes = await _textToSpeechService.RequestAudio(result, station, cancellationToken);
+        var audioBytes = await _textToSpeechService.RequestAudio(result, station, currentAtisLetter[0], cancellationToken);
         return audioBytes != null ? new AtisBuilderVoiceAtisResponse(result, audioBytes) : null;
     }
 
@@ -446,7 +446,7 @@ public class AtisBuilder : IAtisBuilder
             if (_textToSpeechService == null)
                 throw new AtisBuilderException("TextToSpeech service not initialized");
 
-            var synthesizedAudio = await _textToSpeechService.RequestAudio(text, station, cancellationToken);
+            var synthesizedAudio = await _textToSpeechService.RequestAudio(text, station, currentAtisLetter, cancellationToken);
             return (text, synthesizedAudio);
         }
 
@@ -616,6 +616,7 @@ public class AtisBuilder : IAtisBuilder
         var trends = NodeParser.Parse<TrendNode, TrendForecast>(metar, station);
         var recentWeather = NodeParser.Parse<RecentWeatherNode, WeatherPhenomenon>(metar, station);
         var windshear = NodeParser.Parse<WindShearNode, string>(metar, station);
+        var runwayCondition = NodeParser.Parse<RunwayConditionNode, RunwayCondition>(metar, station);
         var remarkWind = NodeParser.Parse<RemarkWindNode, RemarkWind>(metar, station);
         var autoNode = new AutoObservationNode { Station = station };
         autoNode.Parse(metar);
@@ -623,9 +624,9 @@ public class AtisBuilder : IAtisBuilder
         var autoVoice = string.IsNullOrEmpty(autoNode.VoiceAtis) ? "" : $"{autoNode.VoiceAtis}.";
 
         var completeWxStringVoice =
-            $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis} {windshear.VoiceAtis} {trends.VoiceAtis}";
+            $"{surfaceWind.VoiceAtis} {visibility.VoiceAtis} {rvr.VoiceAtis} {presentWeather.VoiceAtis} {clouds.VoiceAtis} {temp.VoiceAtis} {dew.VoiceAtis} {pressure.VoiceAtis} {recentWeather.VoiceAtis} {windshear.VoiceAtis} {runwayCondition.VoiceAtis} {trends.VoiceAtis}";
         var completeWxStringAcars =
-            $"{surfaceWind.TextAtis} {visibility.TextAtis} {rvr.TextAtis} {presentWeather.TextAtis} {clouds.TextAtis} {temp.TextAtis}{(!string.IsNullOrEmpty(temp.TextAtis) || !string.IsNullOrEmpty(dew.TextAtis) ? "/" : "")}{dew.TextAtis} {pressure.TextAtis} {recentWeather.TextAtis} {windshear.TextAtis} {trends.TextAtis}";
+            $"{surfaceWind.TextAtis} {visibility.TextAtis} {rvr.TextAtis} {presentWeather.TextAtis} {clouds.TextAtis} {temp.TextAtis}{(!string.IsNullOrEmpty(temp.TextAtis) || !string.IsNullOrEmpty(dew.TextAtis) ? "/" : "")}{dew.TextAtis} {pressure.TextAtis} {recentWeather.TextAtis} {windshear.TextAtis} {runwayCondition.TextAtis} {trends.TextAtis}";
 
         var airportConditions = "";
         var acCustom = false;
@@ -720,6 +721,7 @@ public class AtisBuilder : IAtisBuilder
             new("TREND", trends.TextAtis, trends.VoiceAtis),
             new("RECENT_WX", recentWeather.TextAtis, recentWeather.VoiceAtis),
             new("WS", windshear.TextAtis, windshear.VoiceAtis),
+            new("RWY_COND", runwayCondition.TextAtis, runwayCondition.VoiceAtis, ["RUNWAY_CONDITION"]),
             new("RMK_WIND", remarkWind.TextAtis, remarkWind.VoiceAtis),
             new("AUTO", autoText, autoVoice),
             new("METAR", metar.RawMetar?.Trim() ?? "", metar.RawMetar?.Trim() ?? "")
@@ -821,19 +823,8 @@ public class AtisBuilder : IAtisBuilder
         // letters
         input = Regex.Replace(input, @"\*([A-Z]{1,2}[0-9]{0,2})", m => m.Value.ToAlphaNumericWordGroup()).Trim();
 
-        // parse taxiways
-        input = Regex.Replace(input, @"\bTWY ([A-Z]{1,2}[0-9]{0,2})\b",
-            m => $"TWY {m.Groups[1].Value.ToAlphaNumericWordGroup()}");
-        input = Regex.Replace(input, @"\bTWYS ([A-Z]{1,2}[0-9]{0,2})\b",
-            m => $"TWYS {m.Groups[1].Value.ToAlphaNumericWordGroup()}");
-
-        // parse runways
-        input = Regex.Replace(input, @"\b(RY|RWY|RWYS|RUNWAY|RUNWAYS)\s?([0-9]{1,2})([LRC]?)\b",
-            m => StringExtensions.RwyNumbersToWords(int.Parse(m.Groups[2].Value), m.Groups[3].Value,
-                prefix: !string.IsNullOrEmpty(m.Groups[1].Value),
-                plural: !string.IsNullOrEmpty(m.Groups[1].Value) &&
-                        (m.Groups[1].Value == "RWYS" || m.Groups[1].Value == "RUNWAYS"),
-                leadingZero: !station.IsFaaAtis));
+        // parse taxiways and runways
+        input = TaxiwayRunwayFormatter.Format(input, leadingZero: !station.IsFaaAtis);
 
         // parse individual runway: ^18R, ^01C, ^36
         var runwayMatches = Regex.Matches(input, @"\^(0[1-9]|1[0-9]|2[0-9]|3[0-6]|[1-9])([RLC]?)");

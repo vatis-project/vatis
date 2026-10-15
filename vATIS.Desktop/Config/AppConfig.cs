@@ -71,6 +71,9 @@ public class AppConfig : IAppConfig
     public bool AutoFetchAtisLetter { get; set; }
 
     /// <inheritdoc />
+    public bool AutoFetchDatis { get; set; }
+
+    /// <inheritdoc />
     public bool SuppressReleaseNotes { get; set; }
 
     /// <inheritdoc />
@@ -115,7 +118,8 @@ public class AppConfig : IAppConfig
             VoiceRecordAtisDialogWindowPosition = config.VoiceRecordAtisDialogWindowPosition;
             MicrophoneDevice = config.MicrophoneDevice;
             PlaybackDevice = config.PlaybackDevice;
-            AutoFetchAtisLetter = config.AutoFetchAtisLetter;
+            AutoFetchDatis = config.AutoFetchDatis;
+            AutoFetchAtisLetter = config.AutoFetchAtisLetter || AutoFetchDatis;
             SuppressReleaseNotes = config.SuppressReleaseNotes;
         }
 

@@ -91,6 +91,13 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _visibilityNorthWest;
     private string? _visibilityUnlimitedVisibilityVoice;
     private string? _visibilityUnlimitedVisibilityText;
+    private string? _visibilityCavokVoice;
+    private string? _visibilityMetersUnitVoice;
+    private string? _visibilityKilometersUnitVoice;
+    private ObservableCollection<TextOverrideMeta>? _visibilityFractionVoice;
+    private ObservableCollection<TextOverrideMeta>? _rvrVoicePhrases;
+    private ObservableCollection<VariableFormatMeta>? _cloudAltitudeFormats;
+    private string? _visibilityCavokText;
     private bool _visibilityIncludeVisibilitySuffix;
     private int _visibilityMetersCutoff;
     private string? _rvrSpokenText;
@@ -105,6 +112,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private bool _cloudsConvertToMetric;
     private string? _undeterminedLayerAltitudeText;
     private string? _undeterminedLayerAltitudeVoice;
+    private string? _undeterminedVerticalVisibilityText;
+    private string? _undeterminedVerticalVisibilityVoice;
     private string? _automaticCbDetectionText;
     private string? _automaticCbDetectionVoice;
     private bool _cloudHeightAltitudeInHundreds;
@@ -121,6 +130,9 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _temporaryVoiceValue;
     private string? _trendNotAvailableText;
     private string? _trendNotAvailableVoice;
+    private ObservableCollection<RunwayConditionTermMeta>? _runwayConditionTerms;
+    private string? _runwayConditionText;
+    private string? _runwayConditionVoice;
     private string? _remarkWindText;
     private string? _remarkWindVoice;
     private string? _autoObservationText;
@@ -136,6 +148,12 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<PresentWeatherMeta>? _presentWeatherTypes;
     private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
+    private ObservableCollection<TextOverrideMeta>? _visibilityDirectionText;
+    private ObservableCollection<VariableFormatMeta>? _altimeterVariableFormats;
+    private ObservableCollection<VariableFormatMeta>? _windVariableFormats;
+    private ObservableCollection<VariableFormatMeta>? _temperatureVariableFormats;
+    private ObservableCollection<VariableFormatMeta>? _dewpointVariableFormats;
+    private ObservableCollection<TextOverrideMeta>? _rvrTendencyTexts;
     private string _presentWeatherSearchTerm = string.Empty;
     private ObservableCollection<PresentWeatherMeta>? _filteredPresentWeatherTypes;
     private bool _presentWeatherFilterAcronym = true;
@@ -869,6 +887,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the CAVOK voice value.
+    /// </summary>
+    public string? VisibilityCavokVoice
+    {
+        get => _visibilityCavokVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityCavokVoice, value);
+            _changeTracker.TrackChange(nameof(VisibilityCavokVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the CAVOK text value.
+    /// </summary>
+    public string? VisibilityCavokText
+    {
+        get => _visibilityCavokText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityCavokText, value);
+            _changeTracker.TrackChange(nameof(VisibilityCavokText), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to include visibility suffix.
     /// </summary>
     public bool VisibilityIncludeVisibilitySuffix
@@ -1039,6 +1083,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _undeterminedLayerAltitudeVoice, value);
             _changeTracker.TrackChange(nameof(UndeterminedLayerAltitudeVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the undetermined vertical visibility text.
+    /// </summary>
+    public string? UndeterminedVerticalVisibilityText
+    {
+        get => _undeterminedVerticalVisibilityText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _undeterminedVerticalVisibilityText, value);
+            _changeTracker.TrackChange(nameof(UndeterminedVerticalVisibilityText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the undetermined vertical visibility voice.
+    /// </summary>
+    public string? UndeterminedVerticalVisibilityVoice
+    {
+        get => _undeterminedVerticalVisibilityVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _undeterminedVerticalVisibilityVoice, value);
+            _changeTracker.TrackChange(nameof(UndeterminedVerticalVisibilityVoice), value);
         }
     }
 
@@ -1260,6 +1330,41 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _trendNotAvailableVoice, value);
             _changeTracker.TrackChange(nameof(TrendNotAvailableVoiceValue), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the editable runway condition wording terms.
+    /// </summary>
+    public ObservableCollection<RunwayConditionTermMeta>? RunwayConditionTerms
+    {
+        get => _runwayConditionTerms;
+        set => this.RaiseAndSetIfChanged(ref _runwayConditionTerms, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text template for the runway condition.
+    /// </summary>
+    public string? RunwayConditionText
+    {
+        get => _runwayConditionText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayConditionText, value);
+            _changeTracker.TrackChange(nameof(RunwayConditionText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the runway condition.
+    /// </summary>
+    public string? RunwayConditionVoice
+    {
+        get => _runwayConditionVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayConditionVoice, value);
+            _changeTracker.TrackChange(nameof(RunwayConditionVoice), value);
         }
     }
 
@@ -1488,6 +1593,113 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _convectiveCloudTypes;
         set => this.RaiseAndSetIfChanged(ref _convectiveCloudTypes, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text ATIS output for directional visibility.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? VisibilityDirectionText
+    {
+        get => _visibilityDirectionText;
+        set => this.RaiseAndSetIfChanged(ref _visibilityDirectionText, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text ATIS output for RVR tendencies.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? RvrTendencyTexts
+    {
+        get => _rvrTendencyTexts;
+        set => this.RaiseAndSetIfChanged(ref _rvrTendencyTexts, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken unit word for meters.
+    /// </summary>
+    public string? VisibilityMetersUnitVoice
+    {
+        get => _visibilityMetersUnitVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityMetersUnitVoice, value);
+            _changeTracker.TrackChange(nameof(VisibilityMetersUnitVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken unit word for kilometers.
+    /// </summary>
+    public string? VisibilityKilometersUnitVoice
+    {
+        get => _visibilityKilometersUnitVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _visibilityKilometersUnitVoice, value);
+            _changeTracker.TrackChange(nameof(VisibilityKilometersUnitVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken fractional visibility values.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? VisibilityFractionVoice
+    {
+        get => _visibilityFractionVoice;
+        set => this.RaiseAndSetIfChanged(ref _visibilityFractionVoice, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the spoken runway visual range phrases.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? RvrVoicePhrases
+    {
+        get => _rvrVoicePhrases;
+        set => this.RaiseAndSetIfChanged(ref _rvrVoicePhrases, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the cloud altitude variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? CloudAltitudeFormats
+    {
+        get => _cloudAltitudeFormats;
+        set => this.RaiseAndSetIfChanged(ref _cloudAltitudeFormats, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the wind variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? WindVariableFormats
+    {
+        get => _windVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _windVariableFormats, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the altimeter variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? AltimeterVariableFormats
+    {
+        get => _altimeterVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _altimeterVariableFormats, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the temperature variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? TemperatureVariableFormats
+    {
+        get => _temperatureVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _temperatureVariableFormats, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the dewpoint variable format options.
+    /// </summary>
+    public ObservableCollection<VariableFormatMeta>? DewpointVariableFormats
+    {
+        get => _dewpointVariableFormats;
+        set => this.RaiseAndSetIfChanged(ref _dewpointVariableFormats, value);
     }
 
     /// <inheritdoc />
@@ -1791,6 +2003,53 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 VisibilityUnlimitedVisibilityText ?? string.Empty;
         }
 
+        if (SelectedStation.AtisFormat.Visibility.MetersUnitVoice != VisibilityMetersUnitVoice)
+        {
+            SelectedStation.AtisFormat.Visibility.MetersUnitVoice = VisibilityMetersUnitVoice ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Visibility.KilometersUnitVoice != VisibilityKilometersUnitVoice)
+        {
+            SelectedStation.AtisFormat.Visibility.KilometersUnitVoice = VisibilityKilometersUnitVoice ?? string.Empty;
+        }
+
+        if (VisibilityFractionVoice != null)
+        {
+            var fractions = VisibilityFractionVoice.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.Visibility.FractionVoice.SequenceEqual(fractions))
+            {
+                SelectedStation.AtisFormat.Visibility.FractionVoice = fractions;
+            }
+        }
+
+        if (RvrVoicePhrases != null)
+        {
+            var phrases = RvrVoicePhrases.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.RunwayVisualRange.VoicePhrases.SequenceEqual(phrases))
+            {
+                SelectedStation.AtisFormat.RunwayVisualRange.VoicePhrases = phrases;
+            }
+        }
+
+        if (CloudAltitudeFormats is { Count: > 0 })
+        {
+            var altitude = ToFormat(CloudAltitudeFormats[0]);
+            if (!FormatsEqual(SelectedStation.AtisFormat.Clouds.AltitudeFormat, altitude))
+            {
+                SelectedStation.AtisFormat.Clouds.AltitudeFormat = altitude;
+            }
+        }
+
+        if (SelectedStation.AtisFormat.Visibility.CavokVoice != VisibilityCavokVoice)
+        {
+            SelectedStation.AtisFormat.Visibility.CavokVoice = VisibilityCavokVoice ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Visibility.CavokText != VisibilityCavokText)
+        {
+            SelectedStation.AtisFormat.Visibility.CavokText = VisibilityCavokText ?? string.Empty;
+        }
+
         if (SelectedStation.AtisFormat.Visibility.IncludeVisibilitySuffix !=
             VisibilityIncludeVisibilitySuffix)
         {
@@ -1877,6 +2136,20 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 UndeterminedLayerAltitudeVoice ?? string.Empty;
         }
 
+        if (SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Text !=
+            UndeterminedVerticalVisibilityText)
+        {
+            SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Text =
+                UndeterminedVerticalVisibilityText ?? string.Empty;
+        }
+
+        if (SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Voice !=
+            UndeterminedVerticalVisibilityVoice)
+        {
+            SelectedStation.AtisFormat.Clouds.UndeterminedVerticalVisibility.Voice =
+                UndeterminedVerticalVisibilityVoice ?? string.Empty;
+        }
+
         if (SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Text != AutomaticCbDetectionText)
         {
             SelectedStation.AtisFormat.Clouds.AutomaticCbDetection.Text = AutomaticCbDetectionText;
@@ -1901,6 +2174,77 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             SelectedStation.AtisFormat.Clouds.ConvectiveTypes =
                 ConvectiveCloudTypes.ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        if (ConvectiveCloudTypes != null)
+        {
+            var convectiveText = ConvectiveCloudTypes.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.Clouds.ConvectiveTypesText.SequenceEqual(convectiveText))
+            {
+                SelectedStation.AtisFormat.Clouds.ConvectiveTypesText = convectiveText;
+            }
+        }
+
+        if (WindVariableFormats != null)
+        {
+            foreach (var meta in WindVariableFormats)
+            {
+                var format = ToFormat(meta);
+                if (!SelectedStation.AtisFormat.SurfaceWind.VariableFormats.TryGetValue(meta.Key, out var existing) ||
+                    !FormatsEqual(existing, format))
+                {
+                    SelectedStation.AtisFormat.SurfaceWind.VariableFormats[meta.Key] = format;
+                }
+            }
+        }
+
+        if (AltimeterVariableFormats != null)
+        {
+            foreach (var meta in AltimeterVariableFormats)
+            {
+                var format = ToFormat(meta);
+                if (!SelectedStation.AtisFormat.Altimeter.VariableFormats.TryGetValue(meta.Key, out var existing) ||
+                    !FormatsEqual(existing, format))
+                {
+                    SelectedStation.AtisFormat.Altimeter.VariableFormats[meta.Key] = format;
+                }
+            }
+        }
+
+        if (TemperatureVariableFormats is { Count: > 0 })
+        {
+            var format = ToFormat(TemperatureVariableFormats[0]);
+            if (!FormatsEqual(SelectedStation.AtisFormat.Temperature.Format, format))
+            {
+                SelectedStation.AtisFormat.Temperature.Format = format;
+            }
+        }
+
+        if (DewpointVariableFormats is { Count: > 0 })
+        {
+            var format = ToFormat(DewpointVariableFormats[0]);
+            if (!FormatsEqual(SelectedStation.AtisFormat.Dewpoint.Format, format))
+            {
+                SelectedStation.AtisFormat.Dewpoint.Format = format;
+            }
+        }
+
+        if (VisibilityDirectionText != null)
+        {
+            var directionText = VisibilityDirectionText.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.Visibility.DirectionText.SequenceEqual(directionText))
+            {
+                SelectedStation.AtisFormat.Visibility.DirectionText = directionText;
+            }
+        }
+
+        if (RvrTendencyTexts != null)
+        {
+            var tendencyText = RvrTendencyTexts.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.RunwayVisualRange.TendencyText.SequenceEqual(tendencyText))
+            {
+                SelectedStation.AtisFormat.RunwayVisualRange.TendencyText = tendencyText;
+            }
         }
 
         if (SelectedStation.AtisFormat.Temperature.UsePlusPrefix != TemperatureUsePlusPrefix)
@@ -1966,6 +2310,23 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedStation.AtisFormat.Trend.NotAvailableVoice != TrendNotAvailableVoiceValue)
         {
             SelectedStation.AtisFormat.Trend.NotAvailableVoice = TrendNotAvailableVoiceValue;
+        }
+
+        if (SelectedStation.AtisFormat.RunwayCondition.TextTemplate != RunwayConditionText)
+        {
+            SelectedStation.AtisFormat.RunwayCondition.TextTemplate = RunwayConditionText;
+        }
+
+        if (SelectedStation.AtisFormat.RunwayCondition.VoiceTemplate != RunwayConditionVoice)
+        {
+            SelectedStation.AtisFormat.RunwayCondition.VoiceTemplate = RunwayConditionVoice;
+        }
+
+        if (RunwayConditionTerms != null)
+        {
+            SelectedStation.AtisFormat.RunwayCondition.Terms = RunwayConditionTerms.ToDictionary(
+                x => x.Key,
+                x => new RunwayConditionTerm(x.Text, x.Spoken));
         }
 
         if (SelectedStation.AtisFormat.RemarkWind.TextTemplate != RemarkWindText)
@@ -2077,6 +2438,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         if (!station.IsFaaAtis)
         {
             items.Add("Wind Shear");
+            items.Add("Runway Condition");
             items.Add("Remark Wind");
             items.Add("Trend Forecast");
             items.Add("Transition Level");
@@ -2134,6 +2496,33 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         VisibilityNorthWest = station.AtisFormat.Visibility.NorthWest;
         VisibilityUnlimitedVisibilityVoice = station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
         VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
+        VisibilityCavokVoice = station.AtisFormat.Visibility.CavokVoice;
+        VisibilityMetersUnitVoice = station.AtisFormat.Visibility.MetersUnitVoice;
+        VisibilityKilometersUnitVoice = station.AtisFormat.Visibility.KilometersUnitVoice;
+
+        VisibilityFractionVoice = [];
+        foreach (var kvp in station.AtisFormat.Visibility.FractionVoice)
+        {
+            VisibilityFractionVoice.Add(new TextOverrideMeta(kvp.Key, kvp.Value));
+        }
+
+        _changeTracker.TrackChange(nameof(VisibilityFractionVoice), VisibilityFractionVoice.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
+
+        RvrVoicePhrases = [];
+        foreach (var key in Vatsim.Vatis.Profiles.AtisFormat.Nodes.RunwayVisualRange.DefaultVoicePhrases().Keys)
+        {
+            RvrVoicePhrases.Add(new TextOverrideMeta(
+                key, station.AtisFormat.RunwayVisualRange.GetVoicePhrase(key)));
+        }
+
+        _changeTracker.TrackChange(nameof(RvrVoicePhrases), RvrVoicePhrases.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
+
+        CloudAltitudeFormats = [ToMeta("altitude", station.AtisFormat.Clouds.AltitudeFormat)];
+        _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+        VisibilityCavokText = station.AtisFormat.Visibility.CavokText;
         VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
         VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
         RvrSpokenText = station.AtisFormat.RunwayVisualRange.SpokenText;
@@ -2147,6 +2536,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         CloudHeightAltitudeInHundreds = station.AtisFormat.Clouds.IsAltitudeInHundreds;
         UndeterminedLayerAltitudeText = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text;
         UndeterminedLayerAltitudeVoice = station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice;
+        UndeterminedVerticalVisibilityText = station.AtisFormat.Clouds.UndeterminedVerticalVisibility.Text;
+        UndeterminedVerticalVisibilityVoice = station.AtisFormat.Clouds.UndeterminedVerticalVisibility.Voice;
         AutomaticCbDetectionText = station.AtisFormat.Clouds.AutomaticCbDetection.Text;
         AutomaticCbDetectionVoice = station.AtisFormat.Clouds.AutomaticCbDetection.Voice;
         TemperatureUsePlusPrefix = station.AtisFormat.Temperature.UsePlusPrefix;
@@ -2162,6 +2553,18 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         TemporaryVoiceValue = station.AtisFormat.Trend.TemporaryVoice;
         TrendNotAvailableTextValue = station.AtisFormat.Trend.NotAvailableText;
         TrendNotAvailableVoiceValue = station.AtisFormat.Trend.NotAvailableVoice;
+        RunwayConditionText = station.AtisFormat.RunwayCondition.TextTemplate;
+        RunwayConditionVoice = station.AtisFormat.RunwayCondition.VoiceTemplate;
+
+        RunwayConditionTerms = [];
+        foreach (var item in RunwayCondition.DefaultTerms())
+        {
+            var term = station.AtisFormat.RunwayCondition.Terms.GetValueOrDefault(item.Key, item.Value);
+            RunwayConditionTerms.Add(new RunwayConditionTermMeta(item.Key, DescribeRunwayConditionTerm(item.Key),
+                term.Voice, term.Text));
+        }
+
+        _changeTracker.TrackChange(nameof(RunwayConditionTerms), RunwayConditionTerms.ToList());
         RemarkWindText = station.AtisFormat.RemarkWind.TextTemplate;
         RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
         AutoObservationText = station.AtisFormat.AutoObservation.TextTemplate;
@@ -2210,12 +2613,62 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         ConvectiveCloudTypes = [];
         foreach (var item in station.AtisFormat.Clouds.ConvectiveTypes)
         {
-            ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(item.Key, item.Value));
+            ConvectiveCloudTypes.Add(new ConvectiveCloudTypeMeta(
+                item.Key,
+                item.Value,
+                station.AtisFormat.Clouds.ConvectiveTypesText.GetValueOrDefault(item.Key, item.Key)));
         }
 
         // Track initial ConvectiveCloudTypes.
         _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
-            new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
+            new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+
+        WindVariableFormats = [];
+        foreach (var key in new[] { "wind_dir", "wind_spd", "wind_gust", "wind_vmin", "wind_vmax" })
+        {
+            WindVariableFormats.Add(ToMeta(
+                key, station.AtisFormat.SurfaceWind.VariableFormats.GetValueOrDefault(key) ?? new VariableFormat()));
+        }
+
+        _changeTracker.TrackChange(nameof(WindVariableFormats), WindVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+
+        AltimeterVariableFormats = [];
+        foreach (var key in new[] { "altimeter", "text", "inhg", "hpa", "qfe" })
+        {
+            AltimeterVariableFormats.Add(ToMeta(
+                key, station.AtisFormat.Altimeter.VariableFormats.GetValueOrDefault(key) ?? new VariableFormat()));
+        }
+
+        TemperatureVariableFormats = [ToMeta("temp", station.AtisFormat.Temperature.Format)];
+        DewpointVariableFormats = [ToMeta("dewpoint", station.AtisFormat.Dewpoint.Format)];
+
+        _changeTracker.TrackChange(nameof(AltimeterVariableFormats), AltimeterVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+        _changeTracker.TrackChange(nameof(TemperatureVariableFormats), TemperatureVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+        _changeTracker.TrackChange(nameof(DewpointVariableFormats), DewpointVariableFormats.Select(item =>
+            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+
+        VisibilityDirectionText = [];
+        foreach (var key in new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" })
+        {
+            VisibilityDirectionText.Add(new TextOverrideMeta(
+                key, station.AtisFormat.Visibility.DirectionText.GetValueOrDefault(key, key)));
+        }
+
+        _changeTracker.TrackChange(nameof(VisibilityDirectionText), VisibilityDirectionText.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
+
+        RvrTendencyTexts = [];
+        foreach (var key in new[] { "N", "U", "D" })
+        {
+            RvrTendencyTexts.Add(new TextOverrideMeta(
+                key, station.AtisFormat.RunwayVisualRange.TendencyText.GetValueOrDefault(key, key)));
+        }
+
+        _changeTracker.TrackChange(nameof(RvrTendencyTexts), RvrTendencyTexts.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
 
         TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
         TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
@@ -2350,6 +2803,57 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    private static string DescribeRunwayConditionTerm(string key) => key switch
+    {
+        "ClearAndDry" => "Deposit: clear and dry",
+        "Damp" => "Deposit: damp",
+        "Wet" => "Deposit: wet",
+        "Rime" => "Deposit: rime",
+        "DrySnow" => "Deposit: dry snow",
+        "WetSnow" => "Deposit: wet snow",
+        "Slush" => "Deposit: slush",
+        "Ice" => "Deposit: ice",
+        "CompactedSnow" => "Deposit: compacted snow",
+        "FrozenRuts" => "Deposit: frozen ruts",
+        "NotOperational" => "Runway not operational",
+        "DepthMillimeter" => "Depth: 1 millimeter",
+        "DepthMillimeters" => "Depth: millimeters",
+        "DepthCentimeters" => "Depth: centimeters",
+        "FrictionGood" => "Friction: good",
+        "FrictionMediumToGood" => "Friction: medium to good",
+        "FrictionMedium" => "Friction: medium",
+        "FrictionMediumToPoor" => "Friction: medium to poor",
+        "FrictionPoor" => "Friction: poor",
+        "FrictionUnreliable" => "Friction: unreliable",
+        _ => key,
+    };
+
+    private static VariableFormatMeta ToMeta(string key, VariableFormat format)
+    {
+        return new VariableFormatMeta(
+            key, format.Text.Style.ToString(), format.Text.Suffix, format.Voice.Style.ToString(), format.Voice.Suffix);
+    }
+
+    private static NumberStyle ParseStyle(string style)
+    {
+        return Enum.TryParse<NumberStyle>(style, out var parsed) ? parsed : NumberStyle.Default;
+    }
+
+    private static VariableFormat ToFormat(VariableFormatMeta meta)
+    {
+        return new VariableFormat
+        {
+            Text = new OutputFormat { Style = ParseStyle(meta.TextStyle), Suffix = meta.TextSuffix ?? string.Empty },
+            Voice = new OutputFormat { Style = ParseStyle(meta.VoiceStyle), Suffix = meta.VoiceSuffix ?? string.Empty },
+        };
+    }
+
+    private static bool FormatsEqual(VariableFormat a, VariableFormat b)
+    {
+        return a.Text.Style == b.Text.Style && a.Text.Suffix == b.Text.Suffix &&
+               a.Voice.Style == b.Voice.Style && a.Voice.Suffix == b.Voice.Suffix;
+    }
+
     private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
     {
         if (e.Args.EditAction == DataGridEditAction.Commit)
@@ -2364,9 +2868,48 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                     _changeTracker.TrackChange(nameof(CloudTypes), CloudTypes?.Select(item =>
                         new CloudTypeMeta(item.Acronym, item.Spoken, item.Text)).ToList());
                     break;
+                case nameof(RunwayConditionTerms):
+                    _changeTracker.TrackChange(nameof(RunwayConditionTerms), RunwayConditionTerms?.ToList());
+                    break;
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
-                        new ConvectiveCloudTypeMeta(item.Key, item.Value)).ToList());
+                        new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+                    break;
+                case nameof(VisibilityFractionVoice):
+                    _changeTracker.TrackChange(nameof(VisibilityFractionVoice), VisibilityFractionVoice?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
+                    break;
+                case nameof(RvrVoicePhrases):
+                    _changeTracker.TrackChange(nameof(RvrVoicePhrases), RvrVoicePhrases?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
+                    break;
+                case nameof(CloudAltitudeFormats):
+                    _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(WindVariableFormats):
+                    _changeTracker.TrackChange(nameof(WindVariableFormats), WindVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(AltimeterVariableFormats):
+                    _changeTracker.TrackChange(nameof(AltimeterVariableFormats), AltimeterVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(TemperatureVariableFormats):
+                    _changeTracker.TrackChange(nameof(TemperatureVariableFormats), TemperatureVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(DewpointVariableFormats):
+                    _changeTracker.TrackChange(nameof(DewpointVariableFormats), DewpointVariableFormats?.Select(item =>
+                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+                    break;
+                case nameof(VisibilityDirectionText):
+                    _changeTracker.TrackChange(nameof(VisibilityDirectionText), VisibilityDirectionText?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
+                    break;
+                case nameof(RvrTendencyTexts):
+                    _changeTracker.TrackChange(nameof(RvrTendencyTexts), RvrTendencyTexts?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
                     break;
                 case nameof(TransitionLevels):
                     _changeTracker.TrackChange(nameof(TransitionLevels), TransitionLevels?.Select(item =>
@@ -2390,6 +2933,12 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
             if (focusedElement is TemplateVariableTextBox focusedTextBox)
             {
+                // The raw runway condition is only meaningful in the text ATIS.
+                if (variable == "{raw}" && focusedTextBox.Name == "RunwayConditionVoiceTextBox")
+                {
+                    return;
+                }
+
                 focusedTextBox.Text += variable?.Replace("__", "_");
                 focusedTextBox.CaretIndex = focusedTextBox.Text.Length;
             }

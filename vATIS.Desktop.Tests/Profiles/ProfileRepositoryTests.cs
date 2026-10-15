@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
@@ -136,10 +137,38 @@ public sealed class ProfileRepositoryTests : IDisposable
         UpdateSerial = updateSerial,
     };
 
+    [Theory]
+    [InlineData(true, null)]
+    [InlineData(false, "KEEP")]
+    public async Task Save_DatisPreset_PersistsTextOnlyWhenAutoFetchDisabled(bool autoFetchDatis, string? expected)
+    {
+        var repository = new ProfileRepository(new FakeDownloader(), new AppConfig { AutoFetchDatis = autoFetchDatis });
+        var datis = new AtisPreset { Name = "D-ATIS", AirportConditions = "KEEP", Notams = "KEEP" };
+        var other = new AtisPreset { Name = "Normal", AirportConditions = "KEEP", Notams = "KEEP" };
+        var profile = new Profile
+        {
+            Name = "Datis",
+            Stations = [new AtisStation { Identifier = "KMIA", Name = "KMIA", Presets = [datis, other] }],
+        };
+
+        repository.Save(profile);
+
+        // In-memory values are untouched.
+        Assert.Equal("KEEP", datis.AirportConditions);
+        Assert.Equal("KEEP", datis.Notams);
+
+        var loaded = await repository.LoadById(profile.Id);
+        Assert.NotNull(loaded);
+        var presets = loaded.Stations![0].Presets;
+        Assert.Equal(expected, presets.Single(x => x.Name == "D-ATIS").AirportConditions);
+        Assert.Equal(expected, presets.Single(x => x.Name == "D-ATIS").Notams);
+        Assert.Equal("KEEP", presets.Single(x => x.Name == "Normal").AirportConditions);
+    }
+
     private (ProfileRepository Repository, FakeDownloader Downloader) Create()
     {
         var downloader = new FakeDownloader();
-        return (new ProfileRepository(downloader), downloader);
+        return (new ProfileRepository(downloader, new AppConfig()), downloader);
     }
 
     private static Profile SaveLocalProfile(ProfileRepository repository, string name)

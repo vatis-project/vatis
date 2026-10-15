@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 using Vatsim.Vatis.Weather.Extensions;
 
@@ -47,6 +48,12 @@ public class CloudNode : BaseNode<CloudLayer>
         };
     }
 
+    private string ConvectiveText(CloudLayer.CloudType type)
+    {
+        var key = TypeToString(type);
+        return Station?.AtisFormat.Clouds.ConvectiveTypesText.GetValueOrDefault(key, key) ?? key;
+    }
+
     private static string AmountToString(CloudLayer.CloudAmount amount)
     {
         return amount switch
@@ -81,6 +88,23 @@ public class CloudNode : BaseNode<CloudLayer>
     {
         return layer.BaseHeight == null && layer.Amount is CloudLayer.CloudAmount.Few
             or CloudLayer.CloudAmount.Scattered or CloudLayer.CloudAmount.Broken or CloudLayer.CloudAmount.Overcast;
+    }
+
+    private UndeterminedLayer GetUndeterminedLayer(CloudLayer layer)
+    {
+        ArgumentNullException.ThrowIfNull(Station);
+
+        return layer.Amount == CloudLayer.CloudAmount.VerticalVisibility
+            ? Station.AtisFormat.Clouds.UndeterminedVerticalVisibility
+            : Station.AtisFormat.Clouds.UndeterminedLayerAltitude;
+    }
+
+    private string ReplaceFeet(string template, CloudLayer layer, string unit)
+    {
+        ArgumentNullException.ThrowIfNull(Station);
+
+        var value = layer.BaseHeight != null && !Station.AtisFormat.Clouds.ConvertToMetric ? unit : string.Empty;
+        return Regex.Replace(template, "{feet}", value, RegexOptions.IgnoreCase);
     }
 
     private void Parse(List<CloudLayer> cloudLayers)
@@ -143,7 +167,7 @@ public class CloudNode : BaseNode<CloudLayer>
         if (layer.BaseHeight == null)
         {
             template = Regex.Replace(template, "{altitude}",
-                $"{Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Text}",
+                GetUndeterminedLayer(layer).Text,
                 RegexOptions.IgnoreCase);
         }
         else
@@ -167,14 +191,18 @@ public class CloudNode : BaseNode<CloudLayer>
                         minDigits = specifiedDigits;
                     }
 
-                    return height.ToString(new string('0', minDigits));
+                    var padded = height.ToString(new string('0', minDigits));
+                    return VariableFormatter.Apply(
+                        padded, height.ToString(), Station.AtisFormat.Clouds.AltitudeFormat.Text, true);
                 },
                 RegexOptions.IgnoreCase
             );
         }
 
+        template = ReplaceFeet(template, layer, "feet");
+
         template = layer.Type != CloudLayer.CloudType.None
-            ? Regex.Replace(template, "{convective}", TypeToString(layer.Type), RegexOptions.IgnoreCase)
+            ? Regex.Replace(template, "{convective}", ConvectiveText(layer.Type), RegexOptions.IgnoreCase)
             : Regex.Replace(template, "{convective}", "", RegexOptions.IgnoreCase);
 
         return Station.AtisFormat.Clouds.IdentifyCeilingLayerTextAtis && layer == ceiling
@@ -207,17 +235,24 @@ public class CloudNode : BaseNode<CloudLayer>
         if (layer.BaseHeight == null)
         {
             template = Regex.Replace(template, "{altitude}",
-                $" {Station.AtisFormat.Clouds.UndeterminedLayerAltitude.Voice} ", RegexOptions.IgnoreCase);
+                $" {GetUndeterminedLayer(layer).Voice} ", RegexOptions.IgnoreCase);
         }
         else
         {
             var height = (int)layer.BaseHeight.ActualValue;
             height *= Station.AtisFormat.Clouds.ConvertToMetric ? 30 : 100;
+            var altitudeWords = Station.AtisFormat.Clouds.ConvertToMetric && height < 1000
+                ? height.ToGroupForm()
+                : height.ToWordString();
+            var altitudeVoice = VariableFormatter.Apply(
+                altitudeWords, height.ToString(), Station.AtisFormat.Clouds.AltitudeFormat.Voice);
             template = Regex.Replace(template, "{altitude}",
-                Station.AtisFormat.Clouds.ConvertToMetric
-                    ? (height < 1000 ? $" {height.ToGroupForm()} " : $" {height.ToWordString()} ") + " meters "
-                    : $" {height.ToWordString()} ", RegexOptions.IgnoreCase);
+                _ => Station.AtisFormat.Clouds.ConvertToMetric
+                    ? $" {altitudeVoice} " + " meters "
+                    : $" {altitudeVoice} ", RegexOptions.IgnoreCase);
         }
+
+        template = ReplaceFeet(template, layer, "feet");
 
         template = Regex.Replace(template, "{convective}",
             layer.Type != CloudLayer.CloudType.None

@@ -4,12 +4,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
         xmlns:views="using:Vatsim.Vatis.Ui.AtisConfiguration"
-        mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="1050" d:DesignHeight="600"
         x:Class="Vatsim.Vatis.Ui.Windows.AtisConfigurationWindow"
 		x:Name="Window"
         x:DataType="vm:AtisConfigurationWindowViewModel"
-        Height="710"
-        Width="1000"
+        Height="780"
+        Width="1100"
         SystemDecorations="None"
         Background="Transparent"
 		WindowStartupLocation="CenterOwner"
@@ -59,7 +59,7 @@
 				<Border Background="#000000" Opacity="0.80"/>
 			</Grid>
 			<Grid Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" ColumnDefinitions="1*,1*">
-				<TextBlock Grid.Column="0" Padding="8,0" Text="ATIS Configuration" VerticalAlignment="Center" FontSize="14"/>
+				<TextBlock Grid.Column="0" Padding="8,0" Text="ATIS Configuration" VerticalAlignment="Center" FontSize="{DynamicResource UiFontSize}"/>
 				<Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,8,0" Command="{Binding CloseWindowCommand, DataType=vm:AtisConfigurationWindowViewModel}" CommandParameter="{Binding ElementName=Window}"/>
 			</Grid>
 			<Border Background="#323232" ClipToBounds="True" CornerRadius="0,0,5,5" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
@@ -127,7 +127,7 @@
 			<Setter Property="Padding" Value="-9,8,0,0"/>
 		</Style>
 		<Style Selector="TabItem">
-			<Setter Property="FontSize" Value="15"/>
+			<Setter Property="FontSize" Value="{DynamicResource UiFontSize}"/>
 			<Setter Property="Padding" Value="8,4"/>
 			<Setter Property="Margin" Value="3,0" />
 			<Setter Property="MinHeight" Value="0"/>

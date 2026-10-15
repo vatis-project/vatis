@@ -44,6 +44,12 @@ public class Temperature : BaseFormat
     }
 
     /// <summary>
+    /// Gets or sets independent text and voice rendering options for the value.
+    /// The text style is not used because text digits are controlled by the template format.
+    /// </summary>
+    public VariableFormat Format { get; set; } = new();
+
+    /// <summary>
     /// Creates a new instance of <see cref="Temperature"/> that is a copy of the current instance.
     /// </summary>
     /// <returns>A new <see cref="Temperature"/> instance that is a copy of this instance.</returns>

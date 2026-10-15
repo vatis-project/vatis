@@ -57,10 +57,20 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                 continue;
             }
 
-            acars.Add(rvr.RawValue);
+            var tendencyGroup = match.Groups[8];
+            var acarsValue = rvr.RawValue;
+            if (tendencyGroup.Success && Station != null)
+            {
+                var tendencyText = Station.AtisFormat.RunwayVisualRange.TendencyText
+                    .GetValueOrDefault(tendencyGroup.Value, tendencyGroup.Value);
+                acarsValue = acarsValue[..tendencyGroup.Index] + tendencyText;
+            }
+
+            acars.Add(acarsValue);
 
             var rwyNumber = match.Groups[1].Value;
 
+            var format = Station?.AtisFormat.RunwayVisualRange ?? new Profiles.AtisFormat.Nodes.RunwayVisualRange();
             var rwyDesignator = match.Groups[2].Value switch
             {
                 "L" => "left",
@@ -76,9 +86,10 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                     var minVis = int.Parse(match.Groups[4].Value);
                     var maxVis = int.Parse(match.Groups[6].Value);
 
-                    result.Add(match.Groups[3].Value == "M"
-                        ? $"variable from less than {minVis.ToGroupForm()} to {maxVis.ToGroupForm()}"
-                        : $"variable between {minVis.ToGroupForm()} and {maxVis.ToGroupForm()}");
+                    result.Add(Fill(
+                        format.GetVoicePhrase(match.Groups[3].Value == "M" ? "Variable, less than" : "Variable"),
+                        min: minVis.ToGroupForm(),
+                        max: maxVis.ToGroupForm()));
                     break;
                 }
 
@@ -87,9 +98,12 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                     var minVis = int.Parse(match.Groups[4].Value);
                     var maxVis = int.Parse(match.Groups[6].Value);
 
-                    result.Add(match.Groups[3].Value == "M"
-                        ? $"variable from less than {minVis.ToGroupForm()} to greater than {maxVis.ToGroupForm()}"
-                        : $"{minVis.ToGroupForm()} variable to greater than {maxVis.ToGroupForm()}");
+                    result.Add(Fill(
+                        format.GetVoicePhrase(match.Groups[3].Value == "M"
+                            ? "Variable, less than to greater than"
+                            : "Variable to greater than"),
+                        min: minVis.ToGroupForm(),
+                        max: maxVis.ToGroupForm()));
                     break;
                 }
 
@@ -100,10 +114,10 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
                     switch (match.Groups[3].Value)
                     {
                         case "M":
-                            result.Add($"less than {vis.ToGroupForm()}");
+                            result.Add(Fill(format.GetVoicePhrase("Less than"), value: vis.ToGroupForm()));
                             break;
                         case "P":
-                            result.Add($"more than {vis.ToGroupForm()}");
+                            result.Add(Fill(format.GetVoicePhrase("More than"), value: vis.ToGroupForm()));
                             break;
                         default:
                             result.Add(vis.ToGroupForm());
@@ -136,5 +150,13 @@ public class RunwayVisualRangeNode : BaseNode<RunwayVisualRange>
 
         TextAtis = string.Join(" ", acars);
         VoiceAtis = string.Join(" ", tts).TrimEnd('.');
+    }
+
+    private static string Fill(string phrase, string? value = null, string? min = null, string? max = null)
+    {
+        return phrase
+            .Replace("{value}", value, StringComparison.OrdinalIgnoreCase)
+            .Replace("{min}", min, StringComparison.OrdinalIgnoreCase)
+            .Replace("{max}", max, StringComparison.OrdinalIgnoreCase);
     }
 }

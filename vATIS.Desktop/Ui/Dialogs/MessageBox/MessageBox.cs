@@ -155,6 +155,7 @@ public static class MessageBox
         {
             DataContext = viewModel,
             Topmost = owner.Topmost,
+            WindowStartupLocation = centerWindow ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
         };
 
         return window.ShowDialog<MessageBoxResult>(owner);
