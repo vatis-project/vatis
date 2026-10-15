@@ -574,6 +574,22 @@
 
 						</StackPanel>
 					</TabItem>
+					<TabItem Header="Phrases (Voice)">
+						<groupBox:GroupBoxControl Header="Runway Visual Range Phrases (Spoken)" Theme="{StaticResource GroupBoxClassic}">
+							<StackPanel Orientation="Vertical" Spacing="10">
+								<TextBlock TextWrapping="Wrap" Text="Use {value} for a single distance and {min} / {max} for variable ranges."/>
+								<DataGrid MaxHeight="300" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding RvrVoicePhrases, DataType=vm:FormattingViewModel}">
+									<Interaction.Behaviors>
+										<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="RvrVoicePhrases"/>
+									</Interaction.Behaviors>
+									<DataGrid.Columns>
+										<DataGridTextColumn Header="Phrase" Width="260" IsReadOnly="True" Binding="{Binding Key, DataType=models:TextOverrideMeta}"/>
+										<DataGridTextColumn Header="Spoken" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:TextOverrideMeta}"/>
+									</DataGrid.Columns>
+								</DataGrid>
+							</StackPanel>
+						</groupBox:GroupBoxControl>
+					</TabItem>
 					<TabItem Header="Text">
 						<groupBox:GroupBoxControl Header="Tendencies (Text)" Theme="{StaticResource GroupBoxClassic}">
 								<DataGrid GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding RvrTendencyTexts, DataType=vm:FormattingViewModel}">

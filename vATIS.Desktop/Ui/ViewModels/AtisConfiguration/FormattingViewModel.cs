@@ -95,6 +95,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _visibilityMetersUnitVoice;
     private string? _visibilityKilometersUnitVoice;
     private ObservableCollection<TextOverrideMeta>? _visibilityFractionVoice;
+    private ObservableCollection<TextOverrideMeta>? _rvrVoicePhrases;
     private ObservableCollection<VariableFormatMeta>? _cloudAltitudeFormats;
     private string? _visibilityCavokText;
     private bool _visibilityIncludeVisibilitySuffix;
@@ -1648,6 +1649,15 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the spoken runway visual range phrases.
+    /// </summary>
+    public ObservableCollection<TextOverrideMeta>? RvrVoicePhrases
+    {
+        get => _rvrVoicePhrases;
+        set => this.RaiseAndSetIfChanged(ref _rvrVoicePhrases, value);
+    }
+
+    /// <summary>
     /// Gets or sets the cloud altitude variable format options.
     /// </summary>
     public ObservableCollection<VariableFormatMeta>? CloudAltitudeFormats
@@ -2009,6 +2019,15 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             if (!SelectedStation.AtisFormat.Visibility.FractionVoice.SequenceEqual(fractions))
             {
                 SelectedStation.AtisFormat.Visibility.FractionVoice = fractions;
+            }
+        }
+
+        if (RvrVoicePhrases != null)
+        {
+            var phrases = RvrVoicePhrases.ToDictionary(x => x.Key, x => x.Text);
+            if (!SelectedStation.AtisFormat.RunwayVisualRange.VoicePhrases.SequenceEqual(phrases))
+            {
+                SelectedStation.AtisFormat.RunwayVisualRange.VoicePhrases = phrases;
             }
         }
 
@@ -2490,6 +2509,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(VisibilityFractionVoice), VisibilityFractionVoice.Select(item =>
             new TextOverrideMeta(item.Key, item.Text)).ToList());
 
+        RvrVoicePhrases = [];
+        foreach (var key in Vatsim.Vatis.Profiles.AtisFormat.Nodes.RunwayVisualRange.DefaultVoicePhrases().Keys)
+        {
+            RvrVoicePhrases.Add(new TextOverrideMeta(
+                key, station.AtisFormat.RunwayVisualRange.GetVoicePhrase(key)));
+        }
+
+        _changeTracker.TrackChange(nameof(RvrVoicePhrases), RvrVoicePhrases.Select(item =>
+            new TextOverrideMeta(item.Key, item.Text)).ToList());
+
         CloudAltitudeFormats = [ToMeta("altitude", station.AtisFormat.Clouds.AltitudeFormat)];
         _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats.Select(item =>
             new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
@@ -2848,6 +2877,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                     break;
                 case nameof(VisibilityFractionVoice):
                     _changeTracker.TrackChange(nameof(VisibilityFractionVoice), VisibilityFractionVoice?.Select(item =>
+                        new TextOverrideMeta(item.Key, item.Text)).ToList());
+                    break;
+                case nameof(RvrVoicePhrases):
+                    _changeTracker.TrackChange(nameof(RvrVoicePhrases), RvrVoicePhrases?.Select(item =>
                         new TextOverrideMeta(item.Key, item.Text)).ToList());
                     break;
                 case nameof(CloudAltitudeFormats):
