@@ -30,7 +30,7 @@
                     <behaviors:BlinkingTextBehavior IsBlinking="{Binding IsNewAtis, DataType=vm:AtisStationViewModel, FallbackValue=False, Mode=TwoWay}" BlinkOffColor="White"/>
 				</Interaction.Behaviors>
 			</Button>
-			<TextBox Name="TypeAtisLetter" IsVisible="{Binding IsAtisLetterInputMode, DataType=vm:AtisStationViewModel}" Grid.Column="0" Grid.Row="0" Theme="{StaticResource DarkTextBox}" Height="85" FontSize="60" FontWeight="Medium" FontFamily="{StaticResource Monospace}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MaxLength="1" AcceptsReturn="False" TextWrapping="NoWrap" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+			<TextBox Name="TypeAtisLetter" IsVisible="{Binding IsAtisLetterInputMode, DataType=vm:AtisStationViewModel}" Grid.Column="0" Grid.Row="0" Theme="{StaticResource DarkTextBox}" VerticalAlignment="Stretch" FontSize="60" FontWeight="Medium" FontFamily="{StaticResource Monospace}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MaxLength="1" AcceptsReturn="False" TextWrapping="NoWrap" ScrollViewer.VerticalScrollBarVisibility="Hidden">
 				<Interaction.Behaviors>
 					<behaviors:TextBoxAlphaOnlyBehavior/>
 					<behaviors:TextBoxUppercaseBehavior/>
@@ -103,8 +103,9 @@
 		</Grid>
 	</Border>
 	<UserControl.Styles>
+		<!-- Draw the typed letter where the letter button draws it, so it does not jump when the letter is accepted. -->
 		<Style Selector="TextBox#TypeAtisLetter /template/ TextPresenter#PART_TextPresenter">
-			<Setter Property="Margin" Value="0,-19,0,0"/>
+			<Setter Property="Margin" Value="6,-8,0,0"/>
 		</Style>
 		<Style Selector="Button.AtisLetter">
 			<Setter Property="FontSize" Value="60"/>
