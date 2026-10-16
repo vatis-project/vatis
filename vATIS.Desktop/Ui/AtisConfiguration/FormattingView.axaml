@@ -520,11 +520,11 @@
 								<TextBlock TextWrapping="Wrap" Text="Spoken words used after the visibility value when the unit suffix is included."/>
 								<Grid ColumnDefinitions="130,*">
 									<TextBlock Grid.Column="0" VerticalAlignment="Center">Meters:</TextBlock>
-									<TextBox Grid.Column="1" Text="{Binding VisibilityMetersUnitVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding VisibilityMetersUnitVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
 								</Grid>
 								<Grid ColumnDefinitions="130,*">
 									<TextBlock Grid.Column="0" VerticalAlignment="Center">Kilometers:</TextBlock>
-									<TextBox Grid.Column="1" Text="{Binding VisibilityKilometersUnitVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+									<TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding VisibilityKilometersUnitVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
 								</Grid>
 							</StackPanel>
 						</groupBox:GroupBoxControl>
