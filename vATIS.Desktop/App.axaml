@@ -14,6 +14,7 @@
         <StyleInclude Source="/Ui/Styles/DarkComboBox.axaml"/>
         <StyleInclude Source="/Ui/Styles/AvaloniaEditorStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/ScrollViewerStyles.axaml"/>
+        <StyleInclude Source="/Ui/Styles/DataGridStyles.axaml"/>
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
