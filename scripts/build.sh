@@ -8,6 +8,7 @@
 #   --native    Rebuild NativeAudio first: Linux .so with cmake, Windows .dll and macOS .dylib
 #               via Docker (clang-cl + xwin, osxcross).
 #   --skip-codesign  Don't sign or notarize anything.
+#   --dmg-only  Rebuild only the macOS DMG from the app left by the last full macOS build.
 #
 # Output goes to publish/release/{linux,windows,macos}. Those directories accumulate releases:
 # Velopack builds delta packages against the previous release found there. If a directory is empty,
@@ -15,7 +16,10 @@
 # with linux/, windows/, macos/ below it). Copy the new files to your server yourself, with the
 # releases.*.json feed last.
 #
-# Requirements: dotnet SDK, docker (macOS universal binary via lipo), curl, python3, zip/unzip,
+# ClientAuth.cs: the real Vatsim.Network/ClientAuth.cs comes from the private vatis-project/client-auth repo (git
+# needs read access; override the URL with VATIS_CLIENT_AUTH_REPO) and replaces the stub for the build only.
+#
+# Requirements: dotnet SDK, git, docker (macOS universal binary via lipo), curl, python3, zip/unzip,
 #               cmake (--native), java (Windows signing).
 # vpk is installed on demand into publish/tools, pinned to the Velopack version the app uses.
 # Linux and macOS packages are built with a patched vpk (scripts/velopack/*.patch): stock vpk only packs for
@@ -33,7 +37,9 @@
 #              AZURE_TRUSTED_SIGNING_CERT_PROFILE
 #   Copy scripts/env-setup.sh.example to scripts/env-setup.sh, fill it in and source it first.
 #
-# macOS output is a signed, notarized vATIS-<version>-macos.zip plus the Velopack update packages. There is no DMG.
+# macOS output is a signed, notarized vATIS.dmg plus the Velopack update packages. The DMG is built in Docker
+# (scripts/dmg) because hdiutil only exists on macOS. Output file names carry no version: vATIS.AppImage,
+# vATIS-Setup.exe and vATIS.dmg.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -61,11 +67,13 @@ VATIS_RELEASES_URL="${VATIS_RELEASES_URL:-https://vatis.app/downloads}"
 PLATFORMS=()
 BUILD_NATIVE=false
 SKIP_CODESIGN=false
+DMG_ONLY=false
 while [ $# -gt 0 ]; do
     case "$1" in
         --platform) [ $# -ge 2 ] || die "--platform needs a value"; PLATFORMS+=("$2"); shift 2 ;;
         --native) BUILD_NATIVE=true; shift ;;
         --skip-codesign) SKIP_CODESIGN=true; shift ;;
+        --dmg-only) DMG_ONLY=true; shift ;;
         -h|--help) usage 0 ;;
         *) die "Unknown option: $1" ;;
     esac
@@ -79,6 +87,7 @@ BUILD_DIR="$ROOT/artifacts/$VERSION"   # dotnet publish output
 OUT_DIR="$ROOT/publish/release"        # velopack output, one dir per platform
 TOOLS_DIR="$ROOT/publish/tools"
 NATIVE_DIR="$ROOT/vATIS.Desktop/Voice/Audio/Native"
+DMG_APP_DIR="$BUILD_DIR/dmg"           # the signed macOS app, kept for --dmg-only
 mkdir -p "$BUILD_DIR" "$OUT_DIR" "$TOOLS_DIR"
 
 command -v dotnet >/dev/null || die "dotnet not found"
@@ -154,8 +163,10 @@ ensure_vpk_patched() {
     done
     # PublicSign: the .snk key cannot be used to sign here (OpenSSL policies reject SHA-1), but internals
     # are shared between Velopack assemblies by public key, which public signing keeps intact.
+    # NuGetAudit=false: Velopack's pinned dependencies (ImageSharp, Pkcs) have since had advisories published, and
+    # its build treats warnings as errors, so the audit would fail a build of this fixed, local-only tool.
     (cd "$src" && dotnet publish src/vpk/Velopack.Vpk/Velopack.Vpk.csproj -c Release -f net10.0 \
-        -p:PublicSign=true -o "$root/tools/net10.0/any" -nologo -v q -clp:ErrorsOnly) || die "Building patched vpk failed"
+        -p:PublicSign=true -p:NuGetAudit=false -o "$root/tools/net10.0/any" -nologo -v q -clp:ErrorsOnly) || die "Building patched vpk failed"
     cp -r "$(ls -d "$TOOLS_DIR/vpk-stock-$VELOPACK_VERSION"/.store/vpk/"$VELOPACK_VERSION"/vpk/"$VELOPACK_VERSION"/vendor)" "$root/vendor"
     rm -rf "$src"
     find "$TOOLS_DIR" -maxdepth 1 -name "vpk-patched-$VELOPACK_VERSION-*" ! -name "vpk-patched-$VELOPACK_VERSION-$hash" -exec rm -rf {} +
@@ -279,7 +290,7 @@ build_linux() {
         --delta BestSize --icon ./vATIS.Desktop/Assets/MainIcon.png --categories "AudioVideo;Audio" \
         --releaseNotes "$(release_notes)" --outputDir "$out" --verbose
 
-    mv -f "$out/$PACK_ID.AppImage" "$out/$APP_NAME-$VERSION.AppImage"
+    mv -f "$out/$PACK_ID.AppImage" "$out/$APP_NAME.AppImage"
 }
 
 # -------------------------------------------------------------------- windows
@@ -305,7 +316,7 @@ build_win() {
         --icon ./vATIS.Desktop/Assets/MainIcon.ico --releaseNotes "$(release_notes)" \
         --outputDir "$out" "${sign[@]}" --verbose
 
-    mv -f "$out/$PACK_ID-win-Setup.exe" "$out/$APP_NAME-Setup-$VERSION.exe"
+    mv -f "$out/$PACK_ID-win-Setup.exe" "$out/$APP_NAME-Setup.exe"
 }
 
 # ---------------------------------------------------------------------- macOS
@@ -395,10 +406,81 @@ EOF
         --signEntitlements "$ROOT/scripts/app.entitlements" --releaseNotes "$(release_notes)" \
         --outputDir "$out" --verbose
 
-    mv -f "$out/$PACK_ID-osx-Portable.zip" "$out/$APP_NAME-$VERSION-macos.zip"
+    stage_dmg_app "$out"
+    build_dmg "$out"
+}
+
+# Unpacks the signed, notarized app that vpk left in its portable zip into $DMG_APP_DIR, where --dmg-only finds it.
+stage_dmg_app() { # <macos output dir>
+    local zip="$1/$PACK_ID-osx-Portable.zip"
+    [ -f "$zip" ] || die "Missing $zip"
+    rm -rf "$DMG_APP_DIR"; mkdir -p "$DMG_APP_DIR"
+    unzip -q "$zip" -d "$DMG_APP_DIR"
+    [ -d "$DMG_APP_DIR/$APP_NAME.app" ] || die "$zip does not contain $APP_NAME.app"
+    rm -f "$zip"
+}
+
+# Packs $DMG_APP_DIR/$APP_NAME.app into $APP_NAME.dmg (see scripts/dmg), then signs, notarizes and staples the DMG.
+build_dmg() { # <macos output dir>
+    local out="$1" dmg="$1/$APP_NAME.dmg"
+    command -v docker >/dev/null || die "docker is required to build the DMG"
+    [ -d "$DMG_APP_DIR/$APP_NAME.app" ] || die "No staged $APP_NAME.app in $DMG_APP_DIR; run a full macOS build first"
+
+    info "Creating $APP_NAME.dmg"
+    docker build -q -t vatis-dmg "$ROOT/scripts/dmg" >/dev/null || die "Could not build the vatis-dmg image"
+    mkdir -p "$out"; rm -f "$dmg"
+    docker run --rm --user "$(id -u):$(id -g)" \
+        -v "$DMG_APP_DIR":/app:ro -v "$ROOT/scripts":/scripts:ro -v "$out":/out \
+        vatis-dmg python3 /scripts/dmg/build-dmg.py "/app/$APP_NAME.app" /scripts/dmg-background.tiff /scripts/macos/AppIcon.icns "$APP_NAME" "/out/$APP_NAME.dmg" \
+        || die "Building the DMG failed"
+
+    if mac_sign_enabled; then
+        ensure_rcodesign
+        info "Signing $APP_NAME.dmg"
+        "$RCODESIGN" sign --p12-file "$APPLE_CERT_P12" --p12-password "${APPLE_CERT_PASSWORD:-}" "$dmg"
+        if [ -n "${APPLE_NOTARY_API_KEY:-}" ]; then
+            info "Notarizing $APP_NAME.dmg"
+            "$RCODESIGN" notary-submit --api-key-file "$APPLE_NOTARY_API_KEY" --wait --staple "$dmg"
+        fi
+    fi
+}
+
+# ------------------------------------------------------------------ client auth
+# Vatsim.Network/ClientAuth.cs in the repo is a stub that throws. Releases need the real implementation from the
+# private client-auth repo. It replaces the stub for the duration of the build and the stub is put back on exit,
+# so the key never stays in the working tree.
+CLIENT_AUTH_REPO="${VATIS_CLIENT_AUTH_REPO:-git@github.com:vatis-project/client-auth.git}"
+CLIENT_AUTH_FILE="$ROOT/Vatsim.Network/ClientAuth.cs"
+CLIENT_AUTH_TMP=""
+
+restore_client_auth() {
+    [ -n "$CLIENT_AUTH_TMP" ] || return 0
+    [ -f "$CLIENT_AUTH_TMP/stub.cs" ] && cp -f "$CLIENT_AUTH_TMP/stub.cs" "$CLIENT_AUTH_FILE"
+    rm -rf "$CLIENT_AUTH_TMP"
+    CLIENT_AUTH_TMP=""
+}
+
+use_private_client_auth() {
+    info "Fetching ClientAuth.cs from $CLIENT_AUTH_REPO"
+    CLIENT_AUTH_TMP="$(mktemp -d)"
+    trap restore_client_auth EXIT
+    cp "$CLIENT_AUTH_FILE" "$CLIENT_AUTH_TMP/stub.cs"
+    git clone -q --depth 1 "$CLIENT_AUTH_REPO" "$CLIENT_AUTH_TMP/repo" \
+        || die "Could not clone $CLIENT_AUTH_REPO (needs read access; set VATIS_CLIENT_AUTH_REPO to use another URL or path)"
+    [ -f "$CLIENT_AUTH_TMP/repo/ClientAuth.cs" ] || die "ClientAuth.cs not found in $CLIENT_AUTH_REPO"
+    cp "$CLIENT_AUTH_TMP/repo/ClientAuth.cs" "$CLIENT_AUTH_FILE"
 }
 
 # ----------------------------------------------------------------------- main
+if $DMG_ONLY; then
+    # Rebuilds only vATIS.dmg (window layout, background) from the app left by the last full macOS build.
+    build_dmg "$OUT_DIR/macos"
+    info "Done: $OUT_DIR/macos/$APP_NAME.dmg"
+    exit 0
+fi
+
+use_private_client_auth
+
 if $BUILD_NATIVE; then
     has linux && build_native_linux
     has win && build_native_win
@@ -418,7 +500,7 @@ print_copy_instructions() {
         printf '\n  \e[1mFrom:\e[0m %s/%s/\n  \e[1mTo:\e[0m   %s/%s/\n' "$OUT_DIR" "$dir" "${VATIS_RELEASES_URL%/}" "$dir"
         # Packages and installers for this version first, the feed last.
         while IFS= read -r f; do printf '      %s\n' "$f"; done \
-            < <(cd "$OUT_DIR/$dir" && find . -maxdepth 1 -type f -name "*$VERSION*" -printf '%P\n' | sort)
+            < <(cd "$OUT_DIR/$dir" && find . -maxdepth 1 -type f \( -name "*$VERSION*" -o -name "$APP_NAME.AppImage" -o -name "$APP_NAME-Setup.exe" -o -name "$APP_NAME.dmg" \) -printf '%P\n' | sort)
         while IFS= read -r f; do printf '      %s  (copy last)\n' "$f"; done \
             < <(cd "$OUT_DIR/$dir" && find . -maxdepth 1 -type f -name 'releases.*.json' -printf '%P\n' | sort)
     done
