@@ -1,0 +1,7 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Every grid shows its cell values in the monospace font. Column headers keep the UI font. -->
+    <Style Selector="DataGridCell">
+        <Setter Property="FontFamily" Value="{DynamicResource Monospace}"/>
+    </Style>
+</Styles>
