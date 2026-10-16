@@ -274,7 +274,7 @@
 					    <Grid ColumnDefinitions="*,20,*" RowDefinitions="*,18,*">
 						    <StackPanel Spacing="8" Grid.Column="0">
 							    <TextBlock Text="Arrival Runways:"/>
-							    <TextBox Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorArrivalRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -283,7 +283,7 @@
 						    </StackPanel>
 						    <StackPanel Spacing="8" Grid.Row="0" Grid.Column="2">
 							    <TextBlock Text="Departure Runways:"/>
-							    <TextBox Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorDepartureRunways, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -292,7 +292,7 @@
 						    </StackPanel>
 						    <StackPanel Spacing="8" Grid.Column="0" Grid.Row="2">
 							    <TextBlock Text="Approaches In Use:"/>
-							    <TextBox Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorApproaches, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
@@ -301,7 +301,7 @@
 						    </StackPanel>
 						    <StackPanel Spacing="8" Grid.Column="2" Grid.Row="2">
 							    <TextBlock Text="Remarks:"/>
-							    <TextBox Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
+							    <TextBox FontFamily="{StaticResource Monospace}" Text="{Binding ExternalGeneratorRemarks, DataType=vm:PresetsViewModel}" Theme="{StaticResource DarkTextBox}">
 								    <Interaction.Behaviors>
 									    <behaviors:TextBoxUppercaseBehavior/>
 									    <behaviors:SelectAllTextOnFocusBehavior/>
