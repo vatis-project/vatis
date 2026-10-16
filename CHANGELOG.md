@@ -5,6 +5,67 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0-beta.20
+### Added
+- Added support for double-tapping the main window.
+- Added a `--import-profile` command-line argument to import a profile from a file path.
+- Added a `syncAtisLetter` property to the `configureAtis` WebSocket message.
+- Added `setAtisLetter` WebSocket message support, and connection errors are now sent to WebSocket clients.
+- Added a formatting option to speak wind speed in group format, and a digit format option for wind speed in text templates.
+- Added a negative prefix option for temperature and dewpoint text templates.
+- Added per-variable text and voice format options for altimeter, temperature and dewpoint.
+- Added text ATIS counterparts for visibility direction, RVR tendency and convective clouds.
+- Added customizable visibility unit words, a fraction voice table and cloud altitude format.
+- Added customizable spoken phrases and text for runway visual range.
+- Added custom text and voice formatting for CAVOK.
+- Added custom separators for airport conditions and NOTAMs.
+- Added runway condition reporting from METAR runway state groups.
+- Added remark wind to the ATIS.
+- Added an `[AUTO]` variable for automatic observation, a `[METAR]` raw METAR variable, a per-preset threshold QFE variable, and a `{feet}` cloud token.
+- Added digit-count formatting to the transition level variable.
+- Added an Undetermined Cloud type for layers with unknown height.
+- Added an option to randomize the ATIS letter on connect.
+- Added an option to add a contraction to all ATIS stations.
+- Added an alternating voices profile option.
+- Added WAV voice packs for stitched voice ATIS.
+- Added native D-ATIS auto-loading.
+- Added a voice ATIS record indicator and a magnetic wind toggle to the mini-window.
+- Added a keyboard shortcut to open the application data folder.
+- Added underlining of contractions and speech tokens in the ATIS editors.
+- Added the airport name to the Record ATIS script.
+### Changed
+- Upgraded to .NET 10 and Avalonia 11.3, and updated Velopack and SignalR packages.
+- Sped up application startup and profile loading.
+- Switched the UI font to IBM Plex Sans (with a new UI font size setting) and the monospace font to Intel One Mono; grid cell values and ATIS text boxes now use the monospace font.
+- Updated the application icon.
+- Used the same scroll bar style everywhere.
+- Used SVG files for button icons.
+- Kept context menus open when a menu item is clicked.
+- Improved taxiway and runway identifier parsing for spoken ATIS.
+- Improved the voice ATIS request.
+- Included the full text ATIS in the IDS JSON and post an empty update on disconnect.
+- Used Latin-1 encoding for FSD traffic.
+- Preserved user-edited profile names on automatic profile update.
+- Retried app configuration downloads on transient failures and raced connection attempts so a stalled connect doesn't block requests.
+- Showed a clear error when the navdata download fails.
+### Fixed
+- Fixed integration with vatSys.
+- Fixed forced disconnect logic.
+- Fixed the ATIS being republished and re-subscribed after an AtisHub automatic reconnect.
+- Fixed TREND missing from the ATIS when the METAR contains an RMK section, and TREND parsing with multiple present weather groups.
+- Fixed METAR decoding when an unavailable group follows visibility or when the RVR value is unavailable.
+- Added support for visibility in kilometers in the METAR decoder.
+- Fixed directional minimum visibility in text and voice ATIS.
+- Fixed a race in `getStations` after profile re-entry.
+- Fixed repeated macOS microphone permission prompts.
+- Fixed message box and modal dialog centering and height.
+- Fixed a popping noise at the start and stop of sandbox audio playback.
+- Fixed the sandbox ATIS refresh not using a random letter from the code range.
+- Fixed the ATIS letter box and letter shifting while typing a letter.
+- Fixed the window position not being restored before showing the window.
+- Trimmed whitespace and null terminators from the Windows machine ID.
+- Fixed the VS Code and Rider local development configurations.
+
 ## v4.1.0-beta.19
 ### Fixed
 - Fixed an issue that caused the "Sort" stations window to crash the application.
