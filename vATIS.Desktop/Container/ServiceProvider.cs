@@ -169,6 +169,6 @@ internal sealed partial class ServiceProvider
             return new MockAtisHubConnection(GetService<IDownloader>(), GetService<IAppConfigurationProvider>());
         }
 
-        return new AtisHubConnection(GetService<IAppConfigurationProvider>(), GetService<IClientAuth>());
+        return new AtisHubConnection(GetService<IAppConfigurationProvider>(), GetService<IAuthTokenManager>());
     }
 }

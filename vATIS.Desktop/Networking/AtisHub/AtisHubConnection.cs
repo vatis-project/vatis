@@ -22,7 +22,7 @@ namespace Vatsim.Vatis.Networking.AtisHub;
 /// </summary>
 public class AtisHubConnection : IAtisHubConnection
 {
-    private readonly IClientAuth _clientAuth;
+    private readonly IAuthTokenManager _authTokenManager;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
     private HubConnection? _hubConnection;
     private ConnectionState _connectionState;
@@ -33,13 +33,15 @@ public class AtisHubConnection : IAtisHubConnection
     /// <param name="appConfigurationProvider">
     /// The provider for application configurations.
     /// </param>
-    /// <param name="clientAuth">
-    /// The client authentication instance.
+    /// <param name="authTokenManager">
+    /// Provides the VATSIM-issued token the hub authenticates the user with.
     /// </param>
-    public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider, IClientAuth clientAuth)
+    public AtisHubConnection(
+        IAppConfigurationProvider appConfigurationProvider,
+        IAuthTokenManager authTokenManager)
     {
         _appConfigurationProvider = appConfigurationProvider;
-        _clientAuth = clientAuth;
+        _authTokenManager = authTokenManager;
     }
 
     /// <inheritdoc />
@@ -55,7 +57,7 @@ public class AtisHubConnection : IAtisHubConnection
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(serverUrl, options =>
                 {
-                    options.AccessTokenProvider = () => Task.FromResult(_clientAuth.GenerateHubToken());
+                    options.AccessTokenProvider = GetAccessToken;
                 })
                 .AddJsonProtocol(options =>
                 {
@@ -157,6 +159,30 @@ public class AtisHubConnection : IAtisHubConnection
 
         await _hubConnection.InvokeAsync("DisconnectAtis", dto);
         Log.Information("DisconnectAtis: {DtoStationId}", dto.StationId);
+    }
+
+    /// <summary>
+    /// Gets the token to authenticate with the hub. SignalR calls this on every connect and reconnect.
+    /// </summary>
+    /// <remarks>
+    /// The hub only accepts the user's VATSIM FSD token, which identifies who is connecting and expires within
+    /// minutes. If no token can be obtained, the connection attempt fails.
+    /// </remarks>
+    private async Task<string?> GetAccessToken()
+    {
+        try
+        {
+            var token = await _authTokenManager.GetAuthToken();
+            if (string.IsNullOrEmpty(token))
+                Log.Warning("No VATSIM token available for AtisHub.");
+
+            return token;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not get a VATSIM token for AtisHub.");
+            return null;
+        }
     }
 
     private Task OnHubConnectionClosed(Exception? exception)
