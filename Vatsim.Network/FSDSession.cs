@@ -976,6 +976,28 @@ public class FsdSession
         }
     }
 
+    /// <summary>
+    /// Closes the current connection and connects to another server, without raising
+    /// <see cref="NetworkDisconnected"/>. Listeners that react to that event by disconnecting would otherwise close
+    /// the new connection as well.
+    /// </summary>
+    public void ChangeServer(string address, int port, bool challengeServer = true)
+    {
+        ResetServerAuthSession();
+
+        var oldSocket = _clientSocket;
+        _clientSocket = null;
+        try
+        {
+            oldSocket?.Shutdown(SocketShutdown.Both);
+            oldSocket?.Close();
+        }
+        catch (ObjectDisposedException) { }
+        catch (SocketException) { }
+
+        Connect(address, port, challengeServer);
+    }
+
     public void Disconnect()
     {
         ResetServerAuthSession();
@@ -1158,6 +1180,11 @@ public class FsdSession
 
     private void OnDataReceived(IAsyncResult async)
     {
+        // A read that was pending when the socket was closed (for example when reconnecting to another server)
+        // completes with an error after _clientSocket already points at the new socket. Only the socket that is
+        // still current may tear the session down.
+        var socket = (async.AsyncState as SocketPacket)?.ThisSocket;
+
         try
         {
             if (async.AsyncState == null)
@@ -1171,7 +1198,7 @@ public class FsdSession
             var bytesReceived = theSockId.ThisSocket.EndReceive(async);
             if (bytesReceived == 0)
             {
-                Disconnect();
+                DisconnectIfCurrent(socket);
                 return;
             }
             var chars = new char[bytesReceived + 1];
@@ -1183,15 +1210,26 @@ public class FsdSession
         }
         catch (ObjectDisposedException)
         {
-            Disconnect();
+            DisconnectIfCurrent(socket);
         }
         catch (SocketException se)
         {
+            if (!ReferenceEquals(socket, _clientSocket))
+                return;
+
             if (se.ErrorCode != 995 && se.ErrorCode != 89)
             {
                 var err = $"EndReceive failed: ({se.ErrorCode}) {se.Message}";
                 RaiseNetworkError(err);
             }
+            Disconnect();
+        }
+    }
+
+    private void DisconnectIfCurrent(Socket? socket)
+    {
+        if (ReferenceEquals(socket, _clientSocket))
+        {
             Disconnect();
         }
     }
