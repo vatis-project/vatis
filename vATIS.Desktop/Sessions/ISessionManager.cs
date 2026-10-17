@@ -20,16 +20,6 @@ public interface ISessionManager
     public Profile? CurrentProfile { get; }
 
     /// <summary>
-    /// Gets the maximum number of connections allowed for the session.
-    /// </summary>
-    public int MaxConnectionCount { get; }
-
-    /// <summary>
-    /// Gets or sets the current count of active connections associated with the session.
-    /// </summary>
-    public int CurrentConnectionCount { get; set; }
-
-    /// <summary>
     /// Starts the session manager.
     /// </summary>
     public void Run();

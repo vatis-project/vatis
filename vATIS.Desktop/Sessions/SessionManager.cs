@@ -38,12 +38,6 @@ public class SessionManager : ISessionManager
     }
 
     /// <inheritdoc/>
-    public int MaxConnectionCount => 4;
-
-    /// <inheritdoc/>
-    public int CurrentConnectionCount { get; set; }
-
-    /// <inheritdoc/>
     public Profile? CurrentProfile { get; private set; }
 
     /// <inheritdoc/>
@@ -67,7 +61,6 @@ public class SessionManager : ISessionManager
     {
         EventBus.Instance.Publish(new SessionEnded());
         CurrentProfile = null;
-        CurrentConnectionCount = 0;
         _mainWindow?.Close();
         ShowProfileListDialog();
     }
@@ -95,7 +88,6 @@ public class SessionManager : ISessionManager
     {
         _profileListDialog?.Close();
         CurrentProfile = profile;
-        CurrentConnectionCount = 0;
         _mainWindow = _windowFactory.CreateMainWindow();
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

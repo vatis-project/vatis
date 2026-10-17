@@ -23,6 +23,7 @@ using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.AspNetCore.SignalR;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Atis;
@@ -1502,18 +1503,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
             try
             {
-                if (_sessionManager.CurrentConnectionCount >= _sessionManager.MaxConnectionCount)
-                {
-                    const string message = "You've exceeded the maximum number of allowed ATIS connections.";
-                    NotificationManager?.Show(
-                        new Notification("Too Many ATIS Connections", message),
-                        type: NotificationType.Warning,
-                        expiration: TimeSpan.FromSeconds(15)
-                    );
-                    NativeAudio.EmitSound(SoundType.Error);
-                    PublishConnectionError(ConnectionErrorReason.TooManyConnections, message);
+                // Have the hub check the user's ATIS limit now, instead of at the first publish after connecting.
+                if (!await TryReserveHubSlot())
                     return;
-                }
 
                 NetworkConnectionStatus = NetworkConnectionStatus.Connecting;
 
@@ -1592,9 +1584,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
             PopulateAirportConditions(true);
             PopulateNotams(true);
-
-            // Increase connection count by one
-            _sessionManager.CurrentConnectionCount++;
         });
     }
 
@@ -1613,9 +1602,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             ObservationTime = null;
             Altimeter = null;
             IsNewAtis = false;
-
-            // Decrease the current connection count by one, ensuring it doesn't go below zero
-            _sessionManager.CurrentConnectionCount = Math.Max(_sessionManager.CurrentConnectionCount - 1, 0);
 
             if (e.CallsignInuse)
             {
@@ -1819,10 +1805,68 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 AtisLetter, Metar?.Trim(), Wind?.Trim(), Altimeter?.Trim(), airportConditions?.Trim(), notams?.Trim(),
                 AtisStation.TextAtis?.Trim()));
         }
+        catch (HubException ex) when (ex.Message.Contains(AtisHubConnection.AtisLimitExceededMarker))
+        {
+            // The hub enforces the limit per VATSIM user, so it also catches what the local count misses.
+            Log.Warning(ex, "AtisHub rejected the ATIS: too many ATIS connections for this user");
+
+            // Publishing runs off the UI thread, but disconnecting updates UI-bound properties.
+            await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+                    return;
+
+                NotifyTooManyConnections();
+                await Disconnect();
+            });
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to publish ATIS to hub");
         }
+    }
+
+    private async Task<bool> TryReserveHubSlot()
+    {
+        try
+        {
+            await _atisHubConnection.ReserveAtis(new AtisHubDto(AtisStation.Identifier, AtisStation.AtisType,
+                AtisLetter));
+        }
+        catch (HubException ex) when (ex.Message.Contains(AtisHubConnection.AtisLimitExceededMarker))
+        {
+            Log.Warning(ex, "AtisHub rejected the ATIS: too many ATIS connections for this user");
+            NotifyTooManyConnections();
+            return false;
+        }
+        catch (HubException ex) when (ex.Message.Contains("Method does not exist"))
+        {
+            // A hub that predates ReserveAtis is reachable but cannot enforce the limit; let the station connect.
+            Log.Warning(ex, "The hub does not support ReserveAtis");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not reserve an ATIS slot on the hub");
+            const string message = "Unable to reach the ATIS hub. Check your connection and try again.";
+            NotificationManager?.Show(new Notification("ATIS Hub Unavailable", message), NotificationType.Error);
+            NativeAudio.EmitSound(SoundType.Error);
+            PublishConnectionError(ConnectionErrorReason.ConnectionFailed, message);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void NotifyTooManyConnections()
+    {
+        const string message = "You've exceeded the maximum number of allowed ATIS connections.";
+        NotificationManager?.Show(
+            new Notification("Too Many ATIS Connections", message),
+            type: NotificationType.Warning,
+            expiration: TimeSpan.FromSeconds(15)
+        );
+        NativeAudio.EmitSound(SoundType.Error);
+        PublishConnectionError(ConnectionErrorReason.TooManyConnections, message);
     }
 
     private async Task HandleSelectedAtisPresetChanged(AtisPreset? preset)
