@@ -1629,10 +1629,24 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         });
     }
 
-    private void OnChangeServerReceived(object? sender, ClientEventArgs<string> e)
+    private async void OnChangeServerReceived(object? sender, ClientEventArgs<string> e)
     {
-        _ = Disconnect();
-        _networkConnection?.Connect(e.Value);
+        try
+        {
+            // Move to the new server in place. Disconnecting and connecting again would run the full disconnect
+            // handling (voice server, hub, IDS, status) concurrently with the new connection.
+            if (_networkConnection != null)
+            {
+                Log.Information("Server change requested: {Server}", e.Value);
+                await _networkConnection.ChangeServer(e.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to change server");
+            NotificationManager?.Show(new Notification("Error", ex.Message), NotificationType.Error);
+            await Disconnect();
+        }
     }
 
     private async void OnMetarResponseReceived(object? sender, MetarResponseReceived e)

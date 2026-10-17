@@ -211,6 +211,26 @@ public class NetworkConnection : INetworkConnection, IDisposable
     }
 
     /// <inheritdoc />
+    public async Task ChangeServer(string serverAddress)
+    {
+        if (!_fsdSession.Connected)
+            return;
+
+        // Get the token for the new login before leaving the old server.
+        await _authTokenManager.GetAuthToken();
+
+        _fsdSession.SendPdu(new PDUDeleteATC(Callsign, _appConfig.UserId.Trim()));
+        _fsdPositionUpdateTimer.Stop();
+        _previousMetar = "";
+        _clientCapabilitiesReceived.Clear();
+        _subscribers.Clear();
+        _euroscopeSubscribers.Clear();
+
+        // The login is sent once the new server identifies itself, see OnServerIdentificationReceived.
+        _fsdSession.ChangeServer(serverAddress, 6809);
+    }
+
+    /// <inheritdoc />
     public void Disconnect()
     {
         _fsdSession.SendPdu(new PDUDeleteATC(Callsign, _appConfig.UserId.Trim()));

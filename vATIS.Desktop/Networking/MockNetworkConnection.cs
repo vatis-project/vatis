@@ -104,6 +104,9 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
     }
 
     /// <inheritdoc />
+    public Task ChangeServer(string serverAddress) => Task.CompletedTask;
+
+    /// <inheritdoc />
     public void Disconnect()
     {
         if (!string.IsNullOrEmpty(Station.Identifier))
