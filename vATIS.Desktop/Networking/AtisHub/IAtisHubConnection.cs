@@ -27,6 +27,17 @@ public interface IAtisHubConnection
     public Task Disconnect();
 
     /// <summary>
+    /// Asks the hub to reserve one of the user's ATIS slots for the station, before it connects to the network.
+    /// </summary>
+    /// <param name="dto">The data transfer object identifying the ATIS about to connect.</param>
+    /// <returns>A task that represents the asynchronous reserve operation.</returns>
+    /// <exception cref="Microsoft.AspNetCore.SignalR.HubException">
+    /// The user already has the maximum number of ATISes (see <see cref="AtisHubConnection.AtisLimitExceededMarker"/>).
+    /// </exception>
+    /// <exception cref="System.InvalidOperationException">The hub could not be reached.</exception>
+    public Task ReserveAtis(AtisHubDto dto);
+
+    /// <summary>
     /// Publishes ATIS information to the hub.
     /// </summary>
     /// <param name="dto">The data transfer object containing ATIS information.</param>

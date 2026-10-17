@@ -22,6 +22,12 @@ namespace Vatsim.Vatis.Networking.AtisHub;
 /// </summary>
 public class AtisHubConnection : IAtisHubConnection
 {
+    /// <summary>
+    /// Text the hub puts at the start of the error it returns when the user already has the maximum number of ATISes
+    /// published.
+    /// </summary>
+    public const string AtisLimitExceededMarker = "AtisLimitExceeded";
+
     private readonly IAuthTokenManager _authTokenManager;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
     private HubConnection? _hubConnection;
@@ -119,6 +125,22 @@ public class AtisHubConnection : IAtisHubConnection
         {
             Log.Error(ex.Message, "Failed to disconnect from AtisHub.");
         }
+    }
+
+    /// <inheritdoc />
+    public async Task ReserveAtis(AtisHubDto dto)
+    {
+        // The first connection attempt at startup may have failed, and SignalR only retries after it has connected once.
+        if (_hubConnection is null or { State: HubConnectionState.Disconnected })
+        {
+            await Connect();
+        }
+
+        if (_hubConnection is not { State: HubConnectionState.Connected })
+            throw new InvalidOperationException("The ATIS hub is not connected.");
+
+        await _hubConnection.InvokeAsync("ReserveAtis", dto);
+        Log.Information("ReserveAtis: {DtoStationId}", dto.StationId);
     }
 
     /// <inheritdoc />

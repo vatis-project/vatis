@@ -129,6 +129,16 @@ public class MockAtisHubConnection : IAtisHubConnection
     }
 
     /// <inheritdoc />
+    public async Task ReserveAtis(AtisHubDto dto)
+    {
+        if (_hubConnection is not { State: HubConnectionState.Connected })
+            return;
+
+        await _hubConnection.InvokeAsync("ReserveAtis", dto);
+        Log.Information("ReserveAtis: {DtoStationId}", dto.StationId);
+    }
+
+    /// <inheritdoc />
     public async Task PublishAtis(AtisHubDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
