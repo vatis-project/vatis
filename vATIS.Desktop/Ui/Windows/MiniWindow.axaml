@@ -35,12 +35,17 @@
                 FontSize="15"
                 FontWeight="Medium"
                 Text="{Binding AtisLetter, DataType=vm:AtisStationViewModel}"
-                Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}" Cursor="Hand">
+                Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}"
+                Classes.NeedsAck="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}">
                 <ToolTip.Tip>
                     <TextBlock Text="{Binding AtisStation.TextAtis, DataType=vm:AtisStationViewModel}"
                                FontFamily="{StaticResource Monospace}" FontSize="14"/>
                 </ToolTip.Tip>
                 <Control.Styles>
+                    <!-- Only a letter that still needs acknowledging is clickable. -->
+                    <Style Selector="TextBlock.NeedsAck">
+                        <Setter Property="Cursor" Value="Hand"/>
+                    </Style>
                     <Style Selector="ToolTip">
                         <Setter Property="IsVisible" Value="{Binding AtisStation.TextAtis, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                     </Style>
@@ -120,7 +125,16 @@
                     <DataTemplate>
                         <Panel>
                             <!-- The dot sits in the left gutter that is reserved while any station shows it. -->
-                            <Ellipse Width="7" Height="7" Fill="Red" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding RecordedAtisState, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static atis:RecordedAtisState.Expired}}"><ToolTip.Tip>Voice ATIS needs recording</ToolTip.Tip></Ellipse>
+                            <Button Command="{Binding VoiceRecordAtisCommand, DataType=vm:AtisStationViewModel}" Padding="3" Margin="-3,3,0,0" Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding RecordedAtisState, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static atis:RecordedAtisState.Expired}}">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <Border Background="Transparent" Padding="{TemplateBinding Padding}" Cursor="Hand">
+                                            <Ellipse Width="7" Height="7" Fill="Red" IsHitTestVisible="False"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <ToolTip.Tip>Voice ATIS needs recording. Click to record.</ToolTip.Tip>
+                            </Button>
                             <Grid Classes="StationRow" ColumnDefinitions="65,10" IsVisible="{Binding !ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" Grid.Column="1"/>

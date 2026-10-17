@@ -1256,6 +1256,17 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 if (lifetime.MainWindow == null)
                     return;
 
+                // The dialog needs a visible owner, so leave the mini window and restore the main window first.
+                if (!lifetime.MainWindow.IsVisible)
+                {
+                    foreach (var miniWindow in lifetime.Windows.OfType<Ui.Windows.MiniWindow>().ToList())
+                    {
+                        miniWindow.Close();
+                    }
+
+                    lifetime.MainWindow.Show();
+                }
+
                 var window = _windowFactory.CreateVoiceRecordAtisDialog();
                 if (window.DataContext is VoiceRecordAtisDialogViewModel vm)
                 {
@@ -1277,6 +1288,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
                     if (await window.ShowDialog<bool>(lifetime.MainWindow))
                     {
+                        // Saving the recording acknowledges the new ATIS letter.
+                        IsNewAtis = false;
+
                         try
                         {
                             AtisStation.TextAtis = textAtis;
@@ -1302,7 +1316,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
                             _lastRecordedAtisAudio = vm.AudioBuffer;
                             RecordedAtisState = RecordedAtisState.Connected;
-                            IsNewAtis = false;
                         }
                         catch (OperationCanceledException)
                         {
