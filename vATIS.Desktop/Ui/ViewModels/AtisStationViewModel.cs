@@ -65,6 +65,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private static readonly System.Text.RegularExpressions.Regex s_windDirectionRegex =
         new(@"(?<![0-9])[0-9]{3}(?=[0-9]{2,3}|V[0-9]{3}|\b)", System.Text.RegularExpressions.RegexOptions.Compiled);
 
+    private static readonly TimeSpan UnrecordedAtisTimeout = TimeSpan.FromMinutes(5);
+
     private readonly IAppConfig _appConfig;
     private readonly IProfileRepository _profileRepository;
     private readonly IAtisBuilder _atisBuilder;
@@ -92,6 +94,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
     private Timer? _publishAtisTimer;
+    private Timer? _unrecordedAtisTimer;
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
     private string? _id;
@@ -933,6 +936,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         _publishAtisTimer?.Dispose();
         _publishAtisTimer = null;
+        StopUnrecordedAtisTimer();
 
         DecrementAtisLetterCommand.Dispose();
         AcknowledgeOrIncrementAtisLetterCommand.Dispose();
@@ -1316,6 +1320,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
                             _lastRecordedAtisAudio = vm.AudioBuffer;
                             RecordedAtisState = RecordedAtisState.Connected;
+                            StopUnrecordedAtisTimer();
                         }
                         catch (OperationCanceledException)
                         {
@@ -1375,8 +1380,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             {
                 case NetworkConnectionStatus.Connected:
                     await ConnectToVoiceServer();
+                    StartUnrecordedAtisTimer();
                     break;
                 case NetworkConnectionStatus.Disconnected:
+                    StopUnrecordedAtisTimer();
                     await DisconnectFromVoiceServer();
 
                     // Reset airport and NOTAM textboxes
@@ -1793,6 +1800,55 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         // Set up a new timer to re-publish ATIS every 3 minutes.
         // The Timer callback uses an async void method to handle exceptions explicitly.
         _publishAtisTimer = new Timer(PublishAtisTimerCallback, null, TimeSpan.FromMinutes(3), TimeSpan.FromMinutes(3));
+    }
+
+    private void StartUnrecordedAtisTimer()
+    {
+        StopUnrecordedAtisTimer();
+
+        if (AtisStation.AtisVoice.IsAutomatic || !AtisStation.AtisVoice.DisconnectIfUnrecorded ||
+            RecordedAtisState == RecordedAtisState.Connected)
+            return;
+
+        _unrecordedAtisTimer = new Timer(UnrecordedAtisTimerCallback, null, UnrecordedAtisTimeout,
+            Timeout.InfiniteTimeSpan);
+    }
+
+    private void StopUnrecordedAtisTimer()
+    {
+        _unrecordedAtisTimer?.Dispose();
+        _unrecordedAtisTimer = null;
+    }
+
+    private async void UnrecordedAtisTimerCallback(object? state)
+    {
+        try
+        {
+            // Disconnecting updates UI-bound properties.
+            await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                if (NetworkConnectionStatus != NetworkConnectionStatus.Connected ||
+                    RecordedAtisState == RecordedAtisState.Connected)
+                    return;
+
+                Log.Information("{Callsign} was not recorded within {Minutes} minutes, disconnecting",
+                    _networkConnection?.Callsign, UnrecordedAtisTimeout.TotalMinutes);
+
+                NotificationManager?.Show(
+                    new Notification("Voice ATIS Disconnected",
+                        $"{_networkConnection?.Callsign} was disconnected because it was not recorded within " +
+                        $"{UnrecordedAtisTimeout.TotalMinutes} minutes."),
+                    type: NotificationType.Warning,
+                    expiration: TimeSpan.Zero
+                );
+
+                await Disconnect();
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to disconnect unrecorded voice ATIS");
+        }
     }
 
     private async void PublishAtisTimerCallback(object? state)

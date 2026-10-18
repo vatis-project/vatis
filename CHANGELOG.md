@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v4.1.0-beta.20
 ### Added
+- Added a JSON-only `disconnectIfUnrecorded` option to a station's `atisVoice` that disconnects a recorded voice ATIS if it has not been recorded within 5 minutes of connecting.
 - Added support for double-tapping the main window.
 - Added a `--import-profile` command-line argument to import a profile from a file path.
 - Added a `syncAtisLetter` property to the `configureAtis` WebSocket message.
