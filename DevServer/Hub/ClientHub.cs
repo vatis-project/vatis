@@ -1,4 +1,4 @@
-// <copyright file="ClientHub.cs" company="Justin Shannon">
+﻿// <copyright file="ClientHub.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -72,9 +72,21 @@ public class ClientHub : Hub<IClientHub>
     }
 
     /// <summary>
-    /// Unsubscribes a client from ATIS updates.
+    /// Reserves a slot for an ATIS before it connects to the network. The dev server enforces no connection limit,
+    /// so every reservation is accepted.
     /// </summary>
-    /// <param name="hubDto">The subscription data.</param>
+    /// <param name="dto">The dto representing the ATIS to reserve.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task ReserveAtis(AtisHubDto dto)
+    {
+        Log.Debug($"ReserveAtis: {dto.StationId}_{dto.AtisType}, {Context.ConnectionId}");
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Publishes an ATIS to the hub.
+    /// </summary>
+    /// <param name="hubDto">The ATIS data.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task PublishAtis(AtisHubDto hubDto)
     {
