@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.ComponentModel;
 using System.Linq;
 using System.Text.Json.Serialization;
 
@@ -53,6 +54,14 @@ public class AtisVoiceMeta
     public string[]? AlternatingVoices { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether a recorded voice ATIS is disconnected automatically if it has not
+    /// been recorded within 5 minutes of connecting. This is a JSON-only option.
+    /// </summary>
+    [DefaultValue(false)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DisconnectIfUnrecorded { get; set; }
+
+    /// <summary>
     /// Gets or sets the speech rate multiplier.
     /// </summary>
     public int SpeechRate { get; set; } = 180;
@@ -71,6 +80,7 @@ public class AtisVoiceMeta
             WavPackPath = WavPackPath,
             Voice = Voice,
             AlternatingVoices = AlternatingVoices?.ToArray(),
+            DisconnectIfUnrecorded = DisconnectIfUnrecorded,
             SpeechRate = SpeechRate
         };
     }
