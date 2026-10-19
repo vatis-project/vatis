@@ -77,6 +77,14 @@ public interface INetworkConnection
     public void Disconnect();
 
     /// <summary>
+    /// Moves the connection to another server: drops the current FSD connection and logs in again on the new one,
+    /// without reporting a disconnect.
+    /// </summary>
+    /// <param name="serverAddress">The address of the server to connect to.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task ChangeServer(string serverAddress);
+
+    /// <summary>
     /// Sends a subscriber notification with the specified ATIS letter.
     /// </summary>
     /// <param name="atisLetter">The ATIS letter to include in the notification.</param>
