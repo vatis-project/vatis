@@ -96,6 +96,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private DecodedMetar? _decodedMetar;
     private Timer? _publishAtisTimer;
     private Timer? _unrecordedAtisTimer;
+    private string? _lastBuiltAtisHubKey;
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
     private string? _id;
@@ -1385,6 +1386,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                     break;
                 case NetworkConnectionStatus.Disconnected:
                     StopUnrecordedAtisTimer();
+                    _lastBuiltAtisHubKey = null;
                     await DisconnectFromVoiceServer();
 
                     // Reset airport and NOTAM textboxes
@@ -2320,8 +2322,13 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 // Sets the ATIS letter
                 AtisStation.AtisLetter = AtisLetter;
 
-                // Publishes the ATIS to the hub server
-                await PublishAtisToHub();
+                // Publishes the ATIS to the hub server, unless an identical ATIS was just published
+                var hubKey = $"{AtisLetter}|{Metar}|{Wind}|{Altimeter}|{AtisStation.TextAtis}";
+                if (hubKey != _lastBuiltAtisHubKey)
+                {
+                    _lastBuiltAtisHubKey = hubKey;
+                    await PublishAtisToHub();
+                }
 
                 // Publishes the ATIS to connected websocket clients
                 await PublishAtisToWebsocket();
