@@ -22,7 +22,13 @@ namespace Vatsim.Vatis.Networking.AtisHub;
 /// </summary>
 public class AtisHubConnection : IAtisHubConnection
 {
-    private readonly IClientAuth _clientAuth;
+    /// <summary>
+    /// Text the hub puts at the start of the error it returns when the user already has the maximum number of ATISes
+    /// published.
+    /// </summary>
+    public const string AtisLimitExceededMarker = "AtisLimitExceeded";
+
+    private readonly IAuthTokenManager _authTokenManager;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
     private HubConnection? _hubConnection;
     private ConnectionState _connectionState;
@@ -33,13 +39,15 @@ public class AtisHubConnection : IAtisHubConnection
     /// <param name="appConfigurationProvider">
     /// The provider for application configurations.
     /// </param>
-    /// <param name="clientAuth">
-    /// The client authentication instance.
+    /// <param name="authTokenManager">
+    /// Provides the VATSIM-issued token the hub authenticates the user with.
     /// </param>
-    public AtisHubConnection(IAppConfigurationProvider appConfigurationProvider, IClientAuth clientAuth)
+    public AtisHubConnection(
+        IAppConfigurationProvider appConfigurationProvider,
+        IAuthTokenManager authTokenManager)
     {
         _appConfigurationProvider = appConfigurationProvider;
-        _clientAuth = clientAuth;
+        _authTokenManager = authTokenManager;
     }
 
     /// <inheritdoc />
@@ -55,7 +63,7 @@ public class AtisHubConnection : IAtisHubConnection
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(serverUrl, options =>
                 {
-                    options.AccessTokenProvider = () => Task.FromResult(_clientAuth.GenerateHubToken());
+                    options.AccessTokenProvider = GetAccessToken;
                 })
                 .AddJsonProtocol(options =>
                 {
@@ -120,6 +128,22 @@ public class AtisHubConnection : IAtisHubConnection
     }
 
     /// <inheritdoc />
+    public async Task ReserveAtis(AtisHubDto dto)
+    {
+        // The first connection attempt at startup may have failed, and SignalR only retries after it has connected once.
+        if (_hubConnection is null or { State: HubConnectionState.Disconnected })
+        {
+            await Connect();
+        }
+
+        if (_hubConnection is not { State: HubConnectionState.Connected })
+            throw new InvalidOperationException("The ATIS hub is not connected.");
+
+        await _hubConnection.InvokeAsync("ReserveAtis", dto);
+        Log.Information("ReserveAtis: {DtoStationId}", dto.StationId);
+    }
+
+    /// <inheritdoc />
     public async Task PublishAtis(AtisHubDto dto)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
@@ -157,6 +181,30 @@ public class AtisHubConnection : IAtisHubConnection
 
         await _hubConnection.InvokeAsync("DisconnectAtis", dto);
         Log.Information("DisconnectAtis: {DtoStationId}", dto.StationId);
+    }
+
+    /// <summary>
+    /// Gets the token to authenticate with the hub. SignalR calls this on every connect and reconnect.
+    /// </summary>
+    /// <remarks>
+    /// The hub only accepts the user's VATSIM FSD token, which identifies who is connecting and expires within
+    /// minutes. If no token can be obtained, the connection attempt fails.
+    /// </remarks>
+    private async Task<string?> GetAccessToken()
+    {
+        try
+        {
+            var token = await _authTokenManager.GetAuthToken();
+            if (string.IsNullOrEmpty(token))
+                Log.Warning("No VATSIM token available for AtisHub.");
+
+            return token;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not get a VATSIM token for AtisHub.");
+            return null;
+        }
     }
 
     private Task OnHubConnectionClosed(Exception? exception)
