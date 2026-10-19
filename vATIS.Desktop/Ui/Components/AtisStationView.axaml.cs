@@ -5,6 +5,7 @@
 
 using System;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
@@ -32,6 +33,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         InitializeComponent();
 
         TypeAtisLetter.KeyDown += TypeAtisLetterOnKeyDown;
+        MetarInput.KeyDown += MetarInputOnKeyDown;
+        MetarInput.LostFocus += MetarInputOnLostFocus;
+        MetarInput.TextChanged += MetarInputOnTextChanged;
         AtisLetter.DoubleTapped += AtisLetterOnDoubleTapped;
         AtisLetter.Tapped += AtisLetterOnTapped;
         AtisLetter.PointerPressed += AtisLetterOnPointerPressed;
@@ -51,6 +55,17 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
                 TypeAtisLetter.Text = "";
                 TypeAtisLetter.Focus();
                 TypeAtisLetter.SelectAll();
+            }
+        });
+
+        ViewModel.WhenAnyValue(x => x.IsMetarInputMode).Subscribe(mode =>
+        {
+            if (mode)
+            {
+                MetarInput.Text = ViewModel?.Metar;
+                ToolTip.SetTip(MetarInput, null);
+                MetarInput.Focus();
+                MetarInput.SelectAll();
             }
         });
 
@@ -228,6 +243,45 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             Log.Error(ex, "Error in AtisLetterOnPointerPressed");
         }
+    }
+
+    private void MetarInputOnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (ViewModel == null)
+            return;
+
+        if (e.Key == Key.Escape)
+        {
+            ViewModel.IsMetarInputMode = false;
+            ViewModel.HasMetarInputError = false;
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Enter || e.Key == Key.Return)
+        {
+            if (!ViewModel.TryOverrideMetar(MetarInput.Text, out var error))
+            {
+                ViewModel.HasMetarInputError = true;
+                ToolTip.SetTip(MetarInput, error);
+                ToolTip.SetIsOpen(MetarInput, true);
+            }
+
+            e.Handled = true;
+        }
+    }
+
+    private void MetarInputOnLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.IsMetarInputMode = false;
+            ViewModel.HasMetarInputError = false;
+        }
+    }
+
+    private void MetarInputOnTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (ViewModel != null)
+            ViewModel.HasMetarInputError = false;
     }
 
     private void TypeAtisLetterOnKeyDown(object? sender, KeyEventArgs e)

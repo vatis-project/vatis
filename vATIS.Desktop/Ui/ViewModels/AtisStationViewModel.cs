@@ -94,6 +94,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private CancellationTokenSource _debounceCts = new();
     private AtisPreset? _previousAtisPreset;
     private DecodedMetar? _decodedMetar;
+    private DecodedMetar? _networkMetar;
+    private DecodedMetar? _overrideMetar;
     private Timer? _publishAtisTimer;
     private Timer? _unrecordedAtisTimer;
     private string? _lastBuiltAtisHubKey;
@@ -105,6 +107,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private char _atisLetter;
     private bool _isAtisLetterInputMode;
     private string? _metarString;
+    private bool _isMetarOverridden;
+    private bool _isMetarInputMode;
+    private bool _hasMetarInputError;
     private string? _observationTime;
     private string? _wind;
     private string? _altimeter;
@@ -218,6 +223,23 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         OpenStaticAirportConditionsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenAirportConditionsDialog);
         OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
+        var isConnected = this.WhenAnyValue(x => x.NetworkConnectionStatus)
+            .Select(status => status == NetworkConnectionStatus.Connected);
+        OverrideMetarCommand = ReactiveCommand.Create(HandleOverrideMetar, isConnected);
+        RevertMetarOverrideCommand = ReactiveCommand.CreateFromTask(HandleRevertMetarOverride,
+            this.WhenAnyValue(x => x.IsMetarOverridden, x => x.NetworkConnectionStatus,
+                (overridden, status) => overridden && status == NetworkConnectionStatus.Connected));
+
+        // An override only applies to the current connection.
+        this.WhenAnyValue(x => x.NetworkConnectionStatus)
+            .Where(status => status != NetworkConnectionStatus.Connected)
+            .Subscribe(_ =>
+            {
+                _overrideMetar = null;
+                IsMetarOverridden = false;
+                IsMetarInputMode = false;
+            })
+            .DisposeWith(_disposables);
 
         SetAtisLetterCommand = ReactiveCommand.Create<char>(HandleSetAtisLetter);
         ApplyAirportConditionsCommand = ReactiveCommand.Create<bool>(HandleApplyAirportConditions);
@@ -570,6 +592,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
 
     /// <summary>
+    /// Gets the command that prompts for a METAR to use in place of the one received from the network.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OverrideMetarCommand { get; }
+
+    /// <summary>
+    /// Gets the command that discards the METAR override and reverts to the METAR received from the network.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RevertMetarOverrideCommand { get; }
+
+    /// <summary>
     /// Gets the command executed when the selected ATIS preset changes.
     /// </summary>
     public ReactiveCommand<AtisPreset, Unit> SelectedPresetChangedCommand { get; }
@@ -661,6 +693,33 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     {
         get => _metarString;
         set => this.RaiseAndSetIfChanged(ref _metarString, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the METAR is currently being edited.
+    /// </summary>
+    public bool IsMetarInputMode
+    {
+        get => _isMetarInputMode;
+        set => this.RaiseAndSetIfChanged(ref _isMetarInputMode, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the METAR being edited failed validation.
+    /// </summary>
+    public bool HasMetarInputError
+    {
+        get => _hasMetarInputError;
+        set => this.RaiseAndSetIfChanged(ref _hasMetarInputError, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the METAR in use has been manually overridden.
+    /// </summary>
+    public bool IsMetarOverridden
+    {
+        get => _isMetarOverridden;
+        private set => this.RaiseAndSetIfChanged(ref _isMetarOverridden, value);
     }
 
     /// <summary>
@@ -905,6 +964,55 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     }
 
     /// <summary>
+    /// Validates the given METAR and uses it in place of the one received from the network.
+    /// </summary>
+    /// <param name="text">The raw METAR text.</param>
+    /// <param name="error">The reason the METAR was rejected, if it was.</param>
+    /// <returns>True if the override was applied.</returns>
+    public bool TryOverrideMetar(string? text, out string? error)
+    {
+        error = null;
+        text = text?.Trim();
+        if (string.IsNullOrEmpty(text))
+        {
+            error = "Enter a METAR.";
+            return false;
+        }
+
+        // Nothing changed, so there is no new ATIS to publish.
+        if (string.Equals(text, Metar?.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            HasMetarInputError = false;
+            IsMetarInputMode = false;
+            return true;
+        }
+
+        DecodedMetar overrideMetar;
+        try
+        {
+            overrideMetar = _metarDecoder.ParseNotStrict(text);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+
+        if (!overrideMetar.IsValid)
+        {
+            error = overrideMetar.DecodingExceptions[0].Message;
+            return false;
+        }
+
+        _overrideMetar = overrideMetar;
+        IsMetarOverridden = true;
+        HasMetarInputError = false;
+        IsMetarInputMode = false;
+        ProcessMetarResponseAsync(new MetarResponseReceived(overrideMetar, true), userInitiated: true).SafeFireAndForget();
+        return true;
+    }
+
+    /// <summary>
     /// Subscribes to ATIS on hub server.
     /// </summary>
     public void SubscribeToAtis()
@@ -947,6 +1055,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         VoiceRecordAtisCommand.Dispose();
         OpenStaticAirportConditionsDialogCommand.Dispose();
         OpenStaticNotamsDialogCommand.Dispose();
+        OverrideMetarCommand.Dispose();
+        RevertMetarOverrideCommand.Dispose();
         SelectedPresetChangedCommand.Dispose();
         ApplyAirportConditionsCommand.Dispose();
         ApplyNotamsCommand.Dispose();
@@ -1648,6 +1758,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     {
         try
         {
+            // The network METAR always supersedes a manual override.
+            _networkMetar = e.Metar;
+            _overrideMetar = null;
+            await Dispatcher.UIThread.InvokeAsync(() => IsMetarOverridden = false);
             await ProcessMetarResponseAsync(e);
         }
         catch (Exception ex)
@@ -1656,7 +1770,22 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         }
     }
 
-    private async Task ProcessMetarResponseAsync(MetarResponseReceived e)
+    private void HandleOverrideMetar()
+    {
+        IsMetarInputMode = true;
+    }
+
+    private async Task HandleRevertMetarOverride()
+    {
+        if (_networkMetar == null)
+            return;
+
+        _overrideMetar = null;
+        IsMetarOverridden = false;
+        await ProcessMetarResponseAsync(new MetarResponseReceived(_networkMetar, true), userInitiated: true);
+    }
+
+    private async Task ProcessMetarResponseAsync(MetarResponseReceived e, bool userInitiated = false)
     {
         try
         {
@@ -1677,13 +1806,21 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             if (e.IsNewMetar)
             {
                 IsNewAtis = false;
-                if (!_appConfig.MuteOwnAtisUpdateSound && IsVisibleOnMiniWindow)
+                if (!userInitiated && !_appConfig.MuteOwnAtisUpdateSound && IsVisibleOnMiniWindow)
                 {
                     NativeAudio.EmitSound(SoundType.Notification);
                 }
 
                 await AcknowledgeOrIncrementAtisLetterCommand.Execute();
                 IsNewAtis = true;
+
+                if (userInitiated)
+                {
+                    // The user made this change themselves, so only flash the letter briefly.
+                    Task.Delay(TimeSpan.FromSeconds(2)).ContinueWith(
+                        _ => Dispatcher.UIThread.Post(() => IsNewAtis = false),
+                        TaskScheduler.Default).SafeFireAndForget();
+                }
 
                 if (!AtisStation.AtisVoice.IsAutomatic)
                 {
