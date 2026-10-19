@@ -74,6 +74,7 @@
                                   IsChecked="{Binding ShowMetarDetails, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"/>
                     <ToggleButton Theme="{StaticResource CompassToggle}"
                                   ToolTip.Tip="Show Magnetic Wind"
+                                  IsVisible="{Binding ShowMetarDetails, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
                                   Command="{Binding ToggleMagneticWind, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"
                                   IsChecked="{Binding UseMagneticWind, Mode=OneWay, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}"/>
                     <ToggleButton Theme="{StaticResource PinButtonSmall}"
@@ -114,7 +115,7 @@
             </ContextMenu>
         </Border.ContextMenu>
         <Panel ClipToBounds="True">
-            <ItemsControl ItemsSource="{Binding FilteredStations, DataType=vm:MiniWindowViewModel}" Margin="8,5,8,5" Classes.WithGutter="{Binding HasExpiredRecording, DataType=vm:MiniWindowViewModel}" IsVisible="{Binding FilteredStations.Count, DataType=vm:MiniWindowViewModel}" VerticalAlignment="Center">
+            <ItemsControl ItemsSource="{Binding FilteredStations, DataType=vm:MiniWindowViewModel}" Margin="8,5,8,5" Grid.IsSharedSizeScope="True" Classes.WithGutter="{Binding HasExpiredRecording, DataType=vm:MiniWindowViewModel}" IsVisible="{Binding FilteredStations.Count, DataType=vm:MiniWindowViewModel}" VerticalAlignment="Center">
                 <ItemsControl.Styles>
                     <!-- Space for the recording-expired dot is only reserved while at least one station shows it. -->
                     <Style Selector="ItemsControl.WithGutter Grid.StationRow">
@@ -139,7 +140,17 @@
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" Grid.Column="1"/>
                             </Grid>
-                            <Grid Classes="StationRow" ColumnDefinitions="65,10,60,10,Auto,15,Auto" IsVisible="{Binding ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
+                            <Grid Classes="StationRow" IsVisible="{Binding ShowMetarDetails, DataType=vm:MiniWindowTopMostViewModel, Source={x:Static vm:MiniWindowTopMostViewModel.Instance}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="65"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <!-- Auto columns share one width across all station rows so they line up. -->
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="MiniWindowAltimeter"/>
+                                    <ColumnDefinition Width="15"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="MiniWindowWind"/>
+                                </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" FontSize="15" FontWeight="Medium" Foreground="White" Text="{Binding TabText, DataType=vm:AtisStationViewModel}" IsHitTestVisible="False" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
                                     <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AtisLetterTemplate}" />
