@@ -37,8 +37,41 @@
 				</Interaction.Behaviors>
 			</TextBox>
 			<!--Metar-->
-			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10">
-				<TextBlock FontFamily="{DynamicResource Monospace}" TextWrapping="Wrap" Foreground="White" FontSize="16" Text="{Binding Metar, DataType=vm:AtisStationViewModel}"/>
+			<Border Name="MetarBox" CornerRadius="3" BorderThickness="1" Grid.Column="1" Grid.Row="0" Margin="10,0,0,0" Padding="10" Classes.editing="{Binding IsMetarInputMode, DataType=vm:AtisStationViewModel}" Classes.overridden="{Binding IsMetarOverridden, DataType=vm:AtisStationViewModel}" Classes.invalid="{Binding HasMetarInputError, DataType=vm:AtisStationViewModel}">
+				<Border.Styles>
+					<Style Selector="Border#MetarBox">
+						<Setter Property="BorderBrush" Value="#646464"/>
+						<Setter Property="Background" Value="#1E1E1E"/>
+					</Style>
+					<Style Selector="Border#MetarBox.overridden">
+						<Setter Property="BorderBrush" Value="#FCBA03"/>
+					</Style>
+					<!-- Edit the METAR in place: the text box must be visually indistinguishable from the text. -->
+					<Style Selector="TextBox#MetarInput:focus /template/ Border#PART_BorderElement, TextBox#MetarInput:pointerover /template/ Border#PART_BorderElement">
+						<Setter Property="Background" Value="Transparent"/>
+					</Style>
+					<Style Selector="Border#MetarBox.editing">
+						<Setter Property="BorderBrush" Value="#0078D7"/>
+						<Setter Property="Background" Value="#141414"/>
+					</Style>
+					<Style Selector="Border#MetarBox.invalid">
+						<Setter Property="BorderBrush" Value="#E53935"/>
+					</Style>
+				</Border.Styles>
+				<Border.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Override METAR..." ToolTip.Tip="Replace the METAR used for this ATIS." Command="{Binding OverrideMetarCommand, DataType=vm:AtisStationViewModel}"/>
+						<MenuItem Header="Revert to Network METAR" ToolTip.Tip="Discard the override and use the METAR received from the network." Command="{Binding RevertMetarOverrideCommand, DataType=vm:AtisStationViewModel}"/>
+					</ContextMenu>
+				</Border.ContextMenu>
+				<Panel>
+					<TextBlock IsVisible="{Binding !IsMetarInputMode, DataType=vm:AtisStationViewModel}" FontFamily="{DynamicResource Monospace}" TextWrapping="Wrap" Foreground="White" FontSize="16" Text="{Binding Metar, DataType=vm:AtisStationViewModel}"/>
+					<TextBox Name="MetarInput" IsVisible="{Binding IsMetarInputMode, DataType=vm:AtisStationViewModel}" Theme="{StaticResource DarkTextBox}" Padding="0" MinHeight="0" BorderThickness="0" Background="Transparent" FontFamily="{DynamicResource Monospace}" FontSize="16" TextWrapping="Wrap" AcceptsReturn="False" MaxLength="500">
+						<Interaction.Behaviors>
+							<behaviors:TextBoxUppercaseBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</Panel>
 			</Border>
 			<!--Wind/Altimeter-->
 			<Border CornerRadius="3" BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" Grid.Column="2" Grid.Row="0" Margin="10,0,0,0">

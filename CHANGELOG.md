@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a keyboard shortcut to open the application data folder.
 - Added underlining of contractions and speech tokens in the ATIS editors.
 - Added the airport name to the Record ATIS script.
+- Added the ability to override the METAR of a connected ATIS by right-clicking the METAR box.
 ### Changed
 - Upgraded to .NET 10 and Avalonia 11.3, and updated Velopack and SignalR packages.
 - Sped up application startup and profile loading.
