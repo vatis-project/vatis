@@ -23,6 +23,7 @@ using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
+using Vatsim.Vatis.Networking.Vatsim;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -45,6 +46,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly IAtisBuilder _atisBuilder;
+    private readonly IVatsimDataService _vatsimDataService;
     private readonly IMetarRepository _metarRepository;
     private readonly IDatisRepository _datisRepository;
     private readonly Random _random = new();
@@ -81,10 +83,13 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     /// <param name="profileRepository">An instance of <see cref="IProfileRepository"/> used for managing user profiles.</param>
     /// <param name="sessionManager">An instance of <see cref="ISessionManager"/> used for managing sessions.</param>
     /// <param name="datisRepository">An instance of <see cref="IDatisRepository"/> used for fetching D-ATIS data.</param>
+    /// <param name="vatsimDataService">An instance of <see cref="IVatsimDataService"/> used for online-station conditions.</param>
     public SandboxViewModel(IWindowFactory windowFactory, IAtisBuilder atisBuilder, IMetarRepository metarRepository,
-        IProfileRepository profileRepository, ISessionManager sessionManager, IDatisRepository datisRepository)
+        IProfileRepository profileRepository, ISessionManager sessionManager, IDatisRepository datisRepository,
+        IVatsimDataService vatsimDataService)
     {
         _datisRepository = datisRepository;
+        _vatsimDataService = vatsimDataService;
         _windowFactory = windowFactory;
         _atisBuilder = atisBuilder;
         _metarRepository = metarRepository;
@@ -659,6 +664,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         await dlg.ShowDialog((Window)DialogOwner);
 
+        MonitorOnlineControllersIfNeeded();
+
         // Update the free-form text area after the dialog is closed
         PopulateNotams();
     }
@@ -746,8 +753,20 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         await dlg.ShowDialog((Window)DialogOwner);
 
+        MonitorOnlineControllersIfNeeded();
+
         // Update the free-form text area after the dialog is closed
         PopulateAirportConditions();
+    }
+
+    private void MonitorOnlineControllersIfNeeded()
+    {
+        if (SelectedStation != null &&
+            (StaticDefinitionFilter.HasConditions(SelectedStation.NotamDefinitions) ||
+             StaticDefinitionFilter.HasConditions(SelectedStation.AirportConditionDefinitions)))
+        {
+            _vatsimDataService.Monitor();
+        }
     }
 
     private async Task HandleSelectedPresetChanged(AtisPreset? preset)
@@ -812,10 +831,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             return;
 
         // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
-        var staticDefinitions = SelectedStation.NotamDefinitions
-            .Where(x => x.Enabled)
-            .OrderBy(x => x.Ordinal)
-            .ToList();
+        var staticDefinitions =
+            StaticDefinitionFilter.GetActive(SelectedStation.NotamDefinitions, _vatsimDataService.OnlineControllers);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
@@ -906,10 +923,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             return;
 
         // Retrieve and sort enabled static airport conditions by their ordinal value.
-        var staticDefinitions = SelectedStation.AirportConditionDefinitions
-            .Where(x => x.Enabled)
-            .OrderBy(x => x.Ordinal)
-            .ToList();
+        var staticDefinitions = StaticDefinitionFilter.GetActive(
+            SelectedStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)

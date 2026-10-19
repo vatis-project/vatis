@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Vatsim.Vatis.Config;
@@ -21,6 +22,11 @@ public interface IAppConfigurationProvider
     /// Gets the URL for retrieving METAR data.
     /// </summary>
     public string MetarUrl { get; }
+
+    /// <summary>
+    /// Gets the URLs of the VATSIM v3 data feed, empty if the status file did not provide any.
+    /// </summary>
+    public IReadOnlyList<string> VatsimDataUrls { get; }
 
     /// <summary>
     /// Gets the URL of the navigation data configuration for the application.

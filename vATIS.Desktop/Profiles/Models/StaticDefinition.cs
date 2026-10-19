@@ -46,6 +46,19 @@ public class StaticDefinition : ReactiveObject
     public string? SeparatorAfter { get; set; }
 
     /// <summary>
+    /// Gets or sets whether this definition is conditional on VATSIM controllers being online.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public StationCondition StationCondition { get; set; }
+
+    /// <summary>
+    /// Gets or sets the callsigns the <see cref="StationCondition"/> is evaluated against, separated by commas or
+    /// spaces. A <c>*</c> matches any run of characters, e.g. <c>EPWW_*_CTR</c>.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? StationCallsigns { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the static definition is enabled.
     /// </summary>
     public bool Enabled
@@ -69,6 +82,11 @@ public class StaticDefinition : ReactiveObject
     /// <returns>A new <see cref="StaticDefinition"/> instance that is a copy of this instance.</returns>
     public StaticDefinition Clone()
     {
-        return new StaticDefinition(Text, Ordinal, Enabled) { SeparatorAfter = SeparatorAfter };
+        return new StaticDefinition(Text, Ordinal, Enabled)
+        {
+            SeparatorAfter = SeparatorAfter,
+            StationCondition = StationCondition,
+            StationCallsigns = StationCallsigns,
+        };
     }
 }

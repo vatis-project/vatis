@@ -22,6 +22,7 @@ using Vatsim.Vatis.Atis.Nodes;
 using Vatsim.Vatis.Container;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
+using Vatsim.Vatis.Networking.Vatsim;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Utils;
@@ -43,6 +44,7 @@ public class AtisBuilder : IAtisBuilder
     private readonly ITextToSpeechService? _textToSpeechService;
     private readonly IClientAuth _clientAuth;
     private readonly IWavPackService _wavPackService;
+    private readonly IVatsimDataService? _vatsimDataService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisBuilder"/> class.
@@ -53,11 +55,13 @@ public class AtisBuilder : IAtisBuilder
     /// <param name="metarRepository">The METAR repository.</param>
     /// <param name="clientAuth">The client auth service.</param>
     /// <param name="wavPackService">The WAV voice pack service.</param>
+    /// <param name="vatsimDataService">The VATSIM data feed service, used for online-station conditions.</param>
     public AtisBuilder(IDownloader downloader, INavDataRepository navDataRepository,
         ITextToSpeechService textToSpeechService, IMetarRepository metarRepository, IClientAuth clientAuth,
-        IWavPackService wavPackService)
+        IWavPackService wavPackService, IVatsimDataService? vatsimDataService = null)
     {
         _wavPackService = wavPackService;
+        _vatsimDataService = vatsimDataService;
         _downloader = downloader;
         _metarRepository = metarRepository;
         _navDataRepository = navDataRepository;
@@ -632,7 +636,8 @@ public class AtisBuilder : IAtisBuilder
         var acCustom = false;
         if (!string.IsNullOrEmpty(preset.AirportConditions) || station.AirportConditionDefinitions.Any(x => x.Enabled))
         {
-            var acDefinitions = station.AirportConditionDefinitions.Where(t => t.Enabled).OrderBy(t => t.Ordinal).ToList();
+            var acDefinitions = StaticDefinitionFilter.GetActive(
+                station.AirportConditionDefinitions, _vatsimDataService?.OnlineControllers);
             acCustom = StaticDefinitionJoiner.HasCustomSeparators(acDefinitions, station.AirportConditionsSeparator);
             var acStatic = StaticDefinitionJoiner.Join(acDefinitions, station.AirportConditionsSeparator);
             var acFree = StaticDefinitionJoiner.Prepare(preset.AirportConditions, acCustom);
@@ -658,7 +663,8 @@ public class AtisBuilder : IAtisBuilder
         var notamsCustom = false;
         if (!string.IsNullOrEmpty(preset.Notams) || station.NotamDefinitions.Any(x => x.Enabled))
         {
-            var notamDefinitions = station.NotamDefinitions.Where(x => x.Enabled).OrderBy(x => x.Ordinal).ToList();
+            var notamDefinitions = StaticDefinitionFilter.GetActive(
+                station.NotamDefinitions, _vatsimDataService?.OnlineControllers);
             notamsCustom = StaticDefinitionJoiner.HasCustomSeparators(notamDefinitions, station.NotamsSeparator);
             var notamStatic = StaticDefinitionJoiner.Join(notamDefinitions, station.NotamsSeparator);
             var notamFree = StaticDefinitionJoiner.Prepare(preset.Notams, notamsCustom);

@@ -37,6 +37,7 @@ using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
 using Vatsim.Vatis.Networking.AtisHub.Dto;
+using Vatsim.Vatis.Networking.Vatsim;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Sessions;
@@ -72,6 +73,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly IProfileRepository _profileRepository;
     private readonly IAtisBuilder _atisBuilder;
     private readonly IWindowFactory _windowFactory;
+    private readonly IVatsimDataService _vatsimDataService;
+    private string _activeStaticDefinitionsKey = string.Empty;
     private readonly INetworkConnection? _networkConnection;
     private readonly IVoiceServerConnection? _voiceServerConnection;
     private readonly IAtisHubConnection _atisHubConnection;
@@ -172,11 +175,15 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     /// <param name="datisRepository">
     /// The D-ATIS repository for fetching real-world D-ATIS data.
     /// </param>
+    /// <param name="vatsimDataService">
+    /// The VATSIM data feed service, used to include NOTAMs and airport conditions based on online controllers.
+    /// </param>
     public AtisStationViewModel(AtisStation station, WindowNotificationManager? windowNotificationManager,
         INetworkConnectionFactory connectionFactory, IVoiceServerConnectionFactory voiceServerConnectionFactory,
         IAppConfig appConfig, IAtisBuilder atisBuilder, IWindowFactory windowFactory,
         INavDataRepository navDataRepository, IAtisHubConnection hubConnection, ISessionManager sessionManager,
-        IProfileRepository profileRepository, IWebsocketService websocketService, IDatisRepository datisRepository)
+        IProfileRepository profileRepository, IWebsocketService websocketService, IDatisRepository datisRepository,
+        IVatsimDataService vatsimDataService)
     {
         Id = station.Id;
         Identifier = station.Identifier;
@@ -190,6 +197,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _sessionManager = sessionManager;
         _profileRepository = profileRepository;
         _datisRepository = datisRepository;
+        _vatsimDataService = vatsimDataService;
         _autoFetchDatis = _appConfig.AutoFetchDatis;
         _atisStationAirport = navDataRepository.GetAirport(station.Identifier) ??
                               throw new ApplicationException($"{station.Identifier} not found in airport navdata.");
@@ -313,6 +321,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 UseTexToSpeech = !evt.UseAutomaticVoice;
             }
         }));
+        _activeStaticDefinitionsKey = GetActiveStaticDefinitionsKey();
+        MonitorOnlineControllersIfNeeded();
+        _disposables.Add(EventBus.Instance.Subscribe<OnlineControllersUpdated>(_ =>
+            Dispatcher.UIThread.Post(HandleOnlineControllersUpdated)));
         _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
             if (evt.Id == AtisStation.Id)
@@ -1259,6 +1271,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         await dlg.ShowDialog(lifetime.MainWindow);
 
+        MonitorOnlineControllersIfNeeded();
+
         if (NetworkConnectionStatus != NetworkConnectionStatus.Observer)
         {
             // Update the free-form text area after the dialog is closed
@@ -1323,6 +1337,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         }
 
         await dlg.ShowDialog(lifetime.MainWindow);
+
+        MonitorOnlineControllersIfNeeded();
 
         if (NetworkConnectionStatus != NetworkConnectionStatus.Observer)
         {
@@ -2206,16 +2222,65 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         }
     }
 
+    private bool HasStationConditions()
+    {
+        return StaticDefinitionFilter.HasConditions(AtisStation.NotamDefinitions) ||
+               StaticDefinitionFilter.HasConditions(AtisStation.AirportConditionDefinitions);
+    }
+
+    private void MonitorOnlineControllersIfNeeded()
+    {
+        if (HasStationConditions())
+        {
+            _vatsimDataService.Monitor();
+        }
+    }
+
+    private string GetActiveStaticDefinitionsKey()
+    {
+        var online = _vatsimDataService.OnlineControllers;
+        return string.Join("|",
+            StaticDefinitionFilter.GetActive(AtisStation.NotamDefinitions, online).Select(x => x.Text)
+                .Concat(StaticDefinitionFilter.GetActive(AtisStation.AirportConditionDefinitions, online)
+                    .Select(x => x.Text)));
+    }
+
+    private void HandleOnlineControllersUpdated()
+    {
+        if (!HasStationConditions())
+            return;
+
+        // Only refresh when the controllers coming or going actually changed what this station says.
+        var key = GetActiveStaticDefinitionsKey();
+        if (key == _activeStaticDefinitionsKey)
+            return;
+
+        _activeStaticDefinitionsKey = key;
+
+        if (NetworkConnectionStatus != NetworkConnectionStatus.Observer)
+        {
+            PopulateNotams();
+            PopulateAirportConditions();
+        }
+
+        _buildAtisCts.Cancel();
+        _buildAtisCts = new CancellationTokenSource();
+        var localToken = _buildAtisCts.Token;
+
+        BuildAtis(localToken, notifySubscribers: false).SafeFireAndForget(onException: exception =>
+        {
+            Log.Error(exception, "BuildAtis Exception after online controllers changed");
+        });
+    }
+
     private void PopulateNotams(bool presetChanged = false)
     {
         if (NotamsTextDocument == null || SelectedAtisPreset == null)
             return;
 
         // Retrieve and sort enabled NOTAMs by their ordinal value.
-        var staticDefinitions = AtisStation.NotamDefinitions
-            .Where(x => x.Enabled)
-            .OrderBy(x => x.Ordinal)
-            .ToList();
+        var staticDefinitions =
+            StaticDefinitionFilter.GetActive(AtisStation.NotamDefinitions, _vatsimDataService.OnlineControllers);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
@@ -2298,10 +2363,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             return;
 
         // Retrieve and sort enabled static airport conditions by their ordinal value.
-        var staticDefinitions = AtisStation.AirportConditionDefinitions
-            .Where(x => x.Enabled)
-            .OrderBy(x => x.Ordinal)
-            .ToList();
+        var staticDefinitions = StaticDefinitionFilter.GetActive(
+            AtisStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)

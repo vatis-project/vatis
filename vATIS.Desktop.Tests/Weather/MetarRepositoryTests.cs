@@ -155,6 +155,8 @@ public class MetarRepositoryTests
 
         public string MetarUrl => DefaultUrl;
 
+        public IReadOnlyList<string> VatsimDataUrls => [];
+
         public string NavDataUrl => string.Empty;
 
         public string AtisHubUrl => string.Empty;

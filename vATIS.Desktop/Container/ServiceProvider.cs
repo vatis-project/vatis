@@ -14,6 +14,7 @@ using Vatsim.Vatis.Io;
 using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Networking;
 using Vatsim.Vatis.Networking.AtisHub;
+using Vatsim.Vatis.Networking.Vatsim;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
@@ -47,6 +48,7 @@ namespace Vatsim.Vatis.Container;
 [Singleton(typeof(INavDataRepository), typeof(NavDataRepository))]
 [Singleton(typeof(ITextToSpeechService), typeof(TextToSpeechService))]
 [Singleton(typeof(IWavPackService), typeof(WavPackService))]
+[Singleton(typeof(IVatsimDataService), typeof(VatsimDataService))]
 [Singleton(typeof(IAtisBuilder), typeof(AtisBuilder))]
 [Singleton(typeof(IWindowLocationService), typeof(WindowLocationService))]
 [Singleton(typeof(IProfileRepository), typeof(ProfileRepository))]

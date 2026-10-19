@@ -232,6 +232,8 @@ public class DatisRepositoryTests
 
         public string MetarUrl => string.Empty;
 
+        public IReadOnlyList<string> VatsimDataUrls => [];
+
         public string NavDataUrl => string.Empty;
 
         public string AtisHubUrl => string.Empty;
