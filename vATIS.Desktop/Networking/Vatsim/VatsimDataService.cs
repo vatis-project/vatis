@@ -23,8 +23,8 @@ public sealed class VatsimDataService : IVatsimDataService, IDisposable
     private const int ObserverFacility = 0;
     private const int AtisFacility = 4;
 
-    // The feed is regenerated every 15 seconds; polling once a minute is plenty for NOTAM text.
-    private const int UpdateIntervalSeconds = 60;
+    // The feed is regenerated every 15 seconds, so polling every 30 seconds keeps the list close to current.
+    private const int UpdateIntervalSeconds = 30;
 
     private readonly IDownloader _downloader;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
