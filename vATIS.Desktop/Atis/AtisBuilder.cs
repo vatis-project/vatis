@@ -637,7 +637,7 @@ public class AtisBuilder : IAtisBuilder
         if (!string.IsNullOrEmpty(preset.AirportConditions) || station.AirportConditionDefinitions.Any(x => x.Enabled))
         {
             var acDefinitions = StaticDefinitionFilter.GetActive(
-                station.AirportConditionDefinitions, _vatsimDataService?.OnlineControllers);
+                station.AirportConditionDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat);
             acCustom = StaticDefinitionJoiner.HasCustomSeparators(acDefinitions, station.AirportConditionsSeparator);
             var acStatic = StaticDefinitionJoiner.Join(acDefinitions, station.AirportConditionsSeparator);
             var acFree = StaticDefinitionJoiner.Prepare(preset.AirportConditions, acCustom);
@@ -664,7 +664,7 @@ public class AtisBuilder : IAtisBuilder
         if (!string.IsNullOrEmpty(preset.Notams) || station.NotamDefinitions.Any(x => x.Enabled))
         {
             var notamDefinitions = StaticDefinitionFilter.GetActive(
-                station.NotamDefinitions, _vatsimDataService?.OnlineControllers);
+                station.NotamDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat);
             notamsCustom = StaticDefinitionJoiner.HasCustomSeparators(notamDefinitions, station.NotamsSeparator);
             var notamStatic = StaticDefinitionJoiner.Join(notamDefinitions, station.NotamsSeparator);
             var notamFree = StaticDefinitionJoiner.Prepare(preset.Notams, notamsCustom);

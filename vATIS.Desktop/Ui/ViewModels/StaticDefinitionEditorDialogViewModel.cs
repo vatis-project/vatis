@@ -5,10 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using ReactiveUI;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
@@ -29,6 +31,8 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     private string? _separatorAfter;
     private StationCondition _stationCondition;
     private string? _stationCallsigns;
+    private string? _weatherCondition;
+    private string? _weatherConditionError;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticDefinitionEditorDialogViewModel"/> class.
@@ -160,6 +164,39 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     }
 
     /// <summary>
+    /// Gets or sets the condition on the METAR, as text, e.g. <c>ceiling &lt; 200ft AND rvr &lt; 550m</c>.
+    /// </summary>
+    public string? WeatherCondition
+    {
+        get => _weatherCondition;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _weatherCondition, value);
+            WeatherConditionError = string.IsNullOrWhiteSpace(value) || WeatherExpression.TryParse(value, out _, out var error)
+                ? null
+                : error;
+        }
+    }
+
+    /// <summary>
+    /// Gets the problem with the weather condition as typed, or null if it is empty or valid.
+    /// </summary>
+    public string? WeatherConditionError
+    {
+        get => _weatherConditionError;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _weatherConditionError, value);
+            this.RaisePropertyChanged(nameof(HasWeatherConditionError));
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the weather condition has a problem.
+    /// </summary>
+    public bool HasWeatherConditionError => _weatherConditionError != null;
+
+    /// <summary>
     /// Gets or sets the validation message associated with data input. This property provides feedback
     /// or error messages related to the data validation process.
     /// </summary>
@@ -167,6 +204,46 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         get => _dataValidation;
         set => this.RaiseAndSetIfChanged(ref _dataValidation, value);
+    }
+
+    /// <summary>
+    /// Loads the station and weather conditions of an existing definition.
+    /// </summary>
+    /// <param name="definition">The definition.</param>
+    public void LoadConditionsFrom(StaticDefinition definition)
+    {
+        StationCondition = definition.StationCondition;
+        StationCallsigns = definition.StationCallsigns;
+        WeatherCondition = definition.WeatherCondition;
+    }
+
+    /// <summary>
+    /// Copies the station and weather conditions being edited onto a definition.
+    /// </summary>
+    /// <param name="definition">The definition.</param>
+    /// <returns>The same definition.</returns>
+    public StaticDefinition ApplyConditionsTo(StaticDefinition definition)
+    {
+        definition.StationCondition = StationCondition;
+        definition.StationCallsigns = StationCallsigns?.Trim();
+        definition.WeatherCondition = string.IsNullOrWhiteSpace(WeatherCondition) ? null : WeatherCondition.Trim();
+        return definition;
+    }
+
+    /// <summary>
+    /// Raises validation errors for incomplete station or weather conditions.
+    /// </summary>
+    public void ValidateConditions()
+    {
+        if (HasStationCondition && string.IsNullOrWhiteSpace(StationCallsigns))
+        {
+            RaiseError("DataValidation", "Enter at least one callsign.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(WeatherCondition) && !WeatherExpression.TryParse(WeatherCondition, out _, out var error))
+        {
+            RaiseError("DataValidation", $"Weather condition: {error}");
+        }
     }
 
     /// <inheritdoc/>

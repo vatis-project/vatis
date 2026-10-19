@@ -22,6 +22,7 @@ using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
+using Vatsim.Vatis.Ui.Models;
 using Vatsim.Vatis.Ui.Windows;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -49,8 +50,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
         var textColumnLength = new GridLength(1, GridUnitType.Star);
         var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) => { r.Enabled = v; });
-        var descriptionColumn = new TextColumn<StaticDefinition, string>("", x => x.ToString().ToUpperInvariant(),
-            width: textColumnLength, new TextColumnOptions<StaticDefinition>() { TextWrapping = TextWrapping.Wrap });
+        var descriptionColumn = StaticDefinitionListColumn.Create(textColumnLength);
 
         Source = new FlatTreeDataGridSource<StaticDefinition>(Definitions)
         {
@@ -268,8 +268,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                     vm.Title = "Edit Airport Condition";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
                     vm.SeparatorAfter = definition.SeparatorAfter;
-                    vm.StationCondition = definition.StationCondition;
-                    vm.StationCallsigns = definition.StationCallsigns;
+                    vm.LoadConditionsFrom(definition);
                     vm.ContractionCompletionData = ContractionCompletionData;
                     vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
@@ -289,10 +288,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                                 vm.RaiseError("DataValidation", "Text is required.");
                             }
 
-                            if (vm.HasStationCondition && string.IsNullOrWhiteSpace(vm.StationCallsigns))
-                            {
-                                vm.RaiseError("DataValidation", "Enter at least one callsign.");
-                            }
+                            vm.ValidateConditions();
 
                             if (vm.HasErrors)
                                 return;
@@ -302,7 +298,8 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
                             Definitions.Remove(definition);
                             Definitions.Insert(currentIndex,
-                                new StaticDefinition(text, currentIndex, definition.Enabled) { SeparatorAfter = vm.SeparatorAfter, StationCondition = vm.StationCondition, StationCallsigns = vm.StationCallsigns?.Trim() });
+                                vm.ApplyConditionsTo(new StaticDefinition(text, currentIndex, definition.Enabled)
+                                    { SeparatorAfter = vm.SeparatorAfter }));
                             Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         }
                     };
@@ -346,17 +343,15 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                             vm.RaiseError("DataValidation", "Text is required.");
                         }
 
-                        if (vm.HasStationCondition && string.IsNullOrWhiteSpace(vm.StationCallsigns))
-                        {
-                            vm.RaiseError("DataValidation", "Enter at least one callsign.");
-                        }
+                        vm.ValidateConditions();
 
                         if (vm.HasErrors)
                             return;
 
                         var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";
 
-                        Definitions.Add(new StaticDefinition(text, Definitions.Count + 1) { SeparatorAfter = vm.SeparatorAfter, StationCondition = vm.StationCondition, StationCallsigns = vm.StationCallsigns?.Trim() });
+                        Definitions.Add(vm.ApplyConditionsTo(new StaticDefinition(text, Definitions.Count + 1)
+                            { SeparatorAfter = vm.SeparatorAfter }));
                         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         HasDefinitions = Definitions.Count != 0;
                     }

@@ -74,7 +74,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly IAtisBuilder _atisBuilder;
     private readonly IWindowFactory _windowFactory;
     private readonly IVatsimDataService _vatsimDataService;
-    private string _activeStaticDefinitionsKey = string.Empty;
     private readonly INetworkConnection? _networkConnection;
     private readonly IVoiceServerConnection? _voiceServerConnection;
     private readonly IAtisHubConnection _atisHubConnection;
@@ -88,6 +87,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly SemaphoreSlim _buildAtisLock = new(1, 1);
     private readonly string? _identifier;
     private readonly TimeSpan _debounceDelay = TimeSpan.FromSeconds(5);
+    private string _activeStaticDefinitionsKey = string.Empty;
     private bool _autoFetchDatis;
     private CancellationTokenSource _buildAtisCts = new();
     private CancellationTokenSource _selectedPresetCts = new();
@@ -324,7 +324,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         _activeStaticDefinitionsKey = GetActiveStaticDefinitionsKey();
         MonitorOnlineControllersIfNeeded();
         _disposables.Add(EventBus.Instance.Subscribe<OnlineControllersUpdated>(_ =>
-            Dispatcher.UIThread.Post(HandleOnlineControllersUpdated)));
+            Dispatcher.UIThread.Post(() => RefreshConditionalDefinitions(rebuildAtis: true))));
         _disposables.Add(EventBus.Instance.Subscribe<StationPresetsChanged>(evt =>
         {
             if (evt.Id == AtisStation.Id)
@@ -1852,6 +1852,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             // Save the decoded metar so its individual properties can be sent to clients
             // connected via the websocket.
             _decodedMetar = e.Metar;
+            Dispatcher.UIThread.Post(() => RefreshConditionalDefinitions(rebuildAtis: false));
 
             try
             {
@@ -2236,18 +2237,25 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         }
     }
 
+    private bool HasWeatherConditions()
+    {
+        return StaticDefinitionFilter.HasWeatherConditions(AtisStation.NotamDefinitions) ||
+               StaticDefinitionFilter.HasWeatherConditions(AtisStation.AirportConditionDefinitions);
+    }
+
     private string GetActiveStaticDefinitionsKey()
     {
         var online = _vatsimDataService.OnlineControllers;
         return string.Join("|",
-            StaticDefinitionFilter.GetActive(AtisStation.NotamDefinitions, online).Select(x => x.Text)
-                .Concat(StaticDefinitionFilter.GetActive(AtisStation.AirportConditionDefinitions, online)
-                    .Select(x => x.Text)));
+            StaticDefinitionFilter.GetActive(AtisStation.NotamDefinitions, online, _decodedMetar, AtisStation.AtisFormat)
+                .Concat(StaticDefinitionFilter.GetActive(
+                    AtisStation.AirportConditionDefinitions, online, _decodedMetar, AtisStation.AtisFormat))
+                .Select(x => x.Text));
     }
 
-    private void HandleOnlineControllersUpdated()
+    private void RefreshConditionalDefinitions(bool rebuildAtis)
     {
-        if (!HasStationConditions())
+        if (!HasStationConditions() && !HasWeatherConditions())
             return;
 
         // Only refresh when the controllers coming or going actually changed what this station says.
@@ -2263,13 +2271,16 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             PopulateAirportConditions();
         }
 
+        if (!rebuildAtis)
+            return;
+
         _buildAtisCts.Cancel();
         _buildAtisCts = new CancellationTokenSource();
         var localToken = _buildAtisCts.Token;
 
         BuildAtis(localToken, notifySubscribers: false).SafeFireAndForget(onException: exception =>
         {
-            Log.Error(exception, "BuildAtis Exception after online controllers changed");
+            Log.Error(exception, "BuildAtis Exception after conditional definitions changed");
         });
     }
 
@@ -2279,8 +2290,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             return;
 
         // Retrieve and sort enabled NOTAMs by their ordinal value.
-        var staticDefinitions =
-            StaticDefinitionFilter.GetActive(AtisStation.NotamDefinitions, _vatsimDataService.OnlineControllers);
+        var staticDefinitions = StaticDefinitionFilter.GetActive(
+            AtisStation.NotamDefinitions, _vatsimDataService.OnlineControllers, _decodedMetar, AtisStation.AtisFormat);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
@@ -2364,7 +2375,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         // Retrieve and sort enabled static airport conditions by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
-            AtisStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers);
+            AtisStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers, _decodedMetar,
+            AtisStation.AtisFormat);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)

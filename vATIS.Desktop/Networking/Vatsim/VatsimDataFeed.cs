@@ -19,21 +19,3 @@ public class VatsimDataFeed
     [JsonPropertyName("controllers")]
     public List<VatsimDataFeedController> Controllers { get; set; } = [];
 }
-
-/// <summary>
-/// A controller entry in the VATSIM data feed.
-/// </summary>
-public class VatsimDataFeedController
-{
-    /// <summary>
-    /// Gets or sets the controller callsign.
-    /// </summary>
-    [JsonPropertyName("callsign")]
-    public string? Callsign { get; set; }
-
-    /// <summary>
-    /// Gets or sets the facility type. Zero is an observer and 4 is an ATIS.
-    /// </summary>
-    [JsonPropertyName("facility")]
-    public int Facility { get; set; }
-}
