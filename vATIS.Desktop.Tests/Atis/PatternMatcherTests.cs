@@ -65,8 +65,7 @@ public class PatternMatcherTests
     [InlineData("*a", "x", "x", "Pattern", "Nothing to repeat")]
     [InlineData("a*", "x", "x", "Pattern", "Matches empty text")]
     [InlineData("(a)", "$2", "x", "Text", "No group $2")]
-    [InlineData("(a)", "$0", "x", "Text", "There is no $0")]
-    [InlineData("(a)", "x", "$1 ${name}", "Voice", "No group named 'name'")]
+        [InlineData("(a)", "x", "$1 ${name}", "Voice", "No group named 'name'")]
     [InlineData("(a)", "x", "$nope($1)", "Voice", "Unknown function '$nope'")]
     [InlineData("(a)", "x", "$spell", "Voice", "needs a group")]
     [InlineData("(a)", "x", "$spell(1)", "Voice", "needs a group")]
@@ -76,6 +75,16 @@ public class PatternMatcherTests
         var errors = PatternMatcher.Validate(pattern, text, voice);
         var error = Assert.Single(errors, e => e.Field == field);
         Assert.Contains(expected, error.Message);
+    }
+
+    [Fact]
+    public void Apply_WholeMatchKeepsOriginalTextAndChangesVoice()
+    {
+        var c = Regex(@"\d{2}[LRC]", "$0", "RUNWAY $spell($0)");
+
+        Assert.Equal("RWY 28R", PatternMatcher.Apply("RWY 28R", c, voice: false));
+        Assert.Equal("RWY RUNWAY two eight R", PatternMatcher.Apply("RWY 28R", c, voice: true));
+        Assert.Empty(PatternMatcher.Validate(@"\d{2}[LRC]", "$0", "RUNWAY $spell($0)"));
     }
 
     [Fact]

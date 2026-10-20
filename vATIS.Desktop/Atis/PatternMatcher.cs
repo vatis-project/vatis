@@ -131,7 +131,7 @@ public static class PatternMatcher
             }
         }
 
-        var groupNumbers = regex?.GetGroupNumbers().Where(n => n > 0).ToHashSet() ?? [];
+        var groupNumbers = regex?.GetGroupNumbers().ToHashSet() ?? [];
         var groupNames = regex?.GetGroupNames().Where(n => !int.TryParse(n, out _)).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
 
         foreach (var (field, template) in new[] { ("Text", text), ("Voice", voice) })
@@ -168,9 +168,7 @@ public static class PatternMatcher
             var number = token.Groups["fnnum"].Success ? token.Groups["fnnum"] : token.Groups["num"];
             if (number.Success && int.TryParse(number.Value, out var n) && !groupNumbers.Contains(n))
             {
-                return n == 0
-                    ? "There is no $0. Put ( ) around the part to reuse and use $1."
-                    : $"No group ${n} in the pattern. Groups are the (bracketed) parts, numbered from the left.";
+                return $"No group ${n}. Groups are the (bracketed) parts, numbered from the left; $0 is the whole match.";
             }
 
             var name = token.Groups["fnname"].Success ? token.Groups["fnname"] : token.Groups["name"];
