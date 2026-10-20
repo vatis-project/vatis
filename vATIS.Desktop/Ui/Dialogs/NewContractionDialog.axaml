@@ -68,7 +68,7 @@
 				<TextBlock Text="{Binding Title, DataType=vm:NewContractionDialogViewModel}" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
 			</Border>
 			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
-				<StackPanel Spacing="5">
+				<StackPanel Spacing="5" IsVisible="{Binding !IsRegex, DataType=vm:NewContractionDialogViewModel}">
 					<TextBlock Text="Variable:"/>
 					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Variable" Text="{Binding Variable, DataType=vm:NewContractionDialogViewModel}" LostFocus="Variable_OnLostFocus">
 						<Interaction.Behaviors>

@@ -212,7 +212,8 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
 
             context.ClearAllErrors();
 
-            if (string.IsNullOrEmpty(context.Variable))
+            // A regex contraction is matched automatically, so it has no variable name.
+            if (!context.IsRegex && string.IsNullOrEmpty(context.Variable))
             {
                 context.RaiseError("Variable", "Value is required");
             }
@@ -236,7 +237,8 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
                 }
             }
 
-            if (SelectedStation.Contractions.Any(x => x != existing && x.VariableName == context.Variable))
+            if (!context.IsRegex &&
+                SelectedStation.Contractions.Any(x => x != existing && !x.IsRegex && x.VariableName == context.Variable))
             {
                 context.RaiseError("Variable", "A contraction with this variable name already exist.");
             }
@@ -247,7 +249,7 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
             }
 
             var contraction = existing ?? new ContractionMeta();
-            contraction.VariableName = context.Variable;
+            contraction.VariableName = context.IsRegex ? null : context.Variable;
             contraction.Text = context.Text;
             contraction.Voice = context.Spoken;
             contraction.IsRegex = context.IsRegex;
@@ -284,7 +286,9 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         foreach (var station in profile.Stations)
         {
             if (station.Id == SelectedStation.Id ||
-                station.Contractions.Any(x => x.VariableName == contraction.VariableName))
+                station.Contractions.Any(x => contraction.IsRegex
+                    ? x.IsRegex && x.Pattern == contraction.Pattern
+                    : !x.IsRegex && x.VariableName == contraction.VariableName))
             {
                 continue;
             }

@@ -345,7 +345,7 @@ public class WebsocketService : IWebsocketService
             foreach (var s in stationsList)
             {
                 var contractionsDict = s.Contractions
-                    .Where(c => !string.IsNullOrWhiteSpace(c.VariableName))
+                    .Where(c => !c.IsRegex && !string.IsNullOrWhiteSpace(c.VariableName))
                     .ToDictionary(
                         c => c.VariableName!,
                         c => new ContractionsResponseMessage.StationContractions.ContractionDetail
@@ -371,7 +371,7 @@ public class WebsocketService : IWebsocketService
                 return;
 
             var contractionsDict = targetStation.Contractions
-                .Where(c => !string.IsNullOrWhiteSpace(c.VariableName))
+                .Where(c => !c.IsRegex && !string.IsNullOrWhiteSpace(c.VariableName))
                 .ToDictionary(
                     c => c.VariableName!,
                     c => new ContractionsResponseMessage.StationContractions.ContractionDetail

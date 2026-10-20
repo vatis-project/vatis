@@ -14,7 +14,8 @@ namespace Vatsim.Vatis.Profiles.Models;
 public class ContractionMeta
 {
     /// <summary>
-    /// Gets or sets the name of the variable associated with this contraction.
+    /// Gets or sets the name of the variable associated with this contraction. Regex contractions are matched
+    /// automatically rather than referenced by name, so they have no variable name.
     /// </summary>
     public string? VariableName { get; set; }
 

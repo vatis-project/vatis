@@ -122,7 +122,8 @@ public class AtisStation : ReactiveObject
             _contractionMetas = [];
             foreach (var contractionMeta in value)
             {
-                if (string.IsNullOrEmpty(contractionMeta.VariableName) && !string.IsNullOrEmpty(contractionMeta.Text))
+                if (!contractionMeta.IsRegex && string.IsNullOrEmpty(contractionMeta.VariableName) &&
+                    !string.IsNullOrEmpty(contractionMeta.Text))
                 {
                     var slug = new SlugHelper().GenerateSlug(contractionMeta.Text);
                     slug = slug.Replace("-", "_").ToUpperInvariant();
