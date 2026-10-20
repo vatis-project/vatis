@@ -107,4 +107,27 @@ public class PatternMatcherTests
         var clone = new PatternMeta { Text = "t", Voice = "v", Pattern = "p" }.Clone();
         Assert.Equal(("p", "t", "v"), (clone.Pattern, clone.Text, clone.Voice));
     }
+
+    [Fact]
+    public void TryPreview_ShowsTextAndVoiceResults()
+    {
+        var matched = PatternMatcher.TryPreview(
+            @"(ILS|RNAV) ([XYZ])\b", "$1 $2", "$1 $phonetic($2)", "ILS Z RWY 28R", out var text, out var voice);
+
+        Assert.True(matched);
+        Assert.Equal("ILS Z RWY 28R", text);
+        Assert.Equal("ILS Zulu RWY 28R", voice);
+    }
+
+    [Theory]
+    [InlineData("", "ILS Z")]
+    [InlineData("(", "ILS Z")]
+    [InlineData("RNAV", "ILS Z")]
+    [InlineData("ILS", "")]
+    public void TryPreview_ReturnsFalseWithoutAMatch(string pattern, string sample)
+    {
+        Assert.False(PatternMatcher.TryPreview(pattern, "x", "x", sample, out var text, out var voice));
+        Assert.Empty(text);
+        Assert.Empty(voice);
+    }
 }

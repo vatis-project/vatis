@@ -9,7 +9,7 @@
         Title="NewPatternDialog"
         x:Name="Window"
         Width="560"
-        Height="780"
+        Height="800"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
@@ -90,6 +90,23 @@
 							<behaviors:SelectAllTextOnFocusBehavior/>
 						</Interaction.Behaviors>
 					</TextBox>
+				</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="Preview:"/>
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Sample" Text="{Binding SampleText, DataType=vm:NewPatternDialogViewModel}" Watermark="Sample text, e.g. ILS Z RWY 28R">
+						<Interaction.Behaviors>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+					<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="3" Padding="8" IsVisible="{Binding HasPreview, DataType=vm:NewPatternDialogViewModel}">
+						<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="4">
+							<TextBlock Grid.Row="0" Grid.Column="0" Text="Text" Foreground="#A0A0A0"/>
+							<TextBlock Grid.Row="0" Grid.Column="1" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="{Binding PreviewText, DataType=vm:NewPatternDialogViewModel}"/>
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="Voice" Foreground="#A0A0A0"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="{Binding PreviewVoice, DataType=vm:NewPatternDialogViewModel}"/>
+						</Grid>
+					</Border>
+					<TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#A0A0A0" IsVisible="{Binding !HasPreview, DataType=vm:NewPatternDialogViewModel}" Text="{Binding PreviewStatus, DataType=vm:NewPatternDialogViewModel}"/>
 				</StackPanel>
 				<CheckBox IsVisible="{Binding ShowAddToAllStations, DataType=vm:NewPatternDialogViewModel}" IsChecked="{Binding AddToAllStations, DataType=vm:NewPatternDialogViewModel}" Content="Add to all ATIS stations in this profile"/>
 				<StackPanel Orientation="Horizontal" Spacing="10">

@@ -24,6 +24,11 @@ public class NewPatternDialogViewModel : ReactiveViewModelBase, IDisposable
     private string _title = "New Pattern";
     private bool _showAddToAllStations = true;
     private string? _pattern;
+    private string? _sampleText;
+    private bool _hasPreview;
+    private string _previewStatus = string.Empty;
+    private string _previewText = string.Empty;
+    private string _previewVoice = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NewPatternDialogViewModel"/> class.
@@ -34,8 +39,12 @@ public class NewPatternDialogViewModel : ReactiveViewModelBase, IDisposable
         OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButtonCommand);
 
         // Explain regex mistakes as the user types.
-        _validation = this.WhenAnyValue(x => x.Pattern, x => x.Text, x => x.Spoken)
-            .Subscribe(_ => ValidateRegex());
+        _validation = this.WhenAnyValue(x => x.Pattern, x => x.Text, x => x.Spoken, x => x.SampleText)
+            .Subscribe(_ =>
+            {
+                ValidateRegex();
+                UpdatePreview();
+            });
     }
 
     /// <summary>
@@ -69,6 +78,51 @@ public class NewPatternDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _title;
         set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the sample text the pattern is previewed against.
+    /// </summary>
+    public string? SampleText
+    {
+        get => _sampleText;
+        set => this.RaiseAndSetIfChanged(ref _sampleText, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the pattern matches the sample text, so a result can be shown.
+    /// </summary>
+    public bool HasPreview
+    {
+        get => _hasPreview;
+        private set => this.RaiseAndSetIfChanged(ref _hasPreview, value);
+    }
+
+    /// <summary>
+    /// Gets a message explaining why there is no preview.
+    /// </summary>
+    public string PreviewStatus
+    {
+        get => _previewStatus;
+        private set => this.RaiseAndSetIfChanged(ref _previewStatus, value);
+    }
+
+    /// <summary>
+    /// Gets the sample text after the Text replacement.
+    /// </summary>
+    public string PreviewText
+    {
+        get => _previewText;
+        private set => this.RaiseAndSetIfChanged(ref _previewText, value);
+    }
+
+    /// <summary>
+    /// Gets the sample text after the Voice replacement.
+    /// </summary>
+    public string PreviewVoice
+    {
+        get => _previewVoice;
+        private set => this.RaiseAndSetIfChanged(ref _previewVoice, value);
     }
 
     /// <summary>
@@ -124,6 +178,26 @@ public class NewPatternDialogViewModel : ReactiveViewModelBase, IDisposable
         OkButtonCommand.Dispose();
 
         GC.SuppressFinalize(this);
+    }
+
+    private void UpdatePreview()
+    {
+        if (string.IsNullOrEmpty(SampleText))
+        {
+            HasPreview = false;
+            PreviewStatus = "Type some sample text to preview the result.";
+            return;
+        }
+
+        var matched = PatternMatcher.TryPreview(Pattern, Text, Spoken, SampleText, out var text, out var voice);
+        HasPreview = matched;
+        PreviewText = text;
+        PreviewVoice = voice;
+        PreviewStatus = matched
+            ? string.Empty
+            : string.IsNullOrEmpty(Pattern) || PatternMatcher.Validate(Pattern, null, null).Count > 0
+                ? "Fix the pattern to see a preview."
+                : "The pattern does not match this sample text.";
     }
 
     private void ValidateRegex()

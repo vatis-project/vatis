@@ -86,6 +86,53 @@ public static class PatternMatcher
     }
 
     /// <summary>
+    /// Shows what a pattern would do to a sample of text.
+    /// </summary>
+    /// <param name="pattern">The regular expression.</param>
+    /// <param name="text">The Text replacement template.</param>
+    /// <param name="voice">The Voice replacement template.</param>
+    /// <param name="sample">The sample text to apply the pattern to.</param>
+    /// <param name="textResult">The sample after the Text replacement.</param>
+    /// <param name="voiceResult">The sample after the Voice replacement.</param>
+    /// <returns>True if the pattern is valid and matches the sample.</returns>
+    public static bool TryPreview(
+        string? pattern,
+        string? text,
+        string? voice,
+        string? sample,
+        out string textResult,
+        out string voiceResult)
+    {
+        textResult = string.Empty;
+        voiceResult = string.Empty;
+        if (string.IsNullOrEmpty(pattern) || string.IsNullOrEmpty(sample))
+        {
+            return false;
+        }
+
+        try
+        {
+            var regex = new Regex(pattern, RegexOptions.None, s_timeout);
+            if (!regex.IsMatch(sample))
+            {
+                return false;
+            }
+
+            textResult = regex.Replace(sample, match => Expand(text ?? string.Empty, match));
+            voiceResult = regex.Replace(sample, match => Expand(voice ?? string.Empty, match));
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Checks a pattern and explains any problems in plain language.
     /// </summary>
     /// <param name="pattern">The regular expression.</param>
