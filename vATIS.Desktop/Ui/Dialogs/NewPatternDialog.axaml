@@ -93,11 +93,14 @@
 				</StackPanel>
 				<StackPanel Spacing="5">
 					<TextBlock Text="Preview:"/>
-					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Sample" Text="{Binding SampleText, DataType=vm:NewPatternDialogViewModel}" Watermark="Sample text, e.g. ILS Z RWY 28R">
-						<Interaction.Behaviors>
-							<behaviors:SelectAllTextOnFocusBehavior/>
-						</Interaction.Behaviors>
-					</TextBox>
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+						<TextBox Grid.Column="0" FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Sample" Text="{Binding SampleText, DataType=vm:NewPatternDialogViewModel}" Watermark="Sample text">
+							<Interaction.Behaviors>
+								<behaviors:SelectAllTextOnFocusBehavior/>
+							</Interaction.Behaviors>
+						</TextBox>
+						<Button Grid.Column="1" Theme="{StaticResource Dark}" Height="30" MinWidth="80" Command="{Binding NewSampleCommand, DataType=vm:NewPatternDialogViewModel}" ToolTip.Tip="Generate another sample from the pattern">Generate</Button>
+					</Grid>
 					<Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="3" Padding="8" IsVisible="{Binding HasPreview, DataType=vm:NewPatternDialogViewModel}">
 						<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="4">
 							<TextBlock Grid.Row="0" Grid.Column="0" Text="Text" Foreground="#A0A0A0"/>
