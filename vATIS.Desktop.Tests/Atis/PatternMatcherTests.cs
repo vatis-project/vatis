@@ -34,7 +34,8 @@ public class PatternMatcherTests
     [InlineData("$group($1)", "five hundred and twenty-five")]
     [InlineData("$GROUP($1)", "five hundred and twenty-five")]
     [InlineData("$digits($1)", "five two five")]
-    [InlineData("$phonetic($1)", "five two five")]
+    [InlineData("$phonetic($1)", "Foxtrot India Victor Echo Tango Whiskey Oscar Foxtrot India Victor Echo")]
+    [InlineData("$spell($1)", "5 2 5")]
     [InlineData("$unknown($1)", "$unknown($1)")]
     [InlineData("$$1", "$1")]
     public void Apply_Functions(string voice, string expected)
@@ -83,7 +84,7 @@ public class PatternMatcherTests
         var c = Regex(@"\d{2}[LRC]", "$0", "RUNWAY $spell($0)");
 
         Assert.Equal("RWY 28R", PatternMatcher.Apply("RWY 28R", c, voice: false));
-        Assert.Equal("RWY RUNWAY two eight R", PatternMatcher.Apply("RWY 28R", c, voice: true));
+        Assert.Equal("RWY RUNWAY 2 8 R", PatternMatcher.Apply("RWY 28R", c, voice: true));
         Assert.Empty(PatternMatcher.Validate(@"\d{2}[LRC]", "$0", "RUNWAY $spell($0)"));
     }
 
@@ -129,5 +130,16 @@ public class PatternMatcherTests
         Assert.False(PatternMatcher.TryPreview(pattern, "x", "x", sample, out var text, out var voice));
         Assert.Empty(text);
         Assert.Empty(voice);
+    }
+
+    [Theory]
+    [InlineData("A25R", "$spell($1)", "A 2 5 R")]
+    [InlineData("A25R", "$digits($1)", "A two five R")]
+    [InlineData("25", "$phonetic($1)", "Tango Whiskey Oscar Foxtrot India Victor Echo")]
+    [InlineData("2R", "$phonetic($1)", "Tango Whiskey Oscar Romeo")]
+    public void Apply_SpellingFunctionsHandleDigitsAndLetters(string input, string voice, string expected)
+    {
+        var c = Regex(@"(\w+)", "$1", voice);
+        Assert.Equal(expected, PatternMatcher.Apply(input, c, voice: true));
     }
 }

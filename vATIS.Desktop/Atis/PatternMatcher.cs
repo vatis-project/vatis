@@ -27,8 +27,8 @@ public static class PatternMatcher
     [
         ("group", "Number in group form (525 = five hundred and twenty-five)"),
         ("digits", "Number one digit at a time (525 = five two five)"),
-        ("spell", "Letters and digits separated (ABC = A B C)"),
-        ("phonetic", "Phonetic alphabet (ABC = Alpha Bravo Charlie)"),
+        ("spell", "Each character separated (A25 = A 2 5)"),
+        ("phonetic", "Phonetic alphabet; a digit is spelled as its word (2 = Tango Whiskey Oscar)"),
     ];
 
     private static readonly HashSet<string> s_functions = new(
@@ -39,6 +39,13 @@ public static class PatternMatcher
     private static readonly Regex s_token = new(
         @"\$(?:(?<esc>\$)|(?<fn>[A-Za-z]+)\(\s*\$(?:(?<fnnum>\d+)|\{(?<fnname>\w+)\})\s*\)|(?<num>\d+)|\{(?<name>\w+)\})",
         RegexOptions.Compiled);
+
+    private enum SpellKind
+    {
+        DigitWords,
+        Characters,
+        Phonetic,
+    }
 
     /// <summary>
     /// Gets the replacement functions that can wrap a capture group, with a short description of each.
@@ -356,17 +363,17 @@ public static class PatternMatcher
             case "group":
                 return int.TryParse(value.Replace(",", string.Empty), out var number) ? number.ToGroupForm() : value;
             case "digits":
-                return Spell(value, phonetic: false, spellLetters: false);
+                return Spell(value, SpellKind.DigitWords);
             case "spell":
-                return Spell(value, phonetic: false, spellLetters: true);
+                return Spell(value, SpellKind.Characters);
             case "phonetic":
-                return Spell(value, phonetic: true, spellLetters: true);
+                return Spell(value, SpellKind.Phonetic);
             default:
                 return value;
         }
     }
 
-    private static string Spell(string value, bool phonetic, bool spellLetters)
+    private static string Spell(string value, SpellKind kind)
     {
         var parts = new List<string>();
         foreach (var ch in value)
@@ -378,13 +385,21 @@ public static class PatternMatcher
 
             if (char.IsDigit(ch))
             {
-                parts.Add(((int)char.GetNumericValue(ch)).ToWordString());
+                var word = ((int)char.GetNumericValue(ch)).ToWordString();
+                parts.Add(kind switch
+                {
+                    SpellKind.DigitWords => word,
+
+                    // The digit's word is spelled in the phonetic alphabet, e.g. 2 = "two" = Tango Whiskey Oscar.
+                    SpellKind.Phonetic => string.Join(" ", word.Select(letter => char.ToUpperInvariant(letter).ToPhonetic())),
+                    _ => ch.ToString(),
+                });
             }
-            else if (char.IsLetter(ch) && spellLetters)
+            else if (char.IsLetter(ch) && kind != SpellKind.DigitWords)
             {
                 var upper = char.ToUpperInvariant(ch);
-                var word = phonetic ? upper.ToPhonetic() : string.Empty;
-                parts.Add(string.IsNullOrEmpty(word) ? upper.ToString() : word);
+                var phonetic = kind == SpellKind.Phonetic ? upper.ToPhonetic() : string.Empty;
+                parts.Add(string.IsNullOrEmpty(phonetic) ? upper.ToString() : phonetic);
             }
             else
             {
