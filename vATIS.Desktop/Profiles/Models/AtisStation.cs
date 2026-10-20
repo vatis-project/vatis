@@ -122,8 +122,7 @@ public class AtisStation : ReactiveObject
             _contractionMetas = [];
             foreach (var contractionMeta in value)
             {
-                if (!contractionMeta.IsRegex && string.IsNullOrEmpty(contractionMeta.VariableName) &&
-                    !string.IsNullOrEmpty(contractionMeta.Text))
+                if (string.IsNullOrEmpty(contractionMeta.VariableName) && !string.IsNullOrEmpty(contractionMeta.Text))
                 {
                     var slug = new SlugHelper().GenerateSlug(contractionMeta.Text);
                     slug = slug.Replace("-", "_").ToUpperInvariant();
@@ -134,6 +133,11 @@ public class AtisStation : ReactiveObject
             }
         }
     }
+
+    /// <summary>
+    /// Gets or sets the list of regular expression patterns matched against the ATIS text.
+    /// </summary>
+    public List<PatternMeta> Patterns { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the list of static definitions that describe airport-specific conditions for the ATIS station.
@@ -287,6 +291,7 @@ public class AtisStation : ReactiveObject
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),
             Contractions = Contractions.Select(x => x.Clone()).ToList(),
+            Patterns = Patterns.Select(x => x.Clone()).ToList(),
             AirportConditionDefinitions = AirportConditionDefinitions.Select(x => x.Clone()).ToList(),
             NotamDefinitions = NotamDefinitions.Select(x => x.Clone()).ToList(),
             DatisTextReplacements = DatisTextReplacements.Select(x => x.Clone()).ToList(),

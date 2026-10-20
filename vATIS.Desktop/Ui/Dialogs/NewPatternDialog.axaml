@@ -1,0 +1,102 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Vatsim.Vatis.Ui.Dialogs.NewPatternDialog"
+        Title="NewPatternDialog"
+        x:Name="Window"
+        Width="560"
+        Height="780"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+	<Window.Styles>
+		<!-- The window is a fixed, transparent size so it stays centered on its parent when errors make the panel taller. -->
+		<Style Selector="Border#Panel">
+			<Setter Property="Width" Value="560"/>
+		</Style>
+		<Style Selector="TextBox.wide">
+			<Setter Property="MinHeight" Value="64"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="VerticalContentAlignment" Value="Top"/>
+		</Style>
+		<Style Selector="DataValidationErrors">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<DockPanel LastChildFill="True">
+						<ContentControl DockPanel.Dock="Bottom"
+										ContentTemplate="{TemplateBinding ErrorTemplate}"
+										DataContext="{TemplateBinding Owner}"
+										Content="{Binding (DataValidationErrors.Errors)}"
+										IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
+						<ContentPresenter Name="PART_ContentPresenter"
+										  Background="{TemplateBinding Background}"
+										  BorderBrush="{TemplateBinding BorderBrush}"
+										  BorderThickness="{TemplateBinding BorderThickness}"
+										  CornerRadius="{TemplateBinding CornerRadius}"
+										  ContentTemplate="{TemplateBinding ContentTemplate}"
+										  Content="{TemplateBinding Content}"
+										  Padding="{TemplateBinding Padding}"/>
+					</DockPanel>
+				</ControlTemplate>
+			</Setter>
+			<Setter Property="ErrorTemplate">
+				<DataTemplate x:DataType="{x:Type x:Object}">
+					<ItemsControl ItemsSource="{Binding}" Margin="0 5 0 0" Foreground="#FCBA03">
+						<ItemsControl.Styles>
+							<Style Selector="TextBlock">
+								<Setter Property="TextWrapping" Value="Wrap" />
+							</Style>
+						</ItemsControl.Styles>
+					</ItemsControl>
+				</DataTemplate>
+			</Setter>
+		</Style>
+	</Window.Styles>
+	<Border Name="Panel" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+		<StackPanel>
+			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent">
+				<TextBlock Text="{Binding Title, DataType=vm:NewPatternDialogViewModel}" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
+			</Border>
+			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
+				<StackPanel Spacing="5">
+					<TextBlock Text="Pattern:"/>
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Pattern" Text="{Binding Pattern, DataType=vm:NewPatternDialogViewModel}" Classes="wide" Watermark="(ILS|RNAV) ([XYZ])\b">
+						<Interaction.Behaviors>
+							<behaviors:FocusOnAttachedToVisualTree/>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+					<TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#A0A0A0" Text="Use $1 or ${name} in Text and Voice to insert a captured group. Wrap a group in group(), digits(), spell() or phonetic(), e.g. $spell($1)."/>
+				</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="Text:"/>
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="String" Text="{Binding Text, DataType=vm:NewPatternDialogViewModel}" Classes="wide">
+						<Interaction.Behaviors>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="Voice:"/>
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Spoken" Text="{Binding Spoken, DataType=vm:NewPatternDialogViewModel}" Classes="wide">
+						<Interaction.Behaviors>
+							<behaviors:SelectAllTextOnFocusBehavior/>
+						</Interaction.Behaviors>
+					</TextBox>
+				</StackPanel>
+				<CheckBox IsVisible="{Binding ShowAddToAllStations, DataType=vm:NewPatternDialogViewModel}" IsChecked="{Binding AddToAllStations, DataType=vm:NewPatternDialogViewModel}" Content="Add to all ATIS stations in this profile"/>
+				<StackPanel Orientation="Horizontal" Spacing="10">
+					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding OkButtonCommand, DataType=vm:NewPatternDialogViewModel}" CommandParameter="{Binding ElementName=Window}">OK</Button>
+					<Button Theme="{StaticResource Dark}" Height="30" MinWidth="70" Command="{Binding CancelButtonCommand, DataType=vm:NewPatternDialogViewModel}" CommandParameter="{Binding ElementName=Window}">Cancel</Button>
+				</StackPanel>
+			</StackPanel>
+		</StackPanel>
+	</Border>
+</Window>

@@ -798,7 +798,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         foreach (var contraction in SelectedStation.Contractions.ToList())
         {
-            if (contraction is { IsRegex: false, VariableName: not null, Voice: not null })
+            if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
     }

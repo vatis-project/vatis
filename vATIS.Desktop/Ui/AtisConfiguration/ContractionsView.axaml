@@ -19,11 +19,9 @@
 					</Style>
 				</DataGrid.Styles>
 				<DataGrid.Columns>
-					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Variable" Width="0.8*" Binding="{Binding VariableName, DataType=models:ContractionMeta}"/>
-					<DataGridCheckBoxColumn Header="Regex" Width="Auto" Binding="{Binding IsRegex, DataType=models:ContractionMeta}"/>
-					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Pattern" Width="1.6*" Binding="{Binding Pattern, DataType=models:ContractionMeta}"/>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Variable" Width="1*" Binding="{Binding VariableName, DataType=models:ContractionMeta}"/>
 					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" Binding="{Binding Text, DataType=models:ContractionMeta}"/>
-					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Voice" Width="1.6*" Binding="{Binding Voice, DataType=models:ContractionMeta}"/>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Voice" Width="1*" Binding="{Binding Voice, DataType=models:ContractionMeta}"/>
 				</DataGrid.Columns>
 			</DataGrid>
 		</Border>

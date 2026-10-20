@@ -1,4 +1,4 @@
-// <copyright file="ContractionMatcher.cs" company="Justin Shannon">
+// <copyright file="PatternMatcher.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -15,11 +15,11 @@ using Vatsim.Vatis.Profiles.Models;
 namespace Vatsim.Vatis.Atis;
 
 /// <summary>
-/// Applies regex-based <see cref="ContractionMeta"/> entries to ATIS text. The replacement templates support capture
+/// Applies regex-based <see cref="PatternMeta"/> entries to ATIS text. The replacement templates support capture
 /// group references (<c>$1</c>, <c>${name}</c>) and the functions <c>$group(x)</c>, <c>$digits(x)</c>,
 /// <c>$spell(x)</c> and <c>$phonetic(x)</c>, where <c>x</c> is a group reference.
 /// </summary>
-public static class ContractionMatcher
+public static class PatternMatcher
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(1);
 
@@ -46,61 +46,39 @@ public static class ContractionMatcher
     public static IReadOnlyList<(string Name, string Description)> Functions => s_functionList;
 
     /// <summary>
-    /// Replaces contractions in the text: regex contractions first, then <c>@VARIABLE</c> references to plain
-    /// contractions. The variable name of a regex contraction is only a label and is never looked up.
+    /// Applies every pattern to the text, using the voice or text replacement.
     /// </summary>
     /// <param name="text">The text to transform.</param>
-    /// <param name="contractions">The station contractions.</param>
-    /// <param name="voice">True to use the Voice replacements, otherwise the Text replacements.</param>
+    /// <param name="patterns">The station patterns.</param>
+    /// <param name="voice">True to use the <see cref="PatternMeta.Voice"/> template, otherwise <see cref="PatternMeta.Text"/>.</param>
     /// <returns>The transformed text.</returns>
-    public static string ReplaceContractions(string text, IReadOnlyCollection<ContractionMeta> contractions, bool voice)
+    public static string Apply(string text, IEnumerable<PatternMeta> patterns, bool voice)
     {
-        text = Apply(text, contractions, voice);
-
-        return Regex.Replace(text, @"@?(\+?[\w]+(?:_[\w]+)*)", match =>
+        foreach (var pattern in patterns)
         {
-            var key = match.Groups[1].Value;
-            var variable = contractions.FirstOrDefault(v => !v.IsRegex && v.VariableName == key);
-
-            // Leave the token as is if no variable is found.
-            return (variable == null ? null : voice ? variable.Voice : variable.Text) ?? match.Value;
-        });
-    }
-
-    /// <summary>
-    /// Applies every regex contraction to the text, using the voice or text replacement.
-    /// </summary>
-    /// <param name="text">The text to transform.</param>
-    /// <param name="contractions">The station contractions; non-regex entries are ignored.</param>
-    /// <param name="voice">True to use the <see cref="ContractionMeta.Voice"/> template, otherwise <see cref="ContractionMeta.Text"/>.</param>
-    /// <returns>The transformed text.</returns>
-    public static string Apply(string text, IEnumerable<ContractionMeta> contractions, bool voice)
-    {
-        foreach (var contraction in contractions)
-        {
-            if (!contraction.IsRegex || string.IsNullOrEmpty(contraction.Pattern))
+            if (string.IsNullOrEmpty(pattern.Pattern))
             {
                 continue;
             }
 
-            var template = (voice ? contraction.Voice : contraction.Text) ?? string.Empty;
+            var template = (voice ? pattern.Voice : pattern.Text) ?? string.Empty;
 
             try
             {
                 text = Regex.Replace(
                     text,
-                    contraction.Pattern,
+                    pattern.Pattern,
                     match => Expand(template, match),
                     RegexOptions.None,
                     s_timeout);
             }
             catch (ArgumentException ex)
             {
-                Log.Warning(ex, "Invalid contraction regex pattern: {Pattern}", contraction.Pattern);
+                Log.Warning(ex, "Invalid regex pattern: {Pattern}", pattern.Pattern);
             }
             catch (RegexMatchTimeoutException ex)
             {
-                Log.Warning(ex, "Timed out applying contraction regex pattern: {Pattern}", contraction.Pattern);
+                Log.Warning(ex, "Timed out applying regex pattern: {Pattern}", pattern.Pattern);
             }
         }
 
@@ -108,7 +86,7 @@ public static class ContractionMatcher
     }
 
     /// <summary>
-    /// Checks a regex contraction and explains any problems in plain language.
+    /// Checks a pattern and explains any problems in plain language.
     /// </summary>
     /// <param name="pattern">The regular expression.</param>
     /// <param name="text">The Text replacement template.</param>

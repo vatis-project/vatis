@@ -70,7 +70,7 @@ public class DataGridOverflowToolTipBehavior : Behavior<DataGrid>
         _lastCell = cell;
 
         // The tip is set before the hover delay elapses, so it is ready when the tooltip would open.
-        // The tip uses the cell's font (monospace in the Contractions grid) and wraps very long values.
+        // The tip uses the cell's font (monospace in the contractions and patterns grids) and wraps very long values.
         ToolTip.SetTip(
             cell,
             cell.Content is TextBlock textBlock && IsTextTrimmed(textBlock)

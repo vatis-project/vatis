@@ -1194,7 +1194,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         foreach (var contraction in AtisStation.Contractions.ToList())
         {
-            if (contraction is { IsRegex: false, VariableName: not null, Voice: not null })
+            if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
 

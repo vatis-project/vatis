@@ -74,6 +74,19 @@ internal class ViewModelFactory : IViewModelFactory
     }
 
     /// <summary>
+    /// Creates a new instance of the <see cref="PatternsViewModel"/> class.
+    /// </summary>
+    /// <returns>A new <see cref="PatternsViewModel"/> instance.</returns>
+    public PatternsViewModel CreatePatternsViewModel()
+    {
+        return new PatternsViewModel(
+            _provider.GetService<IWindowFactory>(),
+            _provider.GetService<IAppConfig>(),
+            _provider.GetService<ISessionManager>(),
+            _provider.GetService<IProfileRepository>());
+    }
+
+    /// <summary>
     /// Creates a new instance of the <see cref="FormattingViewModel"/> class.
     /// </summary>
     /// <returns>A new <see cref="FormattingViewModel"/> instance.</returns>

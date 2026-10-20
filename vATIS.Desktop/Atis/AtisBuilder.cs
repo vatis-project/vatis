@@ -224,7 +224,22 @@ public class AtisBuilder : IAtisBuilder
 
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
-        return ContractionMatcher.ReplaceContractions(text, station.Contractions, voiceVariable);
+        text = PatternMatcher.Apply(text, station.Patterns, voiceVariable);
+
+        return Regex.Replace(text, @"@?(\+?[\w]+(?:_[\w]+)*)", match =>
+        {
+            var key = match.Groups[1].Value; // Get the matched variable
+            var variable = station.Contractions.Find(v => v.VariableName == key); // Find matching variable
+
+            if (variable != null)
+            {
+                // Replace with the voice or text variable value if found, otherwise leave as is
+                return (voiceVariable ? variable.Voice : variable.Text) ?? match.Value;
+            }
+
+            // Return the match as is if no variable is found
+            return match.Value;
+        });
     }
 
     /// <summary>
@@ -766,7 +781,7 @@ public class AtisBuilder : IAtisBuilder
         input = Regex.Replace(input, @"@([A-Z]+_?)+", match =>
         {
             var key = match.Value; // Get the matched variable
-            var variable = station.Contractions.Find(v => !v.IsRegex && v.VariableName == key); // Find matching variable
+            var variable = station.Contractions.Find(v => v.VariableName == key); // Find matching variable
             return variable != null ? variable.Voice ?? "" : ""; // Replace or remove if not found
         });
 

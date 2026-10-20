@@ -20,7 +20,7 @@ using Vatsim.Vatis.Atis;
 namespace Vatsim.Vatis.Ui.Behaviors;
 
 /// <summary>
-/// Suggests the regex contraction replacement functions (<c>$group</c>, <c>$spell</c>, ...) in a <see cref="TextBox"/>
+/// Suggests the pattern replacement functions (<c>$group</c>, <c>$spell</c>, ...) in a <see cref="TextBox"/>
 /// when the user types <c>$</c>.
 /// </summary>
 public class TextBoxFunctionCompletionBehavior : Behavior<TextBox>
@@ -63,7 +63,7 @@ public class TextBoxFunctionCompletionBehavior : Behavior<TextBox>
 
     /// <summary>
     /// Gets or sets a callback that returns whether suggestions should currently be shown, for example only when
-    /// the contraction is a regex.
+    /// the box is in a given state.
     /// </summary>
     public Func<bool>? IsApplicable { get; set; }
 
@@ -107,7 +107,7 @@ public class TextBoxFunctionCompletionBehavior : Behavior<TextBox>
     /// <param name="prefix">The typed prefix, not case-sensitive.</param>
     /// <returns>The matching functions.</returns>
     public static IReadOnlyList<(string Name, string Description)> Filter(string prefix) =>
-        ContractionMatcher.Functions
+        PatternMatcher.Functions
             .Where(f => f.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             .ToList();
 

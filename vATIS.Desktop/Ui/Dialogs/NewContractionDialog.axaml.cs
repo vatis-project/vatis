@@ -8,9 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
-using Avalonia.Xaml.Interactivity;
 using Slugify;
-using Vatsim.Vatis.Ui.Behaviors;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
@@ -31,7 +29,6 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
         InitializeComponent();
         ViewModel = viewModel;
         Closed += OnClosed;
-        AddUppercaseHandlers();
     }
 
     /// <summary>
@@ -40,31 +37,6 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
     public NewContractionDialog()
     {
         InitializeComponent();
-        AddUppercaseHandlers();
-    }
-
-    // Text and Voice are upper-cased as typed, except for regex contractions where the case is significant.
-    private void AddUppercaseHandlers()
-    {
-        foreach (var name in new[] { "String", "Spoken" })
-        {
-            this.FindControl<TextBox>(name)?.AddHandler(
-                InputElement.TextInputEvent,
-                (_, e) =>
-                {
-                    if ((ViewModel ?? DataContext as NewContractionDialogViewModel) is not { IsRegex: true })
-                    {
-                        e.Text = e.Text?.ToUpperInvariant();
-                    }
-                },
-                RoutingStrategies.Tunnel);
-
-            if (this.FindControl<TextBox>(name) is { } textBox)
-            {
-                Interaction.GetBehaviors(textBox).Add(
-                    new TextBoxFunctionCompletionBehavior { IsApplicable = () => (ViewModel ?? DataContext as NewContractionDialogViewModel) is { IsRegex: true } });
-            }
-        }
     }
 
     private void OnClosed(object? sender, EventArgs e)

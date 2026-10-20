@@ -897,7 +897,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         ContractionCompletionData = [];
         foreach (var contraction in SelectedStation.Contractions.ToList())
         {
-            if (contraction is { IsRegex: false, VariableName: not null, Voice: not null })
+            if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
     }

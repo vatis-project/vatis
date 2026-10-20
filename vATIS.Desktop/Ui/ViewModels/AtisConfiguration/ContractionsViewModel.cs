@@ -14,7 +14,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
-using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -198,8 +197,6 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         context.Title = existing == null ? "New Contraction" : "Edit Contraction";
         context.ShowAddToAllStations = existing == null;
         context.Variable = existing?.VariableName ?? string.Empty;
-        context.IsRegex = existing?.IsRegex ?? false;
-        context.Pattern = existing?.Pattern ?? string.Empty;
         context.Text = existing?.Text ?? string.Empty;
         context.Spoken = existing?.Voice ?? string.Empty;
 
@@ -212,8 +209,7 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
 
             context.ClearAllErrors();
 
-            // A regex contraction is matched automatically, so it has no variable name.
-            if (!context.IsRegex && string.IsNullOrEmpty(context.Variable))
+            if (string.IsNullOrEmpty(context.Variable))
             {
                 context.RaiseError("Variable", "Value is required");
             }
@@ -228,17 +224,7 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
                 context.RaiseError("Spoken", "Value is required.");
             }
 
-            if (context.IsRegex)
-            {
-                foreach (var (field, message) in ContractionMatcher.Validate(
-                             context.Pattern, context.Text, context.Spoken, requirePattern: true))
-                {
-                    context.RaiseError(field == "Voice" ? "Spoken" : field, message);
-                }
-            }
-
-            if (!context.IsRegex &&
-                SelectedStation.Contractions.Any(x => x != existing && !x.IsRegex && x.VariableName == context.Variable))
+            if (SelectedStation.Contractions.Any(x => x != existing && x.VariableName == context.Variable))
             {
                 context.RaiseError("Variable", "A contraction with this variable name already exist.");
             }
@@ -249,11 +235,9 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
             }
 
             var contraction = existing ?? new ContractionMeta();
-            contraction.VariableName = context.IsRegex ? null : context.Variable;
+            contraction.VariableName = context.Variable;
             contraction.Text = context.Text;
             contraction.Voice = context.Spoken;
-            contraction.IsRegex = context.IsRegex;
-            contraction.Pattern = context.IsRegex ? context.Pattern : null;
 
             if (existing == null)
             {
@@ -286,9 +270,7 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         foreach (var station in profile.Stations)
         {
             if (station.Id == SelectedStation.Id ||
-                station.Contractions.Any(x => contraction.IsRegex
-                    ? x.IsRegex && x.Pattern == contraction.Pattern
-                    : !x.IsRegex && x.VariableName == contraction.VariableName))
+                station.Contractions.Any(x => x.VariableName == contraction.VariableName))
             {
                 continue;
             }

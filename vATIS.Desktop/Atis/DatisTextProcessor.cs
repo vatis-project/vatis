@@ -160,12 +160,12 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
     /// <summary>
     /// Replaces contraction text with template variable references (e.g. <c>@VariableName</c>)
     /// so that the vATIS template engine expands them. Contractions are sorted by text length
-    /// descending to avoid partial matches. Digit-only and regex contractions are skipped.
+    /// descending to avoid partial matches. Digit-only contractions are skipped.
     /// </summary>
     private static string ExpandContractions(string text, List<ContractionMeta> contractions)
     {
         var sorted = contractions
-            .Where(c => !c.IsRegex && !string.IsNullOrEmpty(c.Text) && !string.IsNullOrEmpty(c.VariableName))
+            .Where(c => !string.IsNullOrEmpty(c.Text) && !string.IsNullOrEmpty(c.VariableName))
             .Where(c => !c.Text!.All(char.IsDigit))
             .OrderByDescending(c => c.Text!.Length)
             .ToList();
