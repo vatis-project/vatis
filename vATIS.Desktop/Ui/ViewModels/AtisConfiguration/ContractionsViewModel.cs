@@ -14,6 +14,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
@@ -59,20 +60,15 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         _profileRepository = profileRepository;
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleAtisStationChanged);
-        CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEndEditEventArgEx>(HandleCellEditEnding);
-        NewContractionCommand = ReactiveCommand.CreateFromTask(HandleNewContraction);
+        NewContractionCommand = ReactiveCommand.CreateFromTask(() => ShowContractionDialog(null));
+        EditContractionCommand = ReactiveCommand.CreateFromTask<ContractionMeta>(HandleEditContraction);
         DeleteContractionCommand = ReactiveCommand.CreateFromTask<ContractionMeta>(HandleDeleteContraction);
 
         _disposables.Add(AtisStationChanged);
-        _disposables.Add(CellEditEndingCommand);
         _disposables.Add(NewContractionCommand);
+        _disposables.Add(EditContractionCommand);
         _disposables.Add(DeleteContractionCommand);
     }
-
-    /// <summary>
-    /// Gets the current contractions associated with the view model.
-    /// </summary>
-    public List<Tuple<int, ContractionMeta>> CurrentContractions { get; private set; } = [];
 
     /// <summary>
     /// Gets the command to handle changes to the ATIS station.
@@ -80,14 +76,14 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
     public ReactiveCommand<AtisStation, Unit> AtisStationChanged { get; }
 
     /// <summary>
-    /// Gets the command executed when a cell edit operation is ending in the data grid.
-    /// </summary>
-    public ReactiveCommand<DataGridCellEndEditEventArgEx, Unit> CellEditEndingCommand { get; }
-
-    /// <summary>
     /// Gets the command used to add a new contraction.
     /// </summary>
     public ReactiveCommand<Unit, Unit> NewContractionCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to edit the selected contraction.
+    /// </summary>
+    public ReactiveCommand<ContractionMeta, Unit> EditContractionCommand { get; }
 
     /// <summary>
     /// Gets the command to delete a selected contraction.
@@ -146,7 +142,6 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         }
 
         SelectedStation = station;
-        CurrentContractions = [];
         Contractions = new ObservableCollection<ContractionMeta>(station.Contractions);
     }
 
@@ -173,96 +168,111 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
-    private async Task HandleNewContraction()
+    private Task HandleEditContraction(ContractionMeta? item)
+    {
+        return item == null ? Task.CompletedTask : ShowContractionDialog(item);
+    }
+
+    /// <summary>
+    /// Shows the contraction dialog to add a new contraction, or to edit <paramref name="existing"/>.
+    /// </summary>
+    private async Task ShowContractionDialog(ContractionMeta? existing)
     {
         if (_dialogOwner == null || SelectedStation == null)
         {
             return;
         }
 
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow })
         {
-            if (lifetime.MainWindow == null)
+            return;
+        }
+
+        var dialog = _windowFactory.CreateNewContractionDialog();
+        dialog.Topmost = mainWindow.Topmost;
+        if (dialog.DataContext is not NewContractionDialogViewModel context)
+        {
+            return;
+        }
+
+        context.Title = existing == null ? "New Contraction" : "Edit Contraction";
+        context.ShowAddToAllStations = existing == null;
+        context.Variable = existing?.VariableName ?? string.Empty;
+        context.IsRegex = existing?.IsRegex ?? false;
+        context.Pattern = existing?.Pattern ?? string.Empty;
+        context.Text = existing?.Text ?? string.Empty;
+        context.Spoken = existing?.Voice ?? string.Empty;
+
+        context.DialogResultChanged += (_, dialogResult) =>
+        {
+            if (dialogResult != DialogResult.Ok)
             {
                 return;
             }
 
-            var previousVariableValue = string.Empty;
-            var previousTextValue = string.Empty;
-            var previousSpokenValue = string.Empty;
+            context.ClearAllErrors();
 
-            var dialog = _windowFactory.CreateNewContractionDialog();
-            dialog.Topmost = lifetime.MainWindow.Topmost;
-            if (dialog.DataContext is NewContractionDialogViewModel context)
+            if (string.IsNullOrEmpty(context.Variable))
             {
-                context.Variable = previousVariableValue;
-                context.Text = previousTextValue;
-                context.Spoken = previousSpokenValue;
-
-                context.DialogResultChanged += (_, dialogResult) =>
-                {
-                    if (dialogResult == DialogResult.Ok)
-                    {
-                        previousVariableValue = context.Variable;
-                        previousTextValue = context.Text;
-                        previousSpokenValue = context.Spoken;
-
-                        context.ClearAllErrors();
-
-                        if (string.IsNullOrEmpty(context.Variable))
-                        {
-                            context.RaiseError("Variable", "Value is required");
-                        }
-
-                        if (string.IsNullOrWhiteSpace(context.Text))
-                        {
-                            context.RaiseError("Text", "Value is required.");
-                        }
-
-                        if (string.IsNullOrWhiteSpace(context.Spoken))
-                        {
-                            context.RaiseError("Spoken", "Value is required.");
-                        }
-
-                        if (SelectedStation.Contractions.Any(x => x.VariableName == context.Variable))
-                        {
-                            context.RaiseError("Variable", "A contraction with this variable name already exist.");
-                        }
-
-                        if (context.HasErrors)
-                        {
-                            return;
-                        }
-
-                        SelectedStation.Contractions.Add(
-                            new ContractionMeta
-                            {
-                                VariableName = context.Variable,
-                                Text = context.Text,
-                                Voice = context.Spoken,
-                            });
-                        _appConfig.SaveConfig();
-
-                        if (context.AddToAllStations)
-                        {
-                            AddToOtherStations(context.Variable, context.Text, context.Spoken);
-                        }
-
-                        Contractions = [];
-                        foreach (var item in SelectedStation.Contractions)
-                        {
-                            Contractions.Add(item);
-                        }
-
-                        EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
-                    }
-                };
-                await dialog.ShowDialog((Window)_dialogOwner);
+                context.RaiseError("Variable", "Value is required");
             }
-        }
+
+            if (string.IsNullOrWhiteSpace(context.Text))
+            {
+                context.RaiseError("Text", "Value is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(context.Spoken))
+            {
+                context.RaiseError("Spoken", "Value is required.");
+            }
+
+            if (context.IsRegex)
+            {
+                foreach (var (field, message) in ContractionMatcher.Validate(
+                             context.Pattern, context.Text, context.Spoken, requirePattern: true))
+                {
+                    context.RaiseError(field == "Voice" ? "Spoken" : field, message);
+                }
+            }
+
+            if (SelectedStation.Contractions.Any(x => x != existing && x.VariableName == context.Variable))
+            {
+                context.RaiseError("Variable", "A contraction with this variable name already exist.");
+            }
+
+            if (context.HasErrors)
+            {
+                return;
+            }
+
+            var contraction = existing ?? new ContractionMeta();
+            contraction.VariableName = context.Variable;
+            contraction.Text = context.Text;
+            contraction.Voice = context.Spoken;
+            contraction.IsRegex = context.IsRegex;
+            contraction.Pattern = context.IsRegex ? context.Pattern : null;
+
+            if (existing == null)
+            {
+                SelectedStation.Contractions.Add(contraction);
+            }
+
+            _appConfig.SaveConfig();
+
+            if (existing == null && context.AddToAllStations)
+            {
+                AddToOtherStations(contraction);
+            }
+
+            Contractions = new ObservableCollection<ContractionMeta>(SelectedStation.Contractions);
+            EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
+        };
+
+        await dialog.ShowDialog((Window)_dialogOwner);
     }
 
-    private void AddToOtherStations(string variable, string text, string voice)
+    private void AddToOtherStations(ContractionMeta contraction)
     {
         var profile = _sessionManager.CurrentProfile;
         if (profile?.Stations == null || SelectedStation == null)
@@ -274,12 +284,12 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         foreach (var station in profile.Stations)
         {
             if (station.Id == SelectedStation.Id ||
-                station.Contractions.Any(x => x.VariableName == variable))
+                station.Contractions.Any(x => x.VariableName == contraction.VariableName))
             {
                 continue;
             }
 
-            station.Contractions.Add(new ContractionMeta { VariableName = variable, Text = text, Voice = voice, });
+            station.Contractions.Add(contraction.Clone());
             updatedStationIds.Add(station.Id);
         }
 
@@ -292,17 +302,6 @@ public class ContractionsViewModel : ReactiveViewModelBase, IDisposable
         foreach (var id in updatedStationIds)
         {
             EventBus.Instance.Publish(new ContractionsUpdated(id));
-        }
-    }
-
-    private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
-    {
-        if (SelectedStation == null)
-            return;
-
-        if (e.Args.EditAction == DataGridEditAction.Commit)
-        {
-            EventBus.Instance.Publish(new ContractionsUpdated(SelectedStation.Id));
         }
     }
 }

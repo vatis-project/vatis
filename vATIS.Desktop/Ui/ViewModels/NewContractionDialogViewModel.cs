@@ -6,6 +6,7 @@
 using System;
 using System.Reactive;
 using ReactiveUI;
+using Vatsim.Vatis.Atis;
 using Vatsim.Vatis.Ui.Dialogs;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
@@ -15,11 +16,16 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
 {
+    private readonly IDisposable _validation;
     private DialogResult _dialogResult;
     private string? _variable;
     private string? _text;
     private string? _spoken;
     private bool _addToAllStations;
+    private string _title = "New Contraction";
+    private bool _showAddToAllStations = true;
+    private bool _isRegex;
+    private string? _pattern;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NewContractionDialogViewModel"/> class.
@@ -28,6 +34,10 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         CancelButtonCommand = ReactiveCommand.Create<ICloseable>(HandleCancelButtonCommand);
         OkButtonCommand = ReactiveCommand.Create<ICloseable>(HandleOkButtonCommand);
+
+        // Explain regex mistakes as the user types.
+        _validation = this.WhenAnyValue(x => x.IsRegex, x => x.Pattern, x => x.Text, x => x.Spoken)
+            .Subscribe(_ => ValidateRegex());
     }
 
     /// <summary>
@@ -52,6 +62,24 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _dialogResult;
         set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the title shown at the top of the dialog.
+    /// </summary>
+    public string Title
+    {
+        get => _title;
+        set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the "add to all stations" option is shown.
+    /// </summary>
+    public bool ShowAddToAllStations
+    {
+        get => _showAddToAllStations;
+        set => this.RaiseAndSetIfChanged(ref _showAddToAllStations, value);
     }
 
     /// <summary>
@@ -82,6 +110,24 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the contraction is matched using a regular expression.
+    /// </summary>
+    public bool IsRegex
+    {
+        get => _isRegex;
+        set => this.RaiseAndSetIfChanged(ref _isRegex, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the regular expression matched against the ATIS text when <see cref="IsRegex"/> is set.
+    /// </summary>
+    public string? Pattern
+    {
+        get => _pattern;
+        set => this.RaiseAndSetIfChanged(ref _pattern, value);
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the contraction should be added to all ATIS stations in the profile.
     /// </summary>
     public bool AddToAllStations
@@ -93,10 +139,27 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        _validation.Dispose();
         CancelButtonCommand.Dispose();
         OkButtonCommand.Dispose();
 
         GC.SuppressFinalize(this);
+    }
+
+    private void ValidateRegex()
+    {
+        ClearErrors("Pattern");
+        ClearErrors("Text");
+        ClearErrors("Spoken");
+        if (!IsRegex)
+        {
+            return;
+        }
+
+        foreach (var (field, message) in ContractionMatcher.Validate(Pattern, Text, Spoken))
+        {
+            RaiseError(field == "Voice" ? "Spoken" : field, message);
+        }
     }
 
     private void HandleOkButtonCommand(ICloseable window)

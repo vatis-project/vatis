@@ -288,4 +288,17 @@ public class DatisTextProcessorTests
         Assert.Equal("LNDG RWY 27. VISUAL APCH IN USE...", result.AirportConditions);
         Assert.Equal("RWY 1 CLSD.", result.Notams);
     }
+
+    [Fact]
+    public void Process_IgnoresRegexContractions()
+    {
+        var contractions = new List<ContractionMeta>
+        {
+            new() { VariableName = "RW", IsRegex = true, Pattern = "RWY", Text = "RWY", Voice = "runway" },
+        };
+
+        var result = Process(RenoBody, contractions: contractions);
+
+        Assert.DoesNotContain("@RW", result.AirportConditions);
+    }
 }

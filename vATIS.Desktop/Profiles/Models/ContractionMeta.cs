@@ -29,6 +29,18 @@ public class ContractionMeta
     public string? Voice { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether <see cref="Pattern"/> is a regular expression that is matched against
+    /// the ATIS text. When set, <see cref="Text"/> and <see cref="Voice"/> are replacement templates that may reference
+    /// capture groups (<c>$1</c>, <c>${name}</c>) and wrap them in functions such as <c>$group($1)</c>.
+    /// </summary>
+    public bool IsRegex { get; set; }
+
+    /// <summary>
+    /// Gets or sets the regular expression matched against the ATIS text when <see cref="IsRegex"/> is set.
+    /// </summary>
+    public string? Pattern { get; set; }
+
+    /// <summary>
     /// Gets or sets the string associated with this contraction.
     /// </summary>
     [Obsolete("Use Text instead")]
@@ -56,6 +68,13 @@ public class ContractionMeta
     /// <returns>A new <see cref="ContractionMeta"/> instance that is a copy of this instance.</returns>
     public ContractionMeta Clone()
     {
-        return new ContractionMeta { Text = Text, Voice = Voice, };
+        return new ContractionMeta
+        {
+            VariableName = VariableName,
+            Text = Text,
+            Voice = Voice,
+            IsRegex = IsRegex,
+            Pattern = Pattern,
+        };
     }
 }
