@@ -405,6 +405,28 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         }
     }
 
+    /// <summary>
+    /// Gets the text the user typed in an editor, without the read-only part that comes from the static definitions.
+    /// </summary>
+    private static string? GetFreeText(TextDocument? document, TextSegmentCollection<TextSegment> readOnlySegments)
+    {
+        string? freeText;
+
+        var readonlySegment = readOnlySegments.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? document?.Text[..readonlySegment.StartOffset]
+                : document?.Text[readonlySegment.Length..];
+        }
+        else
+        {
+            freeText = document?.Text;
+        }
+
+        return freeText?.Trim();
+    }
+
     private void HandleAtisStationChanged(AtisStation? station)
     {
         if (station == null)
@@ -490,6 +512,22 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
                 }
 
                 var preset = SelectedPreset;
+
+                // Preview the free text as it is in the editors, saved or not, using a copy of the preset so the
+                // saved preset is left untouched until Save is clicked.
+                if (HasUnsavedAirportConditions || HasUnsavedNotams)
+                {
+                    preset = preset.Clone();
+                    if (HasUnsavedAirportConditions)
+                    {
+                        preset.AirportConditions = GetFreeText(AirportConditionsTextDocument, ReadOnlyAirportConditions);
+                    }
+
+                    if (HasUnsavedNotams)
+                    {
+                        preset.Notams = GetFreeText(NotamsTextDocument, ReadOnlyNotams);
+                    }
+                }
 
                 // For a D-ATIS preset, build from a copy populated with the processed real-world D-ATIS
                 // so the saved preset is left untouched.
@@ -582,21 +620,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         if (SelectedPreset == null)
             return;
 
-        string? freeText;
-
-        var readonlySegment = ReadOnlyNotams.FirstSegment;
-        if (readonlySegment != null)
-        {
-            freeText = readonlySegment.StartOffset > 0
-                ? NotamsTextDocument?.Text[..readonlySegment.StartOffset]
-                : NotamsTextDocument?.Text[readonlySegment.Length..];
-        }
-        else
-        {
-            freeText = NotamsTextDocument?.Text;
-        }
-
-        SelectedPreset.Notams = freeText?.Trim();
+        SelectedPreset.Notams = GetFreeText(NotamsTextDocument, ReadOnlyNotams);
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -668,21 +692,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         if (SelectedPreset == null)
             return;
 
-        string? freeText;
-
-        var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
-        if (readonlySegment != null)
-        {
-            freeText = readonlySegment.StartOffset > 0
-                ? AirportConditionsTextDocument?.Text[..readonlySegment.StartOffset]
-                : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
-        }
-        else
-        {
-            freeText = AirportConditionsTextDocument?.Text;
-        }
-
-        SelectedPreset.AirportConditions = freeText?.Trim();
+        SelectedPreset.AirportConditions = GetFreeText(AirportConditionsTextDocument, ReadOnlyAirportConditions);
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
