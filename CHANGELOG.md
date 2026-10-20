@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retried app configuration downloads on transient failures and raced connection attempts so a stalled connect doesn't block requests.
 - Showed a clear error when the navdata download fails.
 ### Fixed
+- Fixed an error dialog on Linux when a desktop service, such as the global menu or input method, is not running.
 - Fixed integration with vatSys.
 - Fixed forced disconnect logic.
 - Fixed the ATIS being republished and re-subscribed after an AtisHub automatic reconnect.

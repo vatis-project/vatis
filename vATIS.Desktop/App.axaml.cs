@@ -36,6 +36,7 @@ using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Ui.Startup;
 using Vatsim.Vatis.Ui.ViewModels;
 using Vatsim.Vatis.Updates;
+using Vatsim.Vatis.Utils;
 using Vatsim.Vatis.Voice.Audio;
 using Velopack.Locators;
 
@@ -469,6 +470,15 @@ public class App : Application
     {
         if (e.Observed || e.Exception is not Exception unobservedEx)
             return;
+
+        // A desktop service that is not running (e.g. the global menu or input method on Linux) is not an
+        // application error, so do not show it to the user.
+        if (DesktopServiceErrors.IsMissingDBusService(unobservedEx))
+        {
+            Log.Warning("Ignoring a desktop service that is not running: {Message}", unobservedEx.InnerException?.Message ?? unobservedEx.Message);
+            e.SetObserved();
+            return;
+        }
 
         try
         {
