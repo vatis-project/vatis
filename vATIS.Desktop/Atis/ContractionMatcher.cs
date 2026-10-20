@@ -46,6 +46,28 @@ public static class ContractionMatcher
     public static IReadOnlyList<(string Name, string Description)> Functions => s_functionList;
 
     /// <summary>
+    /// Replaces contractions in the text: regex contractions first, then <c>@VARIABLE</c> references to plain
+    /// contractions. The variable name of a regex contraction is only a label and is never looked up.
+    /// </summary>
+    /// <param name="text">The text to transform.</param>
+    /// <param name="contractions">The station contractions.</param>
+    /// <param name="voice">True to use the Voice replacements, otherwise the Text replacements.</param>
+    /// <returns>The transformed text.</returns>
+    public static string ReplaceContractions(string text, IReadOnlyCollection<ContractionMeta> contractions, bool voice)
+    {
+        text = Apply(text, contractions, voice);
+
+        return Regex.Replace(text, @"@?(\+?[\w]+(?:_[\w]+)*)", match =>
+        {
+            var key = match.Groups[1].Value;
+            var variable = contractions.FirstOrDefault(v => !v.IsRegex && v.VariableName == key);
+
+            // Leave the token as is if no variable is found.
+            return (variable == null ? null : voice ? variable.Voice : variable.Text) ?? match.Value;
+        });
+    }
+
+    /// <summary>
     /// Applies every regex contraction to the text, using the voice or text replacement.
     /// </summary>
     /// <param name="text">The text to transform.</param>

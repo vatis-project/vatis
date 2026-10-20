@@ -105,4 +105,19 @@ public class ContractionMatcherTests
         var clone = new ContractionMeta { VariableName = "V", Text = "t", Voice = "v", IsRegex = true, Pattern = "p" }.Clone();
         Assert.Equal(("V", "t", "v", true, "p"), (clone.VariableName, clone.Text, clone.Voice, clone.IsRegex, clone.Pattern));
     }
+
+    [Fact]
+    public void ReplaceContractions_RegexVariableNameIsNotLookedUp()
+    {
+        var c = new List<ContractionMeta>
+        {
+            new() { VariableName = "RSC", IsRegex = true, Pattern = @"RSC (\d+) (\d)/(\d)/(\d)", Text = "RSC $1 $2/$3/$4", Voice = "RSC $digits($1) $2 $3 $4" },
+            new() { VariableName = "APPS", Text = "APPS", Voice = "APPROACHES" },
+        };
+
+        // The label RSC must not turn the plain word RSC into the raw template.
+        Assert.Equal("RSC 23 5/5/5 AND RSC", ContractionMatcher.ReplaceContractions("RSC 23 5/5/5 AND RSC", c, voice: false));
+        Assert.Equal("RSC two three 5 5 5 AND RSC", ContractionMatcher.ReplaceContractions("RSC 23 5/5/5 AND RSC", c, voice: true));
+        Assert.Equal("APPROACHES IN USE", ContractionMatcher.ReplaceContractions("@APPS IN USE", c, voice: true));
+    }
 }
