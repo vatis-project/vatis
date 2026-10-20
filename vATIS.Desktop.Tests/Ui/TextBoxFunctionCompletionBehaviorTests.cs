@@ -33,4 +33,17 @@ public class TextBoxFunctionCompletionBehaviorTests
         Assert.Equal(["phonetic"], TextBoxFunctionCompletionBehavior.Filter("PH").Select(f => f.Name));
         Assert.Equal(4, TextBoxFunctionCompletionBehavior.Filter(string.Empty).Count);
     }
+
+    [Theory]
+    [InlineData("RSC $", 4, 5, "phonetic", "RSC $phonetic($)", 15)]
+    [InlineData("$ph", 0, 3, "phonetic", "$phonetic($)", 11)]
+    [InlineData("$($1)", 0, 1, "group", "$group($1)", 6)]
+    [InlineData("A $sp($2) B", 2, 5, "spell", "A $spell($2) B", 8)]
+    public void Complete_InsertsBracketsOnlyWhenNoneFollow(string text, int start, int caret, string function, string expected, int expectedCaret)
+    {
+        var (result, newCaret) = TextBoxFunctionCompletionBehavior.Complete(text, start, caret, function);
+
+        Assert.Equal(expected, result);
+        Assert.Equal(expectedCaret, newCaret);
+    }
 }

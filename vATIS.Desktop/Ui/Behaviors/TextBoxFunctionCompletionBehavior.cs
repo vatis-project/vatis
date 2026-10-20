@@ -102,6 +102,30 @@ public class TextBoxFunctionCompletionBehavior : Behavior<TextBox>
     }
 
     /// <summary>
+    /// Inserts a function into the text, replacing the <c>$name</c> being typed.
+    /// </summary>
+    /// <param name="text">The text box content.</param>
+    /// <param name="start">The index of the <c>$</c>.</param>
+    /// <param name="caret">The caret position.</param>
+    /// <param name="function">The function name to insert.</param>
+    /// <returns>The new text and caret position.</returns>
+    /// <remarks>
+    /// Normally inserts <c>$name($)</c> with the caret inside the brackets, ready for the group number. If a
+    /// <c>(</c> already follows, as when the name of an existing <c>$group($1)</c> is being replaced, only the
+    /// name is inserted so its brackets and group are kept.
+    /// </remarks>
+    public static (string Text, int Caret) Complete(string text, int start, int caret, string function)
+    {
+        caret = Math.Min(caret, text.Length);
+        var keepsBrackets = caret < text.Length && text[caret] == '(';
+        var insert = keepsBrackets ? $"${function}" : $"${function}($)";
+
+        return (
+            text[..start] + insert + text[caret..],
+            keepsBrackets ? start + insert.Length : start + insert.Length - 1);
+    }
+
+    /// <summary>
     /// Gets the functions whose names start with the given prefix.
     /// </summary>
     /// <param name="prefix">The typed prefix, not case-sensitive.</param>
@@ -225,16 +249,11 @@ public class TextBoxFunctionCompletionBehavior : Behavior<TextBox>
             return;
         }
 
-        var start = _triggerStart;
-        var text = textBox.Text ?? string.Empty;
-        var caret = Math.Min(textBox.CaretIndex, text.Length);
-        var insert = $"${selected.Item1}($)";
+        var (newText, newCaret) = Complete(textBox.Text ?? string.Empty, _triggerStart, textBox.CaretIndex, selected.Item1);
 
         Close();
-        textBox.Text = text[..start] + insert + text[caret..];
-
-        // Leave the caret after the inner "$", ready for the group number.
-        textBox.CaretIndex = start + insert.Length - 1;
+        textBox.Text = newText;
+        textBox.CaretIndex = newCaret;
     }
 
     private void Close()
