@@ -10,7 +10,7 @@
         Title="StaticDefinitionEditorDialog"
         x:Name="Window"
         Width="500" d:DesignHeight="325"
-        SizeToContent="Height"
+        Height="520"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
@@ -52,7 +52,7 @@
 			</Setter>
 		</Style>
 	</Window.Styles>
-	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+	<Border VerticalAlignment="Center" BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
 		<StackPanel>
 			<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
 				<Grid ColumnDefinitions="1*,1*">
