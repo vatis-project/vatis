@@ -1017,7 +1017,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     /// </summary>
     public void SubscribeToAtis()
     {
-        _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType));
+        _atisHubConnection.SubscribeToAtis(new SubscribeDto(AtisStation.Identifier, AtisStation.AtisType))
+            .SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to subscribe to ATIS on hub server"));
     }
 
     /// <inheritdoc />

@@ -107,7 +107,7 @@ public class AtisHubConnection : IAtisHubConnection
         catch (Exception ex)
         {
             SetConnectionState(ConnectionState.Disconnected);
-            Log.Error(ex.Message, "Failed to connect to AtisHub.");
+            Log.Error(ex, "Failed to connect to AtisHub.");
         }
     }
 
@@ -123,7 +123,7 @@ public class AtisHubConnection : IAtisHubConnection
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message, "Failed to disconnect from AtisHub.");
+            Log.Error(ex, "Failed to disconnect from AtisHub.");
         }
     }
 
@@ -196,14 +196,14 @@ public class AtisHubConnection : IAtisHubConnection
         {
             var token = await _authTokenManager.GetAuthToken();
             if (string.IsNullOrEmpty(token))
-                Log.Warning("No VATSIM token available for AtisHub.");
+                throw new AuthTokenException("No VATSIM token available for AtisHub.");
 
             return token;
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Could not get a VATSIM token for AtisHub.");
-            return null;
+            throw;
         }
     }
 
