@@ -58,6 +58,13 @@ public class AtisHubConnection : IAtisHubConnection
             if (_hubConnection is { State: HubConnectionState.Connected })
                 return;
 
+            // Fail fast, before ever touching SignalR: GetAuthToken throwing from inside
+            // AccessTokenProvider does NOT abort StartAsync -- the client swallows that and
+            // proceeds without a token, so the server accepts the transport, then closes it a
+            // moment later once it checks auth itself. Checking here instead means a missing/bad
+            // token never gets reported as "Connected" at all.
+            await _authTokenManager.GetAuthToken();
+
             var serverUrl = _appConfigurationProvider.AtisHubUrl;
 
             _hubConnection = new HubConnectionBuilder()
