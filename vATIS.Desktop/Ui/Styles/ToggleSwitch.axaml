@@ -1,0 +1,77 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Design.PreviewWith>
+		<Border Width="250" Background="#323232" Padding="20">
+			<StackPanel Orientation="Vertical" Spacing="10">
+				<ToggleSwitch Theme="{StaticResource ToggleSwitch}" OffContent="Text" OnContent="Voice"/>
+				<ToggleSwitch Theme="{StaticResource ToggleSwitch}" OffContent="Text" OnContent="Voice" IsChecked="True"/>
+				<ToggleSwitch Theme="{StaticResource ToggleSwitch}" OffContent="Text" OnContent="Voice" IsEnabled="False"/>
+			</StackPanel>
+		</Border>
+	</Design.PreviewWith>
+	<ControlTheme x:Key="ToggleSwitch" TargetType="ToggleSwitch">
+		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="HorizontalContentAlignment" Value="Left"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<StackPanel Orientation="Horizontal" Spacing="8" Background="Transparent">
+					<ContentPresenter x:Name="OffContentPresenter"
+									  Content="{TemplateBinding OffContent}"
+									  ContentTemplate="{TemplateBinding OffContentTemplate}"
+									  VerticalAlignment="Center"/>
+					<ContentPresenter x:Name="OnContentPresenter"
+									  Content="{TemplateBinding OnContent}"
+									  ContentTemplate="{TemplateBinding OnContentTemplate}"
+									  VerticalAlignment="Center"
+									  IsVisible="False"/>
+					<Border x:Name="SwitchTrack"
+							Width="36" Height="18"
+							CornerRadius="9"
+							BorderThickness="1"
+							BorderBrush="#646464"
+							Background="{DynamicResource CheckBoxCheckBackgroundFillUnchecked}"
+							VerticalAlignment="Center">
+						<Canvas x:Name="PART_MovingKnobs" Width="10" Height="10" Margin="3,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+							<Grid x:Name="PART_SwitchKnob" Width="10" Height="10">
+								<Ellipse x:Name="SwitchKnob" Fill="{DynamicResource CheckBoxCheckGlyphForegroundUnchecked}"/>
+							</Grid>
+						</Canvas>
+					</Border>
+				</StackPanel>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^:pointerover /template/ Border#SwitchTrack">
+			<Setter Property="Background" Value="#141414"/>
+		</Style>
+
+		<Style Selector="^:checked">
+			<Style Selector="^ /template/ ContentPresenter#OffContentPresenter">
+				<Setter Property="IsVisible" Value="False"/>
+			</Style>
+			<Style Selector="^ /template/ ContentPresenter#OnContentPresenter">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+			<Style Selector="^ /template/ Border#SwitchTrack">
+				<Setter Property="Background" Value="#1E1E1E"/>
+			</Style>
+			<Style Selector="^ /template/ Ellipse#SwitchKnob">
+				<Setter Property="Fill" Value="{DynamicResource CheckBoxCheckGlyphForegroundChecked}"/>
+			</Style>
+			<Style Selector="^ /template/ Canvas#PART_MovingKnobs">
+				<Setter Property="Margin" Value="23,0,3,0"/>
+			</Style>
+			<Style Selector="^:pointerover /template/ Border#SwitchTrack">
+				<Setter Property="Background" Value="#141414"/>
+			</Style>
+		</Style>
+
+		<Style Selector="^:disabled">
+			<Setter Property="TextElement.Foreground" Value="#4a4a4a"/>
+			<Style Selector="^ /template/ Border#SwitchTrack">
+				<Setter Property="Background" Value="#4a4a4a"/>
+			</Style>
+		</Style>
+	</ControlTheme>
+</ResourceDictionary>

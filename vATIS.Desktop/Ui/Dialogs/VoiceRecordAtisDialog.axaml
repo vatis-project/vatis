@@ -5,6 +5,7 @@
         xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
         xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
         xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
+        xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="400"
         x:Class="Vatsim.Vatis.Ui.Dialogs.VoiceRecordAtisDialog"
         x:Name="Window"
@@ -91,12 +92,18 @@
 					</StackPanel>
 				</StackPanel>
 				<StackPanel Grid.Column="2" Spacing="5">
-					<TextBlock Text="ATIS Script:"/>
-					<TextBox Text="{Binding AtisScript, DataType=vm:VoiceRecordAtisDialogViewModel}" TextWrapping="Wrap" AcceptsReturn="True" Height="280" Theme="{StaticResource DarkTextBox}" FontFamily="{StaticResource Monospace}">
+					<Grid ColumnDefinitions="*,Auto">
+						<TextBlock Text="ATIS Script:" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" Theme="{StaticResource ToggleSwitch}" OffContent="Text" OnContent="Voice" IsChecked="{Binding ShowVoiceScript, DataType=vm:VoiceRecordAtisDialogViewModel, Mode=TwoWay}" IsVisible="{Binding HasVoiceScript, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=False}" ToolTip.Tip="Show the spoken (voice) version of the ATIS instead of the text version."/>
+					</Grid>
+					<editor:TextEditor x:Name="ScriptEditor" DocumentChanged="ScriptEditor_OnDocumentChanged" Document="{Binding ScriptDocument, DataType=vm:VoiceRecordAtisDialogViewModel}" IsReadOnly="True" WordWrap="True" ShowLineNumbers="False" Height="280" FontFamily="{StaticResource Monospace}" Padding="6,4">
+						<editor:TextEditor.Options>
+							<editor:TextEditorOptions AllowScrollBelowDocument="False"/>
+						</editor:TextEditor.Options>
 						<Interaction.Behaviors>
-							<behaviors:TextBoxUppercaseBehavior/>
+							<behaviors:TextEditorSpokenTextBehavior/>
 						</Interaction.Behaviors>
-					</TextBox>
+					</editor:TextEditor>
 				</StackPanel>
 			</Grid>
 		</Grid>

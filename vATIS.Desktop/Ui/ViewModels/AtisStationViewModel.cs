@@ -1390,10 +1390,30 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                         _decodedMetar, localToken.Token);
 
                     // Show the airport name in the recording script so the identifier is easier to read aloud.
-                    vm.AtisScript = string.IsNullOrEmpty(textAtis) || string.IsNullOrEmpty(_atisStationAirport.Name)
-                        ? textAtis
-                        : Regex.Replace(textAtis, $@"(?<![\w\d]){Regex.Escape(_atisStationAirport.Id)}(?![\w\d])",
-                            _atisStationAirport.Name.Replace("$", "$$"), RegexOptions.IgnoreCase);
+                    string? WithAirportName(string? script) =>
+                        string.IsNullOrEmpty(script) || string.IsNullOrEmpty(_atisStationAirport.Name)
+                            ? script
+                            : Regex.Replace(script, $@"(?<![\w\d]){Regex.Escape(_atisStationAirport.Id)}(?![\w\d])",
+                                _atisStationAirport.Name.Replace("$", "$$"), RegexOptions.IgnoreCase);
+
+                    vm.SpokenTextSource = this;
+                    vm.TextScript = WithAirportName(textAtis);
+
+                    // The voice script is optional; the text script remains available if it can't be built.
+                    try
+                    {
+                        vm.VoiceScript = WithAirportName(await _atisBuilder.BuildVoiceScript(AtisStation,
+                            SelectedAtisPreset, AtisLetter, _decodedMetar, localToken.Token));
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Unable to build voice script for the record ATIS dialog");
+                    }
+
                     window.Topmost = lifetime.MainWindow.Topmost;
 
                     // Allow the previously saved recording to be reviewed with the Listen button.
