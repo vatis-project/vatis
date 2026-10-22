@@ -87,9 +87,9 @@ public sealed partial class WeatherExpression
         ["mm"] = WeatherUnit.Millimeters,
     };
 
-    private readonly Node _root;
+    private readonly ExpressionNode _root;
 
-    private WeatherExpression(Node root)
+    private WeatherExpression(ExpressionNode root)
     {
         _root = root;
     }
@@ -236,50 +236,13 @@ public sealed partial class WeatherExpression
 
     private readonly record struct Token(TokenKind Kind, string Text, int Position);
 
-    private abstract class Node
-    {
-        public abstract bool Evaluate(DecodedMetar? metar, AtisFormat atisFormat);
-    }
-
-    private sealed class RuleNode(WeatherRule rule) : Node
-    {
-        public override bool Evaluate(DecodedMetar? metar, AtisFormat atisFormat)
-        {
-            return WeatherRuleEvaluator.IsMet(rule, metar, atisFormat);
-        }
-    }
-
-    private sealed class NotNode(Node inner) : Node
-    {
-        public override bool Evaluate(DecodedMetar? metar, AtisFormat atisFormat)
-        {
-            return !inner.Evaluate(metar, atisFormat);
-        }
-    }
-
-    private sealed class AndNode(Node left, Node right) : Node
-    {
-        public override bool Evaluate(DecodedMetar? metar, AtisFormat atisFormat)
-        {
-            return left.Evaluate(metar, atisFormat) && right.Evaluate(metar, atisFormat);
-        }
-    }
-
-    private sealed class OrNode(Node left, Node right) : Node
-    {
-        public override bool Evaluate(DecodedMetar? metar, AtisFormat atisFormat)
-        {
-            return left.Evaluate(metar, atisFormat) || right.Evaluate(metar, atisFormat);
-        }
-    }
-
     private sealed class Parser(List<Token> tokens)
     {
         private int _position;
 
         private Token Current => tokens[_position];
 
-        public Node ParseAll()
+        public ExpressionNode ParseAll()
         {
             var node = ParseOr();
             if (Current.Kind != TokenKind.End)
@@ -324,7 +287,7 @@ public sealed partial class WeatherExpression
                 : null;
         }
 
-        private Node ParseOr()
+        private ExpressionNode ParseOr()
         {
             var node = ParseAnd();
             while (IsKeyword(Current, "or"))
@@ -336,7 +299,7 @@ public sealed partial class WeatherExpression
             return node;
         }
 
-        private Node ParseAnd()
+        private ExpressionNode ParseAnd()
         {
             var node = ParseNot();
             while (IsKeyword(Current, "and"))
@@ -348,7 +311,7 @@ public sealed partial class WeatherExpression
             return node;
         }
 
-        private Node ParseNot()
+        private ExpressionNode ParseNot()
         {
             if (IsKeyword(Current, "not"))
             {
@@ -359,7 +322,7 @@ public sealed partial class WeatherExpression
             return ParsePrimary();
         }
 
-        private Node ParsePrimary()
+        private ExpressionNode ParsePrimary()
         {
             var token = Current;
             if (token.Kind == TokenKind.Open)
@@ -385,7 +348,7 @@ public sealed partial class WeatherExpression
             return ParseCondition();
         }
 
-        private Node ParseCondition()
+        private ExpressionNode ParseCondition()
         {
             var fieldToken = Current;
             if (!s_fields.TryGetValue(fieldToken.Text, out var field))
@@ -402,7 +365,7 @@ public sealed partial class WeatherExpression
             };
         }
 
-        private Node ParseFlag(WeatherField field, Token fieldToken)
+        private ExpressionNode ParseFlag(WeatherField field, Token fieldToken)
         {
             if (Current.Kind == TokenKind.Operator)
             {
@@ -412,7 +375,7 @@ public sealed partial class WeatherExpression
             return new RuleNode(new WeatherRule { Field = field, Operator = WeatherOperator.Contains });
         }
 
-        private Node ParseText(WeatherField field, Token fieldToken)
+        private ExpressionNode ParseText(WeatherField field, Token fieldToken)
         {
             var op = Current;
             WeatherOperator? oper = null;
@@ -452,7 +415,7 @@ public sealed partial class WeatherExpression
             return new RuleNode(new WeatherRule { Field = field, Operator = oper.Value, Text = value.Text.ToUpperInvariant() });
         }
 
-        private Node ParseNumeric(WeatherField field, Token fieldToken)
+        private ExpressionNode ParseNumeric(WeatherField field, Token fieldToken)
         {
             var opToken = Current;
             var oper = ToNumericOperator(opToken);
