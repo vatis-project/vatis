@@ -294,9 +294,9 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                                 vm.RaiseError("DataValidation", "Text is required.");
                             }
 
-                            vm.ValidateConditions();
+                            var conditionsValid = vm.ValidateConditions();
 
-                            if (vm.HasErrors)
+                            if (!conditionsValid || vm.HasErrors)
                                 return;
 
                             var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault();
@@ -349,9 +349,9 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                             vm.RaiseError("DataValidation", "Text is required.");
                         }
 
-                        vm.ValidateConditions();
+                        var conditionsValid = vm.ValidateConditions();
 
-                        if (vm.HasErrors)
+                        if (!conditionsValid || vm.HasErrors)
                             return;
 
                         Definitions.Add(vm.ApplyConditionsTo(new StaticDefinition(

@@ -288,9 +288,9 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                                 vm.RaiseError("DataValidation", "Text is required.");
                             }
 
-                            vm.ValidateConditions();
+                            var conditionsValid = vm.ValidateConditions();
 
-                            if (vm.HasErrors)
+                            if (!conditionsValid || vm.HasErrors)
                                 return;
 
                             var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault() ?? 0;
@@ -343,9 +343,9 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                             vm.RaiseError("DataValidation", "Text is required.");
                         }
 
-                        vm.ValidateConditions();
+                        var conditionsValid = vm.ValidateConditions();
 
-                        if (vm.HasErrors)
+                        if (!conditionsValid || vm.HasErrors)
                             return;
 
                         var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";

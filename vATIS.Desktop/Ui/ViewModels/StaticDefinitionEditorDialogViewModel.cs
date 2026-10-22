@@ -233,17 +233,19 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     /// <summary>
     /// Raises validation errors for incomplete station or weather conditions.
     /// </summary>
-    public void ValidateConditions()
+    /// <returns>True if the conditions are valid; otherwise, false.</returns>
+    /// <remarks>
+    /// A weather condition problem is not raised as an error here because it is already shown next to the field,
+    /// so the caller must not save when this returns false.
+    /// </remarks>
+    public bool ValidateConditions()
     {
         if (HasStationCondition && string.IsNullOrWhiteSpace(StationCallsigns))
         {
             RaiseError("DataValidation", "Enter at least one callsign.");
         }
 
-        if (!string.IsNullOrWhiteSpace(WeatherCondition) && !WeatherExpression.TryParse(WeatherCondition, out _, out var error))
-        {
-            RaiseError("DataValidation", $"Weather condition: {error}");
-        }
+        return !HasErrors && !HasWeatherConditionError;
     }
 
     /// <inheritdoc/>
@@ -266,7 +268,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         DialogResultChanged?.Invoke(this, DialogResult.Ok);
         DialogResult = DialogResult.Ok;
-        if (!HasErrors)
+        if (!HasErrors && !HasWeatherConditionError)
         {
             window.Close();
         }
