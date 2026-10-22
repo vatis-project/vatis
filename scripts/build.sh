@@ -115,8 +115,17 @@ publish() { # <rid>
     info "dotnet publish $rid"
     # Start from an empty folder so files left over from an earlier build cannot end up in the package.
     rm -rf "${BUILD_DIR:?}/$rid"
-    dotnet publish -c Release -r "$rid" -o "$BUILD_DIR/$rid" \
-        -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version="$VERSION" "$PROJECT"
+    if [ -n "$CLIENT_AUTH_HOOK" ]; then
+        # Build first so the hook can act on the compiled assemblies before dotnet publish packages them.
+        # --no-build below then reuses this output instead of recompiling over whatever the hook left.
+        dotnet build -c Release -r "$rid" -p:Version="$VERSION" "$PROJECT"
+        "$CLIENT_AUTH_HOOK" "$(dirname "$PROJECT")/bin/Release/net10.0/$rid"
+        dotnet publish -c Release -r "$rid" -o "$BUILD_DIR/$rid" --no-build \
+            -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version="$VERSION" "$PROJECT"
+    else
+        dotnet publish -c Release -r "$rid" -o "$BUILD_DIR/$rid" \
+            -p:UseAppHost=true -p:NoWarn=IL3000 -p:Version="$VERSION" "$PROJECT"
+    fi
     verify_native_libs "$rid"
 }
 
@@ -452,6 +461,7 @@ build_dmg() { # <macos output dir>
 CLIENT_AUTH_REPO="${VATIS_CLIENT_AUTH_REPO:-git@github.com:vatis-project/client-auth.git}"
 CLIENT_AUTH_FILE="$ROOT/Vatsim.Network/ClientAuth.cs"
 CLIENT_AUTH_TMP=""
+CLIENT_AUTH_HOOK=""
 
 restore_client_auth() {
     [ -n "$CLIENT_AUTH_TMP" ] || return 0
@@ -469,6 +479,9 @@ use_private_client_auth() {
         || die "Could not clone $CLIENT_AUTH_REPO (needs read access; set VATIS_CLIENT_AUTH_REPO to use another URL or path)"
     [ -f "$CLIENT_AUTH_TMP/repo/ClientAuth.cs" ] || die "ClientAuth.cs not found in $CLIENT_AUTH_REPO"
     cp "$CLIENT_AUTH_TMP/repo/ClientAuth.cs" "$CLIENT_AUTH_FILE"
+    if [ -x "$CLIENT_AUTH_TMP/repo/post-build.sh" ]; then
+        CLIENT_AUTH_HOOK="$CLIENT_AUTH_TMP/repo/post-build.sh"
+    fi
 }
 
 # ----------------------------------------------------------------------- main
