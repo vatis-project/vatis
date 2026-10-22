@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 using ReactiveUI;
 using Vatsim.Vatis.Ui.Dialogs;
@@ -16,6 +17,8 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 public class ReleaseNotesDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     private string? _releaseNotes;
+    private string? _version;
+    private IReadOnlyList<ReleaseNoteSection> _sections = [];
     private bool _suppressReleaseNotes;
 
     /// <summary>
@@ -40,7 +43,32 @@ public class ReleaseNotesDialogViewModel : ReactiveViewModelBase, IDisposable
     public string? ReleaseNotes
     {
         get => _releaseNotes;
-        set => this.RaiseAndSetIfChanged(ref _releaseNotes, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _releaseNotes, value);
+
+            var parsed = ReleaseNotesParser.Parse(value);
+            Version = parsed.Version;
+            Sections = parsed.Sections;
+        }
+    }
+
+    /// <summary>
+    /// Gets the version the release notes are for, without a leading "v".
+    /// </summary>
+    public string? Version
+    {
+        get => _version;
+        private set => this.RaiseAndSetIfChanged(ref _version, value);
+    }
+
+    /// <summary>
+    /// Gets the release notes split into titled sections.
+    /// </summary>
+    public IReadOnlyList<ReleaseNoteSection> Sections
+    {
+        get => _sections;
+        private set => this.RaiseAndSetIfChanged(ref _sections, value);
     }
 
     /// <summary>
