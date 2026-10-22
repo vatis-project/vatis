@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added underlining of contractions and speech tokens in the ATIS editors.
 - Added the airport name to the Record ATIS script.
 - Added the ability to override the METAR of a connected ATIS by right-clicking the METAR box.
+- Added regex patterns with replacement functions (`$group`, `$digits`, `$spell`, `$phonetic`) for rewriting the written and spoken ATIS.
+- Added a text/voice script toggle to the Record ATIS dialog.
 ### Changed
 - Upgraded to .NET 10 and Avalonia 11.3, and updated Velopack and SignalR packages.
 - Sped up application startup and profile loading.
@@ -54,6 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Showed a clear error when the navdata download fails.
 ### Fixed
 - Fixed an error dialog on Linux when a desktop service, such as the global menu or input method, is not running.
+- Fixed tooltips closing on their own in dialog windows on macOS.
+- Fixed growing dialogs drifting off-center from their parent window.
+- Fixed AtisHub connecting without a VATSIM token, and errors from subscribing to an ATIS going unnoticed.
 - Fixed integration with vatSys.
 - Fixed forced disconnect logic.
 - Fixed the ATIS being republished and re-subscribed after an AtisHub automatic reconnect.
