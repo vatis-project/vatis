@@ -51,12 +51,4 @@ public partial class NewContractionDialog : ReactiveWindow<NewContractionDialogV
             textBox.Text = s_slug.GenerateSlug(textBox.Text ?? string.Empty).ToUpperInvariant().Replace("-", "_");
         }
     }
-
-    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
-            BeginMoveDrag(e);
-        }
-    }
 }

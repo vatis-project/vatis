@@ -135,6 +135,11 @@ public class AtisStation : ReactiveObject
     }
 
     /// <summary>
+    /// Gets or sets the list of regular expression patterns matched against the ATIS text.
+    /// </summary>
+    public List<PatternMeta> Patterns { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the list of static definitions that describe airport-specific conditions for the ATIS station.
     /// </summary>
     public List<StaticDefinition> AirportConditionDefinitions { get; set; } = [];
@@ -286,6 +291,7 @@ public class AtisStation : ReactiveObject
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),
             Contractions = Contractions.Select(x => x.Clone()).ToList(),
+            Patterns = Patterns.Select(x => x.Clone()).ToList(),
             AirportConditionDefinitions = AirportConditionDefinitions.Select(x => x.Clone()).ToList(),
             NotamDefinitions = NotamDefinitions.Select(x => x.Clone()).ToList(),
             DatisTextReplacements = DatisTextReplacements.Select(x => x.Clone()).ToList(),

@@ -31,6 +31,12 @@ public interface IViewModelFactory
     public ContractionsViewModel CreateContractionsViewModel();
 
     /// <summary>
+    /// Creates an instance of <see cref="PatternsViewModel"/> for managing regular expression patterns in the ATIS configuration.
+    /// </summary>
+    /// <returns>An instance of <see cref="PatternsViewModel"/> for modifying and interacting with pattern data.</returns>
+    public PatternsViewModel CreatePatternsViewModel();
+
+    /// <summary>
     /// Creates an instance of <see cref="FormattingViewModel"/> for formatting-related configurations.
     /// </summary>
     /// <returns>An instance of <see cref="FormattingViewModel"/>.</returns>
