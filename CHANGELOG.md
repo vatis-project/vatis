@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added customizable spoken phrases and text for runway visual range.
 - Added custom text and voice formatting for CAVOK.
 - Added custom separators for airport conditions and NOTAMs.
+- Added an "Include" option to static airport conditions and NOTAMs to show them only while specific VATSIM controllers are online or offline (e.g. `EPWA_APP`, `EPWW_*_CTR`), using the VATSIM data feed.
 - Added runway condition reporting from METAR runway state groups.
 - Added remark wind to the ATIS.
 - Added an `[AUTO]` variable for automatic observation, a `[METAR]` raw METAR variable, a per-preset threshold QFE variable, and a `{feet}` cloud token.

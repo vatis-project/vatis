@@ -18,4 +18,22 @@ public class VatsimStatus
     /// </summary>
     [JsonPropertyName("metar")]
     public List<string> MetarUrls { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the data feed URLs retrieved from the VATSIM status configuration.
+    /// </summary>
+    [JsonPropertyName("data")]
+    public VatsimStatusData Data { get; set; } = new();
+}
+
+/// <summary>
+/// Represents the data feed section of the VATSIM status configuration.
+/// </summary>
+public class VatsimStatusData
+{
+    /// <summary>
+    /// Gets or sets the URLs of the v3 data feed.
+    /// </summary>
+    [JsonPropertyName("v3")]
+    public List<string> V3 { get; set; } = [];
 }

@@ -9,6 +9,7 @@ using System.Reactive;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using ReactiveUI;
+using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
 
@@ -26,6 +27,8 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     private string? _title = "Definition Editor";
     private string? _dataValidation;
     private string? _separatorAfter;
+    private StationCondition _stationCondition;
+    private string? _stationCallsigns;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticDefinitionEditorDialogViewModel"/> class.
@@ -117,6 +120,43 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         get => _separatorAfter;
         set => this.RaiseAndSetIfChanged(ref _separatorAfter, value);
+    }
+
+    /// <summary>
+    /// Gets or sets when this definition is included, based on which controllers are online.
+    /// </summary>
+    public StationCondition StationCondition
+    {
+        get => _stationCondition;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _stationCondition, value);
+            this.RaisePropertyChanged(nameof(StationConditionIndex));
+            this.RaisePropertyChanged(nameof(HasStationCondition));
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the <see cref="StationCondition"/> as the index of the condition list.
+    /// </summary>
+    public int StationConditionIndex
+    {
+        get => (int)_stationCondition;
+        set => StationCondition = (StationCondition)value;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the definition depends on controllers being online.
+    /// </summary>
+    public bool HasStationCondition => _stationCondition != StationCondition.Always;
+
+    /// <summary>
+    /// Gets or sets the callsigns the station condition applies to, separated by commas or spaces.
+    /// </summary>
+    public string? StationCallsigns
+    {
+        get => _stationCallsigns;
+        set => this.RaiseAndSetIfChanged(ref _stationCallsigns, value);
     }
 
     /// <summary>

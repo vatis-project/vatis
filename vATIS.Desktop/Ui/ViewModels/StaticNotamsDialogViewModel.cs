@@ -277,6 +277,8 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                     vm.Title = "Edit NOTAM";
                     vm.DefinitionText = definition.Text.ToUpperInvariant();
                     vm.SeparatorAfter = definition.SeparatorAfter;
+                    vm.StationCondition = definition.StationCondition;
+                    vm.StationCallsigns = definition.StationCallsigns;
                     vm.ContractionCompletionData = ContractionCompletionData;
                     vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
@@ -296,6 +298,11 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                                 vm.RaiseError("DataValidation", "Text is required.");
                             }
 
+                            if (vm.HasStationCondition && string.IsNullOrWhiteSpace(vm.StationCallsigns))
+                            {
+                                vm.RaiseError("DataValidation", "Enter at least one callsign.");
+                            }
+
                             if (vm.HasErrors)
                                 return;
 
@@ -304,7 +311,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                             Definitions.Remove(definition);
                             Definitions.Insert(currentIndex ?? 0,
                                 new StaticDefinition(vm.TextDocument?.Text.ToUpperInvariant() ?? string.Empty, currentIndex ?? 0,
-                                    definition.Enabled) { SeparatorAfter = vm.SeparatorAfter });
+                                    definition.Enabled) { SeparatorAfter = vm.SeparatorAfter, StationCondition = vm.StationCondition, StationCallsigns = vm.StationCallsigns?.Trim() });
                             Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         }
                     };
@@ -348,11 +355,16 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                             vm.RaiseError("DataValidation", "Text is required.");
                         }
 
+                        if (vm.HasStationCondition && string.IsNullOrWhiteSpace(vm.StationCallsigns))
+                        {
+                            vm.RaiseError("DataValidation", "Enter at least one callsign.");
+                        }
+
                         if (vm.HasErrors)
                             return;
 
                         Definitions.Add(new StaticDefinition(vm.DefinitionText?.Trim().ToUpperInvariant() ?? string.Empty,
-                            Definitions.Count + 1) { SeparatorAfter = vm.SeparatorAfter });
+                            Definitions.Count + 1) { SeparatorAfter = vm.SeparatorAfter, StationCondition = vm.StationCondition, StationCallsigns = vm.StationCallsigns?.Trim() });
                         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         HasDefinitions = Definitions.Count != 0;
                     }

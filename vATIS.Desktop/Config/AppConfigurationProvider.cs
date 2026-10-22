@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Serilog;
@@ -24,6 +25,7 @@ public class AppConfigurationProvider : IAppConfigurationProvider
     private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(500);
     private readonly IDownloader _downloader;
     private readonly List<string> _metarUrls;
+    private readonly List<string> _vatsimDataUrls = [];
     private AppConfiguration? _appConfiguration;
 
     /// <summary>
@@ -47,6 +49,9 @@ public class AppConfigurationProvider : IAppConfigurationProvider
 
     /// <inheritdoc />
     public string MetarUrl => _metarUrls[Random.Shared.Next(_metarUrls.Count)];
+
+    /// <inheritdoc />
+    public IReadOnlyList<string> VatsimDataUrls => _vatsimDataUrls;
 
     /// <inheritdoc />
     public string NavDataUrl => _appConfiguration?.NavDataUrl ?? throw new ArgumentNullException(nameof(NavDataUrl));
@@ -81,6 +86,7 @@ public class AppConfigurationProvider : IAppConfigurationProvider
                 SourceGenerationContext.NewDefault.VatsimStatus) ??
             throw new ApplicationException("Deserialization of VATSIM status JSON data returned null.");
         _metarUrls.AddRange(vatsimStatus.MetarUrls);
+        _vatsimDataUrls.AddRange(vatsimStatus.Data.V3);
         if (_metarUrls.Count == 0)
         {
             throw new ApplicationException("No METAR URLs found in VATSIM status data.");
