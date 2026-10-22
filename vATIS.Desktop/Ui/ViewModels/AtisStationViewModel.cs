@@ -1386,9 +1386,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 var window = _windowFactory.CreateVoiceRecordAtisDialog();
                 if (window.DataContext is VoiceRecordAtisDialogViewModel vm)
                 {
-                    var textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-                        _decodedMetar, localToken.Token);
-
                     // Show the airport name in the recording script so the identifier is easier to read aloud.
                     string? WithAirportName(string? script) =>
                         string.IsNullOrEmpty(script) || string.IsNullOrEmpty(_atisStationAirport.Name)
@@ -1397,23 +1394,6 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                                 _atisStationAirport.Name.Replace("$", "$$"), RegexOptions.IgnoreCase);
 
                     vm.SpokenTextSource = this;
-                    vm.TextScript = WithAirportName(textAtis);
-
-                    // The voice script is optional; the text script remains available if it can't be built.
-                    try
-                    {
-                        vm.VoiceScript = WithAirportName(await _atisBuilder.BuildVoiceScript(AtisStation,
-                            SelectedAtisPreset, AtisLetter, _decodedMetar, localToken.Token));
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "Unable to build voice script for the record ATIS dialog");
-                    }
-
                     window.Topmost = lifetime.MainWindow.Topmost;
 
                     // Allow the previously saved recording to be reviewed with the Listen button.
@@ -1422,7 +1402,53 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                         vm.SetPreviousRecording(_lastRecordedAtisAudio);
                     }
 
-                    if (await window.ShowDialog<bool>(lifetime.MainWindow))
+                    // Open the dialog right away and fetch the script after, so a slow preset (e.g. an
+                    // external ATIS generator) doesn't leave the user staring at nothing while it loads.
+                    vm.IsScriptLoading = true;
+                    var dialogTask = window.ShowDialog<bool>(lifetime.MainWindow);
+
+                    string? textAtis = null;
+                    try
+                    {
+                        textAtis = await _atisBuilder.BuildTextAtis(AtisStation, SelectedAtisPreset, AtisLetter,
+                            _decodedMetar, localToken.Token);
+                        vm.TextScript = WithAirportName(textAtis);
+
+                        // The voice script is optional; the text script remains available if it can't be built.
+                        try
+                        {
+                            vm.VoiceScript = WithAirportName(await _atisBuilder.BuildVoiceScript(AtisStation,
+                                SelectedAtisPreset, AtisLetter, _decodedMetar, localToken.Token));
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Unable to build voice script for the record ATIS dialog");
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Another request came in (e.g. the user switched stations), so this dialog is stale.
+                        // Close it instead of leaving it stuck on the loading spinner.
+                        window.Close(false);
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Leave the dialog open so the user can see what went wrong and retry, rather than
+                        // having it vanish on them.
+                        Log.Warning(ex, "Unable to load the ATIS script for the record ATIS dialog");
+                        vm.ScriptLoadError = $"Couldn't load the ATIS script: {ex.Message}";
+                    }
+                    finally
+                    {
+                        vm.IsScriptLoading = false;
+                    }
+
+                    if (await dialogTask)
                     {
                         // Saving the recording acknowledges the new ATIS letter.
                         IsNewAtis = false;

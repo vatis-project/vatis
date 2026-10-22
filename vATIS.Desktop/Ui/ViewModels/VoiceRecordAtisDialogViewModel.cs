@@ -39,6 +39,8 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     private readonly System.Timers.Timer _elapsedTimeUpdateTimer;
     private readonly System.Timers.Timer _maxRecordingDurationTimer;
     private bool _showOverlay;
+    private bool _isScriptLoading;
+    private string? _scriptLoadError;
     private byte[] _audioBuffer = [];
     private string? _textScript;
     private string? _voiceScript;
@@ -215,6 +217,24 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _showMinimumDurationWarning;
         private set => this.RaiseAndSetIfChanged(ref _showMinimumDurationWarning, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the ATIS script is still being fetched.
+    /// </summary>
+    public bool IsScriptLoading
+    {
+        get => _isScriptLoading;
+        set => this.RaiseAndSetIfChanged(ref _isScriptLoading, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the error message to show if the ATIS script couldn't be loaded, or null if there wasn't one.
+    /// </summary>
+    public string? ScriptLoadError
+    {
+        get => _scriptLoadError;
+        set => this.RaiseAndSetIfChanged(ref _scriptLoadError, value);
     }
 
     /// <summary>
