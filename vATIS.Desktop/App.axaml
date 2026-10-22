@@ -23,6 +23,7 @@
                 <ResourceInclude Source="/Ui/Styles/TextBox.axaml"/>
                 <ResourceInclude Source="/Ui/Styles/CheckBox.axaml"/>
                 <ResourceInclude Source="/Ui/Styles/RadioButton.axaml"/>
+                <ResourceInclude Source="/Ui/Styles/ToggleSwitch.axaml"/>
                 <ResourceInclude Source="/Ui/Controls/CustomTabControl.axaml"/>
                 <ResourceInclude Source="/Ui/Controls/CustomTabItem.axaml"/>
                 <ResourceInclude Source="/Ui/Controls/GroupBox/GroupBoxBasic.axaml"/>

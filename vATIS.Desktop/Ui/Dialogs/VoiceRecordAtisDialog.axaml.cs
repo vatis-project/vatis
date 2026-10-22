@@ -8,6 +8,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
+using AvaloniaEdit.Document;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
@@ -34,6 +36,12 @@ public partial class VoiceRecordAtisDialog : ReactiveWindow<VoiceRecordAtisDialo
     public VoiceRecordAtisDialog()
     {
         InitializeComponent();
+    }
+
+    private void ScriptEditor_OnDocumentChanged(object? sender, DocumentChangedEventArgs e)
+    {
+        // A new script should start at the top, not at the previous script's scroll offset.
+        Dispatcher.UIThread.Post(() => ScriptEditor.ScrollToHome(), DispatcherPriority.Loaded);
     }
 
     /// <summary>

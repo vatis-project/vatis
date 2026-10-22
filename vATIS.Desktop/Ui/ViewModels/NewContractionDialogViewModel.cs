@@ -20,6 +20,8 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     private string? _text;
     private string? _spoken;
     private bool _addToAllStations;
+    private string _title = "New Contraction";
+    private bool _showAddToAllStations = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NewContractionDialogViewModel"/> class.
@@ -52,6 +54,24 @@ public class NewContractionDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _dialogResult;
         set => this.RaiseAndSetIfChanged(ref _dialogResult, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the title shown at the top of the dialog.
+    /// </summary>
+    public string Title
+    {
+        get => _title;
+        set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the "add to all stations" option is shown.
+    /// </summary>
+    public bool ShowAddToAllStations
+    {
+        get => _showAddToAllStations;
+        set => this.RaiseAndSetIfChanged(ref _showAddToAllStations, value);
     }
 
     /// <summary>

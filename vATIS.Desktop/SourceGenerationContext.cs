@@ -51,6 +51,7 @@ namespace Vatsim.Vatis;
 [JsonSerializable(typeof(Dictionary<string, CloudType>))]
 [JsonSerializable(typeof(Profile))]
 [JsonSerializable(typeof(ContractionMeta))]
+[JsonSerializable(typeof(PatternMeta))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(JsonObject))]
 [JsonSerializable(typeof(AtisStation))]

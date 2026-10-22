@@ -35,6 +35,18 @@ public interface IAtisBuilder
         DecodedMetar decodedMetar, CancellationToken cancellationToken, bool sandboxRequest = false);
 
     /// <summary>
+    /// Builds the spoken text of the voice ATIS without synthesizing any audio.
+    /// </summary>
+    /// <param name="station">The ATIS station.</param>
+    /// <param name="preset">The ATIS preset.</param>
+    /// <param name="currentAtisLetter">The current ATIS letter.</param>
+    /// <param name="decodedMetar">The decoded METAR.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The text that would be spoken, or null if it could not be generated.</returns>
+    public Task<string?> BuildVoiceScript(AtisStation station, AtisPreset preset, char currentAtisLetter,
+        DecodedMetar decodedMetar, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Gets the spoken form of a built-in template token, such as a runway or taxiway.
     /// </summary>
     /// <param name="token">The template token.</param>

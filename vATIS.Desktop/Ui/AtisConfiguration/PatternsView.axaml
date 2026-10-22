@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels.AtisConfiguration"
+             xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
+             xmlns:models="clr-namespace:Vatsim.Vatis.Profiles.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Vatsim.Vatis.Ui.AtisConfiguration.PatternsView">
+	<Grid RowDefinitions="*,Auto" RowSpacing="10">
+		<Border Grid.Row="0" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
+			<DataGrid x:Name="Patterns" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding Patterns, DataType=vm:PatternsViewModel}" SelectionMode="Extended">
+				<Interaction.Behaviors>
+					<behaviors:DataGridOverflowToolTipBehavior/>
+				</Interaction.Behaviors>
+				<DataGrid.Styles>
+					<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+						<Setter Property="IsVisible" Value="False" />
+					</Style>
+				</DataGrid.Styles>
+				<DataGrid.Columns>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Pattern" Width="1.4*" Binding="{Binding Pattern, DataType=models:PatternMeta}"/>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" Binding="{Binding Text, DataType=models:PatternMeta}"/>
+					<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Voice" Width="1.4*" Binding="{Binding Voice, DataType=models:PatternMeta}"/>
+				</DataGrid.Columns>
+			</DataGrid>
+		</Border>
+		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="5">
+			<Button Theme="{StaticResource Dark}" MinWidth="80" Height="28" Command="{Binding NewPatternCommand, DataType=vm:PatternsViewModel}">New</Button>
+			<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding EditPatternCommand, DataType=vm:PatternsViewModel}" IsEnabled="{Binding #Patterns.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" CommandParameter="{Binding #Patterns.SelectedItem}">Edit</Button>
+			<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding DeletePatternCommand, DataType=vm:PatternsViewModel}" IsEnabled="{Binding #Patterns.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" CommandParameter="{Binding #Patterns.SelectedItem}">Delete</Button>
+		</StackPanel>
+	</Grid>
+</UserControl>

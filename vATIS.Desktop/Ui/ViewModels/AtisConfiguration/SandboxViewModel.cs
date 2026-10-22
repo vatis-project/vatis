@@ -57,6 +57,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private AtisPreset? _selectedPreset;
     private AtisStation? _selectedStation;
     private AtisPreset? _previousPreset;
+    private bool _revertingPreset;
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
     private string? _sandboxMetar;
@@ -136,6 +137,11 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             }
         }));
     }
+
+    /// <summary>
+    /// Occurs when a preset switch is cancelled and the preset dropdown needs to go back to the selected preset.
+    /// </summary>
+    public event Action? PresetSelectionReverted;
 
     /// <summary>
     /// Gets or sets the dialog owner used for displaying dialogs within the view model.
@@ -358,6 +364,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         await SelectedPresetChangedCommand.Execute(preset);
 
+        if (SelectedPreset != preset)
+            return;
+
         if (string.IsNullOrEmpty(SandboxMetar))
         {
             await FetchSandboxMetarCommand.Execute();
@@ -408,6 +417,28 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Gets the text the user typed in an editor, without the read-only part that comes from the static definitions.
+    /// </summary>
+    private static string? GetFreeText(TextDocument? document, TextSegmentCollection<TextSegment> readOnlySegments)
+    {
+        string? freeText;
+
+        var readonlySegment = readOnlySegments.FirstSegment;
+        if (readonlySegment != null)
+        {
+            freeText = readonlySegment.StartOffset > 0
+                ? document?.Text[..readonlySegment.StartOffset]
+                : document?.Text[readonlySegment.Length..];
+        }
+        else
+        {
+            freeText = document?.Text;
+        }
+
+        return freeText?.Trim();
     }
 
     private void HandleAtisStationChanged(AtisStation? station)
@@ -495,6 +526,22 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
                 }
 
                 var preset = SelectedPreset;
+
+                // Preview the free text as it is in the editors, saved or not, using a copy of the preset so the
+                // saved preset is left untouched until Save is clicked.
+                if (HasUnsavedAirportConditions || HasUnsavedNotams)
+                {
+                    preset = preset.Clone();
+                    if (HasUnsavedAirportConditions)
+                    {
+                        preset.AirportConditions = GetFreeText(AirportConditionsTextDocument, ReadOnlyAirportConditions);
+                    }
+
+                    if (HasUnsavedNotams)
+                    {
+                        preset.Notams = GetFreeText(NotamsTextDocument, ReadOnlyNotams);
+                    }
+                }
 
                 // For a D-ATIS preset, build from a copy populated with the processed real-world D-ATIS
                 // so the saved preset is left untouched.
@@ -587,21 +634,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         if (SelectedPreset == null)
             return;
 
-        string? freeText;
-
-        var readonlySegment = ReadOnlyNotams.FirstSegment;
-        if (readonlySegment != null)
-        {
-            freeText = readonlySegment.StartOffset > 0
-                ? NotamsTextDocument?.Text[..readonlySegment.StartOffset]
-                : NotamsTextDocument?.Text[readonlySegment.Length..];
-        }
-        else
-        {
-            freeText = NotamsTextDocument?.Text;
-        }
-
-        SelectedPreset.Notams = freeText?.Trim();
+        SelectedPreset.Notams = GetFreeText(NotamsTextDocument, ReadOnlyNotams);
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -675,21 +708,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         if (SelectedPreset == null)
             return;
 
-        string? freeText;
-
-        var readonlySegment = ReadOnlyAirportConditions.FirstSegment;
-        if (readonlySegment != null)
-        {
-            freeText = readonlySegment.StartOffset > 0
-                ? AirportConditionsTextDocument?.Text[..readonlySegment.StartOffset]
-                : AirportConditionsTextDocument?.Text[readonlySegment.Length..];
-        }
-        else
-        {
-            freeText = AirportConditionsTextDocument?.Text;
-        }
-
-        SelectedPreset.AirportConditions = freeText?.Trim();
+        SelectedPreset.AirportConditions = GetFreeText(AirportConditionsTextDocument, ReadOnlyAirportConditions);
 
         if (_sessionManager.CurrentProfile != null)
             _profileRepository.Save(_sessionManager.CurrentProfile);
@@ -776,16 +795,34 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
     private async Task HandleSelectedPresetChanged(AtisPreset? preset)
     {
-        if (preset == null || DialogOwner == null)
+        if (preset == null || DialogOwner == null || _revertingPreset)
             return;
 
         if (preset != _previousPreset)
         {
             if (HasUnsavedNotams || HasUnsavedAirportConditions)
             {
-                if (await MessageBox.ShowDialog((Window)DialogOwner,
+                var result = await MessageBox.ShowDialog((Window)DialogOwner,
                         "You have unsaved Airport Conditions or NOTAMs. Would you like to save them first?",
-                        "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                        "Confirm", MessageBoxButton.YesNoCancel, MessageBoxIcon.Information);
+
+                if (result is MessageBoxResult.Cancel or MessageBoxResult.None)
+                {
+                    // put the dropdown back on the preset that's still selected
+                    _revertingPreset = true;
+                    try
+                    {
+                        PresetSelectionReverted?.Invoke();
+                    }
+                    finally
+                    {
+                        _revertingPreset = false;
+                    }
+
+                    return;
+                }
+
+                if (result == MessageBoxResult.Yes)
                 {
                     SaveNotamsTextCommand.Execute().Subscribe();
                     SaveAirportConditionsTextCommand.Execute().Subscribe();

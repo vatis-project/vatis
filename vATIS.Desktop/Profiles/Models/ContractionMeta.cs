@@ -56,6 +56,6 @@ public class ContractionMeta
     /// <returns>A new <see cref="ContractionMeta"/> instance that is a copy of this instance.</returns>
     public ContractionMeta Clone()
     {
-        return new ContractionMeta { Text = Text, Voice = Voice, };
+        return new ContractionMeta { VariableName = VariableName, Text = Text, Voice = Voice, };
     }
 }

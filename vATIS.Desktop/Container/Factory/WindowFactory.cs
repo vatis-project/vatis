@@ -160,6 +160,19 @@ internal class WindowFactory : IWindowFactory
     }
 
     /// <summary>
+    /// Creates a new instance of the <see cref="NewPatternDialog"/> class.
+    /// </summary>
+    /// <returns>
+    /// A new instance of the <see cref="NewPatternDialog"/> class.
+    /// </returns>
+    public NewPatternDialog CreateNewPatternDialog()
+    {
+        var scope = _provider.CreateScope();
+        var viewModel = scope.GetService<NewPatternDialogViewModel>();
+        return new NewPatternDialog(viewModel);
+    }
+
+    /// <summary>
     /// Creates a new instance of the <see cref="StaticAirportConditionsDialog"/> class.
     /// </summary>
     /// <returns>

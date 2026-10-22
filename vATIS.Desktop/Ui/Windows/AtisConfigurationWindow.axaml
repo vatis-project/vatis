@@ -100,6 +100,9 @@
 						<TabItem Header="Contractions">
 							<views:ContractionsView DataContext="{Binding ContractionsViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
 						</TabItem>
+						<TabItem Header="Patterns">
+							<views:PatternsView DataContext="{Binding PatternsViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
+						</TabItem>
 						<TabItem Header="Sandbox">
 							<views:SandboxView DataContext="{Binding SandboxViewModel, DataType=vm:AtisConfigurationWindowViewModel}"/>
 						</TabItem>

@@ -42,7 +42,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposable
 {
-    private const int SandboxTabIndex = 4;
+    private const int SandboxTabIndex = 5;
     private readonly ISessionManager _sessionManager;
     private readonly IWindowFactory _windowFactory;
     private readonly INavDataRepository _navDataRepository;
@@ -166,6 +166,12 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
     /// in the ATIS configuration window.
     /// </summary>
     public ContractionsViewModel? ContractionsViewModel { get; private set; }
+
+    /// <summary>
+    /// Gets the instance of <see cref="PatternsViewModel"/> used for managing the regular expression patterns
+    /// in the ATIS configuration window.
+    /// </summary>
+    public PatternsViewModel? PatternsViewModel { get; private set; }
 
     /// <summary>
     /// Gets the instance of <see cref="SandboxViewModel"/> used for managing and applying
@@ -323,6 +329,9 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         ContractionsViewModel = _viewModelFactory.CreateContractionsViewModel();
         ContractionsViewModel.SetDialogOwner(_dialogOwner);
 
+        PatternsViewModel = _viewModelFactory.CreatePatternsViewModel();
+        PatternsViewModel.SetDialogOwner(_dialogOwner);
+
         SandboxViewModel = _viewModelFactory.CreateSandboxViewModel();
         SandboxViewModel.DialogOwner = _dialogOwner;
 
@@ -333,6 +342,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         _disposables.Add(PresetsViewModel);
         _disposables.Add(FormattingViewModel);
         _disposables.Add(ContractionsViewModel);
+        _disposables.Add(PatternsViewModel);
         _disposables.Add(SandboxViewModel);
         _disposables.Add(DatisReplacementsViewModel);
     }
@@ -984,6 +994,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         PresetsViewModel?.AtisStationChanged.Execute(station).Subscribe();
         FormattingViewModel?.AtisStationChanged.Execute(station).Subscribe();
         ContractionsViewModel?.AtisStationChanged.Execute(station).Subscribe();
+        PatternsViewModel?.AtisStationChanged.Execute(station).Subscribe();
         SandboxViewModel?.AtisStationChanged.Execute(station).Subscribe();
         DatisReplacementsViewModel?.AtisStationChanged.Execute(station).Subscribe();
     }

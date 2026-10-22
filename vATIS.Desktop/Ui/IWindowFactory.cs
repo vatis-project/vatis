@@ -75,6 +75,12 @@ public interface IWindowFactory
     public NewContractionDialog CreateNewContractionDialog();
 
     /// <summary>
+    /// Creates and initializes a new instance of the <see cref="NewPatternDialog"/> class.
+    /// </summary>
+    /// <returns>An instance of the <see cref="NewPatternDialog"/> class.</returns>
+    public NewPatternDialog CreateNewPatternDialog();
+
+    /// <summary>
     /// Creates and initializes a new instance of the <see cref="StaticAirportConditionsDialog"/> class.
     /// </summary>
     /// <returns>An instance of the <see cref="StaticAirportConditionsDialog"/> class.</returns>
