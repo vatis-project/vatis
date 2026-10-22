@@ -13,7 +13,7 @@
         CanResize="False"
         ShowInTaskbar="False"
         SystemDecorations="None"
-        SizeToContent="Height"
+        Height="560"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
 	<Window.Styles>
@@ -50,7 +50,7 @@
 			</Setter>
 		</Style>
 	</Window.Styles>
-	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
+	<Border VerticalAlignment="Center" BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
 		<StackPanel>
 			<Border BorderBrush="#646464" BorderThickness="0,0,0,1" Background="Transparent" PointerPressed="OnPointerPressed">
 				<TextBlock Text="New Contraction" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />

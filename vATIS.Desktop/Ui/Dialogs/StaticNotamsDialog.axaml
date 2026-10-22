@@ -8,8 +8,7 @@
         x:Class="Vatsim.Vatis.Ui.Dialogs.StaticNotamsDialog"
         Title="StaticNotamsDialog"
         x:Name="Window"
-        Width="570" MaxHeight="335"
-        SizeToContent="Height"
+        Width="570" Height="335"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
@@ -54,7 +53,7 @@
 			</Setter>
 		</Style>
 	</Window.Styles>
-	<Border BorderBrush="{Binding ShowOverlay, DataType=vm:StaticNotamsDialogViewModel, Converter={StaticResource BoolToBrushColorConverter}, FallbackValue=#646464}" BorderThickness="1" Background="#323232" CornerRadius="5">
+	<Border VerticalAlignment="Center" BorderBrush="{Binding ShowOverlay, DataType=vm:StaticNotamsDialogViewModel, Converter={StaticResource BoolToBrushColorConverter}, FallbackValue=#646464}" BorderThickness="1" Background="#323232" CornerRadius="5">
 		<Grid>
 			<Grid x:Name="Overlay" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}">
 				<Border Background="#000000" Opacity="0.80"/>
