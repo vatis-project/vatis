@@ -73,7 +73,7 @@
 				</StackPanel>
 				<StackPanel Spacing="5">
 					<TextBlock Text="Name (e.g. Los Angeles):"/>
-					<TextBox Theme="{StaticResource DarkTextBox}" Name="StationName" Text="{Binding StationName, DataType=vm:NewAtisStationDialogViewModel}">
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="StationName" Text="{Binding StationName, DataType=vm:NewAtisStationDialogViewModel}">
 						<Interaction.Behaviors>
 							<behaviors:SelectAllTextOnFocusBehavior/>
 						</Interaction.Behaviors>
