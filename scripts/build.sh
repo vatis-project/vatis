@@ -2,13 +2,15 @@
 # Builds vATIS for linux-x64, win-x64 and macOS (universal) from a Linux dev machine and packs
 # them with Velopack.
 #
-# Usage: scripts/build.sh <version> [--platform linux|win|macos]... [--native] [--skip-codesign]
+# Usage: scripts/build.sh <version> [--platform linux|win|macos]... [--skip-codesign]
 #
 #   --platform  Limit to one or more platforms (default: all three).
-#   --native    Rebuild NativeAudio first: Linux .so with cmake, Windows .dll and macOS .dylib
-#               via Docker (clang-cl + xwin, osxcross).
 #   --skip-codesign  Don't sign or notarize anything.
 #   --dmg-only  Rebuild only the macOS DMG from the app left by the last full macOS build.
+#
+# NativeAudio is rebuilt first for the selected platforms whenever its sources changed since the library was last
+# built (the libraries are gitignored, so a stale one would silently ship): Linux .so with cmake, Windows .dll and
+# macOS .dylib via Docker (clang-cl + xwin, osxcross).
 #
 # Output goes to publish/release/{linux,windows,macos}. Those directories accumulate releases:
 # Delta packages are disabled (--delta None), but the previous release is kept so the new releases.*.json feed
@@ -21,7 +23,7 @@
 # needs read access; override the URL with VATIS_CLIENT_AUTH_REPO) and replaces the stub for the build only.
 #
 # Requirements: dotnet SDK, git, docker (macOS universal binary via lipo), curl, python3, zip/unzip,
-#               cmake (--native), java (Windows signing).
+#               cmake (Linux native build), java (Windows signing).
 # vpk is installed on demand into publish/tools, pinned to the Velopack version the app uses.
 # Linux and macOS packages are built with a patched vpk (scripts/velopack/*.patch): stock vpk only packs for
 # macOS on a Mac, and the Linux AppImage is built with pkgforge's appimagetool (no libfuse.so.2 dependency).
@@ -66,13 +68,11 @@ VERSION="$1"; shift
 VATIS_RELEASES_URL="${VATIS_RELEASES_URL:-https://vatis.app/downloads}"
 
 PLATFORMS=()
-BUILD_NATIVE=false
 SKIP_CODESIGN=false
 DMG_ONLY=false
 while [ $# -gt 0 ]; do
     case "$1" in
         --platform) [ $# -ge 2 ] || die "--platform needs a value"; PLATFORMS+=("$2"); shift 2 ;;
-        --native) BUILD_NATIVE=true; shift ;;
         --skip-codesign) SKIP_CODESIGN=true; shift ;;
         --dmg-only) DMG_ONLY=true; shift ;;
         -h|--help) usage 0 ;;
@@ -265,6 +265,24 @@ win_sign_template() {
 }
 
 # ---------------------------------------------------------------- native libs
+# Hash of everything under NativeAudio/ that git tracks or would track (build output is gitignored).
+native_source_hash() {
+    git ls-files -z --cached --others --exclude-standard -- NativeAudio | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
+}
+
+# Runs the given build command unless <lib> exists and was built from the current NativeAudio sources.
+build_native_if_needed() { # <lib> <build command...>
+    local lib="$1" hash; shift
+    hash="$(native_source_hash)"
+    if [ -f "$lib" ] && [ "$(cat "$lib.srchash" 2>/dev/null)" = "$hash" ]; then
+        info "NativeAudio up to date: $lib"
+        return
+    fi
+    "$@"
+    [ -f "$lib" ] || die "NativeAudio build did not produce $lib"
+    echo "$hash" > "$lib.srchash"
+}
+
 build_native_linux() {
     info "NativeAudio (linux)"
     cmake -S ./NativeAudio -B ./NativeAudio/build -DCMAKE_BUILD_TYPE=Release
@@ -287,7 +305,7 @@ build_native_macos() {
 build_linux() {
     local out="$OUT_DIR/linux"
     mkdir -p "$out"
-    [ -f "$NATIVE_DIR/lin/libNativeAudio.so" ] || die "Missing $NATIVE_DIR/lin/libNativeAudio.so (use --native)"
+    [ -f "$NATIVE_DIR/lin/libNativeAudio.so" ] || die "Missing $NATIVE_DIR/lin/libNativeAudio.so"
     publish linux-x64
     ensure_vpk_patched
     ensure_appimagetool
@@ -307,7 +325,7 @@ build_linux() {
 build_win() {
     local out="$OUT_DIR/windows"
     mkdir -p "$out"
-    [ -f "$NATIVE_DIR/win/NativeAudio.dll" ] || die "Missing $NATIVE_DIR/win/NativeAudio.dll (use --native)"
+    [ -f "$NATIVE_DIR/win/NativeAudio.dll" ] || die "Missing $NATIVE_DIR/win/NativeAudio.dll"
     publish win-x64
     ensure_vpk
     vpk_download windows win "$out"
@@ -334,7 +352,7 @@ build_macos() {
     local out="$OUT_DIR/macos"
     local bundle="$BUILD_DIR/macos/$APP_NAME.app"
     mkdir -p "$out"
-    [ -f "$NATIVE_DIR/macos/libNativeAudio.dylib" ] || die "Missing macOS libNativeAudio.dylib (use --native)"
+    [ -f "$NATIVE_DIR/macos/libNativeAudio.dylib" ] || die "Missing macOS libNativeAudio.dylib"
     command -v docker >/dev/null || die "docker is required for lipo (macOS universal binary)"
 
     publish osx-x64
@@ -495,11 +513,9 @@ fi
 
 use_private_client_auth
 
-if $BUILD_NATIVE; then
-    has linux && build_native_linux
-    has win && build_native_win
-    has macos && build_native_macos
-fi
+has linux && build_native_if_needed "$NATIVE_DIR/lin/libNativeAudio.so" build_native_linux
+has win && build_native_if_needed "$NATIVE_DIR/win/NativeAudio.dll" build_native_win
+has macos && build_native_if_needed "$NATIVE_DIR/macos/libNativeAudio.dylib" build_native_macos
 
 for p in "${PLATFORMS[@]}"; do "build_$p"; done
 
