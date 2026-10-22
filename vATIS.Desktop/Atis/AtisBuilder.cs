@@ -101,6 +101,31 @@ public class AtisBuilder : IAtisBuilder
     }
 
     /// <inheritdoc/>
+    public async Task<string?> BuildVoiceScript(AtisStation station, AtisPreset preset, char currentAtisLetter,
+        DecodedMetar decodedMetar, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ArgumentNullException.ThrowIfNull(station);
+        ArgumentNullException.ThrowIfNull(preset);
+        ArgumentNullException.ThrowIfNull(decodedMetar);
+
+        if (preset.ExternalGenerator is { Enabled: true })
+        {
+            var external = await GetExternalAtis(preset.ExternalGenerator.VoiceUrl, currentAtisLetter.ToString(),
+                decodedMetar.RawMetar, preset.ExternalGenerator);
+            return external == null ? null : FormatForTextToSpeech(external, station);
+        }
+
+        var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
+                          throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
+
+        var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
+
+        return await BuildVoiceText(station, preset, currentAtisLetter, variables, decodedMetar, cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public string GetSpokenText(string token, AtisStation station)
     {
         // Station contractions are expanded first, as when building the voice ATIS.
@@ -364,6 +389,26 @@ public class AtisBuilder : IAtisBuilder
     private async Task<(string? SpokenText, byte[]? AudioBytes)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
         char currentAtisLetter, List<AtisVariable> variables, DecodedMetar metar, CancellationToken cancellationToken)
     {
+        var text = await BuildVoiceText(station, preset, currentAtisLetter, variables, metar, cancellationToken);
+
+        if (station.AtisVoice.UseTextToSpeech)
+        {
+            if (_textToSpeechService == null)
+                throw new AtisBuilderException("TextToSpeech service not initialized");
+
+            var synthesizedAudio = await _textToSpeechService.RequestAudio(text, station, currentAtisLetter, cancellationToken);
+            return (text, synthesizedAudio);
+        }
+
+        if (station.AtisVoice.UseWavPack)
+            return BuildWavPackAudio(text, station);
+
+        return (text, null);
+    }
+
+    private async Task<string> BuildVoiceText(AtisStation station, AtisPreset preset, char currentAtisLetter,
+        List<AtisVariable> variables, DecodedMetar metar, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
 
         var template = preset.Template ?? "";
@@ -441,19 +486,7 @@ public class AtisBuilder : IAtisBuilder
         text = Regex.Replace(text, @"[!?.]*([!?.])", "$1"); // clean up duplicate punctuation one last time
         text = Regex.Replace(text, "\\s+([.,!\":])", "$1");
 
-        if (station.AtisVoice.UseTextToSpeech)
-        {
-            if (_textToSpeechService == null)
-                throw new AtisBuilderException("TextToSpeech service not initialized");
-
-            var synthesizedAudio = await _textToSpeechService.RequestAudio(text, station, currentAtisLetter, cancellationToken);
-            return (text, synthesizedAudio);
-        }
-
-        if (station.AtisVoice.UseWavPack)
-            return BuildWavPackAudio(text, station);
-
-        return (text, null);
+        return text;
     }
 
     private (string SpokenText, byte[] Pcm) BuildWavPackAudio(string text, AtisStation station)

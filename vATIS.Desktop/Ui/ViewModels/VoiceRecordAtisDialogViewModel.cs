@@ -16,8 +16,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using AvaloniaEdit.CodeCompletion;
+using AvaloniaEdit.Document;
 using ReactiveUI;
 using Vatsim.Vatis.Config;
+using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Voice.Audio;
@@ -27,7 +30,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// <summary>
 /// Provides functionality and state management for the Voice Record ATIS dialog.
 /// </summary>
-public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
+public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private static readonly TimeSpan MinimumRecordingDuration = TimeSpan.FromSeconds(5);
     private readonly CompositeDisposable _disposables = new();
@@ -36,8 +39,13 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     private readonly System.Timers.Timer _elapsedTimeUpdateTimer;
     private readonly System.Timers.Timer _maxRecordingDurationTimer;
     private bool _showOverlay;
+    private bool _isScriptLoading;
+    private string? _scriptLoadError;
     private byte[] _audioBuffer = [];
-    private string? _atisScript;
+    private string? _textScript;
+    private string? _voiceScript;
+    private bool _showVoiceScript;
+    private TextDocument _scriptDocument = new();
     private bool _isPlaybackEnabled;
     private bool _isPreviousRecording;
     private bool _showMinimumDurationWarning;
@@ -212,12 +220,98 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the ATIS script text.
+    /// Gets or sets a value indicating whether the ATIS script is still being fetched.
     /// </summary>
-    public string? AtisScript
+    public bool IsScriptLoading
     {
-        get => _atisScript;
-        set => this.RaiseAndSetIfChanged(ref _atisScript, value);
+        get => _isScriptLoading;
+        set => this.RaiseAndSetIfChanged(ref _isScriptLoading, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the error message to show if the ATIS script couldn't be loaded, or null if there wasn't one.
+    /// </summary>
+    public string? ScriptLoadError
+    {
+        get => _scriptLoadError;
+        set => this.RaiseAndSetIfChanged(ref _scriptLoadError, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the text ATIS script.
+    /// </summary>
+    public string? TextScript
+    {
+        get => _textScript;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _textScript, value);
+            OnAtisScriptChanged();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice (spoken) ATIS script. When null, the voice option is unavailable.
+    /// </summary>
+    public string? VoiceScript
+    {
+        get => _voiceScript;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _voiceScript, value);
+            this.RaisePropertyChanged(nameof(HasVoiceScript));
+            OnAtisScriptChanged();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether a voice script is available to display.
+    /// </summary>
+    public bool HasVoiceScript => !string.IsNullOrEmpty(_voiceScript);
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the voice script is shown instead of the text script.
+    /// </summary>
+    public bool ShowVoiceScript
+    {
+        get => _showVoiceScript;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showVoiceScript, value);
+            OnAtisScriptChanged();
+        }
+    }
+
+    /// <summary>
+    /// Gets the script currently displayed for reading aloud.
+    /// </summary>
+    public string? AtisScript => _showVoiceScript && HasVoiceScript ? _voiceScript : _textScript;
+
+    /// <summary>
+    /// Gets the document displaying the current <see cref="AtisScript"/>.
+    /// </summary>
+    public TextDocument ScriptDocument
+    {
+        get => _scriptDocument;
+        private set => this.RaiseAndSetIfChanged(ref _scriptDocument, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the source that provides the contractions and spoken text used to underline the script.
+    /// </summary>
+    public ISpokenTextSource? SpokenTextSource { get; set; }
+
+    /// <inheritdoc/>
+    public List<ICompletionData> ContractionCompletionData => SpokenTextSource?.ContractionCompletionData ?? [];
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, string> BuiltInContractions =>
+        SpokenTextSource?.BuiltInContractions ?? new Dictionary<string, string>();
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        return SpokenTextSource?.GetSpokenText(token);
     }
 
     /// <summary>
@@ -539,6 +633,12 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         {
             window.Close(false);
         }
+    }
+
+    private void OnAtisScriptChanged()
+    {
+        this.RaisePropertyChanged(nameof(AtisScript));
+        ScriptDocument = new TextDocument(AtisScript ?? string.Empty);
     }
 
     private void UpdateDeviceSelectionEnabled()
