@@ -11,7 +11,8 @@
 #   --dmg-only  Rebuild only the macOS DMG from the app left by the last full macOS build.
 #
 # Output goes to publish/release/{linux,windows,macos}. Those directories accumulate releases:
-# Velopack builds delta packages against the previous release found there. If a directory is empty,
+# Delta packages are disabled (--delta None), but the previous release is kept so the new releases.*.json feed
+# still lists it. If a directory is empty,
 # the previous release is downloaded from VATIS_RELEASES_URL (default https://vatis.app/downloads,
 # with linux/, windows/, macos/ below it). Copy the new files to your server yourself, with the
 # releases.*.json feed last.
@@ -197,19 +198,19 @@ ensure_appimagetool() {
     mv -f "$APPIMAGETOOL.part" "$APPIMAGETOOL"
 }
 
-# Seeds an empty output dir with the previous release (for delta packages). The channel must be given:
+# Seeds an empty output dir with the previous release (so the feed keeps listing it). The channel must be given:
 # vpk otherwise assumes the host OS's channel (linux), whatever platform is being built.
 vpk_download() { # <prefix> <channel> <outdir>
     if [ -n "$(ls -A "$3" 2>/dev/null)" ]; then return 0; fi
     local feed="${VATIS_RELEASES_URL%/}/$1/releases.$2.json"
     if ! curl -fsI "$feed" >/dev/null 2>&1; then
-        err "No previous release at $feed; building without deltas"
+        err "No previous release at $feed; building without it"
         return 0
     fi
     ensure_vpk
     info "Fetching previous $1 release"
     "$VPK_STOCK" download http --url "${VATIS_RELEASES_URL%/}/$1" --channel "$2" --outputDir "$3" \
-        || err "Download failed; building without deltas"
+        || err "Download failed; building without it"
 }
 
 # -------------------------------------------------------------------- signing
@@ -296,7 +297,7 @@ build_linux() {
     info "vpk pack (linux)"
     VPK_APPIMAGETOOL="$APPIMAGETOOL" dotnet "$VPK_PATCHED" pack -y --skip-updates --packId "$PACK_ID" --packTitle "$APP_NAME" --packVersion "$VERSION" \
         --packAuthors "$AUTHORS" --packDir "$BUILD_DIR/linux-x64" --mainExe "$APP_NAME" \
-        --delta BestSize --icon ./vATIS.Desktop/Assets/MainIcon.png --categories "AudioVideo;Audio" \
+        --delta None --icon ./vATIS.Desktop/Assets/MainIcon.png --categories "AudioVideo;Audio" \
         --releaseNotes "$(release_notes)" --outputDir "$out" --verbose
 
     mv -f "$out/$PACK_ID.AppImage" "$out/$APP_NAME.AppImage"
@@ -321,7 +322,7 @@ build_win() {
     info "vpk pack (windows)"
     "$VPK_STOCK" "[win]" pack -y --skip-updates --runtime win-x64 --packId "$PACK_ID" --packTitle "$APP_NAME" \
         --packVersion "$VERSION" --packAuthors "$AUTHORS" --packDir "$BUILD_DIR/win-x64" \
-        --mainExe "$APP_NAME.exe" --noPortable --delta BestSize --skipVeloAppCheck \
+        --mainExe "$APP_NAME.exe" --noPortable --delta None --skipVeloAppCheck \
         --icon ./vATIS.Desktop/Assets/MainIcon.ico --releaseNotes "$(release_notes)" \
         --outputDir "$out" "${sign[@]}" --verbose
 
@@ -411,7 +412,7 @@ EOF
     info "vpk pack (macos)"
     env "${env_args[@]}" dotnet "$VPK_PATCHED" "[osx]" pack -y --skip-updates --packId "$PACK_ID" \
         --packTitle "$APP_NAME" --packVersion "$VERSION" --packAuthors "$AUTHORS" --packDir "$bundle" \
-        --mainExe "$APP_NAME" --noInst --delta BestSize --icon ./scripts/macos/AppIcon.icns \
+        --mainExe "$APP_NAME" --noInst --delta None --icon ./scripts/macos/AppIcon.icns \
         --signEntitlements "$ROOT/scripts/app.entitlements" --releaseNotes "$(release_notes)" \
         --outputDir "$out" --verbose
 
