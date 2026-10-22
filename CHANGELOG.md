@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v4.1.0-beta.20
 ### Added
 - Added a JSON-only `disconnectIfUnrecorded` option to automatically disconnect a recorded voice ATIS if it hasn't been recorded within 5 minutes of connecting.
-- Added support for double-tapping the main window.
+- Added support for double-clicking the main window to open the mini-window.
 - Added a `--import-profile` command-line argument to import a profile from a file path.
 - Added a `syncAtisLetter` property to the `configureAtis` WebSocket message.
 - Added support for the `setAtisLetter` WebSocket message and broadcasting connection errors to all WebSocket clients.
@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added customizable spoken phrases and text for runway visual range.
 - Added custom text and voice formatting for CAVOK.
 - Added custom separators for airport conditions and NOTAMs.
-- Added an "Include" option for static airport conditions and NOTAMs, allowing entries to appear only when specific VATSIM controllers are online or offline (e.g., `EPWA_APP`, `EPWW_*_CTR`), using the VATSIM data feed.
-- Added conditional weather rules for static airport conditions and NOTAMs, allowing entries to appear only when METAR conditions match a specified expression (e.g., `ceiling < 200ft AND (rvr < 550m OR visibility < 100m)`). Conditions support AND, OR, NOT, and parentheses, and auto-complete as you type.
+- Added an "Include" option for static airport conditions and NOTAMs, allowing entries to appear only when specific ATC stations are online or offline (e.g., `LAX_TWR`, `EPWW_*_CTR`).
+- Added conditional weather rules for static airport conditions and NOTAMs, allowing entries to appear only when METAR conditions match a specified expression (e.g., `ceiling < 200ft AND (rvr < 550m OR visibility < 100m)`).
 - Added runway condition reporting from METAR runway state groups.
 - Added remark wind information to the ATIS.
 - Added an `[AUTO]` variable for automatic observations, a `[METAR]` variable for raw METAR data, a per-preset threshold QFE variable, and a `{feet}` cloud token.
@@ -40,22 +40,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added regex pattern replacements with functions (`$group`, `$digits`, `$spell`, `$phonetic`) for modifying written and spoken ATIS.
 - Added a text/voice script toggle to the Record ATIS dialog.
 - Added support for visibility in kilometers in the METAR decoder.
+
 ### Changed
-- Upgraded to .NET 10 and Avalonia 11.3, and updated Velopack and SignalR packages.
 - Improved application startup and profile loading performance.
-- Updated the UI font to IBM Plex Sans with a new UI font size setting, and the monospace font to Intel One Mono, and applied the monospace font to grid cell values and ATIS text boxes.
 - Updated the application icon.
 - Standardized scrollbar styling throughout the application.
 - Updated button icons to use SVG assets.
-- Kept context menus open when a menu item is clicked.
 - Improved taxiway and runway identifier parsing for spoken ATIS.
-- Improved the voice ATIS request.
 - Included the full text ATIS in the IDS JSON and added an empty update on disconnect.
 - Updated network traffic encoding to Latin-1.
 - Preserved user-edited profile names during automatic profile updates.
 - Improved error reporting when navdata downloads fail.
-- Improved app configuration downloads by retrying on transient failures and racing connection attempts so a stalled connect doesn't block requests.
 - Redesigned the release notes window to organize changes into titled sections.
+- Updated Windows machine ID handling to remove whitespace and null terminators.
+
 ### Fixed
 - Fixed an error dialog appearing on Linux when a desktop service, such as the global menu or input method, is unavailable.
 - Fixed tooltips closing unexpectedly in dialog windows on macOS.
@@ -74,7 +72,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the sandbox ATIS refresh not selecting a random letter from the configured code range.
 - Fixed ATIS letter input and unintended letter shifting while typing.
 - Fixed window position restoration when opening the application.
-- Fixed whitespace and null terminators in the Windows machine ID.
 - Fixed local development configurations for VS Code and Rider.
 
 ## v4.1.0-beta.19
