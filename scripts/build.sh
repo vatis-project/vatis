@@ -5,11 +5,12 @@
 # Usage: scripts/build.sh <version> [--platform linux|win|macos]... [--skip-codesign]
 #
 #   --platform  Limit to one or more platforms (default: all three).
-#
-# NativeAudio is always rebuilt first for the selected platforms (the libraries are gitignored, so a stale one
-# would silently ship): Linux .so with cmake, Windows .dll and macOS .dylib via Docker (clang-cl + xwin, osxcross).
 #   --skip-codesign  Don't sign or notarize anything.
 #   --dmg-only  Rebuild only the macOS DMG from the app left by the last full macOS build.
+#
+# NativeAudio is rebuilt first for the selected platforms whenever its sources changed since the library was last
+# built (the libraries are gitignored, so a stale one would silently ship): Linux .so with cmake, Windows .dll and
+# macOS .dylib via Docker (clang-cl + xwin, osxcross).
 #
 # Output goes to publish/release/{linux,windows,macos}. Those directories accumulate releases:
 # Delta packages are disabled (--delta None), but the previous release is kept so the new releases.*.json feed
@@ -264,6 +265,24 @@ win_sign_template() {
 }
 
 # ---------------------------------------------------------------- native libs
+# Hash of everything under NativeAudio/ that git tracks or would track (build output is gitignored).
+native_source_hash() {
+    git ls-files -z --cached --others --exclude-standard -- NativeAudio | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
+}
+
+# Runs the given build command unless <lib> exists and was built from the current NativeAudio sources.
+build_native_if_needed() { # <lib> <build command...>
+    local lib="$1" hash; shift
+    hash="$(native_source_hash)"
+    if [ -f "$lib" ] && [ "$(cat "$lib.srchash" 2>/dev/null)" = "$hash" ]; then
+        info "NativeAudio up to date: $lib"
+        return
+    fi
+    "$@"
+    [ -f "$lib" ] || die "NativeAudio build did not produce $lib"
+    echo "$hash" > "$lib.srchash"
+}
+
 build_native_linux() {
     info "NativeAudio (linux)"
     cmake -S ./NativeAudio -B ./NativeAudio/build -DCMAKE_BUILD_TYPE=Release
@@ -494,9 +513,9 @@ fi
 
 use_private_client_auth
 
-has linux && build_native_linux
-has win && build_native_win
-has macos && build_native_macos
+has linux && build_native_if_needed "$NATIVE_DIR/lin/libNativeAudio.so" build_native_linux
+has win && build_native_if_needed "$NATIVE_DIR/win/NativeAudio.dll" build_native_win
+has macos && build_native_if_needed "$NATIVE_DIR/macos/libNativeAudio.dylib" build_native_macos
 
 for p in "${PLATFORMS[@]}"; do "build_$p"; done
 
