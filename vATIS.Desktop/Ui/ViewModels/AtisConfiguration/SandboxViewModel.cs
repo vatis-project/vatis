@@ -55,6 +55,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private AtisPreset? _selectedPreset;
     private AtisStation? _selectedStation;
     private AtisPreset? _previousPreset;
+    private bool _revertingPreset;
     private int _notamFreeTextOffset;
     private int _airportConditionsFreeTextOffset;
     private string? _sandboxMetar;
@@ -131,6 +132,11 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             }
         }));
     }
+
+    /// <summary>
+    /// Occurs when a preset switch is cancelled and the preset dropdown needs to go back to the selected preset.
+    /// </summary>
+    public event Action? PresetSelectionReverted;
 
     /// <summary>
     /// Gets or sets the dialog owner used for displaying dialogs within the view model.
@@ -352,6 +358,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             return;
 
         await SelectedPresetChangedCommand.Execute(preset);
+
+        if (SelectedPreset != preset)
+            return;
 
         if (string.IsNullOrEmpty(SandboxMetar))
         {
@@ -762,16 +771,34 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
     private async Task HandleSelectedPresetChanged(AtisPreset? preset)
     {
-        if (preset == null || DialogOwner == null)
+        if (preset == null || DialogOwner == null || _revertingPreset)
             return;
 
         if (preset != _previousPreset)
         {
             if (HasUnsavedNotams || HasUnsavedAirportConditions)
             {
-                if (await MessageBox.ShowDialog((Window)DialogOwner,
+                var result = await MessageBox.ShowDialog((Window)DialogOwner,
                         "You have unsaved Airport Conditions or NOTAMs. Would you like to save them first?",
-                        "Confirm", MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
+                        "Confirm", MessageBoxButton.YesNoCancel, MessageBoxIcon.Information);
+
+                if (result is MessageBoxResult.Cancel or MessageBoxResult.None)
+                {
+                    // put the dropdown back on the preset that's still selected
+                    _revertingPreset = true;
+                    try
+                    {
+                        PresetSelectionReverted?.Invoke();
+                    }
+                    finally
+                    {
+                        _revertingPreset = false;
+                    }
+
+                    return;
+                }
+
+                if (result == MessageBoxResult.Yes)
                 {
                     SaveNotamsTextCommand.Execute().Subscribe();
                     SaveAirportConditionsTextCommand.Execute().Subscribe();

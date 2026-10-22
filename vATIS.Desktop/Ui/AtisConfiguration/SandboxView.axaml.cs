@@ -41,6 +41,7 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
         if (_observedViewModel != null)
         {
             _observedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _observedViewModel.PresetSelectionReverted -= OnPresetSelectionReverted;
             _observedViewModel = null;
         }
 
@@ -48,6 +49,7 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
         {
             _observedViewModel = ViewModel;
             _observedViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _observedViewModel.PresetSelectionReverted += OnPresetSelectionReverted;
             UpdateConditionsRowHeight();
         }
 
@@ -73,6 +75,12 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
             NotamFreeText.TextArea.TextView.LineTransformers.Add(
                 new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
         }
+    }
+
+    // the dropdown is bound one-way, so a cancelled switch has to be put back by hand
+    private void OnPresetSelectionReverted()
+    {
+        SandboxSelectedPreset.SelectedItem = ViewModel?.SelectedPreset;
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

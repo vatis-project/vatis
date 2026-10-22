@@ -69,25 +69,47 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
             if (ViewModel is not { } model)
                 return;
 
-            if (model.HasUnsavedChanges && Stations.SelectedIndex != _currentStationIndex)
+            if (Stations.SelectedIndex != _currentStationIndex)
             {
-                var result = await MessageBox.ShowDialog(this,
-                    "You have unsaved changes. Are you sure you want to discard them?",
-                    "Confirm",
-                    MessageBoxButton.YesNo,
-                    MessageBoxIcon.Information);
-
-                if (result == MessageBoxResult.No)
+                if (model.SandboxViewModel is { HasUnsavedAirportConditions: true } or { HasUnsavedNotams: true })
                 {
-                    _suppressSelectionChanged = true;
-                    Stations.SelectedIndex = _currentStationIndex;
-                    _suppressSelectionChanged = false;
+                    var saveResult = await MessageBox.ShowDialog(this,
+                        "You have unsaved Airport Conditions or NOTAMs. Would you like to save them first?",
+                        "Confirm",
+                        MessageBoxButton.YesNoCancel,
+                        MessageBoxIcon.Information);
 
-                    e.Handled = true;
-                    return;
+                    if (saveResult is MessageBoxResult.Cancel or MessageBoxResult.None)
+                    {
+                        RevertStationSelection();
+                        e.Handled = true;
+                        return;
+                    }
+
+                    if (saveResult == MessageBoxResult.Yes)
+                    {
+                        model.SandboxViewModel.SaveNotamsTextCommand.Execute().Subscribe();
+                        model.SandboxViewModel.SaveAirportConditionsTextCommand.Execute().Subscribe();
+                    }
                 }
 
-                model.HasUnsavedChanges = false;
+                if (model.HasUnsavedChanges)
+                {
+                    var result = await MessageBox.ShowDialog(this,
+                        "You have unsaved changes. Are you sure you want to discard them?",
+                        "Confirm",
+                        MessageBoxButton.YesNo,
+                        MessageBoxIcon.Information);
+
+                    if (result == MessageBoxResult.No)
+                    {
+                        RevertStationSelection();
+                        e.Handled = true;
+                        return;
+                    }
+
+                    model.HasUnsavedChanges = false;
+                }
             }
 
             if (e.AddedItems.Count > 0 && e.AddedItems[0] is AtisStation station)
@@ -100,6 +122,13 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
         {
             Log.Error(ex, "Error while loading composites");
         }
+    }
+
+    private void RevertStationSelection()
+    {
+        _suppressSelectionChanged = true;
+        Stations.SelectedIndex = _currentStationIndex;
+        _suppressSelectionChanged = false;
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
