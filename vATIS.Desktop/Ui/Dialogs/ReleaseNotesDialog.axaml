@@ -2,68 +2,96 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:mdxaml="https://github.com/whistyun/Markdown.Avalonia"
         xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:controls="using:Vatsim.Vatis.Ui.Controls"
+        xmlns:groupBox="clr-namespace:Vatsim.Vatis.Ui.Controls.GroupBox"
         xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
         mc:Ignorable="d"
         x:Class="Vatsim.Vatis.Ui.Dialogs.ReleaseNotesDialog"
         x:Name="Window"
-        Title="Release Notes"
-        Width="700" Height="475"
+        Title="What's New"
+        Width="760" Height="560"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
+    <Window.Styles>
+        <Style Selector="ctxt|CTextBlock.ReleaseNote">
+            <Setter Property="FontSize" Value="{DynamicResource UiFontSize}"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="ctxt|CTextBlock.ReleaseNote ctxt|CCode">
+            <Setter Property="MonospaceFontFamily" Value="{StaticResource Monospace}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#646464"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="4,1"/>
+        </Style>
+    </Window.Styles>
     <Border BorderBrush="#646464" BorderThickness="1" Background="#1E1E1E" CornerRadius="5" ClipToBounds="True">
         <Grid RowDefinitions="40,*,Auto">
             <Border CornerRadius="5,5,0,0" Background="#1E1E1E" Height="40" Grid.Row="0">
                 <Grid ColumnDefinitions="1*,1*">
-                    <TextBlock Text="Release Notes" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="{DynamicResource UiFontSize}" Grid.Column="0" />
+                    <TextBlock Text="What's New" Padding="5" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" FontSize="{DynamicResource UiFontSize}" Grid.Column="0" />
                     <Button Grid.Column="1" Theme="{StaticResource CloseButton}" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding CloseWindowCommand, DataType=vm:ReleaseNotesDialogViewModel}" CommandParameter="{Binding ElementName=Window}"/>
                 </Grid>
             </Border>
             <Panel Grid.Row="1" Background="#323232">
-                <mdxaml:MarkdownScrollViewer Markdown="{Binding ReleaseNotes, DataType=vm:ReleaseNotesDialogViewModel}" Margin="10">
-                    <mdxaml:MarkdownScrollViewer.Styles>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CTextBlock.Heading1">
-                            <Setter Property="FontSize" Value="28"/>
-                        </Style>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CTextBlock.Heading2">
-                            <Setter Property="FontSize" Value="24"/>
-                        </Style>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CTextBlock.Heading3">
-                            <Setter Property="FontSize" Value="18"/>
-                        </Style>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer .List ctxt|CTextBlock">
-                            <Setter Property="FontSize" Value="{DynamicResource UiFontSize}"/>
-                        </Style>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CHyperlink">
-                            <Style.Setters>
-                                <Setter Property="IsUnderline" Value="False" />
-                                <Setter Property="Foreground" Value="#3574F0" />
-                            </Style.Setters>
-                        </Style>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CHyperlink:pointerover">
-                            <Setter Property="Foreground" Value="#3574F0" />
-                        </Style>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer TextBlock.CodeBlock">
-                            <Style.Setters>
-                                <Setter Property="Foreground" Value="White" />
-                            </Style.Setters>
-                        </Style>
-                        <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CCode">
-                            <Style.Setters>
-                                <Setter Property="Foreground" Value="White" />
-                            </Style.Setters>
-                        </Style>
-                    </mdxaml:MarkdownScrollViewer.Styles>
-                </mdxaml:MarkdownScrollViewer>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="24,12,24,0">
+                        <TextBlock FontSize="26" FontWeight="Medium" Foreground="#F0F0F0">
+                            <Run Text="vATIS "/><Run Text="{Binding Version, DataType=vm:ReleaseNotesDialogViewModel}"/>
+                        </TextBlock>
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ScrollViewer.OpacityMask>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                <GradientStop Offset="0" Color="#00000000"/>
+                                <GradientStop Offset="0.05" Color="#FF000000"/>
+                                <GradientStop Offset="0.9" Color="#FF000000"/>
+                                <GradientStop Offset="1" Color="#00000000"/>
+                            </LinearGradientBrush>
+                        </ScrollViewer.OpacityMask>
+                        <ItemsControl Margin="24,18,24,32" ItemsSource="{Binding Sections, DataType=vm:ReleaseNotesDialogViewModel}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="18"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ReleaseNoteSection">
+                                    <groupBox:GroupBoxControl Header="{Binding Title}" Foreground="#D4A640" FontSize="15" Theme="{StaticResource GroupBoxClassic}">
+                                        <ItemsControl ItemsSource="{Binding Items}" Margin="12,12,12,14">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Spacing="9"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <Grid ColumnDefinitions="Auto,*">
+                                                        <Ellipse Width="5" Height="5" Fill="#A98A38" VerticalAlignment="Top" Margin="2,9,12,0"/>
+                                                        <ctxt:CTextBlock Grid.Column="1" Classes="ReleaseNote" controls:ReleaseNoteText.Text="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </groupBox:GroupBoxControl>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
             </Panel>
             <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="10">
                 <CheckBox Grid.Column="0" VerticalAlignment="Center" Theme="{StaticResource CheckBox}" Content="Don't show this window after future updates." IsChecked="{Binding SuppressReleaseNotes, DataType=vm:ReleaseNotesDialogViewModel}" />
-                <Button Grid.Column="1" VerticalAlignment="Center" Theme="{StaticResource Dark}" FontSize="{DynamicResource UiFontSize}" Content="Close Release Notes" Click="CloseWindow"/>
+                <Button Grid.Column="1" VerticalAlignment="Center" Theme="{StaticResource Dark}" FontSize="{DynamicResource UiFontSize}" Content="Close" Click="CloseWindow"/>
             </Grid>
         </Grid>
     </Border>

@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preserved user-edited profile names on automatic profile update.
 - Retried app configuration downloads on transient failures and raced connection attempts so a stalled connect doesn't block requests.
 - Showed a clear error when the navdata download fails.
+- Redesigned the release notes window to group changes into titled sections.
 ### Fixed
 - Fixed an error dialog on Linux when a desktop service, such as the global menu or input method, is not running.
 - Fixed tooltips closing on their own in dialog windows on macOS.
