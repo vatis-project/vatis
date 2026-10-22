@@ -32,6 +32,7 @@ using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
+using Vatsim.Vatis.Ui.Services;
 using Vatsim.Vatis.Ui.Services.Websocket;
 using Vatsim.Vatis.Ui.Startup;
 using Vatsim.Vatis.Ui.ViewModels;
@@ -101,6 +102,9 @@ public class App : Application
 
                 _serviceProvider = new Container.ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
+
+                // Tooltips in dialog windows close early on macOS.
+                ModalToolTipFallback.Register();
 
                 if (OperatingSystem.IsMacOS() && AppContext.BaseDirectory.StartsWith("/Volumes"))
                 {
