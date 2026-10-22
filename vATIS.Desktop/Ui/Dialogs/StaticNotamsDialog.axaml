@@ -101,7 +101,7 @@
 						</Grid>
 					</StackPanel>
 					<Grid ColumnDefinitions="1*,Auto" Margin="0,15,0,0">
-						<CheckBox Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Theme="{StaticResource CheckBox}" IsChecked="{Binding IncludeBeforeFreeText, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}" ToolTip.Tip="When enabled, the selected definitions will be included before the free-form NOTAMs text in the generated ATIS.&#x0a;&#x0a;Note: the selected definitions will always appear first in the main UI, regardless of whether this setting is checked.">Include before free-form NOTAMs.</CheckBox>
+						<CheckBox Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Theme="{StaticResource CheckBox}" IsChecked="{Binding IncludeBeforeFreeText, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}" ToolTip.Tip="When enabled, the selected definitions will be included before the free-form NOTAMs text in the generated ATIS.">Include before free-form NOTAMs.</CheckBox>
 						<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
 							<TextBlock VerticalAlignment="Center" Text="Default separator:" ToolTip.Tip="Applies to every entry in this list unless an entry sets its own. Text placed between each selected NOTAMs definition, used exactly as typed (including spaces). Default is a period followed by a space. To override it for one entry, edit that entry and set its 'Separator after'." />
 							<TextBox Width="80" Height="30" MinHeight="30" FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Text="{Binding Separator, DataType=vm:StaticNotamsDialogViewModel}" />
