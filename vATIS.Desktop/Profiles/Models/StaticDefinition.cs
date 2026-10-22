@@ -59,6 +59,14 @@ public class StaticDefinition : ReactiveObject
     public string? StationCallsigns { get; set; }
 
     /// <summary>
+    /// Gets or sets a condition on the METAR that must be met for this definition to be included, written as text,
+    /// e.g. <c>ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m)</c>. Combined with
+    /// <see cref="StationCondition"/>: both must pass.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WeatherCondition { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the static definition is enabled.
     /// </summary>
     public bool Enabled
@@ -87,6 +95,7 @@ public class StaticDefinition : ReactiveObject
             SeparatorAfter = SeparatorAfter,
             StationCondition = StationCondition,
             StationCallsigns = StationCallsigns,
+            WeatherCondition = WeatherCondition,
         };
     }
 }

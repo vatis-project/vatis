@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added custom text and voice formatting for CAVOK.
 - Added custom separators for airport conditions and NOTAMs.
 - Added an "Include" option to static airport conditions and NOTAMs to show them only while specific VATSIM controllers are online or offline (e.g. `EPWA_APP`, `EPWW_*_CTR`), using the VATSIM data feed.
+- Added a weather condition to static airport conditions and NOTAMs, so an entry such as LVP is included only when the METAR meets a condition you write, e.g. `ceiling < 200ft AND (rvr < 550m OR visibility < 100m)`. Conditions can use AND, OR, NOT and parentheses, cover ceiling, cloud base, RVR, visibility, wind, temperature, dewpoint, QNH, runway deposit depth, present weather, cloud type, windshear and CAVOK, and auto-complete as you type.
 - Added runway condition reporting from METAR runway state groups.
 - Added remark wind to the ATIS.
 - Added an `[AUTO]` variable for automatic observation, a `[METAR]` raw METAR variable, a per-preset threshold QFE variable, and a `{feet}` cloud token.

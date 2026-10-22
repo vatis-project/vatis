@@ -778,6 +778,11 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         PopulateAirportConditions();
     }
 
+    private DecodedMetar? GetSandboxMetar()
+    {
+        return string.IsNullOrWhiteSpace(SandboxMetar) ? null : _metarDecoder.ParseNotStrict(SandboxMetar);
+    }
+
     private void MonitorOnlineControllersIfNeeded()
     {
         if (SelectedStation != null &&
@@ -868,8 +873,9 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             return;
 
         // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
-        var staticDefinitions =
-            StaticDefinitionFilter.GetActive(SelectedStation.NotamDefinitions, _vatsimDataService.OnlineControllers);
+        var staticDefinitions = StaticDefinitionFilter.GetActive(
+            SelectedStation.NotamDefinitions, _vatsimDataService.OnlineControllers, GetSandboxMetar(),
+            SelectedStation.AtisFormat);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
@@ -961,7 +967,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         // Retrieve and sort enabled static airport conditions by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
-            SelectedStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers);
+            SelectedStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers, GetSandboxMetar(),
+            SelectedStation.AtisFormat);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
