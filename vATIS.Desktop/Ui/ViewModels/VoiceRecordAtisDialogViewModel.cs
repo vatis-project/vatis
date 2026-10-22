@@ -308,12 +308,6 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     public IReadOnlyDictionary<string, string> BuiltInContractions =>
         SpokenTextSource?.BuiltInContractions ?? new Dictionary<string, string>();
 
-    /// <inheritdoc/>
-    public string? GetSpokenText(string token)
-    {
-        return SpokenTextSource?.GetSpokenText(token);
-    }
-
     /// <summary>
     /// Gets or sets a value indicating whether playback functionality is enabled.
     /// </summary>
@@ -445,6 +439,12 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     /// Gets or sets the owner of the dialog window.
     /// </summary>
     public Window? DialogOwner { get; set; }
+
+    /// <inheritdoc/>
+    public string? GetSpokenText(string token)
+    {
+        return SpokenTextSource?.GetSpokenText(token);
+    }
 
     /// <summary>
     /// Updates the position of the specified window using the window location service.

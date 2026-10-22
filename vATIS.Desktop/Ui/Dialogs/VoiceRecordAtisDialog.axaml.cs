@@ -38,12 +38,6 @@ public partial class VoiceRecordAtisDialog : ReactiveWindow<VoiceRecordAtisDialo
         InitializeComponent();
     }
 
-    private void ScriptEditor_OnDocumentChanged(object? sender, DocumentChangedEventArgs e)
-    {
-        // A new script should start at the top, not at the previous script's scroll offset.
-        Dispatcher.UIThread.Post(() => ScriptEditor.ScrollToHome(), DispatcherPriority.Loaded);
-    }
-
     /// <summary>
     /// Handles the operations when the dialog is opened.
     /// </summary>
@@ -67,6 +61,12 @@ public partial class VoiceRecordAtisDialog : ReactiveWindow<VoiceRecordAtisDialo
         {
             model.RestorePosition(this);
         }
+    }
+
+    private void ScriptEditor_OnDocumentChanged(object? sender, DocumentChangedEventArgs e)
+    {
+        // A new script should start at the top, not at the previous script's scroll offset.
+        Dispatcher.UIThread.Post(() => ScriptEditor.ScrollToHome(), DispatcherPriority.Loaded);
     }
 
     private void OnClosed(object? sender, EventArgs e)
