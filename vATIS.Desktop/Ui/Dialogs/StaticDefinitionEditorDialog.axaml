@@ -117,15 +117,6 @@
 							</TextBlock>
 						</StackPanel>
 					</Grid>
-					<Grid ColumnDefinitions="Auto,130,*">
-						<TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0" Text="Include:" ToolTip.Tip="Optionally include this entry only while specific controllers are online (or offline), based on the VATSIM data feed." />
-						<ComboBox Grid.Column="1" Classes="Dark" HorizontalAlignment="Stretch" SelectedIndex="{Binding StationConditionIndex, DataType=vm:StaticDefinitionEditorDialogViewModel}">
-							<ComboBoxItem>Always</ComboBoxItem>
-							<ComboBoxItem>When online</ComboBoxItem>
-							<ComboBoxItem>When offline</ComboBoxItem>
-						</ComboBox>
-						<TextBox Grid.Column="2" Margin="5,0,0,0" FontFamily="{StaticResource Monospace}" Watermark="EPWA_APP, EPWW_*_CTR" Theme="{StaticResource DarkTextBox}" IsVisible="{Binding HasStationCondition, DataType=vm:StaticDefinitionEditorDialogViewModel}" Text="{Binding StationCallsigns, DataType=vm:StaticDefinitionEditorDialogViewModel}" ToolTip.Tip="Callsigns separated by commas or spaces. Use * as a wildcard, e.g. EPWW_*_CTR." />
-					</Grid>
 					<TextBox FontFamily="{StaticResource Monospace}" Name="DataValidation" Theme="{StaticResource Hidden}" Text="{Binding DataValidation, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
 				</StackPanel>
 				<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5">
