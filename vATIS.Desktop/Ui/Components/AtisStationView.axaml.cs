@@ -32,6 +32,10 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     {
         InitializeComponent();
 
+        // Don't leave empty space below the last line of the free-text boxes.
+        AirportConditions.Options.AllowScrollBelowDocument = false;
+        NotamText.Options.AllowScrollBelowDocument = false;
+
         TypeAtisLetter.KeyDown += TypeAtisLetterOnKeyDown;
         MetarInput.KeyDown += MetarInputOnKeyDown;
         MetarInput.LostFocus += MetarInputOnLostFocus;
