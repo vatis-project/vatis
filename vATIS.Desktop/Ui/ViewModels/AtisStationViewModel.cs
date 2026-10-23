@@ -2703,42 +2703,41 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         if (isMatchingId || isMatchingStation)
         {
-            var preset = AtisStation.Presets.FirstOrDefault(x => x.Name == e.Payload.Preset);
-            if (preset != null)
+            // Omitted fields are left untouched so a limited payload doesn't wipe existing data.
+            AtisPreset? preset = null;
+            if (!string.IsNullOrEmpty(e.Payload.Preset))
             {
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    _websocketSyncAtisLetter = e.Payload.SyncAtisLetter ?? false;
-                    SyncAtisLetter().SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to sync ATIS letter"));
+                preset = AtisStation.Presets.FirstOrDefault(x => x.Name == e.Payload.Preset);
+                if (preset == null)
+                    throw new Exception($"Invalid Preset: {e.Payload.Preset}");
+            }
 
-                    SelectedAtisPreset = preset;
-                    UpdatePresetData(e.Payload);
-                });
-            }
-            else
+            Dispatcher.UIThread.Invoke(() =>
             {
-                throw new Exception($"Invalid Preset: {e.Payload.Preset}");
-            }
+                if (e.Payload.SyncAtisLetter.HasValue)
+                {
+                    _websocketSyncAtisLetter = e.Payload.SyncAtisLetter.Value;
+                    SyncAtisLetter().SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to sync ATIS letter"));
+                }
+
+                if (preset != null)
+                    SelectedAtisPreset = preset;
+
+                UpdatePresetData(e.Payload);
+            });
         }
     }
 
     private void UpdatePresetData(ConfigureAtisMessage.ConfigureAtisMessagePayload payload)
     {
         if (SelectedAtisPreset != null)
-        {
-            SelectedAtisPreset.AirportConditions = payload.AirportConditionsFreeText ?? "";
-            SelectedAtisPreset.Notams = payload.NotamsFreeText ?? "";
-        }
+            payload.ApplyTo(SelectedAtisPreset);
 
-        if (AirportConditionsTextDocument != null)
-        {
-            AirportConditionsTextDocument.Text = payload.AirportConditionsFreeText ?? "";
-        }
+        if (payload.AirportConditionsFreeText != null && AirportConditionsTextDocument != null)
+            AirportConditionsTextDocument.Text = payload.AirportConditionsFreeText;
 
-        if (NotamsTextDocument != null)
-        {
-            NotamsTextDocument.Text = payload.NotamsFreeText ?? "";
-        }
+        if (payload.NotamsFreeText != null && NotamsTextDocument != null)
+            NotamsTextDocument.Text = payload.NotamsFreeText;
     }
 
     private void OnConnectAtisReceived(object? sender, GetConnectAtisReceived e)
