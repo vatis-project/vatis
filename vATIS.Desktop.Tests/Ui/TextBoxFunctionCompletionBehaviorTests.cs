@@ -31,7 +31,7 @@ public class TextBoxFunctionCompletionBehaviorTests
     public void Filter_MatchesPrefixCaseInsensitively()
     {
         Assert.Equal(["phonetic"], TextBoxFunctionCompletionBehavior.Filter("PH").Select(f => f.Name));
-        Assert.Equal(4, TextBoxFunctionCompletionBehavior.Filter(string.Empty).Count);
+        Assert.Equal(5, TextBoxFunctionCompletionBehavior.Filter(string.Empty).Count);
     }
 
     [Theory]
