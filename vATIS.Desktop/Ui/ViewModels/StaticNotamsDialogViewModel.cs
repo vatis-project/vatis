@@ -261,8 +261,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void RemoveSelected()
     {
-        var selectedItem = Source.RowSelection?.SelectedItem;
-        if (selectedItem != null)
+        foreach (var selectedItem in Source.RowSelection?.SelectedItems.OfType<StaticDefinition>().ToList() ?? [])
         {
             Definitions.Remove(selectedItem);
         }
@@ -405,8 +404,13 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         if (Owner == null)
             return;
 
+        var count = Source.RowSelection?.SelectedItems.Count ?? 0;
+        var message = count > 1
+            ? $"Are you sure you want to delete the {count} selected NOTAMs?"
+            : "Are you sure you want to delete the selected NOTAM?";
+
         if (await MessageBox.ShowDialog(Owner,
-                "Are you sure you want to delete the selected NOTAM?", "Confirm",
+                message, "Confirm",
                 MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
         {
             RemoveSelected();

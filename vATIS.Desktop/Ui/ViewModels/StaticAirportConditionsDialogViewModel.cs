@@ -255,8 +255,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
     private void RemoveSelected()
     {
-        var selectedItem = Source.RowSelection?.SelectedItem;
-        if (selectedItem != null)
+        foreach (var selectedItem in Source.RowSelection?.SelectedItems.OfType<StaticDefinition>().ToList() ?? [])
         {
             Definitions.Remove(selectedItem);
         }
@@ -400,8 +399,13 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         if (Owner == null)
             return;
 
+        var count = Source.RowSelection?.SelectedItems.Count ?? 0;
+        var message = count > 1
+            ? $"Are you sure you want to delete the {count} selected airport conditions?"
+            : "Are you sure you want to delete the selected airport condition?";
+
         if (await MessageBox.ShowDialog(Owner,
-                "Are you sure you want to delete the selected airport condition?", "Confirm",
+                message, "Confirm",
                 MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
         {
             RemoveSelected();
