@@ -26,6 +26,7 @@ public class NewPatternDialogViewModel : ReactiveViewModelBase, IDisposable
     private bool _showAddToAllStations = true;
     private string? _pattern;
     private string? _sampleText;
+    private bool _runwayLeadingZero;
     private bool _sampleEditedByUser;
     private bool _settingSampleFromPattern;
     private bool _hasPreview;
@@ -92,6 +93,16 @@ public class NewPatternDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _title;
         set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether <c>$runway</c> speaks a single-digit runway with a leading zero, as for
+    /// an ICAO station, so the preview matches the real ATIS.
+    /// </summary>
+    public bool RunwayLeadingZero
+    {
+        get => _runwayLeadingZero;
+        set => this.RaiseAndSetIfChanged(ref _runwayLeadingZero, value);
     }
 
     /// <summary>
@@ -250,7 +261,7 @@ public class NewPatternDialogViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        var matched = PatternMatcher.TryPreview(Pattern, Text, Spoken, SampleText, out var text, out var voice);
+        var matched = PatternMatcher.TryPreview(Pattern, Text, Spoken, SampleText, out var text, out var voice, RunwayLeadingZero);
         HasPreview = matched;
         PreviewText = text;
         PreviewVoice = voice;

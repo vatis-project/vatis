@@ -142,4 +142,32 @@ public class PatternMatcherTests
         var c = Regex(@"(\w+)", "$1", voice);
         Assert.Equal(expected, PatternMatcher.Apply(input, c, voice: true));
     }
+
+    [Theory]
+    [InlineData("25L", false, "two five left")]
+    [InlineData("25R", false, "two five right")]
+    [InlineData("18C", false, "one eight center")]
+    [InlineData("36", false, "three six")]
+    [InlineData("6L", false, "six left")]
+    [InlineData("6L", true, "zero six left")]
+    [InlineData("06L", false, "zero six left")]
+    [InlineData("25l", false, "two five left")]
+    [InlineData("25L/07R", false, "two five left/zero seven right")]
+    [InlineData("RWY", false, "RWY")]
+    [InlineData("99", false, "99")]
+    public void Apply_RunwayFunction(string input, bool leadingZero, string expected)
+    {
+        var c = Regex(@"(.+)", "$1", "$runway($1)");
+
+        Assert.Equal(expected, PatternMatcher.Apply(input, c, voice: true, runwayLeadingZero: leadingZero));
+    }
+
+    [Fact]
+    public void Apply_RunwayFunctionInAPattern()
+    {
+        var c = Regex(@"RWY (\d{1,2}[LRC]?)", "RWY $1", "RUNWAY $runway($1)");
+
+        Assert.Equal("LNDG RWY 25L", PatternMatcher.Apply("LNDG RWY 25L", c, voice: false));
+        Assert.Equal("LNDG RUNWAY two five left", PatternMatcher.Apply("LNDG RWY 25L", c, voice: true));
+    }
 }
