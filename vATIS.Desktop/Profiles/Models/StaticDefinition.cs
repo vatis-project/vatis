@@ -39,6 +39,33 @@ public class StaticDefinition : ReactiveObject
     public int Ordinal { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether a definition without text adds a single line break instead of a blank
+    /// line between its neighbors.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool NewLineOnly { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether this definition has no text and only adds spacing between its neighbors.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsSpacer => string.IsNullOrWhiteSpace(Text);
+
+    /// <summary>
+    /// Gets a value indicating whether this definition is a blank line, which adds an empty line between its
+    /// neighbors.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsBlankLine => IsSpacer && !NewLineOnly;
+
+    /// <summary>
+    /// Gets a value indicating whether this definition is a new line, which adds a single line break between its
+    /// neighbors.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsNewLine => IsSpacer && NewLineOnly;
+
+    /// <summary>
     /// Gets or sets an optional separator placed after this definition, used exactly as typed. When null or empty,
     /// the station separator is used. Ignored for the last enabled definition.
     /// </summary>
@@ -93,6 +120,7 @@ public class StaticDefinition : ReactiveObject
         return new StaticDefinition(Text, Ordinal, Enabled)
         {
             SeparatorAfter = SeparatorAfter,
+            NewLineOnly = NewLineOnly,
             StationCondition = StationCondition,
             StationCallsigns = StationCallsigns,
             WeatherCondition = WeatherCondition,
