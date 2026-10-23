@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed AtisHub connecting without a VATSIM token and subscription errors going unnoticed.
 - Fixed integration with vatSys.
 - Fixed forced disconnect logic.
+- Fixed the `configureAtis` WebSocket message clearing airport conditions and NOTAMs, or requiring a preset, when those properties were omitted.
 - Fixed the ATIS being republished and re-subscribed after an automatic AtisHub reconnect.
 - Fixed TREND information being omitted from the ATIS when the METAR contains an RMK section, and incorrect TREND parsing with multiple present weather groups.
 - Fixed METAR decoding when an unavailable group follows visibility or when an RVR value is unavailable.
