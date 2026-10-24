@@ -193,7 +193,7 @@ public class CloudNode : BaseNode<CloudLayer>
 
                     var padded = height.ToString(new string('0', minDigits));
                     return VariableFormatter.Apply(
-                        padded, height.ToString(), Station.AtisFormat.Clouds.AltitudeFormat.Text, true);
+                        padded, padded, Station.AtisFormat.Clouds.AltitudeFormat.Text, true);
                 },
                 RegexOptions.IgnoreCase
             );

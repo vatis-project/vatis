@@ -33,14 +33,14 @@ public class AltimeterSettingNodeTests
     }
 
     private static async Task<AltimeterSettingNode> ParseAsync(
-        Action<Vatsim.Vatis.Profiles.AtisFormat.Nodes.Altimeter> configure)
+        Action<Vatsim.Vatis.Profiles.AtisFormat.Nodes.Altimeter> configure, string pressure = "Q1015")
     {
         var station = new Vatsim.Vatis.Profiles.Models.AtisStation { Identifier = "EPWA", Name = "EPWA" };
         station.AtisFormat.Altimeter.Template.Text = "{altimeter}|{altimeter|hpa}|{altimeter|inhg}|{altimeter|text}";
         station.AtisFormat.Altimeter.Template.Voice = "{altimeter}|{altimeter|hpa}|{altimeter|text}";
         configure(station.AtisFormat.Altimeter);
         var node = new AltimeterSettingNode { Station = station };
-        await node.Parse(new MetarDecoder().ParseNotStrict("EPWA 011650Z 25009KT 9999 NSC 05/02 Q1015"), null!);
+        await node.Parse(new MetarDecoder().ParseNotStrict("EPWA 011650Z 25009KT 9999 NSC 05/02 " + pressure), null!);
         return node;
     }
 
@@ -72,5 +72,20 @@ public class AltimeterSettingNodeTests
         var node = await ParseAsync(a =>
             a.VariableFormats["altimeter"].Voice.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Digits);
         Assert.StartsWith("1015|", node.VoiceAtis);
+    }
+
+    [Fact]
+    public async Task VariableFormats_DigitsStyle_KeepsLeadingZeroBelow1000Hpa()
+    {
+        var node = await ParseAsync(
+            a =>
+            {
+                a.VariableFormats["altimeter"].Text.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Digits;
+                a.VariableFormats["altimeter"].Voice.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Digits;
+                a.VariableFormats["hpa"].Text.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Digits;
+            },
+            "Q0998");
+        Assert.StartsWith("0998|0998|", node.TextAtis);
+        Assert.StartsWith("0998|", node.VoiceAtis);
     }
 }

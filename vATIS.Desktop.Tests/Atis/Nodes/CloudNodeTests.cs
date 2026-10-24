@@ -103,4 +103,14 @@ public class CloudNodeTests
         Assert.Contains("30", node.VoiceAtis);
         Assert.DoesNotContain("FT", node.VoiceAtis);
     }
+
+    [Fact]
+    public void AltitudeFormat_DigitsStyle_KeepsLeadingZeroInText()
+    {
+        var station = new AtisStation { Identifier = "EPWA", Name = "EPWA" };
+        station.AtisFormat.Clouds.AltitudeFormat.Text.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.Digits;
+        var node = new CloudNode { Station = station };
+        node.Parse(new MetarDecoder().ParseNotStrict("EPWA 011650Z 25009KT 9999 FEW005 05/02 Q1015"));
+        Assert.Equal("FEW005", node.TextAtis);
+    }
 }
