@@ -804,10 +804,13 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             return;
         }
 
-        SelectedAtisStation.Id = null!;
+        var exportClone = JsonSerializer.Deserialize(
+            JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation),
+            SourceGenerationContext.NewDefault.AtisStation)!;
+        exportClone.Id = null!;
 
         await File.WriteAllTextAsync(file.Path.LocalPath,
-            JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation));
+            JsonSerializer.Serialize(exportClone, SourceGenerationContext.NewDefault.AtisStation));
         await MessageBox.ShowDialog((Window)_dialogOwner, "ATIS Station successfully exported.", "Success",
             MessageBoxButton.Ok, MessageBoxIcon.Information);
     }
