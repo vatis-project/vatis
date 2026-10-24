@@ -22,8 +22,8 @@ public sealed class VatsimDataService : IVatsimDataService, IDisposable
 {
     private const int ObserverFacility = 0;
 
-    // The feed is regenerated every 15 seconds, so polling every 30 seconds keeps the list close to current.
-    private const int UpdateIntervalSeconds = 30;
+    // The feed is regenerated every 15 seconds, so polling at the same rate keeps the list close to current.
+    private const int UpdateIntervalSeconds = 15;
 
     // A local test feed is polled faster so changes to it show up quickly.
     private const int TestFeedUpdateIntervalSeconds = 3;
