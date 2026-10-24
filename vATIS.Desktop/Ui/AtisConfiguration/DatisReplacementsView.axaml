@@ -7,7 +7,7 @@
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="550"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.DatisReplacementsView">
-	<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10">
+	<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10" Margin="0,0,0,5">
 		<!-- Prepend/Append Airport Conditions -->
 		<Grid Grid.Row="0" ColumnDefinitions="*,10,*">
 			<StackPanel Grid.Column="0" Spacing="4">
