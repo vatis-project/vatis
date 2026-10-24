@@ -90,7 +90,7 @@
 						<TextBlock Classes="label" Grid.Row="1" Grid.Column="0" Text="Controllers:">
 							<ToolTip.Tip>
 								<TextBlock TextWrapping="Wrap" MaxWidth="420">
-									<Run Text="Include or exclude this message depending on which controllers are online or offline, based on the VATSIM data feed. Leave blank to always include it."/>
+									<Run Text="Include or exclude this message depending on which controllers are online or offline, based on the VATSIM data feed, or on the time of day in Zulu. Leave blank to always include it."/>
 								</TextBlock>
 							</ToolTip.Tip>
 						</TextBlock>
@@ -110,6 +110,14 @@
 										<StackPanel>
 											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAS_E_GND AND NOT LAS_W_GND"/>
 											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Las Vegas East Ground is online and West Ground is not"/>
+										</StackPanel>
+										<StackPanel>
+											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="2200z-0600z"/>
+											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="between 2200Z and 0600Z, which can cross midnight"/>
+										</StackPanel>
+										<StackPanel>
+											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND 0700z-1400z"/>
+											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when LAX Tower is online between 0700Z and 1400Z"/>
 										</StackPanel>
 										<StackPanel>
 											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND (LAX_GND OR LAX_DEL)"/>

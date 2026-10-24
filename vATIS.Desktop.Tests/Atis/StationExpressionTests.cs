@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Linq;
 using System.Text.Json;
 using Vatsim.Vatis;
@@ -183,5 +184,101 @@ public class StationExpressionTests
         Assert.DoesNotContain("stationCondition", written);
         Assert.DoesNotContain("stationCallsigns", written);
         Assert.Contains("\"onlineCondition\": \"NOT (EPWA_DEL OR EPWA_APP)\"", written);
+    }
+
+    private static bool EvalAt(string text, string time, params string[] online)
+    {
+        Assert.True(StationExpression.TryParse(text, out var expression, out var error), error);
+        var parts = time.Split(':');
+        var now = new DateTime(2026, 10, 24, int.Parse(parts[0]), int.Parse(parts[1]), 0, DateTimeKind.Utc);
+        return expression!.Evaluate(online, now);
+    }
+
+    [Theory]
+    [InlineData("0700z-1400z", "07:00", true)]
+    [InlineData("0700z-1400z", "10:30", true)]
+    [InlineData("0700z-1400z", "13:59", true)]
+    [InlineData("0700z-1400z", "14:00", false)]
+    [InlineData("0700z-1400z", "06:59", false)]
+    [InlineData("0700z - 1400z", "10:00", true)]
+    [InlineData("0700Z-1400Z", "10:00", true)]
+    [InlineData("0700-1400", "10:00", true)]
+    [InlineData("0700 - 1400", "14:00", false)]
+    public void TimeRange_IsFromStartUpToButNotIncludingEnd(string text, string time, bool expected)
+    {
+        Assert.Equal(expected, EvalAt(text, time));
+    }
+
+    [Theory]
+    [InlineData("2200z-0600z", "22:00", true)]
+    [InlineData("2200z-0600z", "23:59", true)]
+    [InlineData("2200z-0600z", "00:00", true)]
+    [InlineData("2200z-0600z", "05:59", true)]
+    [InlineData("2200z-0600z", "06:00", false)]
+    [InlineData("2200z-0600z", "12:00", false)]
+    [InlineData("2200z-0600z", "21:59", false)]
+    public void TimeRange_WrapsPastMidnight(string text, string time, bool expected)
+    {
+        Assert.Equal(expected, EvalAt(text, time));
+    }
+
+    [Fact]
+    public void TimeRange_CanRunToMidnight()
+    {
+        Assert.True(EvalAt("2000z-2400z", "23:59"));
+        Assert.False(EvalAt("2000z-2400z", "00:00"));
+        Assert.True(EvalAt("0000z-2400z", "12:00"));
+    }
+
+    [Fact]
+    public void TimeRange_CombinesWithCallsigns()
+    {
+        const string text = "LAX_TWR AND 0700z-1400z";
+        Assert.True(EvalAt(text, "10:00", "LAX_TWR"));
+        Assert.False(EvalAt(text, "10:00"));
+        Assert.False(EvalAt(text, "15:00", "LAX_TWR"));
+
+        Assert.True(EvalAt("NOT 0700z-1400z", "15:00"));
+        Assert.True(EvalAt("2200z-0600z OR LAX_GND", "12:00", "LAX_GND"));
+        Assert.True(EvalAt("(LAX_TWR OR LAX_GND) AND 2200z-0600z", "23:00", "LAX_GND"));
+        Assert.True(EvalAt("LAX_TWR NOT 0700z-1400z", "15:00", "LAX_TWR"));
+    }
+
+    [Fact]
+    public void HasTimeCondition_IsOnlySetWhenATimeRangeIsUsed()
+    {
+        StationExpression.TryParse("LAX_TWR AND 0700z-1400z", out var withTime, out _);
+        StationExpression.TryParse("LAX_TWR OR LAX_GND", out var without, out _);
+        Assert.True(withTime!.HasTimeCondition);
+        Assert.False(without!.HasTimeCondition);
+    }
+
+    [Theory]
+    [InlineData("2560z-1400z", "not a valid time")]
+    [InlineData("0700z-1460z", "not a valid time")]
+    [InlineData("2401z-0600z", "not a valid time")]
+    [InlineData("0700z-0700z", "are the same")]
+    [InlineData("0700z", "Write a time as a range")]
+    [InlineData("LAX_TWR AND 0700", "Write a time as a range")]
+    [InlineData("0700z-", "Write a time as a range")]
+    public void InvalidTimes_ReportAClearError(string text, string expectedMessage)
+    {
+        Assert.False(StationExpression.TryParse(text, out _, out var error));
+        Assert.Contains(expectedMessage, error);
+    }
+
+    [Fact]
+    public void Filter_UsesTheGivenTime()
+    {
+        var def = new StaticDefinition("NOISE ABATEMENT PROCEDURES IN EFFECT", 1) { OnlineCondition = "2200z-0600z" };
+        var at = (int hour) => StaticDefinitionFilter
+            .GetActive([def], null, utcNow: new DateTime(2026, 10, 24, hour, 0, 0, DateTimeKind.Utc)).Count;
+        Assert.Equal(1, at(23));
+        Assert.Equal(0, at(12));
+        Assert.True(StaticDefinitionFilter.HasTimeConditions([def]));
+        Assert.False(StaticDefinitionFilter.HasTimeConditions(
+            [new StaticDefinition("A", 1) { OnlineCondition = "LAX_TWR" }]));
+        Assert.False(StaticDefinitionFilter.HasTimeConditions(
+            [new StaticDefinition("A", 1, enabled: false) { OnlineCondition = "2200z-0600z" }]));
     }
 }
