@@ -80,8 +80,8 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
     }
 
     /// <summary>
-    /// Applies user-defined replacement rules. For regex patterns, also strips an optional
-    /// trailing punctuation character after the match.
+    /// Applies user-defined replacement rules. Each match also swallows up to two trailing punctuation
+    /// characters, so removing a sentence doesn't leave a stray period or comma behind.
     /// </summary>
     private static string ApplyReplacements(string text, List<DatisTextReplacement> replacements)
     {
@@ -94,19 +94,15 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
 
             try
             {
-                if (replacement.IsRegex)
-                {
-                    text = Regex.Replace(
-                        text,
-                        replacement.Pattern + @"[,.;]{0,1}",
-                        replacement.Replacement ?? string.Empty,
-                        RegexOptions.None,
-                        TimeSpan.FromSeconds(1));
-                }
-                else
-                {
-                    text = text.Replace(replacement.Pattern, replacement.Replacement ?? string.Empty);
-                }
+                var pattern = replacement.IsRegex ? replacement.Pattern : Regex.Escape(replacement.Pattern);
+                var value = replacement.Replacement ?? string.Empty;
+
+                text = Regex.Replace(
+                    text,
+                    pattern + @"[,.;]{0,2}",
+                    replacement.IsRegex ? value : value.Replace("$", "$$"),
+                    RegexOptions.None,
+                    TimeSpan.FromSeconds(1));
             }
             catch (RegexParseException ex)
             {
