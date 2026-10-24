@@ -43,8 +43,12 @@ public static class StaticDefinitionListColumn
 
         panel.Children.Add(new TextBlock
         {
-            Text = definition.ToString().ToUpperInvariant(),
+            Text = definition.IsSpacer
+                ? (definition.IsNewLine ? "(new line)" : "(blank line)")
+                : definition.ToString().ToUpperInvariant(),
             TextWrapping = TextWrapping.Wrap,
+            FontStyle = definition.IsSpacer ? FontStyle.Italic : FontStyle.Normal,
+            Opacity = definition.IsSpacer ? 0.6 : 1,
         });
 
         foreach (var line in StaticDefinitionSummary.Describe(definition))
