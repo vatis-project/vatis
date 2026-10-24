@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Added statute miles (`sm`) and fractions (e.g., `1/2sm`, `1 1/2sm`) to visibility in weather conditions for static airport conditions and NOTAMs.
 - Added a `$runway` function for regex patterns that speaks runway designators (e.g., `25L` as "two five left").
 - Added customizable text and voice templates for the trend forecast, allowing the spoken "TREND" prefix to be changed or removed.
 - Added "Blank Line" and "New Line" items to static airport conditions and NOTAMs to separate definitions with an empty line or a line break.
@@ -19,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the `configureAtis` WebSocket message clearing airport conditions and NOTAMs, or requiring a preset, when those properties were omitted.
 - Fixed D-ATIS text replacements leaving stray punctuation behind and not removing trailing punctuation for plain-text patterns.
 - Fixed the NOTAMs header being included in the ATIS when no NOTAMs are active, such as when all conditional NOTAMs are unmet.
+- Fixed `ceiling` weather conditions never being met when the METAR has no ceiling (e.g., CLR, SKC, NSC, CAVOK, or only few or scattered clouds). No ceiling is now treated as unlimited, so `ceiling > 1000ft` is met.
+- Fixed weather conditions ignoring variable runway visual range (e.g., `R25L/1800V3000FT`) and treating vertical visibility (`VV002`) as no ceiling.
+- Fixed wind speeds reported in kilometers per hour as `KMH` not being decoded from METARs.
 
 ## v4.1.0-beta.20
 ### Added
