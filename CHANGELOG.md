@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `ceiling` weather conditions never being met when the METAR has no ceiling (e.g., CLR, SKC, NSC, CAVOK, or only few or scattered clouds). No ceiling is now treated as unlimited, so `ceiling > 1000ft` is met.
 - Fixed weather conditions ignoring variable runway visual range (e.g., `R25L/1800V3000FT`) and treating vertical visibility (`VV002`) as no ceiling.
 - Fixed wind speeds reported in kilometers per hour as `KMH` not being decoded from METARs.
+- Fixed a "Value cannot be null (Parameter 'key')" error when returning to the main window after exporting an ATIS station.
 
 ## v4.1.0-beta.20
 ### Added
