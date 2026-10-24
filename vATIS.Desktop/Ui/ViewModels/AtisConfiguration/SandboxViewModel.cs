@@ -902,15 +902,22 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         // Reset offset
         _notamFreeTextOffset = 0;
 
+        // The separator is only added after the last static definition when free text follows it.
+        var freeTextFollows = SelectedStation.NotamsBeforeFreeText &&
+                              (!string.IsNullOrWhiteSpace(_previousFreeTextNotams) || !string.IsNullOrWhiteSpace(SelectedPreset.Notams));
         var staticDefinitionsString = StaticDefinitionJoiner.Join(
-            staticDefinitions, SelectedStation.NotamsSeparator, trimTrailingPeriod: true)
-                                      + StaticDefinitionJoiner.Normalize(SelectedStation.NotamsSeparator);
+            staticDefinitions, SelectedStation.NotamsSeparator, trimTrailingPeriod: true, terminate: !freeTextFollows);
 
         // Insert static definitions before free-text
         if (SelectedStation.NotamsBeforeFreeText)
         {
             if (staticDefinitions.Count > 0)
             {
+                if (freeTextFollows)
+                {
+                    staticDefinitionsString += StaticDefinitionJoiner.Normalize(SelectedStation.NotamsSeparator);
+                }
+
                 // Insert static definitions
                 NotamsTextDocument.Insert(0, staticDefinitionsString);
 
@@ -995,15 +1002,22 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         // Reset offset
         _airportConditionsFreeTextOffset = 0;
 
+        // The separator is only added after the last static definition when free text follows it.
+        var freeTextFollows = SelectedStation.AirportConditionsBeforeFreeText &&
+                              (!string.IsNullOrWhiteSpace(_previousFreeTextAirportConditions) || !string.IsNullOrWhiteSpace(SelectedPreset.AirportConditions));
         var staticDefinitionsString = StaticDefinitionJoiner.Join(
-            staticDefinitions, SelectedStation.AirportConditionsSeparator, trimTrailingPeriod: true)
-                                      + StaticDefinitionJoiner.Normalize(SelectedStation.AirportConditionsSeparator);
+            staticDefinitions, SelectedStation.AirportConditionsSeparator, trimTrailingPeriod: true, terminate: !freeTextFollows);
 
         // Insert static definitions before free-text
         if (SelectedStation.AirportConditionsBeforeFreeText)
         {
             if (staticDefinitions.Count > 0)
             {
+                if (freeTextFollows)
+                {
+                    staticDefinitionsString += StaticDefinitionJoiner.Normalize(SelectedStation.AirportConditionsSeparator);
+                }
+
                 // Insert static definitions
                 AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
 

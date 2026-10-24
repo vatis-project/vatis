@@ -2360,15 +2360,22 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         NotamsTextDocument.Text = "";
         _notamFreeTextOffset = 0;
 
+        // The separator is only added after the last static definition when free text follows it.
+        var freeTextFollows = AtisStation.NotamsBeforeFreeText &&
+                              (!string.IsNullOrWhiteSpace(_previousFreeTextNotams) || !string.IsNullOrWhiteSpace(SelectedAtisPreset.Notams));
         var staticDefinitionsString = StaticDefinitionJoiner.Join(
-            staticDefinitions, AtisStation.NotamsSeparator, trimTrailingPeriod: true)
-                                      + StaticDefinitionJoiner.Normalize(AtisStation.NotamsSeparator);
+            staticDefinitions, AtisStation.NotamsSeparator, trimTrailingPeriod: true, terminate: !freeTextFollows);
 
         // Insert static definitions before free-text
         if (AtisStation.NotamsBeforeFreeText)
         {
             if (staticDefinitions.Count > 0)
             {
+                if (freeTextFollows)
+                {
+                    staticDefinitionsString += StaticDefinitionJoiner.Normalize(AtisStation.NotamsSeparator);
+                }
+
                 // Insert static definitions
                 NotamsTextDocument.Insert(0, staticDefinitionsString);
 
@@ -2445,15 +2452,22 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         AirportConditionsTextDocument.Text = "";
         _airportConditionsFreeTextOffset = 0;
 
+        // The separator is only added after the last static definition when free text follows it.
+        var freeTextFollows = AtisStation.AirportConditionsBeforeFreeText &&
+                              (!string.IsNullOrWhiteSpace(_previousFreeTextAirportConditions) || !string.IsNullOrWhiteSpace(SelectedAtisPreset.AirportConditions));
         var staticDefinitionsString = StaticDefinitionJoiner.Join(
-            staticDefinitions, AtisStation.AirportConditionsSeparator, trimTrailingPeriod: true)
-                                      + StaticDefinitionJoiner.Normalize(AtisStation.AirportConditionsSeparator);
+            staticDefinitions, AtisStation.AirportConditionsSeparator, trimTrailingPeriod: true, terminate: !freeTextFollows);
 
         // Insert static definitions before free-text
         if (AtisStation.AirportConditionsBeforeFreeText)
         {
             if (staticDefinitions.Count > 0)
             {
+                if (freeTextFollows)
+                {
+                    staticDefinitionsString += StaticDefinitionJoiner.Normalize(AtisStation.AirportConditionsSeparator);
+                }
+
                 // Insert static definitions
                 AirportConditionsTextDocument.Insert(0, staticDefinitionsString);
 
@@ -2703,42 +2717,41 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         if (isMatchingId || isMatchingStation)
         {
-            var preset = AtisStation.Presets.FirstOrDefault(x => x.Name == e.Payload.Preset);
-            if (preset != null)
+            // Omitted fields are left untouched so a limited payload doesn't wipe existing data.
+            AtisPreset? preset = null;
+            if (!string.IsNullOrEmpty(e.Payload.Preset))
             {
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    _websocketSyncAtisLetter = e.Payload.SyncAtisLetter ?? false;
-                    SyncAtisLetter().SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to sync ATIS letter"));
+                preset = AtisStation.Presets.FirstOrDefault(x => x.Name == e.Payload.Preset);
+                if (preset == null)
+                    throw new Exception($"Invalid Preset: {e.Payload.Preset}");
+            }
 
-                    SelectedAtisPreset = preset;
-                    UpdatePresetData(e.Payload);
-                });
-            }
-            else
+            Dispatcher.UIThread.Invoke(() =>
             {
-                throw new Exception($"Invalid Preset: {e.Payload.Preset}");
-            }
+                if (e.Payload.SyncAtisLetter.HasValue)
+                {
+                    _websocketSyncAtisLetter = e.Payload.SyncAtisLetter.Value;
+                    SyncAtisLetter().SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to sync ATIS letter"));
+                }
+
+                if (preset != null)
+                    SelectedAtisPreset = preset;
+
+                UpdatePresetData(e.Payload);
+            });
         }
     }
 
     private void UpdatePresetData(ConfigureAtisMessage.ConfigureAtisMessagePayload payload)
     {
         if (SelectedAtisPreset != null)
-        {
-            SelectedAtisPreset.AirportConditions = payload.AirportConditionsFreeText ?? "";
-            SelectedAtisPreset.Notams = payload.NotamsFreeText ?? "";
-        }
+            payload.ApplyTo(SelectedAtisPreset);
 
-        if (AirportConditionsTextDocument != null)
-        {
-            AirportConditionsTextDocument.Text = payload.AirportConditionsFreeText ?? "";
-        }
+        if (payload.AirportConditionsFreeText != null && AirportConditionsTextDocument != null)
+            AirportConditionsTextDocument.Text = payload.AirportConditionsFreeText;
 
-        if (NotamsTextDocument != null)
-        {
-            NotamsTextDocument.Text = payload.NotamsFreeText ?? "";
-        }
+        if (payload.NotamsFreeText != null && NotamsTextDocument != null)
+            NotamsTextDocument.Text = payload.NotamsFreeText;
     }
 
     private void OnConnectAtisReceived(object? sender, GetConnectAtisReceived e)
