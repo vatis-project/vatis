@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -29,6 +30,7 @@ public static class PatternMatcher
         ("digits", "Number one digit at a time (525 = five two five)"),
         ("spell", "Each character separated (A25 = A 2 5)"),
         ("phonetic", "Phonetic alphabet; a digit is spelled as its word (2 = Tango Whiskey Oscar)"),
+        ("runway", "Runway designator (25L = two five left)"),
     ];
 
     private static readonly HashSet<string> s_functions = new(
@@ -58,8 +60,9 @@ public static class PatternMatcher
     /// <param name="text">The text to transform.</param>
     /// <param name="patterns">The station patterns.</param>
     /// <param name="voice">True to use the <see cref="PatternMeta.Voice"/> template, otherwise <see cref="PatternMeta.Text"/>.</param>
+    /// <param name="runwayLeadingZero">True to speak a single-digit runway with a leading zero in <c>$runway</c>.</param>
     /// <returns>The transformed text.</returns>
-    public static string Apply(string text, IEnumerable<PatternMeta> patterns, bool voice)
+    public static string Apply(string text, IEnumerable<PatternMeta> patterns, bool voice, bool runwayLeadingZero = false)
     {
         foreach (var pattern in patterns)
         {
@@ -75,7 +78,7 @@ public static class PatternMatcher
                 text = Regex.Replace(
                     text,
                     pattern.Pattern,
-                    match => Expand(template, match),
+                    match => Expand(template, match, runwayLeadingZero),
                     RegexOptions.None,
                     s_timeout);
             }
@@ -101,6 +104,7 @@ public static class PatternMatcher
     /// <param name="sample">The sample text to apply the pattern to.</param>
     /// <param name="textResult">The sample after the Text replacement.</param>
     /// <param name="voiceResult">The sample after the Voice replacement.</param>
+    /// <param name="runwayLeadingZero">True to speak a single-digit runway with a leading zero in <c>$runway</c>.</param>
     /// <returns>True if the pattern is valid and matches the sample.</returns>
     public static bool TryPreview(
         string? pattern,
@@ -108,7 +112,8 @@ public static class PatternMatcher
         string? voice,
         string? sample,
         out string textResult,
-        out string voiceResult)
+        out string voiceResult,
+        bool runwayLeadingZero = false)
     {
         textResult = string.Empty;
         voiceResult = string.Empty;
@@ -125,8 +130,8 @@ public static class PatternMatcher
                 return false;
             }
 
-            textResult = regex.Replace(sample, match => Expand(text ?? string.Empty, match));
-            voiceResult = regex.Replace(sample, match => Expand(voice ?? string.Empty, match));
+            textResult = regex.Replace(sample, match => Expand(text ?? string.Empty, match, runwayLeadingZero));
+            voiceResult = regex.Replace(sample, match => Expand(voice ?? string.Empty, match, runwayLeadingZero));
             return true;
         }
         catch (ArgumentException)
@@ -316,7 +321,7 @@ public static class PatternMatcher
         };
     }
 
-    private static string Expand(string template, Match match)
+    private static string Expand(string template, Match match, bool runwayLeadingZero)
     {
         return s_token.Replace(template, token =>
         {
@@ -334,7 +339,7 @@ public static class PatternMatcher
                 }
 
                 var value = GetGroup(match, token.Groups["fnnum"], token.Groups["fnname"]);
-                return ApplyFunction(name.ToLowerInvariant(), value);
+                return ApplyFunction(name.ToLowerInvariant(), value, runwayLeadingZero);
             }
 
             return GetGroup(match, token.Groups["num"], token.Groups["name"]);
@@ -356,7 +361,7 @@ public static class PatternMatcher
         return group?.Value ?? string.Empty;
     }
 
-    private static string ApplyFunction(string function, string value)
+    private static string ApplyFunction(string function, string value, bool runwayLeadingZero)
     {
         switch (function)
         {
@@ -368,9 +373,37 @@ public static class PatternMatcher
                 return Spell(value, SpellKind.Characters);
             case "phonetic":
                 return Spell(value, SpellKind.Phonetic);
+            case "runway":
+                return Runway(value, runwayLeadingZero);
             default:
                 return value;
         }
+    }
+
+    /// <summary>
+    /// Speaks each runway designator in the value, e.g. 25L as "two five left". A single digit is spoken with a
+    /// leading zero when one is written or when <paramref name="leadingZero"/> is set.
+    /// </summary>
+    private static string Runway(string value, bool leadingZero)
+    {
+        return Regex.Replace(
+            value,
+            @"\b(0[1-9]|[12]\d|3[0-6]|[1-9])([LRC])?\b",
+            match =>
+            {
+                var number = match.Groups[1].Value;
+                var spoken = int.Parse(number, CultureInfo.InvariantCulture)
+                    .ToSerialFormat(leadingZero || number.StartsWith('0'));
+                return match.Groups[2].Value.ToUpperInvariant() switch
+                {
+                    "L" => spoken + " left",
+                    "R" => spoken + " right",
+                    "C" => spoken + " center",
+                    _ => spoken,
+                };
+            },
+            RegexOptions.IgnoreCase,
+            s_timeout);
     }
 
     private static string Spell(string value, SpellKind kind)

@@ -61,8 +61,12 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         var canExecute = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem).Select(x => x != null);
 
         NewDefinitionCommand = ReactiveCommand.CreateFromTask(HandleNewDefinition);
+        NewBlankLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: false));
+        NewLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: true));
         DeleteDefinitionCommand = ReactiveCommand.CreateFromTask(HandleDeleteDefinition, canExecute);
-        EditDefinitionCommand = ReactiveCommand.CreateFromTask(HandleEditDefinition, canExecute);
+        var canEdit = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem)
+            .Select(x => x is { IsSpacer: false });
+        EditDefinitionCommand = ReactiveCommand.CreateFromTask(HandleEditDefinition, canEdit);
         CloseWindowCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
 
         var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
@@ -98,6 +102,16 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     /// Gets the command used to create a new definition.
     /// </summary>
     public ReactiveCommand<Unit, Unit> NewDefinitionCommand { get; }
+
+    /// <summary>
+    /// Gets the command to add a blank line definition.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> NewBlankLineCommand { get; }
+
+    /// <summary>
+    /// Gets the command to add a new line definition, which adds a single line break.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> NewLineCommand { get; }
 
     /// <summary>
     /// Gets the command used to handle the editing of an existing definition.
@@ -195,6 +209,8 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     {
         CloseWindowCommand.Dispose();
         NewDefinitionCommand.Dispose();
+        NewBlankLineCommand.Dispose();
+        NewLineCommand.Dispose();
         EditDefinitionCommand.Dispose();
         DeleteDefinitionCommand.Dispose();
         MoveDefinitionUpCommand.Dispose();
@@ -239,14 +255,31 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
     private void RemoveSelected()
     {
-        var selectedItem = Source.RowSelection?.SelectedItem;
-        if (selectedItem != null)
+        foreach (var selectedItem in Source.RowSelection?.SelectedItems.OfType<StaticDefinition>().ToList() ?? [])
         {
             Definitions.Remove(selectedItem);
         }
 
         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
         HasDefinitions = Definitions.Count != 0;
+    }
+
+    private void HandleNewSpacer(bool newLineOnly)
+    {
+        // Insert below the selected definition, or at the end when nothing is selected. The position in the list is
+        // what determines the order, so the spacer has to be inserted there rather than appended.
+        var selected = Source.RowSelection?.SelectedItem;
+        var selectedIndex = selected != null ? Definitions.IndexOf(selected) : -1;
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Definitions.Count;
+        Definitions.Insert(insertIndex, new StaticDefinition(string.Empty, insertIndex + 1) { NewLineOnly = newLineOnly });
+        for (var i = 0; i < Definitions.Count; i++)
+        {
+            Definitions[i].Ordinal = i + 1;
+        }
+
+        Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
+        HasDefinitions = Definitions.Count != 0;
+        Source.RowSelection!.SelectedIndex = insertIndex;
     }
 
     private async Task HandleEditDefinition()
@@ -259,7 +292,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
             if (lifetime.MainWindow == null)
                 return;
 
-            if (Source.RowSelection?.SelectedItem is { } definition)
+            if (Source.RowSelection?.SelectedItem is { IsSpacer: false } definition)
             {
                 var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
                 dlg.Topmost = lifetime.MainWindow.Topmost;
@@ -366,8 +399,13 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         if (Owner == null)
             return;
 
+        var count = Source.RowSelection?.SelectedItems.Count ?? 0;
+        var message = count > 1
+            ? $"Are you sure you want to delete the {count} selected airport conditions?"
+            : "Are you sure you want to delete the selected airport condition?";
+
         if (await MessageBox.ShowDialog(Owner,
-                "Are you sure you want to delete the selected airport condition?", "Confirm",
+                message, "Confirm",
                 MessageBoxButton.YesNo, MessageBoxIcon.Information) == MessageBoxResult.Yes)
         {
             RemoveSelected();

@@ -128,6 +128,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _becomingVoiceValue;
     private string? _temporaryTextValue;
     private string? _temporaryVoiceValue;
+    private string? _trendTemplateText;
+    private string? _trendTemplateVoice;
     private string? _trendNotAvailableText;
     private string? _trendNotAvailableVoice;
     private ObservableCollection<RunwayConditionTermMeta>? _runwayConditionTerms;
@@ -1308,6 +1310,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the text template for the trend section.
+    /// </summary>
+    public string? TrendTemplateText
+    {
+        get => _trendTemplateText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _trendTemplateText, value);
+            _changeTracker.TrackChange(nameof(TrendTemplateText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the trend section.
+    /// </summary>
+    public string? TrendTemplateVoice
+    {
+        get => _trendTemplateVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _trendTemplateVoice, value);
+            _changeTracker.TrackChange(nameof(TrendTemplateVoice), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the text value when TREND is not available.
     /// </summary>
     public string? TrendNotAvailableTextValue
@@ -2302,6 +2330,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.Trend.TemporaryVoice = TemporaryVoiceValue;
         }
 
+        if (SelectedStation.AtisFormat.Trend.TemplateText != TrendTemplateText)
+        {
+            SelectedStation.AtisFormat.Trend.TemplateText = TrendTemplateText;
+        }
+
+        if (SelectedStation.AtisFormat.Trend.TemplateVoice != TrendTemplateVoice)
+        {
+            SelectedStation.AtisFormat.Trend.TemplateVoice = TrendTemplateVoice;
+        }
+
         if (SelectedStation.AtisFormat.Trend.NotAvailableText != TrendNotAvailableTextValue)
         {
             SelectedStation.AtisFormat.Trend.NotAvailableText = TrendNotAvailableTextValue;
@@ -2602,6 +2640,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         BecomingVoiceValue = station.AtisFormat.Trend.BecomingVoice;
         TemporaryTextValue = station.AtisFormat.Trend.TemporaryText;
         TemporaryVoiceValue = station.AtisFormat.Trend.TemporaryVoice;
+        TrendTemplateText = station.AtisFormat.Trend.TemplateText;
+        TrendTemplateVoice = station.AtisFormat.Trend.TemplateVoice;
         TrendNotAvailableTextValue = station.AtisFormat.Trend.NotAvailableText;
         TrendNotAvailableVoiceValue = station.AtisFormat.Trend.NotAvailableVoice;
         RunwayConditionText = station.AtisFormat.RunwayCondition.TextTemplate;

@@ -55,7 +55,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private List<ICompletionData> _contractionCompletionData = new();
     private AtisStation? _selectedStation;
     private AtisPreset? _selectedPreset;
-    private int _selectedSubTabIndex;
+    private int _selectedSubTabIndex = 1;
     private bool _useExternalAtisGenerator;
     private string _externalGeneratorTextUrl = string.Empty;
     private string _externalGeneratorVoiceUrl = string.Empty;
@@ -221,17 +221,12 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         {
             this.RaiseAndSetIfChanged(ref _selectedPreset, value);
             this.RaisePropertyChanged(nameof(IsDatisPresetSelected));
-
-            // Fall back to the Template sub-tab when the D-ATIS sub-tab is no longer available.
-            if (!IsDatisPresetSelected)
-            {
-                SelectedSubTabIndex = 0;
-            }
+            UpdateDatisSubTab();
         }
     }
 
     /// <summary>
-    /// Gets or sets the index of the selected sub-tab (0 = Template, 1 = D-ATIS).
+    /// Gets or sets the index of the selected sub-tab (0 = D-ATIS, 1 = Template).
     /// </summary>
     public int SelectedSubTabIndex
     {
@@ -251,6 +246,12 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     public DatisReplacementsViewModel? DatisReplacementsViewModel { get; set; }
 
     /// <summary>
+    /// Gets a value indicating whether the D-ATIS sub-tab is shown, which is the case for the D-ATIS preset
+    /// unless it uses an external ATIS generator.
+    /// </summary>
+    public bool ShowDatisSubTab => IsDatisPresetSelected && !UseExternalAtisGenerator;
+
+    /// <summary>
     /// Gets or sets a value indicating whether to use an external ATIS generator.
     /// </summary>
     public bool UseExternalAtisGenerator
@@ -260,6 +261,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         {
             this.RaiseAndSetIfChanged(ref _useExternalAtisGenerator, value);
             _changeTracker.TrackChange(nameof(UseExternalAtisGenerator), value);
+            UpdateDatisSubTab();
         }
     }
 
@@ -900,5 +902,13 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             if (contraction is { VariableName: not null, Voice: not null })
                 ContractionCompletionData.Add(new AutoCompletionData(contraction.VariableName, contraction.Voice));
         }
+    }
+
+    private void UpdateDatisSubTab()
+    {
+        this.RaisePropertyChanged(nameof(ShowDatisSubTab));
+
+        // Open on the D-ATIS sub-tab when it's available, otherwise on Template.
+        SelectedSubTabIndex = ShowDatisSubTab ? 0 : 1;
     }
 }
