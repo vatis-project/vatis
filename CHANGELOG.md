@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed the `configureAtis` WebSocket message clearing airport conditions and NOTAMs, or requiring a preset, when those properties were omitted.
 - Fixed D-ATIS text replacements leaving stray punctuation behind and not removing trailing punctuation for plain-text patterns.
+- Fixed the NOTAMs header being included in the ATIS when no NOTAMs are active, such as when all conditional NOTAMs are unmet.
 
 ## v4.1.0-beta.20
 ### Added

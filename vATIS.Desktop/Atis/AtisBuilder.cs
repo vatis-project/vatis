@@ -715,8 +715,12 @@ public class AtisBuilder : IAtisBuilder
             // strip extraneous punctuation
             notams = StaticDefinitionJoiner.Finish(notams, notamsCustom);
 
-            // Add space to end of NOTAMs
-            notams = notams.Trim() + " ";
+            // Add space to end of NOTAMs, unless nothing is active
+            notams = notams.Trim();
+            if (notams.Length > 0)
+            {
+                notams += " ";
+            }
         }
 
         if (!string.IsNullOrEmpty(notams))
