@@ -105,7 +105,10 @@ public static class WeatherRuleEvaluator
         switch (rule.Field)
         {
             case WeatherField.Ceiling:
-                return FromFeet(GetCeilingLayer(metar, atisFormat), rule.Unit);
+                // No ceiling layer means the ceiling is unlimited, so ceiling > 1000ft is met under clear skies.
+                return GetCeilingLayer(metar, atisFormat) is { } ceiling
+                    ? FromFeet(ceiling, rule.Unit)
+                    : HasNoCeiling(metar) ? double.PositiveInfinity : null;
             case WeatherField.CloudBase:
                 return FromFeet(
                     metar.Clouds.Where(x => x.BaseHeight is { ActualValue: > 0 })
@@ -150,6 +153,16 @@ public static class WeatherRuleEvaluator
             default:
                 return null;
         }
+    }
+
+    // True when the METAR reports sky that has no ceiling, such as CAVOK, CLR, SKC, NSC, or only few and scattered
+    // clouds. A METAR without any cloud information says nothing about the ceiling.
+    private static bool HasNoCeiling(DecodedMetar metar)
+    {
+        return metar.Cavok || metar.Visibility is { IsCavok: true } || metar.Clouds.Any(x => x.Amount is
+            CloudLayer.CloudAmount.Few or CloudLayer.CloudAmount.Scattered or CloudLayer.CloudAmount.Clear or
+            CloudLayer.CloudAmount.SkyClear or CloudLayer.CloudAmount.NoSignificantClouds or
+            CloudLayer.CloudAmount.NoCloudsDetected);
     }
 
     // Vertical visibility (VV) means the sky is obscured, which is an indefinite ceiling at that height, so it counts

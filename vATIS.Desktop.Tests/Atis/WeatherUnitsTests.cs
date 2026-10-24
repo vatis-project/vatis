@@ -139,4 +139,34 @@ public class WeatherUnitsTests
     {
         Assert.Equal(expected, Met(metar, expression));
     }
+
+    [Theory]
+    [InlineData("KLAX 241553Z 25008KT 10SM CLR 14/13 A2992", "ceiling > 1000ft", true)]
+    [InlineData("KLAX 241553Z 25008KT 10SM CLR 14/13 A2992", "ceiling >= 1000ft", true)]
+    [InlineData("KLAX 241553Z 25008KT 10SM CLR 14/13 A2992", "ceiling < 1000ft", false)]
+    [InlineData("KLAX 241553Z 25008KT 10SM CLR 14/13 A2992", "ceiling <= 1000ft", false)]
+    [InlineData("KLAX 241553Z 25008KT 10SM CLR 14/13 A2992", "ceiling = 1000ft", false)]
+    [InlineData("KLAX 241553Z 25008KT 10SM CLR 14/13 A2992", "ceiling > 300m", true)]
+    [InlineData("KLAX 241553Z 25008KT 10SM CLR 14/13 A2992", "NOT ceiling < 1000ft", true)]
+    [InlineData("KSFO 241556Z 28010KT 10SM SKC 15/10 A3001", "ceiling > 1000ft", true)]
+    [InlineData("KSFO 241556Z 28010KT 10SM FEW015 SCT030 15/10 A3001", "ceiling > 1000ft", true)]
+    [InlineData("KSFO 241556Z 28010KT 10SM FEW015 SCT030 15/10 A3001", "ceiling < 1000ft", false)]
+    [InlineData("EGLL 241550Z 24010KT 9999 NSC 12/05 Q1015", "ceiling > 1000ft", true)]
+    [InlineData("EGLL 241550Z 24010KT 9999 NCD 12/05 Q1015", "ceiling > 1000ft", true)]
+    [InlineData("EGLL 241550Z 24010KT CAVOK 12/05 Q1015", "ceiling > 1000ft", true)]
+    [InlineData("EGLL 241550Z 24010KT CAVOK 12/05 Q1015", "ceiling < 1000ft", false)]
+    [InlineData("KSFO 241556Z 28010KT 10SM FEW015 BKN020 15/10 A3001", "ceiling > 1000ft", true)]
+    [InlineData("KSFO 241556Z 28010KT 10SM FEW015 BKN008 15/10 A3001", "ceiling > 1000ft", false)]
+    [InlineData("KLAX 241553Z 25008KT 1/4SM FG VV002 14/13 A2992", "ceiling > 1000ft", false)]
+    public void Ceiling_WithNoCeilingLayer_IsUnlimited(string metar, string expression, bool expected)
+    {
+        Assert.Equal(expected, Met(metar, expression));
+    }
+
+    [Fact]
+    public void Ceiling_WithoutAnyCloudInformation_IsNotMet()
+    {
+        Assert.False(Met("KSFO 241556Z 28010KT 10SM 15/10 A3001", "ceiling > 1000ft"));
+        Assert.False(Met("KSFO 241556Z 28010KT 10SM 15/10 A3001", "ceiling < 1000ft"));
+    }
 }
