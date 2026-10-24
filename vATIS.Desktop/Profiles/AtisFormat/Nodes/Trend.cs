@@ -51,6 +51,16 @@ public class Trend : BaseFormat
     public string? NotAvailableVoice { get; set; }
 
     /// <summary>
+    /// Gets or sets the text template for the trend section. <c>{Trend}</c> is replaced by the forecast.
+    /// </summary>
+    public string? TemplateText { get; set; } = "{Trend}";
+
+    /// <summary>
+    /// Gets or sets the voice template for the trend section. <c>{Trend}</c> is replaced by the forecast.
+    /// </summary>
+    public string? TemplateVoice { get; set; } = "TREND, {Trend}";
+
+    /// <summary>
     /// Creates a new instance of <see cref="Trend"/> that is a copy of the current instance.
     /// </summary>
     /// <returns>A new <see cref="Trend"/> instance that is a copy of this instance.</returns>

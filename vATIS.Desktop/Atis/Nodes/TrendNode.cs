@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
@@ -34,8 +35,18 @@ public class TrendNode : BaseNode<TrendForecast>
             ProcessTrendForecast(metar.TrendForecastFuture, futureDecodedTrend, voiceAtis, textAtis, isFuture: true);
         }
 
-        VoiceAtis = string.Join(" ", voiceAtis);
-        TextAtis = string.Join(" ", textAtis);
+        var voice = string.Join(" ", voiceAtis);
+        var text = string.Join(" ", textAtis);
+
+        // The templates only wrap an actual forecast, not the "not available" text.
+        if (metar.TrendForecast != null)
+        {
+            voice = ApplyTemplate(Station.AtisFormat.Trend.TemplateVoice, voice);
+            text = ApplyTemplate(Station.AtisFormat.Trend.TemplateText, text);
+        }
+
+        VoiceAtis = voice;
+        TextAtis = text;
     }
 
     /// <inheritdoc/>
@@ -48,6 +59,14 @@ public class TrendNode : BaseNode<TrendForecast>
     public override string ParseVoiceVariables(TrendForecast node, string? format)
     {
         throw new NotImplementedException();
+    }
+
+    private static string ApplyTemplate(string? template, string trend)
+    {
+        if (template == null)
+            return trend;
+
+        return Regex.Replace(template, "{Trend}", trend.Replace("$", "$$"), RegexOptions.IgnoreCase).Trim();
     }
 
     private static void GetChunkResult(Dictionary<string, object> chunkResult, DecodedMetar decodedMetar)
@@ -83,11 +102,6 @@ public class TrendNode : BaseNode<TrendForecast>
             }
 
             return;
-        }
-
-        if (!isFuture)
-        {
-            voiceAtis.Add("TREND,");
         }
 
         switch (forecast.ChangeIndicator)
