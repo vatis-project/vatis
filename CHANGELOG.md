@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Moved the D-ATIS sub-tab ahead of Template in the preset editor and hid it when the preset uses an external ATIS generator.
+- Changed D-ATIS replacements and prepend/append text to be held until Apply or OK is pressed, instead of being saved immediately.
+### Fixed
+- Fixed D-ATIS text replacements leaving stray punctuation behind and not removing trailing punctuation for plain-text patterns.
+### Added
+- Added customizable text and voice templates for the trend forecast, allowing the spoken "TREND" prefix to be changed or removed.
 
 ## v4.1.0-beta.20
 ### Added
@@ -35,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an option to apply a contraction to all ATIS stations.
 - Added a profile option to alternate between voices.
 - Added support for WAV voice packs in stitched voice ATIS.
-- Added automatic loading of native D-ATIS.
+- Added automatic loading of native D-ATIS. Thanks to Leftos and Josh G. for their work on this.
 - Added a voice ATIS recording indicator and magnetic wind toggle to the mini-window.
 - Added a keyboard shortcut to open the application data folder.
 - Added underlining for contractions and speech tokens in the ATIS editors.

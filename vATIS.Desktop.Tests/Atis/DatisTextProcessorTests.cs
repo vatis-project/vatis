@@ -139,6 +139,34 @@ public class DatisTextProcessorTests
     }
 
     [Fact]
+    public void Process_PlainTextReplacement_RemovesUpToTwoTrailingPunctuationChars()
+    {
+        var replacements = new List<DatisTextReplacement>
+        {
+            new() { Pattern = "VISUAL APCH IN USE", Replacement = string.Empty, IsRegex = false },
+            new() { Pattern = "RWY 17L CLSD", Replacement = string.Empty, IsRegex = false },
+        };
+
+        var result = Process(RenoBody, replacements);
+
+        Assert.Equal("LNDG AND DEPG RWY 17R.", result.AirportConditions);
+        Assert.StartsWith("TWY D BTWN", result.Notams);
+    }
+
+    [Fact]
+    public void Process_PlainTextReplacement_KeepsDollarSignsInReplacementLiteral()
+    {
+        var replacements = new List<DatisTextReplacement>
+        {
+            new() { Pattern = "VISUAL APCH", Replacement = "$1 APCH", IsRegex = false },
+        };
+
+        var result = Process(RenoBody, replacements);
+
+        Assert.Contains("$1 APCH IN USE", result.AirportConditions);
+    }
+
+    [Fact]
     public void Process_PlainTextReplacement_DoesNotTreatPatternAsRegex()
     {
         var replacements = new List<DatisTextReplacement>
