@@ -338,6 +338,8 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         DatisReplacementsViewModel = _viewModelFactory.CreateDatisReplacementsViewModel();
         PresetsViewModel.DatisReplacementsViewModel = DatisReplacementsViewModel;
 
+        DatisReplacementsViewModel.WhenAnyValue(x => x.HasUnsavedChanges).Subscribe(val => { HasUnsavedChanges = val; });
+
         _disposables.Add(GeneralConfigViewModel);
         _disposables.Add(PresetsViewModel);
         _disposables.Add(FormattingViewModel);
@@ -804,10 +806,13 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
             return;
         }
 
-        SelectedAtisStation.Id = null!;
+        var exportClone = JsonSerializer.Deserialize(
+            JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation),
+            SourceGenerationContext.NewDefault.AtisStation)!;
+        exportClone.Id = null!;
 
         await File.WriteAllTextAsync(file.Path.LocalPath,
-            JsonSerializer.Serialize(SelectedAtisStation, SourceGenerationContext.NewDefault.AtisStation));
+            JsonSerializer.Serialize(exportClone, SourceGenerationContext.NewDefault.AtisStation));
         await MessageBox.ShowDialog((Window)_dialogOwner, "ATIS Station successfully exported.", "Success",
             MessageBoxButton.Ok, MessageBoxIcon.Information);
     }
@@ -944,9 +949,10 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         var general = GeneralConfigViewModel?.ApplyConfig(out hasGeneralErrors);
         var presets = PresetsViewModel?.ApplyConfig(out hasPresetsErrors);
         var formatting = FormattingViewModel?.ApplyChanges(out hasFormattingErrors);
+        var datis = DatisReplacementsViewModel?.ApplyChanges();
 
         if ((general.HasValue && general.Value) || (presets.HasValue && presets.Value) ||
-            (formatting.HasValue && formatting.Value))
+            (formatting.HasValue && formatting.Value) || (datis.HasValue && datis.Value))
         {
             EventBus.Instance.Publish(new AtisStationUpdated(SelectedAtisStation.Id));
         }
@@ -980,6 +986,7 @@ public class AtisConfigurationWindowViewModel : ReactiveViewModelBase, IDisposab
         PresetsViewModel?.ApplyConfig(out _);
         FormattingViewModel?.ApplyChanges(out _);
         SandboxViewModel?.ApplyConfig();
+        DatisReplacementsViewModel?.ApplyChanges();
         RequiresDisconnect = true;
     }
 

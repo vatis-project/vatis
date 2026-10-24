@@ -73,7 +73,7 @@
 							<behaviors:SelectAllTextOnFocusBehavior/>
 						</Interaction.Behaviors>
 					</TextBox>
-					<TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#A0A0A0" Text="In Text and Voice, $0 inserts the whole match and $1, $2... or ${name} insert captured groups. Wrap one in group(), digits(), spell() or phonetic(), e.g. $spell($1)."/>
+					<TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#A0A0A0" Text="In Text and Voice, $0 inserts the whole match and $1, $2... or ${name} insert captured groups. Wrap one in group(), digits(), spell(), phonetic() or runway(), e.g. $spell($1)."/>
 				</StackPanel>
 				<StackPanel Spacing="5">
 					<TextBlock Text="Text:"/>

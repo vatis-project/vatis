@@ -42,7 +42,10 @@ public static class WeatherFieldInfo
     private static readonly WeatherOperator[] s_presenceOperators = [WeatherOperator.Contains, WeatherOperator.NotContains];
 
     private static readonly WeatherUnit[] s_heightUnits = [WeatherUnit.Feet, WeatherUnit.Meters];
-    private static readonly WeatherUnit[] s_distanceUnits = [WeatherUnit.Meters, WeatherUnit.Kilometers, WeatherUnit.Feet];
+    private static readonly WeatherUnit[] s_rvrUnits = [WeatherUnit.Meters, WeatherUnit.Kilometers, WeatherUnit.Feet];
+    private static readonly WeatherUnit[] s_visibilityUnits =
+        [WeatherUnit.Meters, WeatherUnit.Kilometers, WeatherUnit.Feet, WeatherUnit.StatuteMiles];
+
     private static readonly WeatherUnit[] s_speedUnits =
         [WeatherUnit.Knots, WeatherUnit.KilometersPerHour, WeatherUnit.MetersPerSecond];
 
@@ -85,7 +88,8 @@ public static class WeatherFieldInfo
         return field switch
         {
             WeatherField.Ceiling or WeatherField.CloudBase => s_heightUnits,
-            WeatherField.Rvr or WeatherField.Visibility => s_distanceUnits,
+            WeatherField.Rvr => s_rvrUnits,
+            WeatherField.Visibility => s_visibilityUnits,
             WeatherField.WindSpeed or WeatherField.WindGust => s_speedUnits,
             WeatherField.WindDirection => [WeatherUnit.Degrees],
             WeatherField.Temperature or WeatherField.Dewpoint => s_temperatureUnits,
