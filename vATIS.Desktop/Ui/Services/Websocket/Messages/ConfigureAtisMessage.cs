@@ -72,5 +72,19 @@ public class ConfigureAtisMessage
         /// </summary>
         [JsonPropertyName("syncAtisLetter")]
         public bool? SyncAtisLetter { get; set; }
+
+        /// <summary>
+        /// Applies the airport conditions and NOTAMs in this payload to the preset.
+        /// Values omitted from the payload leave the preset's existing values untouched.
+        /// </summary>
+        /// <param name="preset">The preset to update.</param>
+        public void ApplyTo(AtisPreset preset)
+        {
+            if (AirportConditionsFreeText != null)
+                preset.AirportConditions = AirportConditionsFreeText;
+
+            if (NotamsFreeText != null)
+                preset.Notams = NotamsFreeText;
+        }
     }
 }

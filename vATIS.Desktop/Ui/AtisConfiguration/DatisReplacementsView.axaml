@@ -7,12 +7,12 @@
              xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="550"
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.DatisReplacementsView">
-	<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10">
+	<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10" Margin="0,0,0,5">
 		<!-- Prepend/Append Airport Conditions -->
 		<Grid Grid.Row="0" ColumnDefinitions="*,10,*">
 			<StackPanel Grid.Column="0" Spacing="4">
 				<TextBlock Text="Prepend Airport Conditions:"/>
-				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding PrependAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to airport conditions" LostFocus="TextBox_OnLostFocus">
+				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding PrependAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to airport conditions">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
@@ -20,7 +20,7 @@
 			</StackPanel>
 			<StackPanel Grid.Column="2" Spacing="4">
 				<TextBlock Text="Append Airport Conditions:"/>
-				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding AppendAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to airport conditions" LostFocus="TextBox_OnLostFocus">
+				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding AppendAirportConditions, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to airport conditions">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
@@ -31,7 +31,7 @@
 		<Grid Grid.Row="1" ColumnDefinitions="*,10,*">
 			<StackPanel Grid.Column="0" Spacing="4">
 				<TextBlock Text="Prepend NOTAMs:"/>
-				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding PrependNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to NOTAMs" LostFocus="TextBox_OnLostFocus">
+				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding PrependNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to prepend to NOTAMs">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
@@ -39,7 +39,7 @@
 			</StackPanel>
 			<StackPanel Grid.Column="2" Spacing="4">
 				<TextBlock Text="Append NOTAMs:"/>
-				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding AppendNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to NOTAMs" LostFocus="TextBox_OnLostFocus">
+				<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding AppendNotams, DataType=vm:DatisReplacementsViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="Text to append to NOTAMs">
 					<Interaction.Behaviors>
 						<behaviors:TextBoxUppercaseBehavior/>
 					</Interaction.Behaviors>
