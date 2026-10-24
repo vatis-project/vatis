@@ -105,16 +105,19 @@ public static class WeatherRuleEvaluator
         switch (rule.Field)
         {
             case WeatherField.Ceiling:
-                return FromFeet(atisFormat.GetCeilingLayer(metar.Clouds), rule.Unit);
+                return FromFeet(GetCeilingLayer(metar, atisFormat), rule.Unit);
             case WeatherField.CloudBase:
                 return FromFeet(
                     metar.Clouds.Where(x => x.BaseHeight is { ActualValue: > 0 })
                         .OrderBy(x => x.BaseHeight!.ActualValue).FirstOrDefault(),
                     rule.Unit);
             case WeatherField.Rvr:
+                // A variable RVR, e.g. 1800V3000FT, counts as its lowest value.
                 var ranges = metar.RunwaysVisualRange
-                    .Where(x => x.VisualRange != null)
-                    .Select(x => FromMeters(ToMeters(x.VisualRange!), rule.Unit))
+                    .Select(x => x.VisualRange != null ? x.VisualRange
+                        : x.VisualRangeInterval?.OrderBy(ToMeters).FirstOrDefault())
+                    .Where(x => x != null)
+                    .Select(x => FromMeters(ToMeters(x!), rule.Unit))
                     .ToList();
                 return ranges.Count == 0 ? null : ranges.Min();
             case WeatherField.Visibility:
@@ -149,6 +152,21 @@ public static class WeatherRuleEvaluator
         }
     }
 
+    // Vertical visibility (VV) means the sky is obscured, which is an indefinite ceiling at that height, so it counts
+    // as a ceiling whether or not the station's format lists it as a ceiling layer type.
+    private static CloudLayer? GetCeilingLayer(DecodedMetar metar, AtisFormat atisFormat)
+    {
+        var ceiling = atisFormat.GetCeilingLayer(metar.Clouds);
+        var obscured = metar.Clouds
+            .Where(x => x is { Amount: CloudLayer.CloudAmount.VerticalVisibility, BaseHeight.ActualValue: > 0 })
+            .OrderBy(x => x.BaseHeight!.ActualValue)
+            .FirstOrDefault();
+
+        return ceiling == null || (obscured != null && obscured.BaseHeight!.ActualValue < ceiling.BaseHeight!.ActualValue)
+            ? obscured ?? ceiling
+            : ceiling;
+    }
+
     // The decoder stores cloud base heights in hundreds of feet, whatever their unit says.
     private static double? FromFeet(CloudLayer? layer, WeatherUnit unit)
     {
@@ -177,6 +195,7 @@ public static class WeatherRuleEvaluator
         {
             WeatherUnit.Feet => meters / FeetToMeters,
             WeatherUnit.Kilometers => meters / 1000,
+            WeatherUnit.StatuteMiles => meters / MetersPerStatuteMile,
             _ => meters,
         };
     }

@@ -26,7 +26,7 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
     private const string DirectionRegexPattern = "([0-9]{3}|VRB|///)";
     private const string SpeedRegexPattern = "P?([/0-9]{2,3}|//)";
     private const string SpeedVariationsRegexPattern = "(GP?([0-9]{2,3}))?"; // optional
-    private const string UnitRegexPattern = "(KT|MPS|KPH)";
+    private const string UnitRegexPattern = "(KT|MPS|KPH|KMH)"; // ICAO writes kilometers per hour as KMH
     private const string DirectionVariationsRegexPattern = "( ([0-9]{3})V([0-9]{3}))?"; // optional
 
     /// <inheritdoc/>
@@ -68,7 +68,7 @@ public sealed class SurfaceWindChunkDecoder : MetarChunkDecoder
         var speedUnit = found[5].Value switch
         {
             "KT" => Value.Unit.Knot,
-            "KPH" => Value.Unit.KilometerPerHour,
+            "KPH" or "KMH" => Value.Unit.KilometerPerHour,
             "MPS" => Value.Unit.MeterPerSecond,
             _ => Value.Unit.None,
         };

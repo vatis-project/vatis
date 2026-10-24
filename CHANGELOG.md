@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- Added statute miles (`sm`) and fractions (e.g., `1/2sm`, `1 1/2sm`) to visibility in weather conditions for static airport conditions and NOTAMs.
+
+### Fixed
+- Fixed weather conditions ignoring variable runway visual range (e.g., `R25L/1800V3000FT`) and treating vertical visibility (`VV002`) as no ceiling.
+- Fixed wind speeds reported in kilometers per hour as `KMH` not being decoded from METARs.
+
 ## v4.1.0-beta.20
 ### Added
 - Added a JSON-only `disconnectIfUnrecorded` option to automatically disconnect a recorded voice ATIS if it hasn't been recorded within 5 minutes of connecting.
