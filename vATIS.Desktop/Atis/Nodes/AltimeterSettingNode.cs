@@ -76,13 +76,14 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
             return "";
 
         var altimeter = node.ActualValue.ToString(CultureInfo.InvariantCulture);
+        var altimeterDigits = node.ActualValue.ToString("0000", CultureInfo.InvariantCulture);
         var inHg = _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US"));
         var altimeterWords = node.ActualValue.ToString("0000").ToSerialFormat()?.ToUpperInvariant() ?? string.Empty;
 
-        format = Regex.Replace(format, "{altimeter}", _ => Render("altimeter", altimeter, altimeter, false), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, "{altimeter}", _ => Render("altimeter", altimeter, altimeterDigits, false), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{altimeter\|inhg}", _ => Render("inhg", inHg, inHg, false), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|hpa}", _ => Render("hpa", _pressureHpa.ToString(), _pressureHpa.ToString(), false), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|text}", _ => Render("text", altimeterWords, altimeter, false), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|hpa}", _ => Render("hpa", _pressureHpa.ToString(), _pressureHpa.ToString("0000"), false), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|text}", _ => Render("text", altimeterWords, altimeterDigits, false), RegexOptions.IgnoreCase);
 
         var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
         if (qfeMatch.Success)
@@ -113,13 +114,13 @@ public class AltimeterSettingNode : BaseNodeMetarRepository<Value>
         if (format == null)
             return "";
 
-        var altimeter = ((int)node.ActualValue).ToString(CultureInfo.InvariantCulture);
+        var altimeter = ((int)node.ActualValue).ToString("0000", CultureInfo.InvariantCulture);
         var inHg = _pressureInHg.ToString("00.00", CultureInfo.GetCultureInfo("en-US"));
 
         format = Regex.Replace(format, "{altimeter}", _ => Render("altimeter", ((int)node.ActualValue).ToSerialFormat(), altimeter, true), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{altimeter\|text}", _ => Render("text", ((int)node.ActualValue).ToSerialFormat(), altimeter, true), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, @"{altimeter\|inhg}", _ => Render("inhg", inHg.ToSerialFormat(Station.AtisFormat.Altimeter.PronounceDecimal) ?? string.Empty, inHg, true), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, @"{altimeter\|hpa}", _ => Render("hpa", _pressureHpa.ToSerialFormat(), _pressureHpa.ToString(), true), RegexOptions.IgnoreCase);
+        format = Regex.Replace(format, @"{altimeter\|hpa}", _ => Render("hpa", _pressureHpa.ToSerialFormat(), _pressureHpa.ToString("0000"), true), RegexOptions.IgnoreCase);
 
         var qfeMatch = Regex.Match(format, @"\{qfe\|(\d+)\}", RegexOptions.IgnoreCase);
         if (qfeMatch.Success)
