@@ -6,8 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added customizable text and voice templates for the trend forecast, allowing the spoken "TREND" prefix to be changed or removed.
+- Added "Blank Line" and "New Line" items to static airport conditions and NOTAMs to separate definitions with an empty line or a line break.
+- Added support for deleting multiple selected static airport conditions and NOTAMs at once.
+- Added support for `\n` line breaks in static airport conditions and NOTAMs separators.
+### Changed
+- Moved the D-ATIS sub-tab ahead of Template in the preset editor and hid it when the preset uses an external ATIS generator.
+- Changed D-ATIS replacements and prepend/append text to be held until Apply or OK is pressed, instead of being saved immediately.
 ### Fixed
 - Fixed the `configureAtis` WebSocket message clearing airport conditions and NOTAMs, or requiring a preset, when those properties were omitted.
+- Fixed D-ATIS text replacements leaving stray punctuation behind and not removing trailing punctuation for plain-text patterns.
 
 ## v4.1.0-beta.20
 ### Added
