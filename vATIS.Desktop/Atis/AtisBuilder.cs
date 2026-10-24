@@ -253,7 +253,7 @@ public class AtisBuilder : IAtisBuilder
 
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
-        text = PatternMatcher.Apply(text, station.Patterns, voiceVariable);
+        text = PatternMatcher.Apply(text, station.Patterns, voiceVariable, runwayLeadingZero: !station.IsFaaAtis);
 
         return Regex.Replace(text, @"@?(\+?[\w]+(?:_[\w]+)*)", match =>
         {
@@ -674,8 +674,10 @@ public class AtisBuilder : IAtisBuilder
             var acDefinitions = StaticDefinitionFilter.GetActive(
                 station.AirportConditionDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat);
             acCustom = StaticDefinitionJoiner.HasCustomSeparators(acDefinitions, station.AirportConditionsSeparator);
-            var acStatic = StaticDefinitionJoiner.Join(acDefinitions, station.AirportConditionsSeparator);
             var acFree = StaticDefinitionJoiner.Prepare(preset.AirportConditions, acCustom);
+            var acStatic = StaticDefinitionJoiner.Join(
+                acDefinitions, station.AirportConditionsSeparator,
+                terminate: !station.AirportConditionsBeforeFreeText || string.IsNullOrWhiteSpace(acFree));
 
             airportConditions = string.Join(" ", (station.AirportConditionsBeforeFreeText
                 ? new[] { acStatic, acFree }
@@ -701,8 +703,10 @@ public class AtisBuilder : IAtisBuilder
             var notamDefinitions = StaticDefinitionFilter.GetActive(
                 station.NotamDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat);
             notamsCustom = StaticDefinitionJoiner.HasCustomSeparators(notamDefinitions, station.NotamsSeparator);
-            var notamStatic = StaticDefinitionJoiner.Join(notamDefinitions, station.NotamsSeparator);
             var notamFree = StaticDefinitionJoiner.Prepare(preset.Notams, notamsCustom);
+            var notamStatic = StaticDefinitionJoiner.Join(
+                notamDefinitions, station.NotamsSeparator,
+                terminate: !station.NotamsBeforeFreeText || string.IsNullOrWhiteSpace(notamFree));
 
             notams += string.Join(". ", (station.NotamsBeforeFreeText
                 ? new[] { notamStatic, notamFree }
@@ -711,8 +715,12 @@ public class AtisBuilder : IAtisBuilder
             // strip extraneous punctuation
             notams = StaticDefinitionJoiner.Finish(notams, notamsCustom);
 
-            // Add space to end of NOTAMs
-            notams = notams.Trim() + " ";
+            // Add space to end of NOTAMs, unless nothing is active
+            notams = notams.Trim();
+            if (notams.Length > 0)
+            {
+                notams += " ";
+            }
         }
 
         if (!string.IsNullOrEmpty(notams))

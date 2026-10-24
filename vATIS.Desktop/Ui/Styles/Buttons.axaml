@@ -255,6 +255,9 @@
 			<Setter Property="Background" Value="#141414"/>
 			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
 		</Style>
+		<Style Selector="^:flyout-open /template/ ContentPresenter">
+			<Setter Property="Background" Value="#141414"/>
+		</Style>
 		<Style Selector="^:disabled /template/ ContentPresenter">
 			<Setter Property="Foreground" Value="#646464"/>
 			<Setter Property="Background" Value="{TemplateBinding Background}"/>

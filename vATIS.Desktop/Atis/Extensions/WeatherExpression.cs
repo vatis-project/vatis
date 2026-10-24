@@ -69,6 +69,9 @@ public sealed partial class WeatherExpression
         ["meters"] = WeatherUnit.Meters,
         ["metres"] = WeatherUnit.Meters,
         ["km"] = WeatherUnit.Kilometers,
+        ["sm"] = WeatherUnit.StatuteMiles,
+        ["mi"] = WeatherUnit.StatuteMiles,
+        ["miles"] = WeatherUnit.StatuteMiles,
         ["kt"] = WeatherUnit.Knots,
         ["kts"] = WeatherUnit.Knots,
         ["knots"] = WeatherUnit.Knots,
@@ -231,8 +234,13 @@ public sealed partial class WeatherExpression
         return tokens;
     }
 
-    [GeneratedRegex(@"^([+-]?\d+(?:\.\d+)?)(.*)$")]
+    // A number is a whole or decimal number, or a fraction such as 1/2 as in 1/2SM.
+    [GeneratedRegex(@"^([+-]?\d+(?:\.\d+)?(?:/\d+)?)(.*)$")]
     private static partial Regex NumberPattern();
+
+    // The fraction of a mixed number, e.g. the 1/2SM in "1 1/2SM".
+    [GeneratedRegex(@"^(\d+)/(\d+)(.*)$")]
+    private static partial Regex FractionPattern();
 
     private readonly record struct Token(TokenKind Kind, string Text, int Position);
 
@@ -285,6 +293,25 @@ public sealed partial class WeatherExpression
                     _ => null,
                 }
                 : null;
+        }
+
+        private static double ParseNumber(string text, Token token)
+        {
+            var slash = text.IndexOf('/', StringComparison.Ordinal);
+            return slash < 0
+                ? double.Parse(text, CultureInfo.InvariantCulture)
+                : ParseFraction(text[..slash], text[(slash + 1)..], token) * (text[0] == '-' ? -1 : 1);
+        }
+
+        private static double ParseFraction(string top, string bottom, Token token)
+        {
+            var denominator = double.Parse(bottom, CultureInfo.InvariantCulture);
+            if (denominator == 0)
+            {
+                throw Error("A fraction cannot be divided by zero.", token);
+            }
+
+            return Math.Abs(double.Parse(top, CultureInfo.InvariantCulture)) / denominator;
         }
 
         private ExpressionNode ParseOr()
@@ -433,10 +460,20 @@ public sealed partial class WeatherExpression
             }
 
             _position++;
-            var value = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+            var value = ParseNumber(match.Groups[1].Value, numberToken);
             var allowed = WeatherFieldInfo.GetUnits(field);
             var unitText = match.Groups[2].Value;
             var unitToken = numberToken;
+
+            // A whole number followed by a fraction is a mixed number, e.g. "1 1/2sm".
+            if (unitText.Length == 0 && !match.Groups[1].Value.Contains('/') && !match.Groups[1].Value.Contains('.') &&
+                Current.Kind == TokenKind.Word && FractionPattern().Match(Current.Text) is { Success: true } fraction)
+            {
+                value += Math.Sign(value == 0 ? 1 : value) * ParseFraction(fraction.Groups[1].Value, fraction.Groups[2].Value, Current);
+                unitText = fraction.Groups[3].Value;
+                unitToken = Current;
+                _position++;
+            }
 
             // The unit can also follow after a space, e.g. "200 ft".
             if (unitText.Length == 0 && Current.Kind == TokenKind.Word && s_units.ContainsKey(Current.Text))

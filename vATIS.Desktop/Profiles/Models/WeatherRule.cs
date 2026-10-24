@@ -191,6 +191,11 @@ public enum WeatherUnit
     /// Millimeters.
     /// </summary>
     Millimeters,
+
+    /// <summary>
+    /// Statute miles.
+    /// </summary>
+    StatuteMiles,
 }
 
 /// <summary>

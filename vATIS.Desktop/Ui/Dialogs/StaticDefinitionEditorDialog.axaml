@@ -84,7 +84,7 @@
 								<Setter Property="Margin" Value="0,0,8,0" />
 							</Style>
 						</Grid.Styles>
-						<TextBlock Classes="label" Grid.Row="0" Grid.Column="0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Leave blank to use the list's default separator. Ignored for the last entry." />
+						<TextBlock Classes="label" Grid.Row="0" Grid.Column="0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Use \n for a line break. Leave blank to use the list's default separator. Ignored for the last entry." />
 						<TextBox Classes="field" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" FontFamily="{StaticResource Monospace}" Watermark="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
 
 						<TextBlock Classes="label" Grid.Row="1" Grid.Column="0" Text="Include:" ToolTip.Tip="Optionally include this entry only while specific controllers are online (or offline), based on the VATSIM data feed." />
@@ -98,7 +98,7 @@
 						</Grid>
 
 						<TextBlock Classes="label" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,6,8,0" Text="Weather:" ToolTip.Tip="Optionally include this entry only when the METAR meets this condition. Combine comparisons with AND, OR and NOT, and group them with parentheses. AND is evaluated before OR." />
-						<editor:TextEditor Grid.Row="2" Grid.Column="1" Name="WeatherEditor" WordWrap="True" Height="56" FontFamily="{StaticResource Monospace}" Padding="6,4" ToolTip.Tip="Fields: ceiling, cloudbase, rvr, visibility, windspeed, gust, winddir, temperature, dewpoint, qnh, depth, weather, cloudtype, windshear, cavok. Compare with &lt; &lt;= &gt; &gt;= = and an optional unit (200ft, 550m, 15kt). Use INCLUDES or EXCLUDES for weather and cloudtype, e.g. weather INCLUDES TS. Use NOT with windshear and cavok.">
+						<editor:TextEditor Grid.Row="2" Grid.Column="1" Name="WeatherEditor" WordWrap="True" Height="56" FontFamily="{StaticResource Monospace}" Padding="6,4" ToolTip.Tip="Fields: ceiling, cloudbase, rvr, visibility, windspeed, gust, winddir, temperature, dewpoint, qnh, depth, weather, cloudtype, windshear, cavok. Compare with &lt; &lt;= &gt; &gt;= = and an optional unit (200ft, 550m, 15kt, 1/2sm). Use INCLUDES or EXCLUDES for weather and cloudtype, e.g. weather INCLUDES TS. Use NOT with windshear and cavok.">
 							<Interaction.Behaviors>
 								<behaviors:DocumentTextBindingBehavior Text="{Binding WeatherCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
 								<behaviors:TextEditorWeatherCompletionBehavior/>
