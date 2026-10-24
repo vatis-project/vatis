@@ -18,6 +18,7 @@ public class DataFeedService
         ["FSS"] = 1,
         ["DEL"] = 2,
         ["GND"] = 3,
+        ["RMP"] = 3,
         ["TWR"] = 4,
         ["APP"] = 5,
         ["DEP"] = 5,
