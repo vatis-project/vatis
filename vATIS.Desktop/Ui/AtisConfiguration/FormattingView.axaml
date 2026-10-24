@@ -1350,6 +1350,28 @@
                         </Grid>
                     </StackPanel>
                 </groupBox:GroupBoxControl>
+                <groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+                    <StackPanel Orientation="Vertical" Spacing="10">
+                        <Grid ColumnDefinitions="100,10,*,10,*">
+                            <TextBlock Grid.Column="2">Text</TextBlock>
+                            <TextBlock Grid.Column="4">Voice</TextBlock>
+                        </Grid>
+                        <Grid ColumnDefinitions="100,10,*,10,*">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center">Template</TextBlock>
+                            <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Text" Text="{Binding TrendTemplateText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                            <controls:TemplateVariableTextBox Grid.Column="4" Watermark="Voice" Text="{Binding TrendTemplateVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                        </Grid>
+                        <WrapPanel>
+                            <Button
+                                Theme="{StaticResource DarkVariable}"
+                                ToolTip.Tip="This will be replaced by the trend forecast (e.g. NOSIG)."
+                                Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+                                CommandParameter="{Binding $self.Content}">
+                                {Trend}
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                </groupBox:GroupBoxControl>
             </StackPanel>
 			<!--Transition Level-->
 			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Transition Level'}">

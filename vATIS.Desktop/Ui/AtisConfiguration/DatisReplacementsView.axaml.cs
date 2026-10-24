@@ -30,12 +30,4 @@ public partial class DatisReplacementsView : UserControl
             vm.CellEditEndingCommand.Execute().Subscribe();
         }
     }
-
-    private void TextBox_OnLostFocus(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is DatisReplacementsViewModel vm)
-        {
-            vm.TextBoxLostFocusCommand.Execute().Subscribe();
-        }
-    }
 }

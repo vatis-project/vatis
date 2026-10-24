@@ -44,7 +44,10 @@
 			</Grid>
 			<CheckBox Name="UseExternalAtisGenerator" Margin="0,8,0,0" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
 		</StackPanel>
-		<TabControl Grid.Row="1" Margin="-3,10,-3,-3" Classes.NoStrip="{Binding !IsDatisPresetSelected, DataType=vm:PresetsViewModel}" SelectedIndex="{Binding SelectedSubTabIndex, DataType=vm:PresetsViewModel}">
+		<TabControl Grid.Row="1" Margin="-3,10,-3,-3" Classes.NoStrip="{Binding !ShowDatisSubTab, DataType=vm:PresetsViewModel}" SelectedIndex="{Binding SelectedSubTabIndex, DataType=vm:PresetsViewModel}">
+		<TabItem Header="D-ATIS" x:DataType="vm:PresetsViewModel" IsVisible="{Binding ShowDatisSubTab}">
+			<views:DatisReplacementsView DataContext="{Binding DatisReplacementsViewModel}"/>
+		</TabItem>
 		<TabItem Header="Template">
 		<Grid>
 			<Grid RowDefinitions="Auto,*,Auto" RowSpacing="5" IsVisible="{Binding !#UseExternalAtisGenerator.IsChecked}">
@@ -314,9 +317,6 @@
                 </ScrollViewer>
 			</groupBox:GroupBoxControl>
 		</Grid>
-		</TabItem>
-		<TabItem Header="D-ATIS" x:DataType="vm:PresetsViewModel" IsVisible="{Binding IsDatisPresetSelected}">
-			<views:DatisReplacementsView DataContext="{Binding DatisReplacementsViewModel}"/>
 		</TabItem>
 		</TabControl>
 		</Grid>
