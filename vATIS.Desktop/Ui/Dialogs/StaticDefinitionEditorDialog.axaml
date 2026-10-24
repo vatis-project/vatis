@@ -89,7 +89,7 @@
 
 						<TextBlock Classes="label" Grid.Row="1" Grid.Column="0" Text="Online:" ToolTip.Tip="Optionally include this entry only when this condition on which controllers are online is met, based on the VATSIM data feed. Use NOT to include it while a controller is offline, e.g. NOT EPWA_DEL." />
 						<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" Spacing="3">
-							<editor:TextEditor Name="OnlineEditor" WordWrap="True" Height="40" FontFamily="{StaticResource Monospace}" Padding="6,4" ToolTip.Tip="Callsigns separated by commas or spaces, any of which can match. Use * as a wildcard, e.g. EPWW_*_CTR. Combine callsigns with AND, OR and NOT, and group them with parentheses, e.g. LAS_E_GND NOT LAS_W_GND. AND is evaluated before OR. Leave blank to always include this entry. Suggestions appear as you type; press Ctrl+Space to show them.">
+							<editor:TextEditor Name="OnlineEditor" WordWrap="True" Height="40" FontFamily="{StaticResource Monospace}" Padding="6,4" ToolTip.Tip="Callsigns separated by commas or spaces, any of which can match. Use * as a wildcard, e.g. EPWW_*_CTR. Combine callsigns with AND, OR and NOT, and group them with parentheses, e.g. LAS_E_GND NOT LAS_W_GND. AND is evaluated before OR. Leave blank to always include this entry.">
 								<Interaction.Behaviors>
 									<behaviors:DocumentTextBindingBehavior Text="{Binding OnlineCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
 									<behaviors:TextEditorConditionCompletionBehavior Kind="Station"/>
@@ -113,7 +113,7 @@
 							</Interaction.Behaviors>
 						</editor:TextEditor>
 						<StackPanel Grid.Row="3" Grid.Column="1" Margin="0,5,0,0" Spacing="3">
-							<TextBlock TextWrapping="Wrap" Opacity="0.6" FontSize="12" Text="Example: ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m). Suggestions appear as you type; press Ctrl+Space to show them." />
+							<TextBlock TextWrapping="Wrap" Opacity="0.6" FontSize="12" Text="Example: ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m). Suggestions appear as you type." />
 							<TextBlock TextWrapping="Wrap" Foreground="#FCBA03" Text="{Binding WeatherConditionError, DataType=vm:StaticDefinitionEditorDialogViewModel}">
 								<TextBlock.IsVisible>
 									<!-- Not while the box has focus: an unfinished condition is not an error yet. -->

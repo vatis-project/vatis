@@ -18,7 +18,7 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 
 /// <summary>
 /// Suggests keywords while a station or weather condition is typed. The list opens as you type a word, after a
-/// space or an opening parenthesis, and on Ctrl+Space.
+/// space or an opening parenthesis.
 /// </summary>
 public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
 {
@@ -47,7 +47,6 @@ public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
 
         _editor = AssociatedObject ?? throw new InvalidOperationException("AssociatedObject is null");
         _editor.TextArea.TextEntered += OnTextEntered;
-        _editor.TextArea.KeyDown += OnKeyDown;
         _editor.Options.AllowScrollBelowDocument = false;
     }
 
@@ -57,20 +56,10 @@ public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
         if (_editor != null)
         {
             _editor.TextArea.TextEntered -= OnTextEntered;
-            _editor.TextArea.KeyDown -= OnKeyDown;
         }
 
         _window?.Close();
         base.OnDetaching();
-    }
-
-    private void OnKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e is { Key: Key.Space, KeyModifiers: KeyModifiers.Control })
-        {
-            Show();
-            e.Handled = true;
-        }
     }
 
     private void OnTextEntered(object? sender, TextInputEventArgs e)
