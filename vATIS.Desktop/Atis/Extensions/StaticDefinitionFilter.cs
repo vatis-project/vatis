@@ -7,7 +7,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Vatsim.Vatis.Profiles.AtisFormat;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather.Decoder.Entity;
@@ -22,6 +21,7 @@ public static class StaticDefinitionFilter
     private const int MaxCachedConditions = 256;
 
     private static readonly ConcurrentDictionary<string, WeatherExpression?> s_weatherConditions = new();
+    private static readonly ConcurrentDictionary<string, StationExpression?> s_stationConditions = new();
 
     /// <summary>
     /// Returns the enabled definitions whose station and weather conditions are met, ordered by ordinal.
@@ -86,11 +86,26 @@ public static class StaticDefinitionFilter
             return true;
         }
 
-        var patterns = ParsePatterns(definition.StationCallsigns);
-        var anyOnline = onlineCallsigns != null &&
-                        onlineCallsigns.Any(callsign => patterns.Any(p => p.IsMatch(callsign)));
+        // A condition that does not parse is never met.
+        return GetStationExpression(definition.OnlineCondition!)?.Evaluate(onlineCallsigns) ?? false;
+    }
 
-        return definition.StationCondition == StationCondition.WhenOnline ? anyOnline : !anyOnline;
+    private static StationExpression? GetStationExpression(string condition)
+    {
+        if (!s_stationConditions.TryGetValue(condition, out var expression))
+        {
+            // The editor refuses to save a condition that does not parse, so this only happens for a hand-edited
+            // profile.
+            StationExpression.TryParse(condition, out expression, out _);
+            if (s_stationConditions.Count >= MaxCachedConditions)
+            {
+                s_stationConditions.Clear();
+            }
+
+            s_stationConditions[condition] = expression;
+        }
+
+        return expression;
     }
 
     private static bool IsWeatherConditionMet(string condition, DecodedMetar? metar, AtisFormat atisFormat)
@@ -113,16 +128,6 @@ public static class StaticDefinitionFilter
 
     private static bool IsConditional(StaticDefinition definition)
     {
-        return definition.StationCondition != StationCondition.Always &&
-               !string.IsNullOrWhiteSpace(definition.StationCallsigns);
-    }
-
-    private static List<Regex> ParsePatterns(string? callsigns)
-    {
-        return (callsigns ?? string.Empty)
-            .Split([',', ' ', ';', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => new Regex("^" + Regex.Escape(x.Trim()).Replace("\\*", ".*") + "$",
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
-            .ToList();
+        return !string.IsNullOrWhiteSpace(definition.OnlineCondition);
     }
 }

@@ -98,7 +98,7 @@ public static partial class WeatherCompletion
     /// <param name="text">The condition typed so far.</param>
     /// <param name="caret">The caret offset in the text.</param>
     /// <returns>The suggestions, which may be empty.</returns>
-    public static WeatherSuggestionResult GetSuggestions(string? text, int caret)
+    public static CompletionSuggestionResult GetSuggestions(string? text, int caret)
     {
         text ??= string.Empty;
         caret = Math.Clamp(caret, 0, text.Length);
@@ -134,48 +134,48 @@ public static partial class WeatherCompletion
         return !char.IsWhiteSpace(c) && c is not ('(' or ')' or '<' or '>' or '=' or '"');
     }
 
-    private static WeatherSuggestionResult Filter(int start, string partial, IEnumerable<WeatherSuggestion> candidates)
+    private static CompletionSuggestionResult Filter(int start, string partial, IEnumerable<CompletionSuggestion> candidates)
     {
         var items = candidates
             .Where(x => x.Text.StartsWith(partial, StringComparison.OrdinalIgnoreCase))
             .ToList();
-        return new WeatherSuggestionResult(start, items);
+        return new CompletionSuggestionResult(start, items);
     }
 
-    private static IEnumerable<WeatherSuggestion> CodesFor(WeatherField? field)
+    private static IEnumerable<CompletionSuggestion> CodesFor(WeatherField? field)
     {
         var codes = field == WeatherField.CloudType ? s_cloudTypes : field == WeatherField.PresentWeather ? s_weatherCodes : [];
-        return codes.Select(x => new WeatherSuggestion(x.Text, x.Text, x.Description, ContinueAfter: false));
+        return codes.Select(x => new CompletionSuggestion(x.Text, x.Text, x.Description, ContinueAfter: false));
     }
 
-    private static IEnumerable<WeatherSuggestion> For((Expecting Expecting, WeatherField? Field) state)
+    private static IEnumerable<CompletionSuggestion> For((Expecting Expecting, WeatherField? Field) state)
     {
         switch (state.Expecting)
         {
             case Expecting.Operand:
                 foreach (var (name, description) in s_fields)
                 {
-                    yield return new WeatherSuggestion(name, name + " ", description);
+                    yield return new CompletionSuggestion(name, name + " ", description);
                 }
 
-                yield return new WeatherSuggestion("NOT", "NOT ", "reverse the next condition");
+                yield return new CompletionSuggestion("NOT", "NOT ", "reverse the next condition");
                 break;
             case Expecting.NumericOperator:
                 foreach (var (op, description) in s_numericOperators)
                 {
-                    yield return new WeatherSuggestion(op, op + " ", description, ContinueAfter: false);
+                    yield return new CompletionSuggestion(op, op + " ", description, ContinueAfter: false);
                 }
 
                 break;
             case Expecting.TextOperator:
-                yield return new WeatherSuggestion("INCLUDES", "INCLUDES ", "any of the codes is in the METAR");
-                yield return new WeatherSuggestion("EXCLUDES", "EXCLUDES ", "none of the codes is in the METAR");
+                yield return new CompletionSuggestion("INCLUDES", "INCLUDES ", "any of the codes is in the METAR");
+                yield return new CompletionSuggestion("EXCLUDES", "EXCLUDES ", "none of the codes is in the METAR");
                 break;
             case Expecting.AfterNumber:
                 foreach (var unit in state.Field is { } f ? WeatherFieldInfo.GetUnits(f) : [])
                 {
                     var name = WeatherExpression.GetUnitName(unit);
-                    yield return new WeatherSuggestion(name, name + " ", "unit");
+                    yield return new CompletionSuggestion(name, name + " ", "unit");
                 }
 
                 foreach (var join in Joiners())
@@ -201,10 +201,10 @@ public static partial class WeatherCompletion
         }
     }
 
-    private static IEnumerable<WeatherSuggestion> Joiners()
+    private static IEnumerable<CompletionSuggestion> Joiners()
     {
-        yield return new WeatherSuggestion("AND", "AND ", "both conditions must be met");
-        yield return new WeatherSuggestion("OR", "OR ", "either condition may be met");
+        yield return new CompletionSuggestion("AND", "AND ", "both conditions must be met");
+        yield return new CompletionSuggestion("OR", "OR ", "either condition may be met");
     }
 
     // Reads the text before the word being typed and works out what may come next.

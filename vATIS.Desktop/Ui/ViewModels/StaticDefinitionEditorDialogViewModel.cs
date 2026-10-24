@@ -29,8 +29,8 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     private string? _title = "Definition Editor";
     private string? _dataValidation;
     private string? _separatorAfter;
-    private StationCondition _stationCondition;
-    private string? _stationCallsigns;
+    private string? _onlineCondition;
+    private string? _onlineConditionError;
     private string? _weatherCondition;
     private string? _weatherConditionError;
 
@@ -127,41 +127,37 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     }
 
     /// <summary>
-    /// Gets or sets when this definition is included, based on which controllers are online.
+    /// Gets or sets the condition on which controllers are online, as text, e.g. <c>LAS_E_GND NOT LAS_W_GND</c>.
     /// </summary>
-    public StationCondition StationCondition
+    public string? OnlineCondition
     {
-        get => _stationCondition;
+        get => _onlineCondition;
         set
         {
-            this.RaiseAndSetIfChanged(ref _stationCondition, value);
-            this.RaisePropertyChanged(nameof(StationConditionIndex));
-            this.RaisePropertyChanged(nameof(HasStationCondition));
+            this.RaiseAndSetIfChanged(ref _onlineCondition, value);
+            OnlineConditionError = string.IsNullOrWhiteSpace(value) || StationExpression.TryParse(value, out _, out var error)
+                ? null
+                : error;
         }
     }
 
     /// <summary>
-    /// Gets or sets the <see cref="StationCondition"/> as the index of the condition list.
+    /// Gets the problem with the online condition as typed, or null if it is empty or valid.
     /// </summary>
-    public int StationConditionIndex
+    public string? OnlineConditionError
     {
-        get => (int)_stationCondition;
-        set => StationCondition = (StationCondition)value;
+        get => _onlineConditionError;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _onlineConditionError, value);
+            this.RaisePropertyChanged(nameof(HasOnlineConditionError));
+        }
     }
 
     /// <summary>
-    /// Gets a value indicating whether the definition depends on controllers being online.
+    /// Gets a value indicating whether the online condition has a problem.
     /// </summary>
-    public bool HasStationCondition => _stationCondition != StationCondition.Always;
-
-    /// <summary>
-    /// Gets or sets the callsigns the station condition applies to, separated by commas or spaces.
-    /// </summary>
-    public string? StationCallsigns
-    {
-        get => _stationCallsigns;
-        set => this.RaiseAndSetIfChanged(ref _stationCallsigns, value);
-    }
+    public bool HasOnlineConditionError => _onlineConditionError != null;
 
     /// <summary>
     /// Gets or sets the condition on the METAR, as text, e.g. <c>ceiling &lt; 200ft AND rvr &lt; 550m</c>.
@@ -212,8 +208,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     /// <param name="definition">The definition.</param>
     public void LoadConditionsFrom(StaticDefinition definition)
     {
-        StationCondition = definition.StationCondition;
-        StationCallsigns = definition.StationCallsigns;
+        OnlineCondition = definition.OnlineCondition;
         WeatherCondition = definition.WeatherCondition;
     }
 
@@ -224,8 +219,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     /// <returns>The same definition.</returns>
     public StaticDefinition ApplyConditionsTo(StaticDefinition definition)
     {
-        definition.StationCondition = StationCondition;
-        definition.StationCallsigns = StationCallsigns?.Trim();
+        definition.OnlineCondition = string.IsNullOrWhiteSpace(OnlineCondition) ? null : OnlineCondition.Trim();
         definition.WeatherCondition = string.IsNullOrWhiteSpace(WeatherCondition) ? null : WeatherCondition.Trim();
         return definition;
     }
@@ -240,9 +234,9 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     /// </remarks>
     public bool ValidateConditions()
     {
-        if (HasStationCondition && string.IsNullOrWhiteSpace(StationCallsigns))
+        if (!string.IsNullOrWhiteSpace(OnlineCondition) && !StationExpression.TryParse(OnlineCondition, out _, out var stationError))
         {
-            RaiseError("DataValidation", "Enter at least one callsign.");
+            RaiseError("DataValidation", stationError!);
         }
 
         return !HasErrors && !HasWeatherConditionError;

@@ -46,6 +46,7 @@ public static class Program
             builder.Services.AddHttpClient();
             builder.Services.AddSingleton<ICacheService, CacheService>();
             builder.Services.AddSingleton<IMetarRepository, MetarRepository>();
+            builder.Services.AddSingleton<DataFeedService>();
 
             var app = builder.Build();
 

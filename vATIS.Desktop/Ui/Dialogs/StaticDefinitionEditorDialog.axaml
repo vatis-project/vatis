@@ -87,21 +87,29 @@
 						<TextBlock Classes="label" Grid.Row="0" Grid.Column="0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Use \n for a line break. Leave blank to use the list's default separator. Ignored for the last entry." />
 						<TextBox Classes="field" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" FontFamily="{StaticResource Monospace}" Watermark="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
 
-						<TextBlock Classes="label" Grid.Row="1" Grid.Column="0" Text="Include:" ToolTip.Tip="Optionally include this entry only while specific controllers are online (or offline), based on the VATSIM data feed." />
-						<Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="200,*" Margin="0,0,0,5">
-							<ComboBox Classes="Dark field" Grid.Column="0" HorizontalAlignment="Stretch" SelectedIndex="{Binding StationConditionIndex, DataType=vm:StaticDefinitionEditorDialogViewModel}">
-								<ComboBoxItem>Always</ComboBoxItem>
-								<ComboBoxItem>When online</ComboBoxItem>
-								<ComboBoxItem>When offline</ComboBoxItem>
-							</ComboBox>
-							<TextBox Classes="field" Grid.Column="1" Margin="5,0,0,0" FontFamily="{StaticResource Monospace}" Watermark="EPWA_APP, EPWW_*_CTR" Theme="{StaticResource DarkTextBox}" IsVisible="{Binding HasStationCondition, DataType=vm:StaticDefinitionEditorDialogViewModel}" Text="{Binding StationCallsigns, DataType=vm:StaticDefinitionEditorDialogViewModel}" ToolTip.Tip="Callsigns separated by commas or spaces. Use * as a wildcard, e.g. EPWW_*_CTR." />
-						</Grid>
+						<TextBlock Classes="label" Grid.Row="1" Grid.Column="0" Text="Online:" ToolTip.Tip="Optionally include this entry only when this condition on which controllers are online is met, based on the VATSIM data feed. Use NOT to include it while a controller is offline, e.g. NOT EPWA_DEL." />
+						<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" Spacing="3">
+							<editor:TextEditor Name="OnlineEditor" WordWrap="True" Height="40" FontFamily="{StaticResource Monospace}" Padding="6,4" ToolTip.Tip="Callsigns separated by commas or spaces, any of which can match. Use * as a wildcard, e.g. EPWW_*_CTR. Combine callsigns with AND, OR and NOT, and group them with parentheses, e.g. LAS_E_GND NOT LAS_W_GND. AND is evaluated before OR. Leave blank to always include this entry. Suggestions appear as you type; press Ctrl+Space to show them.">
+								<Interaction.Behaviors>
+									<behaviors:DocumentTextBindingBehavior Text="{Binding OnlineCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
+									<behaviors:TextEditorConditionCompletionBehavior Kind="Station"/>
+								</Interaction.Behaviors>
+							</editor:TextEditor>
+							<TextBlock TextWrapping="Wrap" Foreground="#FCBA03" Text="{Binding OnlineConditionError, DataType=vm:StaticDefinitionEditorDialogViewModel}">
+								<TextBlock.IsVisible>
+									<MultiBinding Converter="{x:Static BoolConverters.And}" x:DataType="vm:StaticDefinitionEditorDialogViewModel">
+										<Binding Path="HasOnlineConditionError" x:DataType="vm:StaticDefinitionEditorDialogViewModel" />
+										<Binding Path="!#OnlineEditor.IsKeyboardFocusWithin" />
+									</MultiBinding>
+								</TextBlock.IsVisible>
+							</TextBlock>
+						</StackPanel>
 
 						<TextBlock Classes="label" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,6,8,0" Text="Weather:" ToolTip.Tip="Optionally include this entry only when the METAR meets this condition. Combine comparisons with AND, OR and NOT, and group them with parentheses. AND is evaluated before OR." />
 						<editor:TextEditor Grid.Row="2" Grid.Column="1" Name="WeatherEditor" WordWrap="True" Height="56" FontFamily="{StaticResource Monospace}" Padding="6,4" ToolTip.Tip="Fields: ceiling, cloudbase, rvr, visibility, windspeed, gust, winddir, temperature, dewpoint, qnh, depth, weather, cloudtype, windshear, cavok. Compare with &lt; &lt;= &gt; &gt;= = and an optional unit (200ft, 550m, 15kt, 1/2sm). Use INCLUDES or EXCLUDES for weather and cloudtype, e.g. weather INCLUDES TS. Use NOT with windshear and cavok.">
 							<Interaction.Behaviors>
 								<behaviors:DocumentTextBindingBehavior Text="{Binding WeatherCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
-								<behaviors:TextEditorWeatherCompletionBehavior/>
+								<behaviors:TextEditorConditionCompletionBehavior Kind="Weather"/>
 							</Interaction.Behaviors>
 						</editor:TextEditor>
 						<StackPanel Grid.Row="3" Grid.Column="1" Margin="0,5,0,0" Spacing="3">

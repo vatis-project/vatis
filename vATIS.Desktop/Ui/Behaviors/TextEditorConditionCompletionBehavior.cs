@@ -1,9 +1,10 @@
-// <copyright file="TextEditorWeatherCompletionBehavior.cs" company="Justin Shannon">
+// <copyright file="TextEditorConditionCompletionBehavior.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
 using System;
+using Avalonia;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
@@ -16,13 +17,28 @@ using Vatsim.Vatis.Ui.Models;
 namespace Vatsim.Vatis.Ui.Behaviors;
 
 /// <summary>
-/// Suggests fields, comparisons, units and codes while a weather condition is typed. The list opens as you type a
-/// word, after a space or an opening parenthesis, and on Ctrl+Space.
+/// Suggests keywords while a station or weather condition is typed. The list opens as you type a word, after a
+/// space or an opening parenthesis, and on Ctrl+Space.
 /// </summary>
-public class TextEditorWeatherCompletionBehavior : Behavior<TextEditor>
+public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
 {
+    /// <summary>
+    /// Defines the <see cref="Kind"/> property.
+    /// </summary>
+    public static readonly StyledProperty<ConditionCompletionKind> KindProperty =
+        AvaloniaProperty.Register<TextEditorConditionCompletionBehavior, ConditionCompletionKind>(nameof(Kind));
+
     private CompletionWindow? _window;
     private TextEditor? _editor;
+
+    /// <summary>
+    /// Gets or sets which kind of condition is being edited.
+    /// </summary>
+    public ConditionCompletionKind Kind
+    {
+        get => GetValue(KindProperty);
+        set => SetValue(KindProperty, value);
+    }
 
     /// <inheritdoc/>
     protected override void OnAttached()
@@ -102,7 +118,9 @@ public class TextEditorWeatherCompletionBehavior : Behavior<TextEditor>
             return;
         }
 
-        var result = WeatherCompletion.GetSuggestions(_editor.Document.Text, _editor.CaretOffset);
+        var result = Kind == ConditionCompletionKind.Station
+            ? StationCompletion.GetSuggestions(_editor.Document.Text, _editor.CaretOffset)
+            : WeatherCompletion.GetSuggestions(_editor.Document.Text, _editor.CaretOffset);
         if (result.Items.Count == 0)
         {
             return;
@@ -111,7 +129,7 @@ public class TextEditorWeatherCompletionBehavior : Behavior<TextEditor>
         var window = new CompletionWindow(_editor.TextArea) { StartOffset = result.StartOffset };
         foreach (var item in result.Items)
         {
-            window.CompletionList.CompletionData.Add(new WeatherCompletionData(item, OnInserted));
+            window.CompletionList.CompletionData.Add(new ConditionCompletionData(item, OnInserted));
         }
 
         window.Closed += (_, _) => _window = null;
@@ -122,7 +140,7 @@ public class TextEditorWeatherCompletionBehavior : Behavior<TextEditor>
         window.CompletionList.SelectedItem = window.CompletionList.CompletionData[0];
     }
 
-    private void OnInserted(WeatherSuggestion suggestion)
+    private void OnInserted(CompletionSuggestion suggestion)
     {
         // Offer the next piece straight away, e.g. the comparison after a field name.
         if (suggestion.ContinueAfter)

@@ -5,13 +5,14 @@
 
 using System.Text.Json.Serialization;
 using ReactiveUI;
+using Vatsim.Vatis.Atis.Extensions;
 
 namespace Vatsim.Vatis.Profiles.Models;
 
 /// <summary>
 /// Represents a static definition with text, ordinal, and enabled status.
 /// </summary>
-public class StaticDefinition : ReactiveObject
+public class StaticDefinition : ReactiveObject, IJsonOnDeserialized
 {
     private bool _enabled;
 
@@ -73,14 +74,23 @@ public class StaticDefinition : ReactiveObject
     public string? SeparatorAfter { get; set; }
 
     /// <summary>
-    /// Gets or sets whether this definition is conditional on VATSIM controllers being online.
+    /// Gets or sets a condition on which VATSIM controllers are online that must be met for this definition to be
+    /// included, written as text, e.g. <c>LAS_E_GND NOT LAS_W_GND</c>. A <c>*</c> in a callsign matches any run of
+    /// characters. See <see cref="StationExpression"/> for the syntax.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? OnlineCondition { get; set; }
+
+    /// <summary>
+    /// Gets or sets the station condition from before conditions were written as text. Only read from old profiles
+    /// and converted to <see cref="OnlineCondition"/> when loaded.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public StationCondition StationCondition { get; set; }
 
     /// <summary>
-    /// Gets or sets the callsigns the <see cref="StationCondition"/> is evaluated against, separated by commas or
-    /// spaces. A <c>*</c> matches any run of characters, e.g. <c>EPWW_*_CTR</c>.
+    /// Gets or sets the callsigns for the old <see cref="StationCondition"/>. Only read from old profiles and
+    /// converted to <see cref="OnlineCondition"/> when loaded.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StationCallsigns { get; set; }
@@ -88,7 +98,7 @@ public class StaticDefinition : ReactiveObject
     /// <summary>
     /// Gets or sets a condition on the METAR that must be met for this definition to be included, written as text,
     /// e.g. <c>ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m)</c>. Combined with
-    /// <see cref="StationCondition"/>: both must pass.
+    /// <see cref="OnlineCondition"/>: both must pass.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? WeatherCondition { get; set; }
@@ -100,6 +110,20 @@ public class StaticDefinition : ReactiveObject
     {
         get => _enabled;
         set => this.RaiseAndSetIfChanged(ref _enabled, value);
+    }
+
+    /// <summary>
+    /// Converts a station condition from an old profile to an <see cref="OnlineCondition"/>.
+    /// </summary>
+    public void OnDeserialized()
+    {
+        if (string.IsNullOrWhiteSpace(OnlineCondition))
+        {
+            OnlineCondition = StationExpression.FromLegacy(StationCondition, StationCallsigns);
+        }
+
+        StationCondition = StationCondition.Always;
+        StationCallsigns = null;
     }
 
     /// <summary>
@@ -120,9 +144,7 @@ public class StaticDefinition : ReactiveObject
         return new StaticDefinition(Text, Ordinal, Enabled)
         {
             SeparatorAfter = SeparatorAfter,
-            NewLineOnly = NewLineOnly,
-            StationCondition = StationCondition,
-            StationCallsigns = StationCallsigns,
+            OnlineCondition = OnlineCondition,
             WeatherCondition = WeatherCondition,
         };
     }

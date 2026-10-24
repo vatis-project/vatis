@@ -21,10 +21,12 @@ namespace Vatsim.Vatis.Networking.Vatsim;
 public sealed class VatsimDataService : IVatsimDataService, IDisposable
 {
     private const int ObserverFacility = 0;
-    private const int AtisFacility = 4;
 
     // The feed is regenerated every 15 seconds, so polling every 30 seconds keeps the list close to current.
     private const int UpdateIntervalSeconds = 30;
+
+    // A local test feed is polled faster so changes to it show up quickly.
+    private const int TestFeedUpdateIntervalSeconds = 3;
 
     private readonly IDownloader _downloader;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
@@ -49,7 +51,7 @@ public sealed class VatsimDataService : IVatsimDataService, IDisposable
     public IReadOnlyCollection<string>? OnlineControllers => _onlineControllers;
 
     /// <summary>
-    /// Extracts the callsigns of the online controllers from the raw data feed, excluding observers and ATIS.
+    /// Extracts the callsigns of the online controllers from the raw data feed, excluding observers. ATIS connections are in a separate list of the feed.
     /// </summary>
     /// <param name="json">The data feed JSON.</param>
     /// <returns>The online controller callsigns, upper-cased.</returns>
@@ -57,8 +59,7 @@ public sealed class VatsimDataService : IVatsimDataService, IDisposable
     {
         var feed = JsonSerializer.Deserialize(json, SourceGenerationContext.NewDefault.VatsimDataFeed);
         return (feed?.Controllers ?? [])
-            .Where(x => !string.IsNullOrWhiteSpace(x.Callsign) &&
-                        x.Facility != ObserverFacility && x.Facility != AtisFacility)
+            .Where(x => !string.IsNullOrWhiteSpace(x.Callsign) && x.Facility != ObserverFacility)
             .Select(x => x.Callsign!.Trim().ToUpperInvariant())
             .ToHashSet();
     }
@@ -78,6 +79,11 @@ public sealed class VatsimDataService : IVatsimDataService, IDisposable
         }
 
         _started = true;
+        if (AppConfigurationProvider.LocalDataFeedUrl != null)
+        {
+            _updateTimer.Interval = TimeSpan.FromSeconds(TestFeedUpdateIntervalSeconds);
+        }
+
         _updateTimer.Start();
         Dispatcher.UIThread.Post(async () => await UpdateAsync());
     }

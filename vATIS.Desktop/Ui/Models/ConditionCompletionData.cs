@@ -1,4 +1,4 @@
-// <copyright file="WeatherCompletionData.cs" company="Justin Shannon">
+// <copyright file="ConditionCompletionData.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -15,19 +15,19 @@ using Vatsim.Vatis.Atis.Extensions;
 namespace Vatsim.Vatis.Ui.Models;
 
 /// <summary>
-/// A suggestion in the weather condition editor.
+/// A suggestion in a condition editor.
 /// </summary>
-public class WeatherCompletionData : ICompletionData
+public class ConditionCompletionData : ICompletionData
 {
-    private readonly WeatherSuggestion _suggestion;
-    private readonly Action<WeatherSuggestion> _inserted;
+    private readonly CompletionSuggestion _suggestion;
+    private readonly Action<CompletionSuggestion> _inserted;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WeatherCompletionData"/> class.
+    /// Initializes a new instance of the <see cref="ConditionCompletionData"/> class.
     /// </summary>
     /// <param name="suggestion">The suggestion.</param>
     /// <param name="inserted">Called after the suggestion has been inserted.</param>
-    public WeatherCompletionData(WeatherSuggestion suggestion, Action<WeatherSuggestion> inserted)
+    public ConditionCompletionData(CompletionSuggestion suggestion, Action<CompletionSuggestion> inserted)
     {
         _suggestion = suggestion;
         _inserted = inserted;

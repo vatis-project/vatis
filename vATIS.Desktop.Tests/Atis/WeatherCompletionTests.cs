@@ -12,13 +12,13 @@ namespace Vatsim.Vatis.Tests.Atis;
 public class WeatherCompletionTests
 {
     // "|" marks the caret.
-    private static WeatherSuggestionResult At(string textWithCaret)
+    private static CompletionSuggestionResult At(string textWithCaret)
     {
         var caret = textWithCaret.IndexOf('|');
         return WeatherCompletion.GetSuggestions(textWithCaret.Remove(caret, 1), caret);
     }
 
-    private static string[] Names(WeatherSuggestionResult result) => result.Items.Select(x => x.Text).ToArray();
+    private static string[] Names(CompletionSuggestionResult result) => result.Items.Select(x => x.Text).ToArray();
 
     [Fact]
     public void EmptyText_SuggestsFieldsAndNot()

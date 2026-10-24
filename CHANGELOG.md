@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Moved the D-ATIS sub-tab ahead of Template in the preset editor and hid it when the preset uses an external ATIS generator.
 - Changed D-ATIS replacements and prepend/append text to be held until Apply or OK is pressed, instead of being saved immediately.
+- Replaced the "Include" station dropdown for static airport conditions and NOTAMs with a single expression field that supports AND, OR, NOT, and parentheses (e.g., `LAS_E_GND NOT LAS_W_GND`). Existing conditions are converted automatically.
 
 ### Fixed
 - Fixed the `configureAtis` WebSocket message clearing airport conditions and NOTAMs, or requiring a preset, when those properties were omitted.

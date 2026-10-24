@@ -19,7 +19,7 @@ public class VatsimDataFeedController
     public string? Callsign { get; set; }
 
     /// <summary>
-    /// Gets or sets the facility type. Zero is an observer and 4 is an ATIS.
+    /// Gets or sets the facility type, e.g. zero for an observer and 4 for a tower.
     /// </summary>
     [JsonPropertyName("facility")]
     public int Facility { get; set; }
