@@ -184,6 +184,7 @@ public class PatternsViewModel : ReactiveViewModelBase, IDisposable
 
         context.Title = existing == null ? "New Pattern" : "Edit Pattern";
         context.ShowAddToAllStations = existing == null;
+        context.RunwayLeadingZero = !SelectedStation.IsFaaAtis;
         context.Pattern = existing?.Pattern ?? string.Empty;
         context.Text = existing?.Text ?? string.Empty;
         context.Spoken = existing?.Voice ?? string.Empty;

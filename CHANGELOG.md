@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Added a `$runway` function for regex patterns that speaks runway designators (e.g., `25L` as "two five left").
 - Added customizable text and voice templates for the trend forecast, allowing the spoken "TREND" prefix to be changed or removed.
 - Added "Blank Line" and "New Line" items to static airport conditions and NOTAMs to separate definitions with an empty line or a line break.
 - Added support for deleting multiple selected static airport conditions and NOTAMs at once.

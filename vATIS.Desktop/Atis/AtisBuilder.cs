@@ -253,7 +253,7 @@ public class AtisBuilder : IAtisBuilder
 
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
-        text = PatternMatcher.Apply(text, station.Patterns, voiceVariable);
+        text = PatternMatcher.Apply(text, station.Patterns, voiceVariable, runwayLeadingZero: !station.IsFaaAtis);
 
         return Regex.Replace(text, @"@?(\+?[\w]+(?:_[\w]+)*)", match =>
         {
