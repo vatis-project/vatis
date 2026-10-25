@@ -107,16 +107,19 @@ public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
             return;
         }
 
-        var result = Kind == ConditionCompletionKind.Station
-            ? StationCompletion.GetSuggestions(_editor.Document.Text, _editor.CaretOffset)
-            : WeatherCompletion.GetSuggestions(_editor.Document.Text, _editor.CaretOffset);
-        if (result.Items.Count == 0)
+        var text = _editor.Document.Text;
+        var caret = _editor.CaretOffset;
+        var typed = GetSuggestions(text, caret);
+        if (typed.Items.Count == 0)
         {
             return;
         }
 
-        var window = new CompletionWindow(_editor.TextArea) { StartOffset = result.StartOffset };
-        foreach (var item in result.Items)
+        // The list stays open while the word is edited, so it gets everything that fits where the word starts and
+        // narrows it as the word changes. A list cut down to what was typed first goes stale when that is deleted.
+        var all = GetSuggestions(text, typed.StartOffset);
+        var window = new CompletionWindow(_editor.TextArea) { StartOffset = typed.StartOffset };
+        foreach (var item in all.Items)
         {
             window.CompletionList.CompletionData.Add(new ConditionCompletionData(item, OnInserted));
         }
@@ -126,7 +129,22 @@ public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
         window.Show();
 
         // With nothing typed yet no item is selected, so Enter would do nothing. Start on the first one.
-        window.CompletionList.SelectedItem = window.CompletionList.CompletionData[0];
+        var partial = text[typed.StartOffset..caret];
+        if (partial.Length > 0)
+        {
+            window.CompletionList.SelectItem(partial);
+        }
+        else
+        {
+            window.CompletionList.SelectedItem = window.CompletionList.CompletionData[0];
+        }
+    }
+
+    private CompletionSuggestionResult GetSuggestions(string text, int caret)
+    {
+        return Kind == ConditionCompletionKind.Station
+            ? StationCompletion.GetSuggestions(text, caret)
+            : WeatherCompletion.GetSuggestions(text, caret);
     }
 
     private void OnInserted(CompletionSuggestion suggestion)

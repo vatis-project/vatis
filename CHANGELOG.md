@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `trend`, `tempo` and `becmg` prefixes for weather conditions to read the trend forecast instead of the METAR (e.g., `trendweather INCLUDES SHRA`, `tempoceiling < 1000ft`, `becmgcloudtype INCLUDES CB`). `trend` reads any trend group, while `tempo` and `becmg` read only that kind. Supported for ceiling, cloud base, visibility, wind speed, gust, wind direction, weather, cloud type, and CAVOK.
 - Added a `trendtype` field to weather conditions to match the trend type (`TEMPO`, `BECMG` or `NOSIG`).
 
+### Fixed
+- Fixed auto-complete in the controllers and weather condition editors sometimes stopping after typing several fields.
+
 ## v4.1.0-beta.22
 ### Fixed
 - Fixed stations failing to load in the released app when a static airport condition or NOTAM used a "Controllers" condition.
