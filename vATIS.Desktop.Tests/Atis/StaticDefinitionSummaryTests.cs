@@ -24,13 +24,26 @@ public class StaticDefinitionSummaryTests
         {
             OnlineCondition = "EPWA_APP,   EPWW_*_CTR\n epwa_f_app",
         };
-        Assert.Equal(["Online: EPWA_APP, EPWW_*_CTR epwa_f_app"], StaticDefinitionSummary.Describe(online));
+        Assert.Equal(["Controllers: EPWA_APP, EPWW_*_CTR epwa_f_app"], StaticDefinitionSummary.Describe(online));
 
         var offline = new StaticDefinition("A", 1)
         {
             OnlineCondition = "NOT EPWA_DEL",
         };
-        Assert.Equal(["Online: NOT EPWA_DEL"], StaticDefinitionSummary.Describe(offline));
+        Assert.Equal(["Controllers: NOT EPWA_DEL"], StaticDefinitionSummary.Describe(offline));
+    }
+
+    [Theory]
+    [InlineData("0600z-2246z", "Time: 0600z-2246z")]
+    [InlineData("NOT 2200z-0600z", "Time: NOT 2200z-0600z")]
+    [InlineData("LAX_TWR AND 2200z-0600z", "Controllers and time: LAX_TWR AND 2200z-0600z")]
+    [InlineData("(LAX_TWR OR LAX_GND) 0600z-1400z", "Controllers and time: (LAX_TWR OR LAX_GND) 0600z-1400z")]
+    [InlineData("LAX_TWR", "Controllers: LAX_TWR")]
+    [InlineData("LAX_TWR AND (", "Controllers: LAX_TWR AND (")]
+    public void OnlineLabel_ReflectsWhatTheConditionChecks(string condition, string expected)
+    {
+        var def = new StaticDefinition("A", 1) { OnlineCondition = condition };
+        Assert.Equal([expected], StaticDefinitionSummary.Describe(def));
     }
 
     [Fact]
@@ -48,7 +61,7 @@ public class StaticDefinitionSummaryTests
             OnlineCondition = "EPWA_APP",
             WeatherCondition = "cavok",
         };
-        Assert.Equal(["Online: EPWA_APP", "Weather: cavok"], StaticDefinitionSummary.Describe(def));
+        Assert.Equal(["Controllers: EPWA_APP", "Weather: cavok"], StaticDefinitionSummary.Describe(def));
     }
 
     [Fact]
