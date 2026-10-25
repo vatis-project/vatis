@@ -11,6 +11,7 @@
 		<Border Grid.Row="0" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 			<DataGrid x:Name="Contractions" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding Contractions, DataType=vm:ContractionsViewModel}" SelectionMode="Extended">
 				<Interaction.Behaviors>
+					<behaviors:DataGridKeyboardBehavior EditCommand="{Binding EditContractionCommand, DataType=vm:ContractionsViewModel}"/>
 					<behaviors:DataGridOverflowToolTipBehavior/>
 				</Interaction.Behaviors>
 				<DataGrid.Styles>

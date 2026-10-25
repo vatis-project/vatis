@@ -23,6 +23,7 @@ public partial class SortPresetsDialog : ReactiveWindow<SortPresetsDialogViewMod
     {
         InitializeComponent();
         ViewModel = viewModel;
+        KeyDown += OnWindowKeyDown;
         Closed += OnClosed;
     }
 
@@ -34,8 +35,18 @@ public partial class SortPresetsDialog : ReactiveWindow<SortPresetsDialogViewMod
         InitializeComponent();
     }
 
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None)
+        {
+            e.Handled = true;
+            Close();
+        }
+    }
+
     private void OnClosed(object? sender, EventArgs e)
     {
+        KeyDown -= OnWindowKeyDown;
         ViewModel?.Dispose();
     }
 

@@ -4,6 +4,7 @@
 // </copyright>
 
 using Avalonia.Controls;
+using Avalonia.Input;
 
 namespace Vatsim.Vatis.Ui.Controls;
 
@@ -12,6 +13,16 @@ namespace Vatsim.Vatis.Ui.Controls;
 /// </summary>
 public class CustomTabControl : TabControl
 {
+    /// <inheritdoc/>
+    protected override void OnGotFocus(GotFocusEventArgs e)
+    {
+        base.OnGotFocus(e);
+
+        // Tab enters the control at the element that last had focus, which skips the tabs and the rest of the
+        // content. Forget it so Tab walks through the content in order.
+        KeyboardNavigation.SetTabOnceActiveElement(this, null);
+    }
+
     /// <inheritdoc/>
     protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)
     {
