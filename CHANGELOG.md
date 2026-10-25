@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added "Blank Line" and "New Line" items to static airport conditions and NOTAMs to separate definitions with an empty line or a line break.
 - Added support for deleting multiple selected static airport conditions and NOTAMs at once.
 - Added support for `\n` line breaks in static airport conditions and NOTAMs separators.
+- Added Zulu time ranges to the "Controllers" condition of static airport conditions and NOTAMs (e.g., `LAX_TWR AND 2200z-0600z`), allowing entries to appear only during specific hours. Ranges can cross midnight.
 
 ### Changed
 - Moved the D-ATIS sub-tab ahead of Template in the preset editor and hid it when the preset uses an external ATIS generator.

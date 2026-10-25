@@ -64,6 +64,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
     private const int TransceiverHeightM = 10;
+    private const int TimeConditionIntervalSeconds = 5;
     private static readonly System.Text.RegularExpressions.Regex s_windDirectionRegex =
         new(@"(?<![0-9])[0-9]{3}(?=[0-9]{2,3}|V[0-9]{3}|\b)", System.Text.RegularExpressions.RegexOptions.Compiled);
 
@@ -88,6 +89,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly string? _identifier;
     private readonly TimeSpan _debounceDelay = TimeSpan.FromSeconds(5);
     private string _activeStaticDefinitionsKey = string.Empty;
+    private DispatcherTimer? _timeConditionTimer;
     private bool _autoFetchDatis;
     private CancellationTokenSource _buildAtisCts = new();
     private CancellationTokenSource _selectedPresetCts = new();
@@ -1038,6 +1040,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     {
         _datisRepository.RemoveStation(AtisStation.Id);
         _disposables.Dispose();
+        _timeConditionTimer?.Stop();
 
         _websocketService.GetAtisReceived -= OnGetAtisReceived;
         _websocketService.AcknowledgeAtisUpdateReceived -= OnAcknowledgeAtisUpdateReceived;
@@ -2276,12 +2279,36 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                StaticDefinitionFilter.HasConditions(AtisStation.AirportConditionDefinitions);
     }
 
+    private bool HasTimeConditions()
+    {
+        return StaticDefinitionFilter.HasTimeConditions(AtisStation.NotamDefinitions) ||
+               StaticDefinitionFilter.HasTimeConditions(AtisStation.AirportConditionDefinitions);
+    }
+
     private void MonitorOnlineControllersIfNeeded()
     {
         if (HasStationConditions())
         {
             _vatsimDataService.Monitor();
         }
+
+        // A time range changes what applies without any controller or METAR change, so check again as time passes.
+        if (HasTimeConditions())
+        {
+            _timeConditionTimer ??= CreateTimeConditionTimer();
+            _timeConditionTimer.Start();
+        }
+        else
+        {
+            _timeConditionTimer?.Stop();
+        }
+    }
+
+    private DispatcherTimer CreateTimeConditionTimer()
+    {
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(TimeConditionIntervalSeconds) };
+        timer.Tick += (_, _) => RefreshConditionalDefinitions(rebuildAtis: true);
+        return timer;
     }
 
     private bool HasWeatherConditions()

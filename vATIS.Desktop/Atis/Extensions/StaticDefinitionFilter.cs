@@ -33,12 +33,13 @@ public static class StaticDefinitionFilter
     /// <param name="metar">The current decoded METAR, or null when none is available.</param>
     /// <param name="atisFormat">The station format, used to find the ceiling layer. Weather rules are not met when
     /// this is null.</param>
+    /// <param name="utcNow">The current time in UTC, or null to use the system clock.</param>
     public static List<StaticDefinition> GetActive(
         IEnumerable<StaticDefinition> definitions, IReadOnlyCollection<string>? onlineCallsigns,
-        DecodedMetar? metar = null, AtisFormat? atisFormat = null)
+        DecodedMetar? metar = null, AtisFormat? atisFormat = null, DateTime? utcNow = null)
     {
         return definitions
-            .Where(x => x.Enabled && IsConditionMet(x, onlineCallsigns, metar, atisFormat))
+            .Where(x => x.Enabled && IsConditionMet(x, onlineCallsigns, metar, atisFormat, utcNow))
             .OrderBy(x => x.Ordinal)
             .ToList();
     }
@@ -51,6 +52,18 @@ public static class StaticDefinitionFilter
     public static bool HasConditions(IEnumerable<StaticDefinition> definitions)
     {
         return definitions.Any(x => x.Enabled && IsConditional(x));
+    }
+
+    /// <summary>
+    /// Determines whether any enabled definition depends on the time of day, so it needs checking again as time
+    /// passes.
+    /// </summary>
+    /// <param name="definitions">The definitions to check.</param>
+    /// <returns>True if at least one enabled definition has a time range in its controller condition.</returns>
+    public static bool HasTimeConditions(IEnumerable<StaticDefinition> definitions)
+    {
+        return definitions.Any(x => x.Enabled && IsConditional(x) &&
+                                    GetStationExpression(x.OnlineCondition!)?.HasTimeCondition == true);
     }
 
     /// <summary>
@@ -70,10 +83,11 @@ public static class StaticDefinitionFilter
     /// <param name="onlineCallsigns">The online controller callsigns, or null when unknown.</param>
     /// <param name="metar">The current decoded METAR, or null when none is available.</param>
     /// <param name="atisFormat">The station format, used to find the ceiling layer.</param>
+    /// <param name="utcNow">The current time in UTC, or null to use the system clock.</param>
     /// <returns>True if the definition applies.</returns>
     public static bool IsConditionMet(
         StaticDefinition definition, IReadOnlyCollection<string>? onlineCallsigns,
-        DecodedMetar? metar = null, AtisFormat? atisFormat = null)
+        DecodedMetar? metar = null, AtisFormat? atisFormat = null, DateTime? utcNow = null)
     {
         if (!string.IsNullOrWhiteSpace(definition.WeatherCondition) &&
             (atisFormat == null || !IsWeatherConditionMet(definition.WeatherCondition, metar, atisFormat)))
@@ -87,7 +101,7 @@ public static class StaticDefinitionFilter
         }
 
         // A condition that does not parse is never met.
-        return GetStationExpression(definition.OnlineCondition!)?.Evaluate(onlineCallsigns) ?? false;
+        return GetStationExpression(definition.OnlineCondition!)?.Evaluate(onlineCallsigns, utcNow) ?? false;
     }
 
     private static StationExpression? GetStationExpression(string condition)
