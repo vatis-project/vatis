@@ -41,10 +41,11 @@ public sealed class StationExpression
 
     private readonly Matcher _root;
 
-    private StationExpression(Matcher root, bool hasTimeCondition)
+    private StationExpression(Matcher root, bool hasTimeCondition, bool hasCallsignCondition)
     {
         _root = root;
         HasTimeCondition = hasTimeCondition;
+        HasCallsignCondition = hasCallsignCondition;
     }
 
     private enum TokenKind
@@ -61,6 +62,11 @@ public sealed class StationExpression
     /// passes.
     /// </summary>
     public bool HasTimeCondition { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the condition depends on which controllers are online.
+    /// </summary>
+    public bool HasCallsignCondition { get; }
 
     /// <summary>
     /// Parses a station condition.
@@ -82,7 +88,7 @@ public sealed class StationExpression
         {
             var parser = new Parser(Tokenize(text));
             var root = parser.ParseAll();
-            expression = new StationExpression(root, parser.HasTimeCondition);
+            expression = new StationExpression(root, parser.HasTimeCondition, parser.HasCallsignCondition);
             error = null;
             return true;
         }
@@ -193,6 +199,8 @@ public sealed class StationExpression
         private int _position;
 
         public bool HasTimeCondition { get; private set; }
+
+        public bool HasCallsignCondition { get; private set; }
 
         private Token Current => tokens[_position];
 
@@ -310,6 +318,7 @@ public sealed class StationExpression
             }
 
             _position++;
+            HasCallsignCondition = true;
             return Callsign(token.Text);
         }
     }
