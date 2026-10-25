@@ -71,6 +71,16 @@ public enum WeatherField
     PresentWeather,
 
     /// <summary>
+    /// The recent weather codes, e.g. RERA.
+    /// </summary>
+    RecentWeather,
+
+    /// <summary>
+    /// The trend change indicators, TEMPO, BECMG or NOSIG.
+    /// </summary>
+    TrendType,
+
+    /// <summary>
     /// The cloud types, CB or TCU.
     /// </summary>
     CloudType,
@@ -199,6 +209,32 @@ public enum WeatherUnit
 }
 
 /// <summary>
+/// Which trend forecast groups a <see cref="WeatherRule"/> reads, when it reads the trend instead of the METAR.
+/// </summary>
+public enum TrendScope
+{
+    /// <summary>
+    /// The rule reads the METAR, not the trend.
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// The rule reads any trend group.
+    /// </summary>
+    Any,
+
+    /// <summary>
+    /// The rule reads only TEMPO groups.
+    /// </summary>
+    Tempo,
+
+    /// <summary>
+    /// The rule reads only BECMG groups.
+    /// </summary>
+    Becoming,
+}
+
+/// <summary>
 /// A single comparison parsed from a weather condition, e.g. <c>ceiling &lt; 200ft</c>.
 /// </summary>
 public class WeatherRule
@@ -207,6 +243,11 @@ public class WeatherRule
     /// Gets or sets the METAR value to compare.
     /// </summary>
     public WeatherField Field { get; set; }
+
+    /// <summary>
+    /// Gets or sets which trend groups the value is read from, or <see cref="TrendScope.None"/> to read the METAR.
+    /// </summary>
+    public TrendScope Trend { get; set; }
 
     /// <summary>
     /// Gets or sets the comparison.

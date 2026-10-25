@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
-using Vatsim.Vatis.Weather.Decoder.ChunkDecoder;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
@@ -67,20 +66,6 @@ public class TrendNode : BaseNode<TrendForecast>
             return trend;
 
         return Regex.Replace(template, "{Trend}", trend.Replace("$", "$$"), RegexOptions.IgnoreCase).Trim();
-    }
-
-    private static void GetChunkResult(Dictionary<string, object> chunkResult, DecodedMetar decodedMetar)
-    {
-        if (chunkResult.TryGetValue("Result", out var value) && value is Dictionary<string, object>)
-        {
-            if (value is Dictionary<string, object> result)
-            {
-                foreach (var obj in result)
-                {
-                    typeof(DecodedMetar).GetProperty(obj.Key)?.SetValue(decodedMetar, obj.Value, null);
-                }
-            }
-        }
     }
 
     private void ProcessTrendForecast(TrendForecast? forecast, DecodedMetar decodedTrend, List<string> voiceAtis,
@@ -150,39 +135,7 @@ public class TrendNode : BaseNode<TrendForecast>
             textAtis.Add($"TL{forecast.UntilTime}");
         }
 
-        if (forecast.SurfaceWind != null)
-        {
-            var chunkResult = new SurfaceWindChunkDecoder().Parse(forecast.SurfaceWind);
-            GetChunkResult(chunkResult, decodedTrend);
-        }
-
-        if (forecast.PrevailingVisibility != null)
-        {
-            if (forecast.PrevailingVisibility.Trim() == "CAVOK")
-            {
-                decodedTrend.Cavok = true;
-            }
-            else
-            {
-                var chunk = new VisibilityChunkDecoder();
-                var chunkResult = chunk.Parse(forecast.PrevailingVisibility);
-                GetChunkResult(chunkResult, decodedTrend);
-            }
-        }
-
-        if (forecast.WeatherCodes != null)
-        {
-            var chunk = new PresentWeatherChunkDecoder();
-            var chunkResult = chunk.Parse(forecast.WeatherCodes);
-            GetChunkResult(chunkResult, decodedTrend);
-        }
-
-        if (forecast.Clouds?.Length > 0)
-        {
-            var chunk = new CloudChunkDecoder();
-            var chunkResult = chunk.Parse(forecast.Clouds);
-            GetChunkResult(chunkResult, decodedTrend);
-        }
+        TrendForecastDecoder.Decode(forecast, decodedTrend);
 
         if (decodedTrend.SurfaceWind != null)
         {

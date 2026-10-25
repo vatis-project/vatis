@@ -79,6 +79,35 @@
 								<Setter Property="VerticalContentAlignment" Value="Center" />
 								<Setter Property="Padding" Value="6,0" />
 							</Style>
+							<Style Selector="Button.info">
+								<Setter Property="Width" Value="18" />
+								<Setter Property="Height" Value="18" />
+								<Setter Property="MinWidth" Value="0" />
+								<Setter Property="MinHeight" Value="0" />
+								<Setter Property="Padding" Value="0" />
+								<Setter Property="Cursor" Value="Hand" />
+								<Setter Property="VerticalAlignment" Value="Center" />
+							</Style>
+							<Style Selector="Button.info /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Background" Value="Transparent" />
+								<Setter Property="BorderBrush" Value="#8C8C8C" />
+								<Setter Property="BorderThickness" Value="1.5" />
+								<Setter Property="CornerRadius" Value="9" />
+							</Style>
+							<Style Selector="Button.info:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.info:pressed /template/ ContentPresenter#PART_ContentPresenter">
+								<Setter Property="Background" Value="Transparent" />
+								<Setter Property="BorderBrush" Value="#FFFFFF" />
+							</Style>
+							<Style Selector="Button.info > TextBlock">
+								<Setter Property="Foreground" Value="#8C8C8C" />
+								<Setter Property="FontSize" Value="12" />
+								<Setter Property="FontWeight" Value="Bold" />
+								<Setter Property="HorizontalAlignment" Value="Center" />
+								<Setter Property="VerticalAlignment" Value="Center" />
+							</Style>
+							<Style Selector="Button.info:pointerover > TextBlock, Button.info:pressed > TextBlock">
+								<Setter Property="Foreground" Value="#FFFFFF" />
+							</Style>
 							<Style Selector="TextBlock.label">
 								<Setter Property="VerticalAlignment" Value="Center" />
 								<Setter Property="Margin" Value="0,0,8,0" />
@@ -87,55 +116,56 @@
 						<TextBlock Classes="label" Grid.Row="0" Grid.Column="0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Use \n for a line break. Leave blank to use the list's default separator. Ignored for the last entry." />
 						<TextBox Classes="field" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" FontFamily="{StaticResource Monospace}" Watermark="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
 
-						<TextBlock Classes="label" Grid.Row="1" Grid.Column="0" Text="Controllers:">
-							<ToolTip.Tip>
-								<TextBlock TextWrapping="Wrap" MaxWidth="420">
-									<Run Text="Include or exclude this message depending on which controllers are online or offline, based on the VATSIM data feed, or on the time of day in Zulu. Leave blank to always include it."/>
-								</TextBlock>
-							</ToolTip.Tip>
-						</TextBlock>
+						<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+							<TextBlock Classes="label" Text="Controllers:" />
+							<Button Classes="info">
+								<TextBlock Text="i" />
+								<Button.Flyout>
+									<Flyout Placement="BottomEdgeAlignedLeft">
+										<StackPanel MaxWidth="340" Spacing="8">
+											<TextBlock TextWrapping="Wrap" Text="Include or exclude this message depending on which controllers are online or offline, based on the VATSIM data feed, or on the time of day in Zulu. Leave blank to always include it."/>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when LAX Tower is online"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="NOT SCT_APP"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when SoCal Approach is offline"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAS_E_GND AND NOT LAS_W_GND"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Las Vegas East Ground is online and West Ground is not"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="2200z-0600z"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="between 2200Z and 0600Z, which can cross midnight"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND 0700z-1400z"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when LAX Tower is online between 0700Z and 1400Z"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND (LAX_GND OR LAX_DEL)"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Tower and either Ground or Delivery are online"/>
+											</StackPanel>
+											<TextBlock TextWrapping="Wrap">
+												<Run Text="Use "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="*"/>
+												<Run Text=" as a wildcard: "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="LAX_*CTR"/>
+												<Run Text=" matches "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="LAX_CTR"/>
+												<Run Text=" and "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="LAX_25_CTR"/>
+												<Run Text="."/>
+											</TextBlock>
+										</StackPanel>
+									</Flyout>
+								</Button.Flyout>
+							</Button>
+						</StackPanel>
 						<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" Spacing="3">
 							<editor:TextEditor Name="OnlineEditor" WordWrap="True" Height="40" FontFamily="{StaticResource Monospace}" Padding="6,4">
-								<ToolTip.Tip>
-									<StackPanel MaxWidth="340" Spacing="8">
-										<TextBlock TextWrapping="Wrap" Text="The message is included while this expression is true. Leave blank to always include it."/>
-										<StackPanel>
-											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR"/>
-											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when LAX Tower is online"/>
-										</StackPanel>
-										<StackPanel>
-											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="NOT SCT_APP"/>
-											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when SoCal Approach is offline"/>
-										</StackPanel>
-										<StackPanel>
-											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAS_E_GND AND NOT LAS_W_GND"/>
-											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Las Vegas East Ground is online and West Ground is not"/>
-										</StackPanel>
-										<StackPanel>
-											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="2200z-0600z"/>
-											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="between 2200Z and 0600Z, which can cross midnight"/>
-										</StackPanel>
-										<StackPanel>
-											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND 0700z-1400z"/>
-											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when LAX Tower is online between 0700Z and 1400Z"/>
-										</StackPanel>
-										<StackPanel>
-											<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND (LAX_GND OR LAX_DEL)"/>
-											<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Tower and either Ground or Delivery are online"/>
-										</StackPanel>
-										<TextBlock TextWrapping="Wrap">
-											<Run Text="Use "/>
-											<Run FontFamily="{StaticResource Monospace}" Text="*"/>
-											<Run Text=" as a wildcard: "/>
-											<Run FontFamily="{StaticResource Monospace}" Text="LAX_*CTR"/>
-											<Run Text=" matches "/>
-											<Run FontFamily="{StaticResource Monospace}" Text="LAX_CTR"/>
-											<Run Text=" and "/>
-											<Run FontFamily="{StaticResource Monospace}" Text="LAX_25_CTR"/>
-											<Run Text="."/>
-										</TextBlock>
-									</StackPanel>
-								</ToolTip.Tip>
 								<Interaction.Behaviors>
 									<behaviors:DocumentTextBindingBehavior Text="{Binding OnlineCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
 									<behaviors:TextEditorConditionCompletionBehavior Kind="Station"/>
@@ -151,91 +181,113 @@
 							</TextBlock>
 						</StackPanel>
 
-						<TextBlock Classes="label" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,6,8,0" Text="Weather:">
-							<ToolTip.Tip>
-								<TextBlock TextWrapping="Wrap" MaxWidth="420">
-									<Run Text="Include this entry only when the METAR meets this condition."/>
-								</TextBlock>
-							</ToolTip.Tip>
-						</TextBlock>
+						<StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,6,0,0">
+							<TextBlock Classes="label" Text="Weather:" />
+							<Button Classes="info">
+								<TextBlock Text="i" />
+								<Button.Flyout>
+									<Flyout Placement="BottomEdgeAlignedLeft">
+										<StackPanel MaxWidth="340" Spacing="8">
+											<TextBlock TextWrapping="Wrap" Text="The message is included while the METAR meets this condition. Leave blank to ignore the weather."/>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ceiling &lt; 200ft"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the ceiling is below 200 ft"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="weather INCLUDES TS"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when a thunderstorm is reported"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="cloudtype EXCLUDES CB"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when no cumulonimbus is reported"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="NOT cavok"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the METAR does not report CAVOK"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m)"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the ceiling is below 200 ft and either RVR is below 550 m or visibility is below 100 m"/>
+											</StackPanel>
+											<TextBlock TextWrapping="Wrap">
+												<Run Text="Compare with "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="&lt;"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="&lt;="/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="&gt;"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="&gt;="/>
+												<Run Text=" or "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="="/>
+											</TextBlock>
+											<TextBlock TextWrapping="Wrap">
+												<Run Text="Units are optional, e.g. "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="200ft"/>
+												<Run Text=", "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="550m"/>
+												<Run Text=", "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="15kt"/>
+											</TextBlock>
+											<TextBlock TextWrapping="Wrap">
+												<Run Text="Fields: "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="ceiling"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="cloudbase"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="rvr"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="visibility"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="windspeed"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="gust"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="winddir"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="temperature"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="dewpoint"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="qnh"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="depth"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="weather"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="recentweather"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="trendtype"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="cloudtype"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="windshear"/>
+												<Run Text=" "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="cavok"/>
+											</TextBlock>
+											<TextBlock TextWrapping="Wrap">
+												<Run Text="Put "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="trend"/>
+												<Run Text=", "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="tempo"/>
+												<Run Text=" or "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="becmg"/>
+												<Run Text=" in front of a wind, visibility, cloud or weather field to read the trend instead, e.g. "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="tempoweather INCLUDES RA"/>
+												<Run Text=". "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="trend"/>
+												<Run Text=" reads any trend, "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="tempo"/>
+												<Run Text=" and "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="becmg"/>
+												<Run Text=" only that kind."/>
+											</TextBlock>
+										</StackPanel>
+									</Flyout>
+								</Button.Flyout>
+							</Button>
+						</StackPanel>
 						<editor:TextEditor Grid.Row="2" Grid.Column="1" Name="WeatherEditor" WordWrap="True" Height="56" FontFamily="{StaticResource Monospace}" Padding="6,4">
-							<ToolTip.Tip>
-								<StackPanel MaxWidth="340" Spacing="8">
-									<TextBlock TextWrapping="Wrap" Text="The message is included while the METAR meets this condition. Leave blank to ignore the weather."/>
-									<StackPanel>
-										<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ceiling &lt; 200ft"/>
-										<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the ceiling is below 200 ft"/>
-									</StackPanel>
-									<StackPanel>
-										<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="weather INCLUDES TS"/>
-										<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when a thunderstorm is reported"/>
-									</StackPanel>
-									<StackPanel>
-										<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="cloudtype EXCLUDES CB"/>
-										<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when no cumulonimbus is reported"/>
-									</StackPanel>
-									<StackPanel>
-										<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="NOT cavok"/>
-										<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the METAR does not report CAVOK"/>
-									</StackPanel>
-									<StackPanel>
-										<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m)"/>
-										<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the ceiling is below 200 ft and either RVR is below 550 m or visibility is below 100 m"/>
-									</StackPanel>
-									<TextBlock TextWrapping="Wrap">
-									<Run Text="Compare with "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="&lt;"/>
-									<Run Text=" "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="&lt;="/>
-									<Run Text=" "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="&gt;"/>
-									<Run Text=" "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="&gt;="/>
-									<Run Text=" or "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="="/>
-								</TextBlock>
-								<TextBlock TextWrapping="Wrap">
-									<Run Text="Units are optional, e.g. "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="200ft"/>
-									<Run Text=", "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="550m"/>
-									<Run Text=", "/>
-									<Run FontFamily="{StaticResource Monospace}" Text="15kt"/>
-								</TextBlock>
-									<TextBlock TextWrapping="Wrap">
-										<Run Text="Fields: "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="ceiling"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="cloudbase"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="rvr"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="visibility"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="windspeed"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="gust"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="winddir"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="temperature"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="dewpoint"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="qnh"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="depth"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="weather"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="cloudtype"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="windshear"/>
-										<Run Text=" "/>
-										<Run FontFamily="{StaticResource Monospace}" Text="cavok"/>
-									</TextBlock>
-								</StackPanel>
-							</ToolTip.Tip>
 							<Interaction.Behaviors>
 								<behaviors:DocumentTextBindingBehavior Text="{Binding WeatherCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
 								<behaviors:TextEditorConditionCompletionBehavior Kind="Weather"/>

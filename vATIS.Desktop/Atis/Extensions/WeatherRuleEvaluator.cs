@@ -44,6 +44,16 @@ public static class WeatherRuleEvaluator
             return false;
         }
 
+        if (rule.Field == WeatherField.TrendType)
+        {
+            return IsTrendTypeMet(rule, metar);
+        }
+
+        return rule.Trend != TrendScope.None ? IsTrendMet(rule, metar, atisFormat) : Evaluate(rule, metar, atisFormat);
+    }
+
+    private static bool Evaluate(WeatherRule rule, DecodedMetar metar, AtisFormat atisFormat)
+    {
         if (WeatherFieldInfo.GetKind(rule.Field) != WeatherFieldKind.Numeric)
         {
             var present = IsPresent(rule, metar);
@@ -66,6 +76,54 @@ public static class WeatherRuleEvaluator
         };
     }
 
+    // A trend is checked as if it were a METAR of its own. Of the trend groups in scope, either one can meet a rule, but
+    // all must meet a negative one (excludes), so that a trend with the code in it never counts as without it.
+    private static bool IsTrendMet(WeatherRule rule, DecodedMetar metar, AtisFormat atisFormat)
+    {
+        var trends = new[] { metar.TrendForecast, metar.TrendForecastFuture }
+            .Where(x => x != null && InScope(x, rule.Trend))
+            .Select(x => TrendForecastDecoder.Decode(x!))
+            .ToList();
+
+        if (rule.Operator == WeatherOperator.NotContains)
+        {
+            return trends.All(x => Evaluate(rule, x, atisFormat));
+        }
+
+        return trends.Any(x => Evaluate(rule, x, atisFormat));
+    }
+
+    private static bool InScope(TrendForecast trend, TrendScope scope)
+    {
+        return scope switch
+        {
+            TrendScope.Tempo => trend.ChangeIndicator == TrendForecastType.Temporary,
+            TrendScope.Becoming => trend.ChangeIndicator == TrendForecastType.Becoming,
+            _ => true,
+        };
+    }
+
+    // The trend type is the change indicator of either trend group, e.g. TEMPO or BECMG. Like the other trend rules,
+    // either group can meet INCLUDES but both must meet EXCLUDES.
+    private static bool IsTrendTypeMet(WeatherRule rule, DecodedMetar metar)
+    {
+        var types = new[] { metar.TrendForecast, metar.TrendForecastFuture }
+            .Where(x => x != null)
+            .Select(x => x!.ChangeIndicator switch
+            {
+                TrendForecastType.Temporary => "TEMPO",
+                TrendForecastType.Becoming => "BECMG",
+                TrendForecastType.NoSignificantChanges => "NOSIG",
+                _ => string.Empty,
+            })
+            .ToList();
+
+        var codes = GetCodes(rule);
+        return rule.Operator == WeatherOperator.NotContains
+            ? !types.Any(codes.Contains)
+            : types.Any(codes.Contains);
+    }
+
     private static bool IsPresent(WeatherRule rule, DecodedMetar metar)
     {
         switch (rule.Field)
@@ -79,6 +137,12 @@ public static class WeatherRuleEvaluator
                     .Select(x => (x.RawValue ?? string.Empty).ToUpperInvariant())
                     .ToList();
                 return GetCodes(rule).Any(code => raw.Any(r => r.Contains(code, StringComparison.Ordinal)));
+            case WeatherField.RecentWeather:
+                // Recent weather is reported with an RE prefix, e.g. RERA, so accept the code with or without it.
+                var recent = (metar.RecentWeather?.RawValue ?? string.Empty).ToUpperInvariant();
+                return recent.Length > 0 && GetCodes(rule)
+                    .Select(code => code.StartsWith("RE", StringComparison.Ordinal) ? code[2..] : code)
+                    .Any(code => code.Length > 0 && recent.Contains(code, StringComparison.Ordinal));
             case WeatherField.CloudType:
                 var types = metar.Clouds.Select(x => x.Type switch
                 {
