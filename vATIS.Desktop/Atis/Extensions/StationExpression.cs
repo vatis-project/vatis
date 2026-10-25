@@ -32,14 +32,16 @@ namespace Vatsim.Vatis.Atis.Extensions;
 /// </remarks>
 public sealed class StationExpression
 {
+    private delegate bool Matcher(IReadOnlyCollection<string> online, int minutes);
+
     private static readonly Regex s_timeRange = new(
         @"\G(\d{4})\s*[zZ]?\s*-\s*(\d{4})\s*[zZ]?(?![A-Za-z0-9_*])", RegexOptions.CultureInvariant);
 
     private static readonly Regex s_singleTime = new(@"^\d{4}[zZ]?-?$", RegexOptions.CultureInvariant);
 
-    private readonly Node _root;
+    private readonly Matcher _root;
 
-    private StationExpression(Node root, bool hasTimeCondition)
+    private StationExpression(Matcher root, bool hasTimeCondition)
     {
         _root = root;
         HasTimeCondition = hasTimeCondition;
@@ -121,7 +123,7 @@ public sealed class StationExpression
     public bool Evaluate(IReadOnlyCollection<string>? onlineCallsigns, DateTime? utcNow = null)
     {
         var now = utcNow ?? DateTime.UtcNow;
-        return _root.Evaluate(onlineCallsigns ?? [], (now.Hour * 60) + now.Minute);
+        return _root(onlineCallsigns ?? [], (now.Hour * 60) + now.Minute);
     }
 
     private static List<Token> Tokenize(string text)
@@ -194,7 +196,7 @@ public sealed class StationExpression
 
         private Token Current => tokens[_position];
 
-        public Node ParseAll()
+        public Matcher ParseAll()
         {
             var node = ParseList();
             if (Current.Kind != TokenKind.End)
@@ -215,30 +217,30 @@ public sealed class StationExpression
             return token.Kind == TokenKind.Word && token.Text.Equals(keyword, StringComparison.OrdinalIgnoreCase);
         }
 
-        private Node ParseList()
+        private Matcher ParseList()
         {
             var node = ParseOr();
             while (Current.Kind is not (TokenKind.End or TokenKind.Close))
             {
-                node = new OrNode(node, ParseOr());
+                node = Or(node, ParseOr());
             }
 
             return node;
         }
 
-        private Node ParseOr()
+        private Matcher ParseOr()
         {
             var node = ParseAnd();
             while (IsKeyword(Current, "or"))
             {
                 _position++;
-                node = new OrNode(node, ParseAnd());
+                node = Or(node, ParseAnd());
             }
 
             return node;
         }
 
-        private Node ParseAnd()
+        private Matcher ParseAnd()
         {
             var node = ParseNot();
             while (true)
@@ -246,11 +248,11 @@ public sealed class StationExpression
                 if (IsKeyword(Current, "and"))
                 {
                     _position++;
-                    node = new AndNode(node, ParseNot());
+                    node = And(node, ParseNot());
                 }
                 else if (IsKeyword(Current, "not"))
                 {
-                    node = new AndNode(node, ParseNot());
+                    node = And(node, ParseNot());
                 }
                 else
                 {
@@ -259,18 +261,18 @@ public sealed class StationExpression
             }
         }
 
-        private Node ParseNot()
+        private Matcher ParseNot()
         {
             if (IsKeyword(Current, "not"))
             {
                 _position++;
-                return new NotNode(ParseNot());
+                return Not(ParseNot());
             }
 
             return ParsePrimary();
         }
 
-        private Node ParsePrimary()
+        private Matcher ParsePrimary()
         {
             var token = Current;
             if (token.Kind == TokenKind.Open)
@@ -290,7 +292,7 @@ public sealed class StationExpression
             {
                 _position++;
                 HasTimeCondition = true;
-                return new TimeNode(token.Start, token.End);
+                return TimeRange(token.Start, token.End);
             }
 
             if (token.Kind == TokenKind.Word && s_singleTime.IsMatch(token.Text))
@@ -308,58 +310,37 @@ public sealed class StationExpression
             }
 
             _position++;
-            return new CallsignNode(token.Text);
+            return Callsign(token.Text);
         }
     }
 
-    private abstract class Node
+    private static Matcher Callsign(string pattern)
     {
-        public abstract bool Evaluate(IReadOnlyCollection<string> online, int minutes);
-    }
-
-    private sealed class CallsignNode(string pattern) : Node
-    {
-        private readonly Regex _regex = new(
+        var regex = new Regex(
             "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
-        public override bool Evaluate(IReadOnlyCollection<string> online, int minutes)
-        {
-            return online.Any(_regex.IsMatch);
-        }
+        return (online, _) => online.Any(regex.IsMatch);
     }
 
-    private sealed class TimeNode(int start, int end) : Node
+    private static Matcher TimeRange(int start, int end)
     {
-        public override bool Evaluate(IReadOnlyCollection<string> online, int minutes)
-        {
-            return start < end
-                ? minutes >= start && minutes < end
-                : minutes >= start || minutes < end;
-        }
+        return (_, minutes) => start < end
+            ? minutes >= start && minutes < end
+            : minutes >= start || minutes < end;
     }
 
-    private sealed class AndNode(Node left, Node right) : Node
+    private static Matcher And(Matcher left, Matcher right)
     {
-        public override bool Evaluate(IReadOnlyCollection<string> online, int minutes)
-        {
-            return left.Evaluate(online, minutes) && right.Evaluate(online, minutes);
-        }
+        return (online, minutes) => left(online, minutes) && right(online, minutes);
     }
 
-    private sealed class OrNode(Node left, Node right) : Node
+    private static Matcher Or(Matcher left, Matcher right)
     {
-        public override bool Evaluate(IReadOnlyCollection<string> online, int minutes)
-        {
-            return left.Evaluate(online, minutes) || right.Evaluate(online, minutes);
-        }
+        return (online, minutes) => left(online, minutes) || right(online, minutes);
     }
 
-    private sealed class NotNode(Node inner) : Node
+    private static Matcher Not(Matcher inner)
     {
-        public override bool Evaluate(IReadOnlyCollection<string> online, int minutes)
-        {
-            return !inner.Evaluate(online, minutes);
-        }
+        return (online, minutes) => !inner(online, minutes);
     }
 }
