@@ -15,6 +15,7 @@
 		<Setter Property="Foreground" Value="White"/>
 		<Setter Property="HorizontalContentAlignment" Value="Left"/>
 		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="FocusAdorner" Value="{x:Null}"/>
 		<Setter Property="Template">
 			<ControlTemplate>
 				<Grid x:Name="RootGrid" ColumnDefinitions="20,*">
@@ -166,6 +167,13 @@
 					<Setter Property="Fill" Value="{DynamicResource CheckBoxCheckGlyphForegroundCheckedDisabled}" />
 				</Style>
 			</Style>
+		</Style>
+
+		<!-- Keyboard focus: the checkbox square itself gets the solid white square border, like the other controls. -->
+		<Style Selector="^:focus-visible /template/ Border#NormalRectangle">
+			<Setter Property="BoxShadow" Value="inset 0 0 0 2 #FFFFFF" />
+			<Setter Property="BorderBrush" Value="#FFFFFF" />
+			<Setter Property="CornerRadius" Value="0" />
 		</Style>
 	</ControlTheme>
 </ResourceDictionary>

@@ -1,0 +1,17 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- The focused row is outlined instead, so the cell inside it does not get a second box of its own. -->
+    <Style Selector="TreeDataGrid :is(TreeDataGridCell)">
+        <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+    <!-- The row keeps room for its focus border, so nothing moves when it appears. It only has a top and bottom edge:
+         side edges would make the row wider than the list and add a horizontal scroll bar. -->
+    <Style Selector="TreeDataGrid TreeDataGridRow">
+        <Setter Property="BorderThickness" Value="0,2"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    <!-- While the list is used from the keyboard, the focused row gets the solid white square border of other controls. -->
+    <Style Selector="TreeDataGrid:keynav TreeDataGridRow:focus-within">
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
+    </Style>
+</Styles>

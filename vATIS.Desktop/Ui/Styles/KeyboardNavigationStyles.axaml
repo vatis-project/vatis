@@ -1,0 +1,28 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors">
+    <!-- Tab walks through the content of every tab control in order. -->
+    <Style Selector="TabControl">
+        <Setter Property="behaviors:TabControlKeyboardNavigation.Enabled" Value="True"/>
+    </Style>
+    <!-- Keyboard focus on a tab is shown with the solid white square border of buttons. -->
+    <Style Selector="TabItem">
+        <Setter Property="FocusAdorner">
+            <FocusAdornerTemplate>
+                <Border BorderThickness="2" BorderBrush="#FFFFFF" Margin="0"/>
+            </FocusAdornerTemplate>
+        </Setter>
+    </Style>
+    <!-- A drop-down button keeps its focus border while its menu is open from the keyboard, since focus is in the menu. -->
+    <Style Selector="DropDownButton">
+        <Setter Property="behaviors:KeyboardUse.Track" Value="True"/>
+    </Style>
+    <!-- While a list is used from the keyboard, its focused item gets the same solid white square border. It is drawn from
+         the item's template, as Avalonia does not show the adorner for list items. -->
+    <Style Selector="ListBox">
+        <Setter Property="behaviors:ListBoxKeyboardFocus.Enabled" Value="True"/>
+    </Style>
+    <Style Selector="ListBox:keynav ListBoxItem:focus /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BoxShadow" Value="inset 0 0 0 2 #FFFFFF"/>
+    </Style>
+</Styles>
