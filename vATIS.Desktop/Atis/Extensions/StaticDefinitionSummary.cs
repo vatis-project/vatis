@@ -19,17 +19,14 @@ public static partial class StaticDefinitionSummary
     /// Gets one line for each condition on the definition, or nothing if it is always included.
     /// </summary>
     /// <param name="definition">The definition.</param>
-    /// <returns>The lines, e.g. <c>When online: EPWA_DEL</c> and <c>Weather: ceiling &lt; 200ft</c>.</returns>
+    /// <returns>The lines, e.g. <c>Online: EPWA_DEL</c> and <c>Weather: ceiling &lt; 200ft</c>.</returns>
     public static IReadOnlyList<string> Describe(StaticDefinition definition)
     {
         var lines = new List<string>();
 
-        if (definition.StationCondition != StationCondition.Always &&
-            !string.IsNullOrWhiteSpace(definition.StationCallsigns))
+        if (!string.IsNullOrWhiteSpace(definition.OnlineCondition))
         {
-            var callsigns = string.Join(
-                ", ", definition.StationCallsigns.Split([',', ' ', ';'], StringSplitOptions.RemoveEmptyEntries));
-            lines.Add($"{(definition.StationCondition == StationCondition.WhenOnline ? "When online" : "When offline")}: {callsigns}");
+            lines.Add($"Online: {Whitespace().Replace(definition.OnlineCondition.Trim(), " ")}");
         }
 
         if (!string.IsNullOrWhiteSpace(definition.WeatherCondition))

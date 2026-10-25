@@ -8,6 +8,10 @@ namespace Vatsim.Vatis.Profiles.Models;
 /// <summary>
 /// Determines when a static definition is included based on which VATSIM controllers are online.
 /// </summary>
+/// <remarks>
+/// Only used to read profiles saved before conditions were written as text. It is converted to
+/// <see cref="StaticDefinition.OnlineCondition"/> when the profile is loaded.
+/// </remarks>
 public enum StationCondition
 {
     /// <summary>

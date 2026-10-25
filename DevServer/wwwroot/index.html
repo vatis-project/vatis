@@ -23,6 +23,22 @@
             <button type="submit" class="btn btn-secondary" id="update-metar">Update METAR</button>
         </div>
     </form>
+    <hr class="my-4">
+    <h2 class="h5 mb-1 fw-normal text-center">Online Controllers</h2>
+    <p class="text-center text-secondary small mb-3">
+        A local copy of the VATSIM data feed, served at <code>/datafeed</code>. vATIS reads it in development mode to
+        decide which <em>Online</em> conditions are met. The facility is taken from the end of the callsign: _DEL, _GND,
+        _RMP, _TWR, _APP, _DEP, _CTR or _FSS. Anything else is an observer, which vATIS ignores.
+    </p>
+    <form id="controller-form" class="input-group mb-2">
+        <input type="text" autocomplete="off" spellcheck="false" id="controller-callsign" class="form-control" placeholder="Callsign, e.g. LAX_GND" aria-label="Callsign">
+        <button class="btn btn-secondary" type="submit">Add</button>
+    </form>
+    <ul class="list-group mb-2" id="controller-list"></ul>
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="small text-secondary" id="controller-count"></span>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="clear-controllers">Clear all</button>
+    </div>
 </main>
 <script>
     async function fetchMETAR(url, options = {}) {
@@ -71,6 +87,73 @@
             fetchMetarForStation(stationId);
         }
     });
+
+    const facilityNames = { 0: 'Observer', 1: 'FSS', 2: 'Delivery', 3: 'Ground', 4: 'Tower', 5: 'Approach', 6: 'Center' };
+    let controllers = [];
+
+    function renderControllers() {
+        const list = document.getElementById('controller-list');
+        list.replaceChildren(...controllers.map((controller, index) => {
+            const item = document.createElement('li');
+            item.className = 'list-group-item d-flex justify-content-between align-items-center';
+            const name = document.createElement('span');
+            name.textContent = controller.callsign;
+            const facility = document.createElement('span');
+            facility.className = 'text-secondary small ms-auto me-3';
+            facility.textContent = facilityNames[controller.facility] ?? controller.facility;
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn btn-sm btn-outline-secondary';
+            remove.textContent = 'Remove';
+            remove.addEventListener('click', () => saveControllers(controllers.filter((_, i) => i !== index).map(c => c.callsign)));
+            item.append(name, facility, remove);
+            return item;
+        }));
+        document.getElementById('controller-count').textContent =
+            controllers.length === 0 ? 'Nobody is online.' : `${controllers.length} online`;
+    }
+
+    async function saveControllers(next) {
+        try {
+            const response = await fetch('/datafeed/controllers', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(next)
+            });
+            if (response.ok) {
+                controllers = await response.json();
+                renderControllers();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function loadControllers() {
+        try {
+            const response = await fetch('/datafeed/controllers');
+            if (response.ok) {
+                controllers = await response.json();
+                renderControllers();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    document.getElementById('controller-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const input = document.getElementById('controller-callsign');
+        const callsign = input.value.trim().toUpperCase();
+        if (!callsign) return;
+        saveControllers([...controllers.map(c => c.callsign), callsign]);
+        input.value = '';
+        input.focus();
+    });
+
+    document.getElementById('clear-controllers').addEventListener('click', () => saveControllers([]));
+
+    loadControllers();
 
     window.addEventListener('beforeunload', () => {
         document.getElementById('station-id').value = '';

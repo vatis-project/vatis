@@ -18,21 +18,19 @@ public class StaticDefinitionSummaryTests
     }
 
     [Fact]
-    public void Controllers_AreListedWithWhenOnlineOrOffline()
+    public void OnlineCondition_IsOneLineWithWhitespaceCollapsed()
     {
         var online = new StaticDefinition("A", 1)
         {
-            StationCondition = StationCondition.WhenOnline,
-            StationCallsigns = "EPWA_APP,EPWW_*_CTR  epwa_f_app",
+            OnlineCondition = "EPWA_APP,   EPWW_*_CTR\n epwa_f_app",
         };
-        Assert.Equal(["When online: EPWA_APP, EPWW_*_CTR, epwa_f_app"], StaticDefinitionSummary.Describe(online));
+        Assert.Equal(["Online: EPWA_APP, EPWW_*_CTR epwa_f_app"], StaticDefinitionSummary.Describe(online));
 
         var offline = new StaticDefinition("A", 1)
         {
-            StationCondition = StationCondition.WhenOffline,
-            StationCallsigns = "EPWA_DEL",
+            OnlineCondition = "NOT EPWA_DEL",
         };
-        Assert.Equal(["When offline: EPWA_DEL"], StaticDefinitionSummary.Describe(offline));
+        Assert.Equal(["Online: NOT EPWA_DEL"], StaticDefinitionSummary.Describe(offline));
     }
 
     [Fact]
@@ -47,11 +45,10 @@ public class StaticDefinitionSummaryTests
     {
         var def = new StaticDefinition("X", 1)
         {
-            StationCondition = StationCondition.WhenOnline,
-            StationCallsigns = "EPWA_APP",
+            OnlineCondition = "EPWA_APP",
             WeatherCondition = "cavok",
         };
-        Assert.Equal(["When online: EPWA_APP", "Weather: cavok"], StaticDefinitionSummary.Describe(def));
+        Assert.Equal(["Online: EPWA_APP", "Weather: cavok"], StaticDefinitionSummary.Describe(def));
     }
 
     [Fact]
@@ -59,8 +56,7 @@ public class StaticDefinitionSummaryTests
     {
         var def = new StaticDefinition("X", 1)
         {
-            StationCondition = StationCondition.WhenOnline,
-            StationCallsigns = "  ",
+            OnlineCondition = "  ",
             WeatherCondition = " ",
         };
         Assert.Empty(StaticDefinitionSummary.Describe(def));

@@ -293,8 +293,7 @@ public class WeatherRuleEvaluatorTests
         Assert.Empty(StaticDefinitionFilter.GetActive([lvp], null, null, s_format));
         Assert.Empty(StaticDefinitionFilter.GetActive([lvp], null, metar, null));
 
-        lvp.StationCondition = StationCondition.WhenOnline;
-        lvp.StationCallsigns = "EPWA_APP";
+        lvp.OnlineCondition = "EPWA_APP";
         Assert.Empty(StaticDefinitionFilter.GetActive([lvp], ["EPWA_TWR"], metar, s_format));
         Assert.Single(StaticDefinitionFilter.GetActive([lvp], ["EPWA_APP"], metar, s_format));
         Assert.True(StaticDefinitionFilter.HasWeatherConditions([lvp]));

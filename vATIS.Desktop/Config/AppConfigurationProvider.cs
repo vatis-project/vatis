@@ -6,10 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Serilog;
+using Vatsim.Vatis.Container;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Io;
@@ -39,6 +41,18 @@ public class AppConfigurationProvider : IAppConfigurationProvider
     }
 
     /// <summary>
+    /// Gets the URL of a local data feed to use instead of the VATSIM feeds, or null to use the VATSIM feeds. The
+    /// <c>VATIS_DATA_URL</c> environment variable sets it, and in the development environment it is the data feed of the
+    /// dev server. It allows testing online-station conditions with controllers that are not really online.
+    /// </summary>
+    public static string? LocalDataFeedUrl =>
+        Environment.GetEnvironmentVariable("VATIS_DATA_URL") is { Length: > 0 } dataUrlOverride
+            ? dataUrlOverride
+            : ServiceProvider.IsDevelopmentEnvironment()
+                ? $"http://{IPAddress.Loopback}:5500/datafeed"
+                : null;
+
+    /// <summary>
     /// Gets the URL of the client update feed. The <c>VATIS_VERSION_URL</c> environment variable overrides the
     /// configured value, which allows testing the update process against a local server.
     /// </summary>
@@ -51,7 +65,7 @@ public class AppConfigurationProvider : IAppConfigurationProvider
     public string MetarUrl => _metarUrls[Random.Shared.Next(_metarUrls.Count)];
 
     /// <inheritdoc />
-    public IReadOnlyList<string> VatsimDataUrls => _vatsimDataUrls;
+    public IReadOnlyList<string> VatsimDataUrls => LocalDataFeedUrl is { } localUrl ? [localUrl] : _vatsimDataUrls;
 
     /// <inheritdoc />
     public string NavDataUrl => _appConfiguration?.NavDataUrl ?? throw new ArgumentNullException(nameof(NavDataUrl));
