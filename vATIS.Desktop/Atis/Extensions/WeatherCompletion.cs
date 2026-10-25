@@ -16,6 +16,20 @@ namespace Vatsim.Vatis.Atis.Extensions;
 /// </summary>
 public static partial class WeatherCompletion
 {
+    // The fields a trend group can carry. Each is offered with a trend, tempo and becmg prefix.
+    private static readonly (string Name, string Description)[] s_trendFields =
+    [
+        ("ceiling", "ceiling (ft, m)"),
+        ("cloudbase", "lowest cloud layer (ft, m)"),
+        ("visibility", "visibility (m, km, ft)"),
+        ("windspeed", "mean wind speed (kt, kmh, mps)"),
+        ("gust", "wind gust speed (kt, kmh, mps)"),
+        ("winddir", "mean wind direction in degrees"),
+        ("weather", "weather codes, with INCLUDES / EXCLUDES"),
+        ("cloudtype", "cloud types CB or TCU, with INCLUDES / EXCLUDES"),
+        ("cavok", "true when CAVOK is reported"),
+    ];
+
     private static readonly (string Name, string Description)[] s_fields =
     [
         ("ceiling", "Lowest broken or overcast layer (ft, m)"),
@@ -30,9 +44,12 @@ public static partial class WeatherCompletion
         ("qnh", "Pressure setting (hpa, inhg)"),
         ("depth", "Deepest runway deposit (mm)"),
         ("weather", "Present weather codes, with INCLUDES / EXCLUDES"),
+        ("recentweather", "Recent weather codes such as RERA, with INCLUDES / EXCLUDES"),
         ("cloudtype", "Cloud types CB or TCU, with INCLUDES / EXCLUDES"),
         ("windshear", "True when windshear is reported"),
         ("cavok", "True when the METAR reports CAVOK"),
+        ("trendtype", "Trend type TEMPO, BECMG or NOSIG, with INCLUDES / EXCLUDES"),
+        ..TrendFieldEntries(),
     ];
 
     private static readonly (string Text, string Description)[] s_numericOperators =
@@ -78,6 +95,13 @@ public static partial class WeatherCompletion
     [
         ("CB", "cumulonimbus"),
         ("TCU", "towering cumulus"),
+    ];
+
+    private static readonly (string Text, string Description)[] s_trendTypes =
+    [
+        ("TEMPO", "temporary fluctuation"),
+        ("BECMG", "becoming"),
+        ("NOSIG", "no significant change"),
     ];
 
     private enum Expecting
@@ -134,6 +158,17 @@ public static partial class WeatherCompletion
         return !char.IsWhiteSpace(c) && c is not ('(' or ')' or '<' or '>' or '=' or '"');
     }
 
+    private static IEnumerable<(string Name, string Description)> TrendFieldEntries()
+    {
+        foreach (var (prefix, label) in new[] { ("trend", "Trend"), ("tempo", "TEMPO trend"), ("becmg", "BECMG trend") })
+        {
+            foreach (var (name, description) in s_trendFields)
+            {
+                yield return (prefix + name, $"{label} {description}");
+            }
+        }
+    }
+
     private static CompletionSuggestionResult Filter(int start, string partial, IEnumerable<CompletionSuggestion> candidates)
     {
         var items = candidates
@@ -144,7 +179,7 @@ public static partial class WeatherCompletion
 
     private static IEnumerable<CompletionSuggestion> CodesFor(WeatherField? field)
     {
-        var codes = field == WeatherField.CloudType ? s_cloudTypes : field == WeatherField.PresentWeather ? s_weatherCodes : [];
+        var codes = field == WeatherField.CloudType ? s_cloudTypes : field == WeatherField.TrendType ? s_trendTypes : field is WeatherField.PresentWeather or WeatherField.RecentWeather ? s_weatherCodes : [];
         return codes.Select(x => new CompletionSuggestion(x.Text, x.Text, x.Description, ContinueAfter: false));
     }
 

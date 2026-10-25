@@ -153,6 +153,166 @@ public class WeatherRuleEvaluatorTests
     }
 
     [Fact]
+    public void TrendWeather_Codes()
+    {
+        var metar = Metar("EKCH 251050Z 21017KT 9999 SCT014 11/09 Q0986 TEMPO SHRA BKN030CB");
+        Assert.True(Met(metar, "trendweather includes SHRA"));
+        Assert.True(Met(metar, "trendwx includes RA"));
+        Assert.False(Met(metar, "trendweather excludes RA"));
+        Assert.False(Met(metar, "trendweather includes TS"));
+        Assert.False(Met(metar, "weather includes SHRA"));
+        Assert.True(Met(metar, "weather excludes SHRA"));
+    }
+
+    [Fact]
+    public void Trend_CloudsVisibilityAndWind()
+    {
+        var metar = Metar("EKCH 251050Z 21017KT 9999 SCT014 11/09 Q0986 TEMPO 4000 SHRA BKN030CB");
+        Assert.True(Met(metar, "trendcloudtype includes CB"));
+        Assert.False(Met(metar, "cloudtype includes CB"));
+        Assert.True(Met(metar, "trendceiling < 1000m"));
+        Assert.False(Met(metar, "trendceiling < 500m"));
+        Assert.True(Met(metar, "ceiling > 5000ft"));
+        Assert.True(Met(metar, "trendcloudbase = 3000ft"));
+        Assert.True(Met(metar, "trendvisibility < 5000m"));
+        Assert.False(Met(metar, "visibility < 5000m"));
+
+        var wind = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 BECMG 25025G40KT");
+        Assert.True(Met(wind, "trendwindspeed >= 25kt"));
+        Assert.True(Met(wind, "trendgust > 30kt"));
+        Assert.True(Met(wind, "trendwinddir = 250"));
+        Assert.True(Met(wind, "windspeed < 15kt"));
+
+        var cavok = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 BECMG CAVOK");
+        Assert.True(Met(cavok, "trendcavok"));
+        Assert.False(Met(cavok, "cavok"));
+    }
+
+    [Fact]
+    public void Trend_FullGroup()
+    {
+        var metar = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 BECMG FM1200 TL1400 25025G40KT 6000 -RA BKN008");
+        Assert.True(Met(metar, "trendwindspeed >= 25kt"));
+        Assert.True(Met(metar, "trendgust >= 40kt"));
+        Assert.True(Met(metar, "trendvisibility = 6000m"));
+        Assert.True(Met(metar, "trendweather includes -RA"));
+        Assert.True(Met(metar, "trendceiling = 800ft"));
+    }
+
+    [Fact]
+    public void Trend_NoSignificantWeather()
+    {
+        var metar = Metar("EKCH 251050Z 21010KT 9999 -RA SCT014 11/09 Q0986 BECMG NSW");
+        Assert.True(Met(metar, "trendweather includes NSW"));
+    }
+
+    [Fact]
+    public void Trend_TwoGroups()
+    {
+        var metar = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 TEMPO SHRA BECMG 5000 TS");
+        Assert.True(Met(metar, "trendweather includes SHRA"));
+        Assert.True(Met(metar, "trendweather includes TS"));
+        Assert.False(Met(metar, "trendweather excludes TS"));
+        Assert.True(Met(metar, "trendweather excludes FG"));
+    }
+
+    [Fact]
+    public void TempoAndBecmg_OnlyReadTheirOwnGroups()
+    {
+        var tempo = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 TEMPO RA");
+        Assert.True(Met(tempo, "tempoweather includes RA"));
+        Assert.False(Met(tempo, "becmgweather includes RA"));
+        Assert.True(Met(tempo, "trendweather includes RA"));
+        Assert.True(Met(tempo, "becmgweather excludes RA"));
+        Assert.False(Met(tempo, "tempoweather excludes RA"));
+
+        var becmg = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 BECMG RA");
+        Assert.False(Met(becmg, "tempoweather includes RA"));
+        Assert.True(Met(becmg, "becmgweather includes RA"));
+    }
+
+    [Fact]
+    public void TempoAndBecmg_MixedGroups()
+    {
+        var metar = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 TEMPO 5000 BECMG RA");
+        Assert.False(Met(metar, "tempoweather includes RA"));
+        Assert.True(Met(metar, "becmgweather includes RA"));
+        Assert.True(Met(metar, "tempovisibility < 6000m"));
+        Assert.False(Met(metar, "becmgvisibility < 6000m"));
+
+        var reversed = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 TEMPO RA BECMG NSW");
+        Assert.True(Met(reversed, "tempoweather includes RA"));
+        Assert.True(Met(reversed, "becmgweather excludes RA"));
+    }
+
+    [Fact]
+    public void TempoAndBecmg_OtherFields()
+    {
+        var metar = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 TEMPO 0200 BKN005CB");
+        Assert.True(Met(metar, "tempovisibility < 500m"));
+        Assert.True(Met(metar, "tempoceiling = 500ft"));
+        Assert.True(Met(metar, "tempocloudtype includes CB"));
+        Assert.False(Met(metar, "becmgcloudtype includes CB"));
+        Assert.Contains("Unknown field", ParseError("tempotemp > 10c"));
+        Assert.Contains("Unknown field", ParseError("becmgrvr < 500m"));
+    }
+
+    [Fact]
+    public void TrendType()
+    {
+        var tempo = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 TEMPO SHRA");
+        Assert.True(Met(tempo, "trendtype includes TEMPO"));
+        Assert.False(Met(tempo, "trendtype includes BECMG"));
+        Assert.True(Met(tempo, "trendtype includes \"becmg tempo\""));
+        Assert.True(Met(tempo, "trendtype excludes BECMG"));
+        Assert.False(Met(tempo, "trendtype excludes TEMPO"));
+
+        var both = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 TEMPO SHRA BECMG 5000 TS");
+        Assert.True(Met(both, "trendtype includes TEMPO"));
+        Assert.True(Met(both, "trendtype includes BECMG"));
+        Assert.False(Met(both, "trendtype excludes BECMG"));
+
+        var nosig = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986 NOSIG");
+        Assert.True(Met(nosig, "trendtype includes NOSIG"));
+        Assert.True(Met(nosig, "trendtype excludes TEMPO"));
+
+        var none = Metar("EKCH 251050Z 21010KT 9999 SCT014 11/09 Q0986");
+        Assert.False(Met(none, "trendtype includes TEMPO"));
+        Assert.True(Met(none, "trendtype excludes TEMPO"));
+    }
+
+    [Fact]
+    public void Trend_NotReported()
+    {
+        var nosig = Metar("EKCH 251050Z 21017KT 9999 SCT014 11/09 Q0986 NOSIG");
+        Assert.False(Met(nosig, "trendweather includes RA"));
+        Assert.True(Met(nosig, "trendweather excludes RA"));
+        Assert.False(Met(nosig, "trendceiling < 1000ft"));
+
+        var none = Metar("EKCH 251050Z 21017KT 9999 SCT014 11/09 Q0986");
+        Assert.False(Met(none, "trendweather includes RA"));
+        Assert.True(Met(none, "NOT trendweather includes RA"));
+    }
+
+    [Fact]
+    public void Trend_UnsupportedField()
+    {
+        Assert.Contains("Unknown field", ParseError("trendtemp > 10c"));
+    }
+
+    [Fact]
+    public void RecentWeather_Codes()
+    {
+        var metar = Metar("EKCH 251050Z 21017KT 9999 SCT014 11/09 Q0986 RERA");
+        Assert.True(Met(metar, "recentweather includes RERA"));
+        Assert.True(Met(metar, "recentweather includes RA"));
+        Assert.False(Met(metar, "recentweather includes RESN"));
+        Assert.False(Met(metar, "recentweather excludes RERA"));
+        Assert.False(Met(metar, "weather includes RA"));
+        Assert.False(Met(Metar("EKCH 251050Z 21017KT 9999 SCT014 11/09 Q0986"), "recentweather includes RA"));
+    }
+
+    [Fact]
     public void CloudType_Cb()
     {
         var metar = Metar("EPWA 191200Z 24005KT 9999 BKN030CB 10/09 Q1013");

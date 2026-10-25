@@ -228,11 +228,32 @@
 										<Run Text=" "/>
 										<Run FontFamily="{StaticResource Monospace}" Text="weather"/>
 										<Run Text=" "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="recentweather"/>
+										<Run Text=" "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="trendtype"/>
+										<Run Text=" "/>
 										<Run FontFamily="{StaticResource Monospace}" Text="cloudtype"/>
 										<Run Text=" "/>
 										<Run FontFamily="{StaticResource Monospace}" Text="windshear"/>
 										<Run Text=" "/>
 										<Run FontFamily="{StaticResource Monospace}" Text="cavok"/>
+									</TextBlock>
+									<TextBlock TextWrapping="Wrap">
+										<Run Text="Put "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="trend"/>
+										<Run Text=", "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="tempo"/>
+										<Run Text=" or "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="becmg"/>
+										<Run Text=" in front of a wind, visibility, cloud or weather field to read the trend instead, e.g. "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="tempoweather INCLUDES RA"/>
+										<Run Text=". "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="trend"/>
+										<Run Text=" reads any trend, "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="tempo"/>
+										<Run Text=" and "/>
+										<Run FontFamily="{StaticResource Monospace}" Text="becmg"/>
+										<Run Text=" only that kind."/>
 									</TextBlock>
 								</StackPanel>
 							</ToolTip.Tip>

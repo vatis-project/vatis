@@ -62,7 +62,8 @@ public static class WeatherFieldInfo
     {
         return field switch
         {
-            WeatherField.PresentWeather or WeatherField.CloudType => WeatherFieldKind.Text,
+            WeatherField.PresentWeather or WeatherField.RecentWeather or WeatherField.TrendType or
+                WeatherField.CloudType => WeatherFieldKind.Text,
             WeatherField.Windshear or WeatherField.Cavok => WeatherFieldKind.Flag,
             _ => WeatherFieldKind.Numeric,
         };

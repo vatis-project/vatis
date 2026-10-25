@@ -55,11 +55,36 @@ public sealed partial class WeatherExpression
         ["runwaydepth"] = WeatherField.RunwayDepth,
         ["weather"] = WeatherField.PresentWeather,
         ["wx"] = WeatherField.PresentWeather,
+        ["recentweather"] = WeatherField.RecentWeather,
+        ["recentwx"] = WeatherField.RecentWeather,
+        ["trendtype"] = WeatherField.TrendType,
         ["cloudtype"] = WeatherField.CloudType,
         ["windshear"] = WeatherField.Windshear,
         ["ws"] = WeatherField.Windshear,
         ["cavok"] = WeatherField.Cavok,
     };
+
+    private static readonly (string Prefix, TrendScope Scope)[] s_trendPrefixes =
+    [
+        ("trend", TrendScope.Any),
+        ("tempo", TrendScope.Tempo),
+        ("becmg", TrendScope.Becoming),
+    ];
+
+    // The values a trend forecast can carry, which can be read by prefixing the field with "trend", "tempo" or
+    // "becmg".
+    private static readonly HashSet<WeatherField> s_trendFields =
+    [
+        WeatherField.Ceiling,
+        WeatherField.CloudBase,
+        WeatherField.Visibility,
+        WeatherField.WindSpeed,
+        WeatherField.WindGust,
+        WeatherField.WindDirection,
+        WeatherField.PresentWeather,
+        WeatherField.CloudType,
+        WeatherField.Cavok,
+    ];
 
     private static readonly Dictionary<string, WeatherUnit> s_units = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -112,7 +137,7 @@ public sealed partial class WeatherExpression
     /// </summary>
     public static string FieldList =>
         "ceiling, cloudbase, rvr, visibility, windspeed, gust, winddir, temperature, dewpoint, qnh, depth, " +
-        "weather, cloudtype, windshear, cavok";
+        "weather, recentweather, trendtype, cloudtype, windshear, cavok. Prefix a field with trend, tempo or becmg (e.g. tempoceiling) to read the trend";
 
     /// <summary>
     /// Looks up a field by name or alias, ignoring case.
@@ -122,7 +147,36 @@ public sealed partial class WeatherExpression
     /// <returns>True if the name is a known field.</returns>
     public static bool TryGetField(string name, out WeatherField field)
     {
-        return s_fields.TryGetValue(name, out field);
+        return TryGetField(name, out field, out _);
+    }
+
+    /// <summary>
+    /// Looks up a field by name or alias, ignoring case. A trend field is a field the trend can carry with "trend",
+    /// "tempo" or "becmg" in front, e.g. trendceiling or tempoweather.
+    /// </summary>
+    /// <param name="name">The name as typed.</param>
+    /// <param name="field">The field, when found.</param>
+    /// <param name="trend">Which trend groups the field is read from, or none for the METAR.</param>
+    /// <returns>True if the name is a known field.</returns>
+    public static bool TryGetField(string name, out WeatherField field, out TrendScope trend)
+    {
+        trend = TrendScope.None;
+        if (s_fields.TryGetValue(name, out field))
+        {
+            return true;
+        }
+
+        foreach (var (prefix, scope) in s_trendPrefixes)
+        {
+            if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+                s_fields.TryGetValue(name[prefix.Length..], out field) && s_trendFields.Contains(field))
+            {
+                trend = scope;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -378,7 +432,7 @@ public sealed partial class WeatherExpression
         private ExpressionNode ParseCondition()
         {
             var fieldToken = Current;
-            if (!s_fields.TryGetValue(fieldToken.Text, out var field))
+            if (!TryGetField(fieldToken.Text, out var field, out var trend))
             {
                 throw Error($"Unknown field '{fieldToken.Text}'. Fields: {FieldList}.", fieldToken);
             }
@@ -386,23 +440,23 @@ public sealed partial class WeatherExpression
             _position++;
             return WeatherFieldInfo.GetKind(field) switch
             {
-                WeatherFieldKind.Flag => ParseFlag(field, fieldToken),
-                WeatherFieldKind.Text => ParseText(field, fieldToken),
-                _ => ParseNumeric(field, fieldToken),
+                WeatherFieldKind.Flag => ParseFlag(field, trend, fieldToken),
+                WeatherFieldKind.Text => ParseText(field, trend, fieldToken),
+                _ => ParseNumeric(field, trend, fieldToken),
             };
         }
 
-        private ExpressionNode ParseFlag(WeatherField field, Token fieldToken)
+        private ExpressionNode ParseFlag(WeatherField field, TrendScope trend, Token fieldToken)
         {
             if (Current.Kind == TokenKind.Operator)
             {
                 throw Error($"'{fieldToken.Text}' is either reported or not; use NOT {fieldToken.Text} for the opposite.", Current);
             }
 
-            return new RuleNode(new WeatherRule { Field = field, Operator = WeatherOperator.Contains });
+            return new RuleNode(new WeatherRule { Field = field, Trend = trend, Operator = WeatherOperator.Contains });
         }
 
-        private ExpressionNode ParseText(WeatherField field, Token fieldToken)
+        private ExpressionNode ParseText(WeatherField field, TrendScope trend, Token fieldToken)
         {
             var op = Current;
             WeatherOperator? oper = null;
@@ -439,10 +493,10 @@ public sealed partial class WeatherExpression
             }
 
             _position++;
-            return new RuleNode(new WeatherRule { Field = field, Operator = oper.Value, Text = value.Text.ToUpperInvariant() });
+            return new RuleNode(new WeatherRule { Field = field, Trend = trend, Operator = oper.Value, Text = value.Text.ToUpperInvariant() });
         }
 
-        private ExpressionNode ParseNumeric(WeatherField field, Token fieldToken)
+        private ExpressionNode ParseNumeric(WeatherField field, TrendScope trend, Token fieldToken)
         {
             var opToken = Current;
             var oper = ToNumericOperator(opToken);
@@ -494,7 +548,7 @@ public sealed partial class WeatherExpression
                 }
             }
 
-            return new RuleNode(new WeatherRule { Field = field, Operator = oper.Value, Value = value, Unit = unit });
+            return new RuleNode(new WeatherRule { Field = field, Trend = trend, Operator = oper.Value, Value = value, Unit = unit });
         }
     }
 }

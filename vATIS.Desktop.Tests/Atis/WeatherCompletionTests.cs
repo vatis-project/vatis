@@ -28,7 +28,7 @@ public class WeatherCompletionTests
         Assert.Contains("rvr", names);
         Assert.Contains("cavok", names);
         Assert.Contains("NOT", names);
-        Assert.Equal(16, names.Length);
+        Assert.Equal(45, names.Length);
     }
 
     [Fact]
