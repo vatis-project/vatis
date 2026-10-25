@@ -162,7 +162,7 @@ public class MockAtisHubConnection : IAtisHubConnection
     public async Task<char?> GetDigitalAtisLetter(DigitalAtisRequestDto dto)
     {
         if (string.IsNullOrEmpty(dto.Id))
-            return null;
+            return '\0';
 
         Log.Information("GetDigitalAtisLetter: {DtoStationId}", dto.Id);
         var response = await _downloader.GetAsync(_appConfigurationProvider.DigitalAtisApiUrl + "/" + dto.Id);
@@ -217,7 +217,7 @@ public class MockAtisHubConnection : IAtisHubConnection
             }
         }
 
-        return null;
+        return '\0';
     }
 
     /// <inheritdoc />

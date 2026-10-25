@@ -177,7 +177,7 @@ public class AtisHubConnection : IAtisHubConnection
             return null;
 
         Log.Information("GetDigitalAtisLetter: {DtoStationId}", dto.Id);
-        return await _hubConnection.InvokeAsync<char>("GetDigitalAtisLetter", dto);
+        return await _hubConnection.InvokeAsync<char?>("GetDigitalAtisLetter", dto);
     }
 
     /// <inheritdoc />
