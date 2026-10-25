@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed the `configureAtis` WebSocket message clearing airport conditions and NOTAMs, or requiring a preset, when those properties were omitted.
 - Fixed D-ATIS text replacements leaving stray punctuation behind and not removing trailing punctuation for plain-text patterns.
+- Fixed "Randomize ATIS letter on connect" leaving the letter at A for stations with no D-ATIS letter available when ATIS letter syncing was enabled.
 - Fixed the NOTAMs header being included in the ATIS when no NOTAMs are active, such as when all conditional NOTAMs are unmet.
 - Fixed `ceiling` weather conditions never being met when the METAR has no ceiling (e.g., CLR, SKC, NSC, CAVOK, or only few or scattered clouds). No ceiling is now treated as unlimited, so `ceiling > 1000ft` is met.
 - Fixed weather conditions ignoring variable runway visual range (e.g., `R25L/1800V3000FT`) and treating vertical visibility (`VV002`) as no ceiling.

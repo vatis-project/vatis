@@ -2847,9 +2847,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             var requestDto = new DigitalAtisRequestDto { Id = Identifier, AtisType = AtisType };
             var atisLetter = await _atisHubConnection.GetDigitalAtisLetter(requestDto);
-            if (atisLetter != null)
+            if (atisLetter is { } letter &&
+                letter >= AtisStation.CodeRange.Low && letter <= AtisStation.CodeRange.High)
             {
-                await SetAtisLetterCommand.Execute(atisLetter.Value);
+                await SetAtisLetterCommand.Execute(letter);
                 return true;
             }
         }
