@@ -50,6 +50,12 @@
 				<Setter Property="BorderThickness" Value="{TemplateBinding BorderThickness}" />
 			</Style>
 		</Style>
+		<!-- Only when focus comes from the keyboard: a solid white square border, 3px with the inset shadow, like buttons. -->
+		<Style Selector="^:focus-visible /template/ Border#PART_BorderElement">
+			<Setter Property="BorderBrush" Value="#FFFFFF"/>
+			<Setter Property="BoxShadow" Value="inset 0 0 0 2 #FFFFFF"/>
+			<Setter Property="CornerRadius" Value="0"/>
+		</Style>
 		<Style Selector="^:disabled /template/ Border#PART_BorderElement">
 			<Setter Property="Background" Value="#4B4B4B"/>
 		</Style>

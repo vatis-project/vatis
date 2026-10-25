@@ -107,6 +107,13 @@
 			</Style>
 		</Style>
 
+		<!-- Keyboard focus: a solid white square border, 3px with the inset shadow, like the other controls. -->
+		<Style Selector="^:focus-visible /template/ Border#Background">
+			<Setter Property="BorderBrush" Value="#FFFFFF" />
+			<Setter Property="BoxShadow" Value="inset 0 0 0 2 #FFFFFF" />
+			<Setter Property="CornerRadius" Value="0" />
+		</Style>
+
 		<Style Selector="^:dropdownopen">
 			<Style Selector="^ /template/ Border#Background">
 				<Setter Property="Background" Value="#141414"/>

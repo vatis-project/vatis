@@ -12,10 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a `trendtype` field to weather conditions to match the trend type (`TEMPO`, `BECMG` or `NOSIG`).
 
 ### Changed
+- Improved keyboard accessibility throughout the app, including tab order, focus indicators, and keyboard controls for the ATIS letter, lists, and dialogs.
 - Changed the help for the controllers and weather conditions in the static airport condition and NOTAM editor to open from an info icon next to each label instead of a tooltip over the text box, which could flicker.
+- Changed the "Online:" label under static airport conditions and NOTAMs in the message lists to "Controllers:", "Time:" or "Controllers and time:", depending on what the condition checks.
 
 ### Fixed
-- Fixed auto-complete in the controllers and weather condition editors sometimes stopping after typing several fields.
+- Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
 
 ## v4.1.0-beta.22
 ### Fixed

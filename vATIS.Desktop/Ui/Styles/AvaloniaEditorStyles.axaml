@@ -1,18 +1,33 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:aee="clr-namespace:AvaloniaEdit.Editing;assembly=AvaloniaEdit"
+        xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
         xmlns:cc="clr-namespace:AvaloniaEdit.CodeCompletion;assembly=AvaloniaEdit">
     
     <Style Selector="ae|TextEditor">
         <Setter Property="Background" Value="#1e1e1e"/>
         <Setter Property="BorderBrush" Value="#646464"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="behaviors:TextEditorKeyboardFocus.Enabled" Value="True"/>
         <Style Selector="^:focus-within">
             <Setter Property="Background" Value="#141414"/>
         </Style>
+        <Style Selector="^:keyfocus">
+            <Setter Property="BorderBrush" Value="#FFFFFF"/>
+        </Style>
+    </Style>
+    <!-- Keyboard focus is shown by the white border of the editor, not by a rectangle inside it. -->
+    <Style Selector="ae|TextEditor aee|TextArea">
+        <Setter Property="FocusAdorner" Value="{x:Null}"/>
     </Style>
     <Style Selector="ae|TextEditor /template/ Border">
         <Setter Property="CornerRadius" Value="3"/>
+    </Style>
+    <!-- Keyboard focus: a solid white square border, 3px with the inset shadow, like buttons. -->
+    <Style Selector="ae|TextEditor:keyfocus /template/ Border">
+        <Setter Property="BoxShadow" Value="inset 0 0 0 2 #FFFFFF"/>
+        <Setter Property="CornerRadius" Value="0"/>
     </Style>
     
     <Style Selector="cc|CompletionList">
