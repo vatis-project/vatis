@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
@@ -43,6 +44,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         AtisLetter.DoubleTapped += AtisLetterOnDoubleTapped;
         AtisLetter.Tapped += AtisLetterOnTapped;
         AtisLetter.PointerPressed += AtisLetterOnPointerPressed;
+        AtisLetter.KeyDown += AtisLetterOnKeyDown;
 
         Loaded += OnLoaded;
     }
@@ -227,6 +229,48 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         }
     }
 
+    private async void AtisLetterOnKeyDown(object? sender, KeyEventArgs e)
+    {
+        try
+        {
+            if (ViewModel == null)
+                return;
+
+            var isObserver = ViewModel.NetworkConnectionStatus == NetworkConnectionStatus.Observer;
+            var action = AtisLetterKeyboard.GetAction(e.Key, e.KeyModifiers, isObserver);
+            if (action == AtisLetterKeyAction.None)
+                return;
+
+            e.Handled = true;
+
+            switch (action)
+            {
+                case AtisLetterKeyAction.AcknowledgeOrIncrement:
+                    // The same as a click: an observer can only acknowledge the update.
+                    await (isObserver
+                        ? ViewModel.AcknowledgeAtisUpdateCommand.Execute()
+                        : ViewModel.AcknowledgeOrIncrementAtisLetterCommand.Execute());
+                    break;
+                case AtisLetterKeyAction.Decrement:
+                    await ViewModel.DecrementAtisLetterCommand.Execute();
+                    break;
+                case AtisLetterKeyAction.EditLetter:
+                    ViewModel.IsAtisLetterInputMode = true;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in AtisLetterOnKeyDown");
+        }
+    }
+
+    // The letter button is hidden while the letter is typed, so focus has to be given back to it or it is lost.
+    private void FocusAtisLetterAfterInput()
+    {
+        Dispatcher.UIThread.Post(() => AtisLetter.Focus(NavigationMethod.Tab));
+    }
+
     private async void AtisLetterOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         try
@@ -300,10 +344,12 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             ViewModel.IsAtisLetterInputMode = false;
             TypeAtisLetter.Text = $"{ViewModel.AtisLetter}";
+            FocusAtisLetterAfterInput();
         }
         else if (e.Key == Key.Enter || e.Key == Key.Return)
         {
             ViewModel.IsAtisLetterInputMode = false;
+            FocusAtisLetterAfterInput();
             if (char.TryParse(TypeAtisLetter.Text?.ToUpperInvariant(), out var letter))
             {
                 if (letter > ViewModel.CodeRange.High)

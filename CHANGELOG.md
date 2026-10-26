@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- Added a `recentweather` field to weather conditions for static airport conditions and NOTAMs, matching recent weather codes (e.g., `RERA`).
+- Added `trend`, `tempo` and `becmg` prefixes for weather conditions to read the trend forecast instead of the METAR (e.g., `trendweather INCLUDES SHRA`, `tempoceiling < 1000ft`, `becmgcloudtype INCLUDES CB`). `trend` reads any trend group, while `tempo` and `becmg` read only that kind. Supported for ceiling, cloud base, visibility, wind speed, gust, wind direction, weather, cloud type, and CAVOK.
+- Added a `trendtype` field to weather conditions to match the trend type (`TEMPO`, `BECMG` or `NOSIG`).
+
+### Changed
+- Improved keyboard accessibility throughout the app, including tab order, focus indicators, and keyboard controls for the ATIS letter, lists, and dialogs.
+- Changed the help for the controllers and weather conditions in the static airport condition and NOTAM editor to open from an info icon next to each label instead of a tooltip over the text box, which could flicker.
+- Changed the "Online:" label under static airport conditions and NOTAMs in the message lists to "Controllers:", "Time:" or "Controllers and time:", depending on what the condition checks.
+
+### Fixed
+- Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
+
 ## v4.1.0-beta.22
 ### Fixed
 - Fixed stations failing to load in the released app when a static airport condition or NOTAM used a "Controllers" condition.

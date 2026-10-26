@@ -11,6 +11,7 @@
 		<Border Grid.Row="0" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
 			<DataGrid x:Name="Patterns" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding Patterns, DataType=vm:PatternsViewModel}" SelectionMode="Extended">
 				<Interaction.Behaviors>
+					<behaviors:DataGridKeyboardBehavior EditCommand="{Binding EditPatternCommand, DataType=vm:PatternsViewModel}"/>
 					<behaviors:DataGridOverflowToolTipBehavior/>
 				</Interaction.Behaviors>
 				<DataGrid.Styles>

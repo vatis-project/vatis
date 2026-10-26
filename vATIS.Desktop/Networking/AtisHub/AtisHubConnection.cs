@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ public class AtisHubConnection : IAtisHubConnection
 
     private readonly IAuthTokenManager _authTokenManager;
     private readonly IAppConfigurationProvider _appConfigurationProvider;
+    private readonly SemaphoreSlim _connectLock = new(1, 1);
     private HubConnection? _hubConnection;
     private ConnectionState _connectionState;
 
@@ -53,6 +55,9 @@ public class AtisHubConnection : IAtisHubConnection
     /// <inheritdoc />
     public async Task Connect()
     {
+        // Callers can arrive while an attempt is still in flight (e.g. several stations connecting right after the
+        // hub dropped). Serialize them so they wait for that attempt instead of starting competing connections.
+        await _connectLock.WaitAsync();
         try
         {
             if (_hubConnection is { State: HubConnectionState.Connected })
@@ -116,6 +121,10 @@ public class AtisHubConnection : IAtisHubConnection
             SetConnectionState(ConnectionState.Disconnected);
             Log.Error(ex, "Failed to connect to AtisHub.");
         }
+        finally
+        {
+            _connectLock.Release();
+        }
     }
 
     /// <inheritdoc />
@@ -138,7 +147,8 @@ public class AtisHubConnection : IAtisHubConnection
     public async Task ReserveAtis(AtisHubDto dto)
     {
         // The first connection attempt at startup may have failed, and SignalR only retries after it has connected once.
-        if (_hubConnection is null or { State: HubConnectionState.Disconnected })
+        // A connect already in progress is awaited by Connect rather than treated as a failure.
+        if (_hubConnection is null or { State: HubConnectionState.Disconnected or HubConnectionState.Connecting })
         {
             await Connect();
         }

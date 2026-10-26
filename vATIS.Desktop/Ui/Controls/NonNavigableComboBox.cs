@@ -26,9 +26,10 @@ public class NonNavigableComboBox : ComboBox
     /// <inheritdoc/>
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        if (e.Key is Key.Up or Key.Down)
+        // Disable up/down arrow navigation while closed, so the selection is not changed by accident. Once the list
+        // is open the arrows must work to choose an item, and Alt+Down opens it.
+        if (e.Key is Key.Up or Key.Down && !IsDropDownOpen && !e.KeyModifiers.HasFlag(KeyModifiers.Alt))
         {
-            // Disable up/down arrow navigation
             e.Handled = true;
         }
 

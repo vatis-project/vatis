@@ -19,14 +19,14 @@ public static partial class StaticDefinitionSummary
     /// Gets one line for each condition on the definition, or nothing if it is always included.
     /// </summary>
     /// <param name="definition">The definition.</param>
-    /// <returns>The lines, e.g. <c>Online: EPWA_DEL</c> and <c>Weather: ceiling &lt; 200ft</c>.</returns>
+    /// <returns>The lines, e.g. <c>Controllers: EPWA_DEL</c>, <c>Time: 0600z-2246z</c> and <c>Weather: ceiling &lt; 200ft</c>.</returns>
     public static IReadOnlyList<string> Describe(StaticDefinition definition)
     {
         var lines = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(definition.OnlineCondition))
         {
-            lines.Add($"Online: {Whitespace().Replace(definition.OnlineCondition.Trim(), " ")}");
+            lines.Add($"{OnlineLabel(definition.OnlineCondition)}: {Whitespace().Replace(definition.OnlineCondition.Trim(), " ")}");
         }
 
         if (!string.IsNullOrWhiteSpace(definition.WeatherCondition))
@@ -35,6 +35,22 @@ public static partial class StaticDefinitionSummary
         }
 
         return lines;
+    }
+
+    // The condition can test the controllers online, the time of day, or both.
+    private static string OnlineLabel(string condition)
+    {
+        if (!StationExpression.TryParse(condition, out var expression, out _) || expression == null)
+        {
+            return "Controllers";
+        }
+
+        return expression switch
+        {
+            { HasTimeCondition: true, HasCallsignCondition: true } => "Controllers and time",
+            { HasTimeCondition: true } => "Time",
+            _ => "Controllers",
+        };
     }
 
     [GeneratedRegex(@"\s+")]
