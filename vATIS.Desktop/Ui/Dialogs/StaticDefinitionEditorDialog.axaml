@@ -95,7 +95,7 @@
 							</ToolTip.Tip>
 						</TextBlock>
 						<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" Spacing="3">
-							<editor:TextEditor Name="OnlineEditor" WordWrap="True" Height="40" FontFamily="{StaticResource Monospace}" Padding="6,4">
+							<editor:TextEditor Name="OnlineEditor" WordWrap="True" MinHeight="40" FontFamily="{StaticResource Monospace}" Padding="6,4">
 								<ToolTip.Tip>
 									<StackPanel MaxWidth="340" Spacing="8">
 										<TextBlock TextWrapping="Wrap" Text="The message is included while this expression is true. Leave blank to always include it."/>
@@ -158,7 +158,7 @@
 								</TextBlock>
 							</ToolTip.Tip>
 						</TextBlock>
-						<editor:TextEditor Grid.Row="2" Grid.Column="1" Name="WeatherEditor" WordWrap="True" Height="56" FontFamily="{StaticResource Monospace}" Padding="6,4">
+						<editor:TextEditor Grid.Row="2" Grid.Column="1" Name="WeatherEditor" WordWrap="True" MinHeight="56" FontFamily="{StaticResource Monospace}" Padding="6,4">
 							<ToolTip.Tip>
 								<StackPanel MaxWidth="340" Spacing="8">
 									<TextBlock TextWrapping="Wrap" Text="The message is included while the METAR meets this condition. Leave blank to ignore the weather."/>

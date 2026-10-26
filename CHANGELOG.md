@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v4.1.0-beta.22
 ### Fixed
 - Fixed stations failing to load in the released app when a static airport condition or NOTAM used a "Controllers" condition.
+- Fixed a freeze and crash when selecting text on the second line of a long condition in the static airport condition and NOTAM editor.
 
 ## v4.1.0-beta.21
 ### Added
