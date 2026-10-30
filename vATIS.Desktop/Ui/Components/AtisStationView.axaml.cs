@@ -37,6 +37,10 @@ namespace Vatsim.Vatis.Ui.Components;
 /// </summary>
 public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 {
+    // The widest a message is allowed to be in the message menus before it wraps onto another line.
+    private const double MaxMessageTextWidth = 420;
+    private const double MaxOrderRowWidth = 520;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisStationView"/> class.
     /// </summary>
@@ -169,6 +173,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             var label = new TextBlock
             {
                 Text = definition.Text,
+                TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0, 0, 12, 0),
             };
@@ -182,7 +187,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 
             // The default menu item template reserves room for an icon, shortcut text and a submenu chevron, which
             // leaves a gap beside the arrows. Only the arrows do anything, so the row is the whole item.
-            var content = new Border { Padding = new Thickness(12, 5), Child = row };
+            var content = new Border { Padding = new Thickness(12, 5), MaxWidth = MaxOrderRowWidth, Child = row };
             items.Add(new MenuItem
             {
                 StaysOpenOnClick = true,
@@ -231,7 +236,16 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             var item = new MenuItem
             {
-                Header = definition.Text.Replace("_", "__"),
+
+                // A text block instead of a string, so underscores are shown as they are, and a long message wraps
+                // onto more lines instead of making the menu wider than the window.
+                Header = new TextBlock
+                {
+                    Text = definition.Text,
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxWidth = MaxMessageTextWidth,
+                    VerticalAlignment = VerticalAlignment.Center,
+                },
                 StaysOpenOnClick = true,
             };
 
