@@ -4,10 +4,20 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
@@ -15,6 +25,7 @@ using AvaloniaEdit.Editing;
 using ReactiveUI;
 using Serilog;
 using Vatsim.Vatis.Networking;
+using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.ViewModels;
 
@@ -100,6 +111,166 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             NotamText.TextArea.TextView.LineTransformers.Add(
                 new ReadOnlySegmentTransformer(ViewModel.ReadOnlyNotams));
         }
+    }
+
+    private static Button CreateMoveButton(string glyph, bool enabled, Action onClick)
+    {
+        var button = new Button
+        {
+            Content = glyph,
+            IsEnabled = enabled,
+            Focusable = false,
+            Padding = new Thickness(6, 0),
+            Background = Brushes.Transparent,
+            Opacity = enabled ? 1 : 0.25,
+        };
+        button.Click += (_, _) => onClick();
+        return button;
+    }
+
+    private Control CreateCheckMark(MenuItem item)
+    {
+        // The same check mark the menu draws for its own check box items.
+        var check = new Path { Width = 16, Stretch = Stretch.None, HorizontalAlignment = HorizontalAlignment.Left };
+        if (this.TryFindResource("CheckMarkPathData", ActualThemeVariant, out var geometry) && geometry is Geometry data)
+        {
+            check.Data = data;
+        }
+
+        check.Bind(Shape.FillProperty, item.GetObservable(TemplatedControl.ForegroundProperty));
+        return check;
+    }
+
+    private void AirportConditionsMenu_OnOpening(object? sender, CancelEventArgs e)
+    {
+        FillMenus(
+            AirportConditionsStaticMenu, AirportConditionsConditionalMenu, AirportConditionsOrderMenu, notams: false);
+    }
+
+    private void NotamsMenu_OnOpening(object? sender, CancelEventArgs e)
+    {
+        FillMenus(NotamsStaticMenu, NotamsConditionalMenu, NotamsOrderMenu, notams: true);
+    }
+
+    private void FillOrderMenu(MenuItem menu, bool notams)
+    {
+        if (ViewModel is not { } viewModel)
+            return;
+
+        var included = viewModel.GetIncludedDefinitions(notams);
+        var items = new List<MenuItem>();
+        for (var i = 0; i < included.Count; i++)
+        {
+            var definition = included[i];
+            var up = CreateMoveButton("\u25B2", i > 0, () => MoveAndRefresh(menu, definition, notams, up: true));
+            var down = CreateMoveButton(
+                "\u25BC", i < included.Count - 1, () => MoveAndRefresh(menu, definition, notams, up: false));
+
+            var label = new TextBlock
+            {
+                Text = definition.Text,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 12, 0),
+            };
+            Grid.SetColumn(up, 1);
+            Grid.SetColumn(down, 2);
+            var row = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"),
+                Children = { label, up, down },
+            };
+
+            // The default menu item template reserves room for an icon, shortcut text and a submenu chevron, which
+            // leaves a gap beside the arrows. Only the arrows do anything, so the row is the whole item.
+            var content = new Border { Padding = new Thickness(12, 5), Child = row };
+            items.Add(new MenuItem
+            {
+                StaysOpenOnClick = true,
+                Template = new FuncControlTemplate<MenuItem>((_, _) => new ContentPresenter
+                {
+                    Content = content,
+                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                }),
+            });
+        }
+
+        if (items.Count == 0)
+        {
+            items.Add(new MenuItem { Header = "No messages", IsEnabled = false });
+        }
+
+        menu.ItemsSource = items;
+    }
+
+    private void MoveAndRefresh(MenuItem menu, StaticDefinition definition, bool notams, bool up)
+    {
+        ViewModel?.MoveDefinition(definition, notams, up);
+        FillOrderMenu(menu, notams);
+    }
+
+    private void FillToggleMenu(
+        MenuItem menu, MenuItem orderMenu, bool notams, IReadOnlyList<StaticDefinition> definitions,
+        Func<StaticDefinition, bool> isChecked, Action<StaticDefinition, bool> setChecked, string emptyText)
+    {
+        var items = new List<MenuItem>();
+        var checks = new List<(MenuItem Item, Control Check, StaticDefinition Definition)>();
+
+        // The check column only shows while something is checked. Once it does, every item gets a check mark slot,
+        // so the items line up and the menu does not shift as items are checked.
+        void UpdateChecks()
+        {
+            var anyChecked = checks.Any(x => isChecked(x.Definition));
+            foreach (var (item, check, definition) in checks)
+            {
+                check.Opacity = isChecked(definition) ? 1 : 0;
+                item.Icon = anyChecked ? check : null;
+            }
+        }
+
+        foreach (var definition in definitions)
+        {
+            var item = new MenuItem
+            {
+                Header = definition.Text.Replace("_", "__"),
+                StaysOpenOnClick = true,
+            };
+
+            item.Click += (_, _) =>
+            {
+                setChecked(definition, !isChecked(definition));
+                UpdateChecks();
+
+                // The message was added to or removed from the ATIS, so the order list changed too.
+                FillOrderMenu(orderMenu, notams);
+            };
+            items.Add(item);
+            checks.Add((item, CreateCheckMark(item), definition));
+        }
+
+        UpdateChecks();
+
+        if (items.Count == 0)
+        {
+            items.Add(new MenuItem { Header = emptyText, IsEnabled = false });
+        }
+
+        menu.ItemsSource = items;
+    }
+
+    private void FillMenus(MenuItem staticMenu, MenuItem conditionalMenu, MenuItem orderMenu, bool notams)
+    {
+        if (ViewModel is not { } viewModel)
+            return;
+
+        var station = viewModel.AtisStation;
+        FillToggleMenu(
+            staticMenu, orderMenu, notams, viewModel.GetUnconditionalDefinitions(notams),
+            x => !station.HiddenDefinitions.Contains(x), (x, on) => viewModel.SetDefinitionHidden(x, !on),
+            "No static messages");
+        FillToggleMenu(
+            conditionalMenu, orderMenu, notams, viewModel.GetConditionalDefinitions(notams),
+            x => station.ForcedDefinitions.Contains(x), viewModel.SetDefinitionForced, "No conditional messages");
+        FillOrderMenu(orderMenu, notams);
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

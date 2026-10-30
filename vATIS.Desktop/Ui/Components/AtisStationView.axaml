@@ -91,8 +91,12 @@
 						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
                     <editor:TextEditor.ContextMenu>
-                        <ContextMenu IsEnabled="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel}">
-                            <MenuItem Header="Save Airport Conditions" ToolTip.Tip="Save the airport conditions to the ATIS profile." Command="{Binding ApplyAirportConditionsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
+                        <ContextMenu Opening="AirportConditionsMenu_OnOpening">
+                            <MenuItem Header="Save Airport Conditions" ToolTip.Tip="Save the airport conditions to the ATIS profile." IsEnabled="{Binding HasUnsavedAirportConditions, DataType=vm:AtisStationViewModel}" Command="{Binding ApplyAirportConditionsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
+                            <Separator/>
+                            <MenuItem Name="AirportConditionsStaticMenu" Header="Static Messages"/>
+                            <MenuItem Name="AirportConditionsConditionalMenu" Header="Conditional Messages"/>
+                            <MenuItem Name="AirportConditionsOrderMenu" Header="Display Order"/>
                         </ContextMenu>
                     </editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
@@ -105,8 +109,12 @@
 						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
                     <editor:TextEditor.ContextMenu>
-                        <ContextMenu IsEnabled="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel}">
-                            <MenuItem Header="Save NOTAMs" ToolTip.Tip="Save the NOTAMs to the ATIS profile." Command="{Binding ApplyNotamsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
+                        <ContextMenu Opening="NotamsMenu_OnOpening">
+                            <MenuItem Header="Save NOTAMs" ToolTip.Tip="Save the NOTAMs to the ATIS profile." IsEnabled="{Binding HasUnsavedNotams, DataType=vm:AtisStationViewModel}" Command="{Binding ApplyNotamsCommand, DataType=vm:AtisStationViewModel}" CommandParameter="{x:True}"/>
+                            <Separator/>
+                            <MenuItem Name="NotamsStaticMenu" Header="Static Messages"/>
+                            <MenuItem Name="NotamsConditionalMenu" Header="Conditional Messages"/>
+                            <MenuItem Name="NotamsOrderMenu" Header="Display Order"/>
                         </ContextMenu>
                     </editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
