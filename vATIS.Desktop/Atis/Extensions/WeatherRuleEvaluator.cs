@@ -174,19 +174,21 @@ public static class WeatherRuleEvaluator
                     ? FromFeet(ceiling, rule.Unit)
                     : HasNoCeiling(metar) ? double.PositiveInfinity : null;
             case WeatherField.CloudBase:
+                // No cloud layer means there is no cloud base, so cloudbase > 1000ft is met under clear skies.
                 return FromFeet(
                     metar.Clouds.Where(x => x.BaseHeight is { ActualValue: > 0 })
                         .OrderBy(x => x.BaseHeight!.ActualValue).FirstOrDefault(),
-                    rule.Unit);
+                    rule.Unit) ?? (HasNoCeiling(metar) ? double.PositiveInfinity : null);
             case WeatherField.Rvr:
-                // A variable RVR, e.g. 1800V3000FT, counts as its lowest value.
+                // A variable RVR, e.g. 1800V3000FT, counts as its lowest value. No RVR reported means there is no
+                // range limitation, so rvr > 125m is met, like an unlimited ceiling.
                 var ranges = metar.RunwaysVisualRange
                     .Select(x => x.VisualRange != null ? x.VisualRange
                         : x.VisualRangeInterval?.OrderBy(ToMeters).FirstOrDefault())
                     .Where(x => x != null)
                     .Select(x => FromMeters(ToMeters(x!), rule.Unit))
                     .ToList();
-                return ranges.Count == 0 ? null : ranges.Min();
+                return ranges.Count == 0 ? double.PositiveInfinity : ranges.Min();
             case WeatherField.Visibility:
                 if (metar.Cavok || metar.Visibility is { IsCavok: true })
                 {
@@ -199,7 +201,8 @@ public static class WeatherRuleEvaluator
             case WeatherField.WindSpeed:
                 return FromSpeed(metar.SurfaceWind?.MeanSpeed, rule.Unit);
             case WeatherField.WindGust:
-                return FromSpeed(metar.SurfaceWind?.SpeedVariations, rule.Unit);
+                // Wind without a gust group has no gust, which counts as a gust of zero so that gust < 25kt is met.
+                return metar.SurfaceWind is { SpeedVariations: null } ? 0 : FromSpeed(metar.SurfaceWind?.SpeedVariations, rule.Unit);
             case WeatherField.WindDirection:
                 return metar.SurfaceWind is { VariableDirection: false, MeanDirection: { } direction }
                     ? direction.ActualValue
@@ -211,9 +214,10 @@ public static class WeatherRuleEvaluator
             case WeatherField.Pressure:
                 return FromPressure(metar.Pressure?.Value, rule.Unit);
             case WeatherField.RunwayDepth:
+                // No deposit reported means a depth of zero, so depth < 3mm is met.
                 var depths = metar.RunwayConditions.Where(x => x.DepthMillimeters != null)
                     .Select(x => (double)x.DepthMillimeters!.Value).ToList();
-                return depths.Count == 0 ? null : depths.Max();
+                return depths.Count == 0 ? 0 : depths.Max();
             default:
                 return null;
         }

@@ -65,7 +65,7 @@ public class WeatherRuleEvaluatorTests
     }
 
     [Fact]
-    public void Rvr_UsesLowestReported_AndMissingIsNotMet()
+    public void Rvr_UsesLowestReported_AndMissingIsUnlimited()
     {
         var metar = Metar("EPWA 191200Z 24005KT 0400 R33/0500N R15/0800N FG OVC001 10/09 Q1013");
         Assert.True(Met(metar, "rvr < 550m"));
@@ -73,7 +73,19 @@ public class WeatherRuleEvaluatorTests
 
         var noRvr = Metar("EPWA 191200Z 24005KT 0400 FG OVC001 10/09 Q1013");
         Assert.False(Met(noRvr, "rvr < 550m"));
-        Assert.False(Met(noRvr, "rvr > 550m"));
+        Assert.True(Met(noRvr, "rvr > 550m"));
+    }
+
+    [Theory]
+    [InlineData("EDDV 301850Z AUTO 05004KT 360V080 2200 BR OVC001 07/07 Q1033", true, false)] // ceiling, no RVR
+    [InlineData("EDDV 301850Z AUTO 05004KT 0200 R09/0500N FG OVC001 07/07 Q1033", true, false)] // RVR 500m
+    [InlineData("EDDV 301850Z AUTO 05004KT 0100 R09/0100N FG OVC001 07/07 Q1033", false, true)] // RVR 100m
+    [InlineData("EDDV 301850Z AUTO 05004KT 9999 NCD 07/07 Q1033", false, false)] // nothing applies
+    public void LowVisibilityProcedures_CatIIAndIIIVersusGuidedTakeoff(string raw, bool catII, bool catIII)
+    {
+        var metar = Metar(raw);
+        Assert.Equal(catII, Met(metar, "(ceiling < 200ft OR rvr <= 600m) AND rvr > 125m"));
+        Assert.Equal(catIII, Met(metar, "rvr <= 125m"));
     }
 
     [Fact]
@@ -108,6 +120,32 @@ public class WeatherRuleEvaluatorTests
         var calm = Metar("EPWA 191200Z VRB03KT 9999 FEW030 10/09 Q1013");
         Assert.False(Met(calm, "gust > 0kt"));
         Assert.False(Met(calm, "winddir > 0"));
+    }
+
+    [Fact]
+    public void Gust_NotReportedCountsAsZero()
+    {
+        var steady = Metar("EPWA 191200Z 24010KT 9999 FEW030 10/09 Q1013");
+        Assert.True(Met(steady, "gust < 25kt"));
+        Assert.False(Met(steady, "gust > 0kt"));
+        Assert.False(Met(Metar("EPWA 191200Z 24020G32KT 9999 FEW030 10/09 Q1013"), "gust < 25kt"));
+    }
+
+    [Fact]
+    public void Depth_NotReportedCountsAsZero()
+    {
+        var dry = Metar("EPWA 191200Z 24005KT 9999 FEW030 10/09 Q1013");
+        Assert.True(Met(dry, "depth < 3mm"));
+        Assert.False(Met(dry, "depth > 3mm"));
+    }
+
+    [Fact]
+    public void CloudBase_ClearSkyIsUnlimited()
+    {
+        var clear = Metar("EPWA 191200Z 24005KT CAVOK 10/09 Q1013");
+        Assert.True(Met(clear, "cloudbase > 1000ft"));
+        Assert.False(Met(clear, "cloudbase < 1000ft"));
+        Assert.False(Met(Metar("EPWA 191200Z 24005KT 9999 FEW005 10/09 Q1013"), "cloudbase > 1000ft"));
     }
 
     [Theory]

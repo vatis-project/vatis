@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
+- Fixed weather conditions never being met when the METAR did not report the value a comparison needed, even where nothing was limiting. With no RVR, `rvr > 125m` is now met. With clear skies, `cloudbase > 1000ft` is now met. With no gust group, `gust` is zero, and with no runway deposit, `depth` is zero (e.g., `gust < 25kt` and `depth < 3mm` are met). This matches how `ceiling` already behaved with no clouds.
 
 ## v4.1.0-beta.22
 ### Fixed
