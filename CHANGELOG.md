@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
+- Fixed a crash when receiving a radio message with a malformed frequency field.
 
 ## v4.1.0-beta.22
 ### Fixed
