@@ -10,9 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a `recentweather` field to weather conditions for static airport conditions and NOTAMs, matching recent weather codes (e.g., `RERA`).
 - Added `trend`, `tempo` and `becmg` prefixes for weather conditions to read the trend forecast instead of the METAR (e.g., `trendweather INCLUDES SHRA`, `tempoceiling < 1000ft`, `becmgcloudtype INCLUDES CB`). `trend` reads any trend group, while `tempo` and `becmg` read only that kind. Supported for ceiling, cloud base, visibility, wind speed, gust, wind direction, weather, cloud type, and CAVOK.
 - Added a `trendtype` field to weather conditions to match the trend type (`TEMPO`, `BECMG` or `NOSIG`).
+- Added a table on the visibility ICAO Formatting tab for non-FAA stations to choose how metric visibility is written in the text ATIS and spoken in the voice ATIS, with rows that switch format from a given number of meters (e.g., `7000` as `7 KM` / "seven kilometers", `800` as `800 M` / "eight hundred meters").
 - Added "Static Messages", "Conditional Messages" and "Display Order" items to the airport conditions and NOTAMs context menus. They turn a message off, include a conditional message even when its conditions are not met, and move messages up or down in the ATIS. These only last until the app is restarted.
 
 ### Changed
+- Combined the visibility direction spoken text and the Direction (Text) tab into a single Direction tab with a Text and a Voice column.
+- Moved the visibility CAVOK text and voice settings into a row of the table on the ICAO Formatting tab.
+- Changed the visibility meters cutoff, unit suffix, unit words and 9999 settings into the rows of the table on the visibility ICAO Formatting tab. Existing profiles are migrated automatically and sound the same.
 - Improved keyboard accessibility throughout the app, including tab order, focus indicators, and keyboard controls for the ATIS letter, lists, and dialogs.
 - Changed the help for the controllers and weather conditions in the static airport condition and NOTAM editor to open from an info icon next to each label instead of a tooltip over the text box, which could flicker.
 - Changed the "Online:" label under static airport conditions and NOTAMs in the message lists to "Controllers:", "Time:" or "Controllers and time:", depending on what the condition checks.

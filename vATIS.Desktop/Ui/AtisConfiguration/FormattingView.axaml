@@ -457,75 +457,92 @@
 						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="ICAO Formatting" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
-						<StackPanel Orientation="Vertical">
-							<StackPanel Orientation="Horizontal" Margin="0,0,0,15" Spacing="10">
-								<CheckBox IsChecked="{Binding VisibilityIncludeVisibilitySuffix, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the visibility unit type will be appended to the visibility value (e.g. &quot;5000 meters&quot; or &quot;8 kilometers&quot;)">Include visibility unit suffix</CheckBox>
-								<StackPanel Orientation="Horizontal" Spacing="10" Margin="20,0,0,0">
-									<TextBlock VerticalAlignment="Center" ToolTip.Tip="The cutoff value for when to transition to &quot;kilometers&quot; suffix instead of &quot;meters&quot;">Meters Cutoff:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityMetersCutoff, DataType=vm:FormattingViewModel}" MinWidth="60" Theme="{StaticResource DarkTextBox}">
+						<groupBox:GroupBoxControl Header="Visibility Format" Theme="{StaticResource GroupBoxClassic}">
+							<ScrollViewer VerticalScrollBarVisibility="Auto">
+							<StackPanel Orientation="Vertical" Spacing="10" Margin="0,0,10,0">
+								<TextBlock TextWrapping="Wrap" Text="Choose how a visibility in meters is shown in the text ATIS and spoken in the voice ATIS."/>
+								<TextBlock TextWrapping="Wrap" Opacity="0.8" Text="Each row applies at or above its value, up to the next row."/>
+								<StackPanel Orientation="Vertical" Spacing="0">
+										<DataGrid x:Name="VisibilityFormatRules" MaxHeight="200" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityFormatRules, DataType=vm:FormattingViewModel}">
 										<Interaction.Behaviors>
-											<behaviors:TextBoxNumericOnlyBehavior/>
+											<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityFormatRules"/>
 										</Interaction.Behaviors>
-									</TextBox>
+										<DataGrid.Styles>
+											<Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+												<Setter Property="Opacity" Value="0"/>
+											</Style>
+										</DataGrid.Styles>
+										<DataGrid.Columns>
+											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="At or above (m)" Width="140" IsReadOnly="False" Binding="{Binding FromMeters, DataType=models:VisibilityFormatRule}"/>
+											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:VisibilityFormatRule}"/>
+											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Voice" Width="1*" IsReadOnly="False" Binding="{Binding Voice, DataType=models:VisibilityFormatRule}"/>
+										</DataGrid.Columns>
+									</DataGrid>
+									<DataGrid x:Name="VisibilityCavok" HeadersVisibility="None" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1,0,1,1" BorderBrush="#646464" Margin="0,-1,0,0" ItemsSource="{Binding VisibilityCavokRow, DataType=vm:FormattingViewModel}">
+										<Interaction.Behaviors>
+											<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityCavokRow"/>
+										</Interaction.Behaviors>
+										<DataGrid.Styles>
+											<Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+												<Setter Property="Opacity" Value="0"/>
+											</Style>
+										</DataGrid.Styles>
+										<DataGrid.Columns>
+											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Width="140" IsReadOnly="True" Binding="{Binding Key, DataType=models:VisibilityCavokMeta}"/>
+											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:VisibilityCavokMeta}"/>
+											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Width="1*" IsReadOnly="False" Binding="{Binding Voice, DataType=models:VisibilityCavokMeta}"/>
+										</DataGrid.Columns>
+									</DataGrid>
+								</StackPanel>
+								<Grid ColumnDefinitions="*,Auto">
+									<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+										<TextBlock VerticalAlignment="Center" Opacity="0.8" Text="Insert into selected cell:"/>
+										<Button Theme="{StaticResource DarkVariable}" ToolTip.Tip="Text only. The visibility as reported in the METAR (e.g. 0800)." Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}" CommandParameter="{Binding $self.Content}">{raw}</Button>
+										<Button Theme="{StaticResource DarkVariable}" ToolTip.Tip="The visibility in meters. Shown as digits in the text ATIS (e.g. 800) and spoken in words in the voice ATIS (e.g. eight hundred)." Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}" CommandParameter="{Binding $self.Content}">{m}</Button>
+										<Button Theme="{StaticResource DarkVariable}" ToolTip.Tip="The visibility in kilometers (e.g. 7 or 6.5)." Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}" CommandParameter="{Binding $self.Content}">{km}</Button>
+									</StackPanel>
+									<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+										<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding DeleteVisibilityFormatRuleCommand, DataType=vm:FormattingViewModel}" CommandParameter="{Binding #VisibilityFormatRules.SelectedItem}" IsEnabled="{Binding #VisibilityFormatRules.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">Delete</Button>
+										<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding AddVisibilityFormatRuleCommand, DataType=vm:FormattingViewModel}">Add New</Button>
+									</StackPanel>
+								</Grid>
+								<StackPanel Orientation="Vertical" Spacing="6" Margin="0,6,0,0">
+									<Grid ColumnDefinitions="90,200,*">
+										<TextBlock Grid.Column="0" Opacity="0.7" Text="Preview"/>
+										<TextBlock Grid.Column="1" Opacity="0.7" Text="Text ATIS"/>
+										<TextBlock Grid.Column="2" Opacity="0.7" Text="Voice ATIS"/>
+									</Grid>
+									<ItemsControl ItemsSource="{Binding VisibilityFormatRulesPreview, DataType=vm:FormattingViewModel}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate DataType="models:VisibilityFormatPreview">
+												<Grid ColumnDefinitions="90,200,*" Margin="0,0,0,2">
+													<TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" Text="{Binding Metar}"/>
+													<TextBlock Grid.Column="1" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="{Binding Text}"/>
+													<TextBlock Grid.Column="2" TextWrapping="Wrap" Text="{Binding Voice}"/>
+												</Grid>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
 								</StackPanel>
 							</StackPanel>
-							<Grid ColumnDefinitions="Auto,10,Auto,20,Auto,10,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
-								<TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the visibility is 9999">9999 (Voice):</TextBlock>
-								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="2" Text="{Binding VisibilityUnlimitedVisibilityVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								<TextBlock Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the visibility is 9999">9999 (Text):</TextBlock>
-								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="6" Text="{Binding VisibilityUnlimitedVisibilityText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								<TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="The spoken text if the METAR reports CAVOK">CAVOK (Voice):</TextBlock>
-								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="2" Text="{Binding VisibilityCavokVoice, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-								<TextBlock Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" ToolTip.Tip="The text ATIS string if the METAR reports CAVOK">CAVOK (Text):</TextBlock>
-								<TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="6" Text="{Binding VisibilityCavokText, DataType=vm:FormattingViewModel}" MinWidth="200" Theme="{StaticResource DarkTextBox}"></TextBox>
-							</Grid>
-							<groupBox:GroupBoxControl Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}" Margin="0,15,0,0">
-								<Grid ColumnDefinitions="80,*,15,80,*" RowDefinitions="*,5,*,5,*,5,*">
-									<TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">North:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityNorth, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">North East:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityNorthEast, DataType=vm:FormattingViewModel}"  Grid.Column="1" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center">East:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center">South East:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilitySouthEast, DataType=vm:FormattingViewModel}" Grid.Column="1" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="0" VerticalAlignment="Center">South:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilitySouth, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="0" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="2" VerticalAlignment="Center">South West:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilitySouthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="2" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="4" VerticalAlignment="Center">West:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="4" Theme="{StaticResource DarkTextBox}"/>
-									<TextBlock Grid.Column="3" Grid.Row="6" VerticalAlignment="Center">North West:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityNorthWest, DataType=vm:FormattingViewModel}" Grid.Column="4" Grid.Row="6" Theme="{StaticResource DarkTextBox}"/>
-								</Grid>
-							</groupBox:GroupBoxControl>
-						</StackPanel>
+							</ScrollViewer>
+						</groupBox:GroupBoxControl>
 					</TabItem>
-					<TabItem Header="Direction (Text)" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
-						<groupBox:GroupBoxControl Header="Visibility Direction (Text)" Theme="{StaticResource GroupBoxClassic}">
-								<DataGrid MaxHeight="230" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityDirectionText, DataType=vm:FormattingViewModel}">
+					<TabItem Header="Direction" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
+						<groupBox:GroupBoxControl Header="Visibility Direction" Theme="{StaticResource GroupBoxClassic}">
+							<StackPanel Orientation="Vertical" Spacing="14">
+								<TextBlock TextWrapping="Wrap" Text="A METAR can report a lower visibility in one direction, for example 7000 4000E means 7000 m overall and 4000 m to the east. Set the wording used for each direction code."/>
+								<TextBlock TextWrapping="Wrap" Opacity="0.8" Text="Text is shown in the text ATIS (7000 4000E). Voice is spoken in the voice ATIS (seven kilometers and to the east four thousand meters)."/>
+								<DataGrid MaxHeight="300" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityDirections, DataType=vm:FormattingViewModel}">
 									<Interaction.Behaviors>
-										<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityDirectionText"/>
+										<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityDirections"/>
 									</Interaction.Behaviors>
 									<DataGrid.Columns>
-										<DataGridTextColumn Header="Code" Width="140" IsReadOnly="True" Binding="{Binding Key, DataType=models:TextOverrideMeta}"/>
-										<DataGridTextColumn Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:TextOverrideMeta}"/>
+										<DataGridTextColumn Header="METAR" Width="100" IsReadOnly="True" Binding="{Binding Key, DataType=models:VisibilityDirectionMeta}"/>
+										<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:VisibilityDirectionMeta}"/>
+										<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Voice" Width="2*" IsReadOnly="False" Binding="{Binding Voice, DataType=models:VisibilityDirectionMeta}"/>
 									</DataGrid.Columns>
 								</DataGrid>
-							</groupBox:GroupBoxControl>
-					</TabItem>
-					<TabItem Header="Unit Words (Voice)" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
-						<groupBox:GroupBoxControl Header="Visibility Units (Spoken)" Theme="{StaticResource GroupBoxClassic}">
-							<StackPanel Orientation="Vertical" Spacing="10">
-								<TextBlock TextWrapping="Wrap" Text="Spoken words used after the visibility value when the unit suffix is included."/>
-								<Grid ColumnDefinitions="130,*">
-									<TextBlock Grid.Column="0" VerticalAlignment="Center">Meters:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding VisibilityMetersUnitVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
-								</Grid>
-								<Grid ColumnDefinitions="130,*">
-									<TextBlock Grid.Column="0" VerticalAlignment="Center">Kilometers:</TextBlock>
-									<TextBox FontFamily="{StaticResource Monospace}" Grid.Column="1" Text="{Binding VisibilityKilometersUnitVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
-								</Grid>
 							</StackPanel>
 						</groupBox:GroupBoxControl>
 					</TabItem>
@@ -760,9 +777,9 @@
                                 <Grid Margin="15,0,0,0" ColumnDefinitions="170,10,*,20,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                                     <TextBlock Grid.Row="0" Grid.Column="2" Opacity="0.7" Text="Voice ATIS"/>
                                     <TextBlock Grid.Row="0" Grid.Column="4" Opacity="0.7" Text="Text ATIS"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Replaces {altitude} if the cloud layer height is ///">Cloud layer</TextBlock>
-                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
-                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="4" Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Replaces {altitude} if the cloud layer height is ///">Cloud layer</TextBlock>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="4" Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                                     <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Replaces {altitude} if the vertical visibility is ///">Vertical visibility</TextBlock>
                                     <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="2" Grid.Column="2" Text="{Binding UndeterminedVerticalVisibilityVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                                     <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="2" Grid.Column="4" Text="{Binding UndeterminedVerticalVisibilityText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
@@ -778,8 +795,8 @@
 										<Grid ColumnDefinitions="110,10,*" MaxWidth="560" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
 											<TextBlock Grid.Row="0" Grid.Column="0" FontFamily="{StaticResource Monospace}" Text="{}{altitude}"/>
 											<TextBlock Grid.Row="0" Grid.Column="2" TextWrapping="Wrap" Opacity="0.8" Text="Cloud base height. Replaced with the undetermined text when the height is ///."/>
-											<TextBlock Grid.Row="1" Grid.Column="0" FontFamily="{StaticResource Monospace}" Text="{}{altitude:N}"/>
-											<TextBlock Grid.Row="1" Grid.Column="2" TextWrapping="Wrap" Opacity="0.8" Text="Text ATIS only. Height zero-padded to N digits, for example {altitude:2} gives 03 for 300 ft."/>
+											<TextBlock Grid.Row="0" Grid.Column="0" FontFamily="{StaticResource Monospace}" Text="{}{altitude:N}"/>
+											<TextBlock Grid.Row="0" Grid.Column="2" TextWrapping="Wrap" Opacity="0.8" Text="Text ATIS only. Height zero-padded to N digits, for example {altitude:2} gives 03 for 300 ft."/>
 											<TextBlock Grid.Row="2" Grid.Column="0" FontFamily="{StaticResource Monospace}" Text="{}{convective}"/>
 											<TextBlock Grid.Row="2" Grid.Column="2" TextWrapping="Wrap" Opacity="0.8" Text="CB or TCU type, if reported. Spoken form is set in Convective Cloud Types."/>
 											<TextBlock Grid.Row="3" Grid.Column="0" FontFamily="{StaticResource Monospace}" Text="{}{amount}"/>

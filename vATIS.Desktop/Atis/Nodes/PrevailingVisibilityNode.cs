@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Weather.Decoder.Entity;
 
 namespace Vatsim.Vatis.Atis.Nodes;
@@ -36,9 +37,9 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         }
 
         if (value.PrevailingVisibility is { ActualUnit: Value.Unit.Meter } &&
-            (int)value.PrevailingVisibility.ActualValue == 9999)
+            !UsesRawText(value))
         {
-            return Station.AtisFormat.Visibility.UnlimitedVisibilityText;
+            return Regex.Replace(format, "{visibility}", _ => FormatWithRules(value), RegexOptions.IgnoreCase);
         }
 
         if (value.RawValue != null)
@@ -79,46 +80,19 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
         {
             if (node.PrevailingVisibility is { ActualUnit: Value.Unit.Meter })
             {
-                if ((int)node.PrevailingVisibility.ActualValue == 9999)
-                {
-                    return Station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
-                }
+                var rules = Station.AtisFormat.Visibility.FormatRules;
+                var prevailingText = VisibilityFormatRule.ApplyVoice(rules, node.PrevailingVisibility.ActualValue);
 
                 if (!string.IsNullOrEmpty(node.MinimumVisibilityDirection) && node.MinimumVisibility != null)
                 {
-                    var suffix = Station.AtisFormat.Visibility.IncludeVisibilitySuffix;
-                    var prevailing = node.PrevailingVisibility.ActualValue;
-                    var prevailingText = prevailing > Station.AtisFormat.Visibility.MetersCutoff
-                        ? $"{prevailing / 1000}{(suffix ? " " + Station.AtisFormat.Visibility.KilometersUnitVoice : "")}"
-                        : $"{((int)prevailing).ToWordString()}{(suffix ? " " + Station.AtisFormat.Visibility.MetersUnitVoice : "")}";
+                    var direction = Station.AtisFormat.Visibility.GetDirectionVoice(node.MinimumVisibilityDirection);
 
-                    var direction = node.MinimumVisibilityDirection switch
-                    {
-                        "N" => Station.AtisFormat.Visibility.North,
-                        "NE" => Station.AtisFormat.Visibility.NorthEast,
-                        "E" => Station.AtisFormat.Visibility.East,
-                        "SE" => Station.AtisFormat.Visibility.SouthEast,
-                        "S" => Station.AtisFormat.Visibility.South,
-                        "SW" => Station.AtisFormat.Visibility.SouthWest,
-                        "W" => Station.AtisFormat.Visibility.West,
-                        "NW" => Station.AtisFormat.Visibility.NorthWest,
-                        _ => string.Empty,
-                    };
-
-                    var minimum = (int)node.MinimumVisibility.ActualValue;
-                    parsedValue.Add($"{prevailingText} and {direction} {minimum.ToGroupForm()}{(suffix ? " " + Station.AtisFormat.Visibility.MetersUnitVoice : "")}".Replace("  ", " "));
+                    var minimumText = VisibilityFormatRule.ApplyVoice(rules, node.MinimumVisibility.ActualValue, true);
+                    parsedValue.Add($"{prevailingText} and {direction} {minimumText}".Replace("  ", " "));
                 }
                 else
                 {
-                    if (node.PrevailingVisibility.ActualValue > Station.AtisFormat.Visibility.MetersCutoff)
-                    {
-                        parsedValue.Add($"{node.PrevailingVisibility.ActualValue / 1000} {(Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? Station.AtisFormat.Visibility.KilometersUnitVoice : "")}");
-                    }
-                    else
-                    {
-                        var vis = (int)node.PrevailingVisibility.ActualValue;
-                        parsedValue.Add($"{vis.ToWordString()} {(Station.AtisFormat.Visibility.IncludeVisibilitySuffix ? Station.AtisFormat.Visibility.MetersUnitVoice : "")}");
-                    }
+                    parsedValue.Add(prevailingText);
                 }
             }
             else
@@ -141,6 +115,37 @@ public class PrevailingVisibilityNode : BaseNode<Visibility>
 
             return Regex.Replace(format, "{visibility}", string.Join(", ", parsedValue), RegexOptions.IgnoreCase);
         }
+    }
+
+    private bool UsesRawText(Visibility value)
+    {
+        var rules = Station!.AtisFormat.Visibility.FormatRules;
+        return VisibilityFormatRule.IsRawText(rules, value.PrevailingVisibility!.ActualValue) &&
+               (value.MinimumVisibility is not { ActualUnit: Value.Unit.Meter } ||
+                VisibilityFormatRule.IsRawText(rules, value.MinimumVisibility.ActualValue));
+    }
+
+    private string FormatWithRules(Visibility value)
+    {
+        var rules = Station!.AtisFormat.Visibility.FormatRules;
+        var text = VisibilityFormatRule.ApplyText(rules, value.PrevailingVisibility!.ActualValue);
+
+        if (value.MinimumVisibility is { ActualUnit: Value.Unit.Meter })
+        {
+            var minimum = VisibilityFormatRule.ApplyText(rules, value.MinimumVisibility.ActualValue);
+            text += " " + minimum;
+
+            if (!string.IsNullOrEmpty(value.MinimumVisibilityDirection))
+            {
+                var direction = Station.AtisFormat.Visibility.DirectionText
+                    .GetValueOrDefault(value.MinimumVisibilityDirection, value.MinimumVisibilityDirection);
+
+                // Keep the METAR style (4000E) when the value ends in a digit, otherwise separate (4 KM E).
+                text += minimum.Length > 0 && char.IsDigit(minimum[^1]) ? direction : " " + direction;
+            }
+        }
+
+        return text;
     }
 
     private void Parse(Visibility? node)
