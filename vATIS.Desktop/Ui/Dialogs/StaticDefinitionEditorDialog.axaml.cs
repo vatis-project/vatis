@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.ReactiveUI;
@@ -16,6 +17,8 @@ namespace Vatsim.Vatis.Ui.Dialogs;
 /// </summary>
 public partial class StaticDefinitionEditorDialog : ReactiveWindow<StaticDefinitionEditorDialogViewModel>, ICloseable
 {
+    private double _lastHeight;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticDefinitionEditorDialog"/> class.
     /// </summary>
@@ -33,6 +36,28 @@ public partial class StaticDefinitionEditorDialog : ReactiveWindow<StaticDefinit
     public StaticDefinitionEditorDialog()
     {
         InitializeComponent();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        SizeChanged += OnSizeChanged;
+    }
+
+    // The window sizes to its content, so growing text boxes push it down. Shift it up by half the change to stay centered.
+    private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        var previous = _lastHeight;
+        _lastHeight = e.NewSize.Height;
+
+        // The first size is the one the window was centered with.
+        if (previous == 0 || Math.Abs(_lastHeight - previous) < 0.5)
+        {
+            return;
+        }
+
+        Position = new PixelPoint(Position.X, Position.Y - (int)Math.Round((_lastHeight - previous) * RenderScaling / 2));
     }
 
     private void OnClosed(object? sender, EventArgs e)
