@@ -13,8 +13,8 @@ public abstract class PDUBase
 
     public PDUBase(string from, string to)
     {
-        From = from;
-        To = to;
+        From = from.ToUpperInvariant();
+        To = to.ToUpperInvariant();
     }
 
     public abstract string Serialize();
@@ -40,9 +40,14 @@ public abstract class PDUBase
         }
         b *= 1024.0;
 
-        double h = heading / 360.0 * 1024.0;
+        double h = heading % 360.0;
+        if (h < 0)
+        {
+            h += 360.0;
+        }
+        h = h / 360.0 * 1024.0;
 
-        return (uint)p << 22 | (uint)b << 12 | (uint)h << 2;
+        return ((uint)p & 0x3FF) << 22 | ((uint)b & 0x3FF) << 12 | ((uint)h & 0x3FF) << 2;
     }
 
     protected static void UnpackPitchBankHeading(uint pbh, out double pitch, out double bank, out double heading)

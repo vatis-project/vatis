@@ -187,6 +187,27 @@ public class AtisStation : ReactiveObject
     public string? TextAtis { get; set; }
 
     /// <summary>
+    /// Gets the static airport conditions and NOTAMs the user turned on by hand, so they are included even when their
+    /// conditions are not met. Not saved with the profile, so it clears when the app restarts.
+    /// </summary>
+    [JsonIgnore]
+    public HashSet<StaticDefinition> ForcedDefinitions { get; } = [];
+
+    /// <summary>
+    /// Gets the positions the user set by hand for static airport conditions and NOTAMs, used in place of their
+    /// ordinals. Not saved with the profile, so it clears when the app restarts.
+    /// </summary>
+    [JsonIgnore]
+    public Dictionary<StaticDefinition, int> OrdinalOverrides { get; } = [];
+
+    /// <summary>
+    /// Gets the static airport conditions and NOTAMs the user turned off by hand, so they are left out of the ATIS.
+    /// Not saved with the profile, so it clears when the app restarts.
+    /// </summary>
+    [JsonIgnore]
+    public HashSet<StaticDefinition> HiddenDefinitions { get; } = [];
+
+    /// <summary>
     /// Gets or sets the current ATIS letter for the station.
     /// </summary>
     [JsonIgnore]

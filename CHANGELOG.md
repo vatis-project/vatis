@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `trend`, `tempo` and `becmg` prefixes for weather conditions to read the trend forecast instead of the METAR (e.g., `trendweather INCLUDES SHRA`, `tempoceiling < 1000ft`, `becmgcloudtype INCLUDES CB`). `trend` reads any trend group, while `tempo` and `becmg` read only that kind. Supported for ceiling, cloud base, visibility, wind speed, gust, wind direction, weather, cloud type, and CAVOK.
 - Added a `trendtype` field to weather conditions to match the trend type (`TEMPO`, `BECMG` or `NOSIG`).
 - Added a table on the visibility ICAO Formatting tab for non-FAA stations to choose how metric visibility is written in the text ATIS and spoken in the voice ATIS, with rows that switch format from a given number of meters (e.g., `7000` as `7 KM` / "seven kilometers", `800` as `800 M` / "eight hundred meters").
+- Added "Static Messages", "Conditional Messages" and "Display Order" items to the airport conditions and NOTAMs context menus. They turn a message off, include a conditional message even when its conditions are not met, and move messages up or down in the ATIS. These only last until the app is restarted.
 
 ### Changed
 - Combined the visibility direction spoken text and the Direction (Text) tab into a single Direction tab with a Text and a Voice column.
@@ -22,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
+- Fixed the D-ATIS not splitting into airport conditions and NOTAMs when the NOTAMs header had a different number of periods (e.g., `NOTAMS....`) or had no NOTAMs after it.
+- Fixed weather conditions never being met when the METAR omitted the value being compared (e.g., rvr > 125m with no RVR, or cloudbase > 1000ft with clear skies). A missing gust group or runway deposit now counts as zero, so gust < 25kt and depth < 3mm are met.
+- Fixed a crash when receiving a radio message with a malformed frequency field.
+- Fixed a freeze and crash when selecting text on the second line of a long condition in the static airport condition and NOTAM editor.
 
 ## v4.1.0-beta.22
 ### Fixed
