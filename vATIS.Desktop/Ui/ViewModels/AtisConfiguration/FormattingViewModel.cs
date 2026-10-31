@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.VisualTree;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
@@ -81,25 +82,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _closingStatementVoiceTemplate;
     private string? _notamsTextTemplate;
     private string? _notamsVoiceTemplate;
-    private string? _visibilityNorth;
-    private string? _visibilityNorthEast;
-    private string? _visibilityEast;
-    private string? _visibilitySouthEast;
-    private string? _visibilitySouth;
-    private string? _visibilitySouthWest;
-    private string? _visibilityWest;
-    private string? _visibilityNorthWest;
-    private string? _visibilityUnlimitedVisibilityVoice;
-    private string? _visibilityUnlimitedVisibilityText;
     private string? _visibilityCavokVoice;
-    private string? _visibilityMetersUnitVoice;
-    private string? _visibilityKilometersUnitVoice;
     private ObservableCollection<TextOverrideMeta>? _visibilityFractionVoice;
     private ObservableCollection<TextOverrideMeta>? _rvrVoicePhrases;
     private ObservableCollection<VariableFormatMeta>? _cloudAltitudeFormats;
     private string? _visibilityCavokText;
-    private bool _visibilityIncludeVisibilitySuffix;
-    private int _visibilityMetersCutoff;
     private string? _rvrSpokenText;
     private string? _rvrTendencyNeutralText;
     private string? _rvrTendencyGoingUpText;
@@ -150,7 +137,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<PresentWeatherMeta>? _presentWeatherTypes;
     private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
-    private ObservableCollection<TextOverrideMeta>? _visibilityDirectionText;
+    private ObservableCollection<VisibilityDirectionMeta>? _visibilityDirections;
+    private ObservableCollection<VisibilityFormatRule>? _visibilityTextRules;
+    private IReadOnlyList<VisibilityFormatPreview> _visibilityFormatRulesPreview = [];
+    private ObservableCollection<VisibilityCavokMeta>? _visibilityCavokRow;
     private ObservableCollection<VariableFormatMeta>? _altimeterVariableFormats;
     private ObservableCollection<VariableFormatMeta>? _windVariableFormats;
     private ObservableCollection<VariableFormatMeta>? _temperatureVariableFormats;
@@ -183,6 +173,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
         CellEditEndingCommand = ReactiveCommand.Create<DataGridCellEndEditEventArgEx>(HandleCellEditEnding);
         AddTransitionLevelCommand = ReactiveCommand.CreateFromTask(HandleAddTransitionLevel);
+        AddVisibilityFormatRuleCommand = ReactiveCommand.Create(HandleAddVisibilityFormatRule);
+        DeleteVisibilityFormatRuleCommand = ReactiveCommand.Create<VisibilityFormatRule>(HandleDeleteVisibilityFormatRule);
         DeleteTransitionLevelCommand =
             ReactiveCommand.CreateFromTask<TransitionLevelMeta>(HandleDeleteTransitionLevel);
 
@@ -195,6 +187,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _disposables.Add(TemplateVariableClicked);
         _disposables.Add(CellEditEndingCommand);
         _disposables.Add(AddTransitionLevelCommand);
+        _disposables.Add(AddVisibilityFormatRuleCommand);
+        _disposables.Add(DeleteVisibilityFormatRuleCommand);
         _disposables.Add(DeleteTransitionLevelCommand);
     }
 
@@ -217,6 +211,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     /// Gets the command executed when cell editing ends in a data grid.
     /// </summary>
     public ReactiveCommand<DataGridCellEndEditEventArgEx, Unit> CellEditEndingCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to add a visibility text rule.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> AddVisibilityFormatRuleCommand { get; }
+
+    /// <summary>
+    /// Gets the command used to delete a visibility text rule.
+    /// </summary>
+    public ReactiveCommand<VisibilityFormatRule, Unit> DeleteVisibilityFormatRuleCommand { get; }
 
     /// <summary>
     /// Gets the command used to add a transition level in the view model.
@@ -759,136 +763,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the visibility north.
-    /// </summary>
-    public string? VisibilityNorth
-    {
-        get => _visibilityNorth;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityNorth, value);
-            _changeTracker.TrackChange(nameof(VisibilityNorth), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility north-east.
-    /// </summary>
-    public string? VisibilityNorthEast
-    {
-        get => _visibilityNorthEast;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityNorthEast, value);
-            _changeTracker.TrackChange(nameof(VisibilityNorthEast), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility east.
-    /// </summary>
-    public string? VisibilityEast
-    {
-        get => _visibilityEast;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityEast, value);
-            _changeTracker.TrackChange(nameof(VisibilityEast), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility south-east.
-    /// </summary>
-    public string? VisibilitySouthEast
-    {
-        get => _visibilitySouthEast;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilitySouthEast, value);
-            _changeTracker.TrackChange(nameof(VisibilitySouthEast), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility south.
-    /// </summary>
-    public string? VisibilitySouth
-    {
-        get => _visibilitySouth;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilitySouth, value);
-            _changeTracker.TrackChange(nameof(VisibilitySouth), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility south-west.
-    /// </summary>
-    public string? VisibilitySouthWest
-    {
-        get => _visibilitySouthWest;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilitySouthWest, value);
-            _changeTracker.TrackChange(nameof(VisibilitySouthWest), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility west.
-    /// </summary>
-    public string? VisibilityWest
-    {
-        get => _visibilityWest;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityWest, value);
-            _changeTracker.TrackChange(nameof(VisibilityWest), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility north-west.
-    /// </summary>
-    public string? VisibilityNorthWest
-    {
-        get => _visibilityNorthWest;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityNorthWest, value);
-            _changeTracker.TrackChange(nameof(VisibilityNorthWest), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the unlimited visibility voice template.
-    /// </summary>
-    public string? VisibilityUnlimitedVisibilityVoice
-    {
-        get => _visibilityUnlimitedVisibilityVoice;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityVoice, value);
-            _changeTracker.TrackChange(nameof(VisibilityUnlimitedVisibilityVoice), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the unlimited visibility text template.
-    /// </summary>
-    public string? VisibilityUnlimitedVisibilityText
-    {
-        get => _visibilityUnlimitedVisibilityText;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityUnlimitedVisibilityText, value);
-            _changeTracker.TrackChange(nameof(VisibilityUnlimitedVisibilityText), value);
-        }
-    }
-
-    /// <summary>
     /// Gets or sets the CAVOK voice value.
     /// </summary>
     public string? VisibilityCavokVoice
@@ -911,32 +785,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _visibilityCavokText, value);
             _changeTracker.TrackChange(nameof(VisibilityCavokText), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to include visibility suffix.
-    /// </summary>
-    public bool VisibilityIncludeVisibilitySuffix
-    {
-        get => _visibilityIncludeVisibilitySuffix;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityIncludeVisibilitySuffix, value);
-            _changeTracker.TrackChange(nameof(VisibilityIncludeVisibilitySuffix), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility meters cutoff.
-    /// </summary>
-    public int VisibilityMetersCutoff
-    {
-        get => _visibilityMetersCutoff;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityMetersCutoff, value);
-            _changeTracker.TrackChange(nameof(VisibilityMetersCutoff), value);
         }
     }
 
@@ -1624,12 +1472,39 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the text ATIS output for directional visibility.
+    /// Gets or sets the text and voice ATIS output for the compass directions of a directional visibility.
     /// </summary>
-    public ObservableCollection<TextOverrideMeta>? VisibilityDirectionText
+    public ObservableCollection<VisibilityDirectionMeta>? VisibilityDirections
     {
-        get => _visibilityDirectionText;
-        set => this.RaiseAndSetIfChanged(ref _visibilityDirectionText, value);
+        get => _visibilityDirections;
+        set => this.RaiseAndSetIfChanged(ref _visibilityDirections, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the rules describing how a metric visibility is written in the text ATIS.
+    /// </summary>
+    public ObservableCollection<VisibilityFormatRule>? VisibilityFormatRules
+    {
+        get => _visibilityTextRules;
+        set => this.RaiseAndSetIfChanged(ref _visibilityTextRules, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the CAVOK row shown below the visibility format rules.
+    /// </summary>
+    public ObservableCollection<VisibilityCavokMeta>? VisibilityCavokRow
+    {
+        get => _visibilityCavokRow;
+        set => this.RaiseAndSetIfChanged(ref _visibilityCavokRow, value);
+    }
+
+    /// <summary>
+    /// Gets the sample visibilities formatted with the current <see cref="VisibilityFormatRules"/>.
+    /// </summary>
+    public IReadOnlyList<VisibilityFormatPreview> VisibilityFormatRulesPreview
+    {
+        get => _visibilityFormatRulesPreview;
+        private set => this.RaiseAndSetIfChanged(ref _visibilityFormatRulesPreview, value);
     }
 
     /// <summary>
@@ -1639,32 +1514,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _rvrTendencyTexts;
         set => this.RaiseAndSetIfChanged(ref _rvrTendencyTexts, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the spoken unit word for meters.
-    /// </summary>
-    public string? VisibilityMetersUnitVoice
-    {
-        get => _visibilityMetersUnitVoice;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityMetersUnitVoice, value);
-            _changeTracker.TrackChange(nameof(VisibilityMetersUnitVoice), value);
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the spoken unit word for kilometers.
-    /// </summary>
-    public string? VisibilityKilometersUnitVoice
-    {
-        get => _visibilityKilometersUnitVoice;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _visibilityKilometersUnitVoice, value);
-            _changeTracker.TrackChange(nameof(VisibilityKilometersUnitVoice), value);
-        }
     }
 
     /// <summary>
@@ -1977,70 +1826,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.ClosingStatement.Template.Voice = ClosingStatementVoiceTemplate;
         }
 
-        if (SelectedStation.AtisFormat.Visibility.North != VisibilityNorth)
-        {
-            SelectedStation.AtisFormat.Visibility.North = VisibilityNorth ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.NorthEast != VisibilityNorthEast)
-        {
-            SelectedStation.AtisFormat.Visibility.NorthEast = VisibilityNorthEast ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.East != VisibilityEast)
-        {
-            SelectedStation.AtisFormat.Visibility.East = VisibilityEast ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.SouthEast != VisibilitySouthEast)
-        {
-            SelectedStation.AtisFormat.Visibility.SouthEast = VisibilitySouthEast ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.South != VisibilitySouth)
-        {
-            SelectedStation.AtisFormat.Visibility.South = VisibilitySouth ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.SouthWest != VisibilitySouthWest)
-        {
-            SelectedStation.AtisFormat.Visibility.SouthWest = VisibilitySouthWest ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.West != VisibilityWest)
-        {
-            SelectedStation.AtisFormat.Visibility.West = VisibilityWest ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.NorthWest != VisibilityNorthWest)
-        {
-            SelectedStation.AtisFormat.Visibility.NorthWest = VisibilityNorthWest ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityVoice !=
-            VisibilityUnlimitedVisibilityVoice)
-        {
-            SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityVoice =
-                VisibilityUnlimitedVisibilityVoice ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityText !=
-            VisibilityUnlimitedVisibilityText)
-        {
-            SelectedStation.AtisFormat.Visibility.UnlimitedVisibilityText =
-                VisibilityUnlimitedVisibilityText ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.MetersUnitVoice != VisibilityMetersUnitVoice)
-        {
-            SelectedStation.AtisFormat.Visibility.MetersUnitVoice = VisibilityMetersUnitVoice ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.KilometersUnitVoice != VisibilityKilometersUnitVoice)
-        {
-            SelectedStation.AtisFormat.Visibility.KilometersUnitVoice = VisibilityKilometersUnitVoice ?? string.Empty;
-        }
-
         if (VisibilityFractionVoice != null)
         {
             var fractions = VisibilityFractionVoice.ToDictionary(x => x.Key, x => x.Text);
@@ -2076,17 +1861,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedStation.AtisFormat.Visibility.CavokText != VisibilityCavokText)
         {
             SelectedStation.AtisFormat.Visibility.CavokText = VisibilityCavokText ?? string.Empty;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.IncludeVisibilitySuffix !=
-            VisibilityIncludeVisibilitySuffix)
-        {
-            SelectedStation.AtisFormat.Visibility.IncludeVisibilitySuffix = VisibilityIncludeVisibilitySuffix;
-        }
-
-        if (SelectedStation.AtisFormat.Visibility.MetersCutoff != VisibilityMetersCutoff)
-        {
-            SelectedStation.AtisFormat.Visibility.MetersCutoff = VisibilityMetersCutoff;
         }
 
         if (SelectedStation.AtisFormat.RunwayVisualRange.SpokenText != RvrSpokenText)
@@ -2257,12 +2031,26 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             }
         }
 
-        if (VisibilityDirectionText != null)
+        if (VisibilityFormatRules != null)
         {
-            var directionText = VisibilityDirectionText.ToDictionary(x => x.Key, x => x.Text);
+            var rules = VisibilityFormatRules.Select(item => item with { }).ToList();
+            if (!SelectedStation.AtisFormat.Visibility.FormatRules.SequenceEqual(rules))
+            {
+                SelectedStation.AtisFormat.Visibility.FormatRules = rules;
+            }
+        }
+
+        if (VisibilityDirections != null)
+        {
+            var directionText = VisibilityDirections.ToDictionary(x => x.Key, x => x.Text);
             if (!SelectedStation.AtisFormat.Visibility.DirectionText.SequenceEqual(directionText))
             {
                 SelectedStation.AtisFormat.Visibility.DirectionText = directionText;
+            }
+
+            foreach (var direction in VisibilityDirections)
+            {
+                SelectedStation.AtisFormat.Visibility.SetDirectionVoice(direction.Key, direction.Voice ?? string.Empty);
             }
         }
 
@@ -2575,19 +2363,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         AltimeterVoiceTemplate = station.AtisFormat.Altimeter.Template.Voice;
         ClosingStatementTextTemplate = station.AtisFormat.ClosingStatement.Template.Text;
         ClosingStatementVoiceTemplate = station.AtisFormat.ClosingStatement.Template.Voice;
-        VisibilityNorth = station.AtisFormat.Visibility.North;
-        VisibilityNorthEast = station.AtisFormat.Visibility.NorthEast;
-        VisibilityEast = station.AtisFormat.Visibility.East;
-        VisibilitySouthEast = station.AtisFormat.Visibility.SouthEast;
-        VisibilitySouth = station.AtisFormat.Visibility.South;
-        VisibilitySouthWest = station.AtisFormat.Visibility.SouthWest;
-        VisibilityWest = station.AtisFormat.Visibility.West;
-        VisibilityNorthWest = station.AtisFormat.Visibility.NorthWest;
-        VisibilityUnlimitedVisibilityVoice = station.AtisFormat.Visibility.UnlimitedVisibilityVoice;
-        VisibilityUnlimitedVisibilityText = station.AtisFormat.Visibility.UnlimitedVisibilityText;
         VisibilityCavokVoice = station.AtisFormat.Visibility.CavokVoice;
-        VisibilityMetersUnitVoice = station.AtisFormat.Visibility.MetersUnitVoice;
-        VisibilityKilometersUnitVoice = station.AtisFormat.Visibility.KilometersUnitVoice;
 
         VisibilityFractionVoice = [];
         foreach (var kvp in station.AtisFormat.Visibility.FractionVoice)
@@ -2612,8 +2388,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats.Select(item =>
             new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
         VisibilityCavokText = station.AtisFormat.Visibility.CavokText;
-        VisibilityIncludeVisibilitySuffix = station.AtisFormat.Visibility.IncludeVisibilitySuffix;
-        VisibilityMetersCutoff = station.AtisFormat.Visibility.MetersCutoff;
+        VisibilityCavokRow = [new VisibilityCavokMeta("CAVOK", VisibilityCavokText ?? string.Empty, VisibilityCavokVoice ?? string.Empty)];
         RvrSpokenText = station.AtisFormat.RunwayVisualRange.SpokenText;
         RvrTendencyNeutralText = station.AtisFormat.RunwayVisualRange.NeutralTendency;
         RvrTendencyGoingUpText = station.AtisFormat.RunwayVisualRange.GoingUpTendency;
@@ -2741,15 +2516,26 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(DewpointVariableFormats), DewpointVariableFormats.Select(item =>
             new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
 
-        VisibilityDirectionText = [];
-        foreach (var key in new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" })
+        VisibilityFormatRules = [];
+        foreach (var rule in station.AtisFormat.Visibility.FormatRules)
         {
-            VisibilityDirectionText.Add(new TextOverrideMeta(
-                key, station.AtisFormat.Visibility.DirectionText.GetValueOrDefault(key, key)));
+            VisibilityFormatRules.Add(rule with { });
         }
 
-        _changeTracker.TrackChange(nameof(VisibilityDirectionText), VisibilityDirectionText.Select(item =>
-            new TextOverrideMeta(item.Key, item.Text)).ToList());
+        UpdateVisibilityFormatRulesPreview();
+        _changeTracker.TrackChange(nameof(VisibilityFormatRules), VisibilityFormatRules.Select(item => item with { }).ToList());
+
+        VisibilityDirections = [];
+        foreach (var key in new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" })
+        {
+            VisibilityDirections.Add(new VisibilityDirectionMeta(
+                key,
+                station.AtisFormat.Visibility.DirectionText.GetValueOrDefault(key, key),
+                station.AtisFormat.Visibility.GetDirectionVoice(key)));
+        }
+
+        _changeTracker.TrackChange(nameof(VisibilityDirections), VisibilityDirections.Select(item =>
+            new VisibilityDirectionMeta(item.Key, item.Text, item.Voice)).ToList());
 
         RvrTendencyTexts = [];
         foreach (var key in new[] { "N", "U", "D" })
@@ -2894,6 +2680,47 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         }
     }
 
+    private void HandleAddVisibilityFormatRule()
+    {
+        if (VisibilityFormatRules == null)
+        {
+            return;
+        }
+
+        var from = new[] { 5000, 1000, 0 }.FirstOrDefault(f => VisibilityFormatRules.All(r => r.FromMeters != f), -1);
+        if (from < 0)
+        {
+            from = VisibilityFormatRules.Max(r => r.FromMeters) + 1000;
+        }
+
+        VisibilityFormatRules.Add(new VisibilityFormatRule(from, VisibilityFormatRule.KilometersToken + " KM", VisibilityFormatRule.KilometersToken + " kilometers"));
+        UpdateVisibilityFormatRulesPreview();
+        _changeTracker.TrackChange(nameof(VisibilityFormatRules), VisibilityFormatRules.Select(item => item with { }).ToList());
+    }
+
+    private void HandleDeleteVisibilityFormatRule(VisibilityFormatRule? rule)
+    {
+        if (rule == null || VisibilityFormatRules == null)
+        {
+            return;
+        }
+
+        VisibilityFormatRules.Remove(rule);
+        UpdateVisibilityFormatRulesPreview();
+        _changeTracker.TrackChange(nameof(VisibilityFormatRules), VisibilityFormatRules.Select(item => item with { }).ToList());
+    }
+
+    private void UpdateVisibilityFormatRulesPreview()
+    {
+        var rules = VisibilityFormatRules?.ToList();
+        VisibilityFormatRulesPreview = new[] { 800, 5000, 7000, 9999 }
+            .Select(m => new VisibilityFormatPreview(
+                m.ToString("D4"),
+                VisibilityFormatRule.ApplyText(rules, m),
+                VisibilityFormatRule.ApplyVoice(rules, m)))
+            .ToList();
+    }
+
     private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
     {
         if (e.Args.EditAction == DataGridEditAction.Commit)
@@ -2914,6 +2741,18 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
                         new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
+                    break;
+                case nameof(VisibilityCavokRow):
+                    if (VisibilityCavokRow?.FirstOrDefault() is { } cavok)
+                    {
+                        VisibilityCavokText = cavok.Text;
+                        VisibilityCavokVoice = cavok.Voice;
+                    }
+
+                    break;
+                case nameof(VisibilityFormatRules):
+                    UpdateVisibilityFormatRulesPreview();
+                    _changeTracker.TrackChange(nameof(VisibilityFormatRules), VisibilityFormatRules?.Select(item => item with { }).ToList());
                     break;
                 case nameof(VisibilityFractionVoice):
                     _changeTracker.TrackChange(nameof(VisibilityFractionVoice), VisibilityFractionVoice?.Select(item =>
@@ -2943,9 +2782,9 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                     _changeTracker.TrackChange(nameof(DewpointVariableFormats), DewpointVariableFormats?.Select(item =>
                         new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
                     break;
-                case nameof(VisibilityDirectionText):
-                    _changeTracker.TrackChange(nameof(VisibilityDirectionText), VisibilityDirectionText?.Select(item =>
-                        new TextOverrideMeta(item.Key, item.Text)).ToList());
+                case nameof(VisibilityDirections):
+                    _changeTracker.TrackChange(nameof(VisibilityDirections), VisibilityDirections?.Select(item =>
+                        new VisibilityDirectionMeta(item.Key, item.Text, item.Voice)).ToList());
                     break;
                 case nameof(RvrTendencyTexts):
                     _changeTracker.TrackChange(nameof(RvrTendencyTexts), RvrTendencyTexts?.Select(item =>
@@ -2971,6 +2810,14 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             var topLevel = TopLevel.GetTopLevel(lifetime.MainWindow);
             var focusedElement = topLevel?.FocusManager?.GetFocusedElement();
 
+            if (focusedElement is Visual focusedVisual &&
+                (focusedVisual as DataGrid ?? focusedVisual.FindAncestorOfType<DataGrid>()) is
+                { Name: "VisibilityFormatRules" } rulesGrid)
+            {
+                InsertIntoVisibilityFormatRuleCell(rulesGrid, variable);
+                return;
+            }
+
             if (focusedElement is TemplateVariableTextBox focusedTextBox)
             {
                 // The raw runway condition is only meaningful in the text ATIS.
@@ -2989,6 +2836,37 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 focusedTextEditor.Caret.Offset = focusedTextEditor.Document.Text.Length;
             }
         }
+    }
+
+    private void InsertIntoVisibilityFormatRuleCell(DataGrid grid, string? token)
+    {
+        if (string.IsNullOrEmpty(token) || grid.SelectedItem == null || grid.CurrentColumn is not { } column)
+        {
+            return;
+        }
+
+        var header = column.Header as string;
+        if (header is not ("Text" or "Voice") || (token == VisibilityFormatRule.RawToken && header == "Voice"))
+        {
+            return;
+        }
+
+        if (column.GetCellContent(grid.SelectedItem) is not TextBox)
+        {
+            grid.BeginEdit();
+        }
+
+        if (column.GetCellContent(grid.SelectedItem) is not TextBox editor)
+        {
+            return;
+        }
+
+        var text = editor.Text ?? string.Empty;
+        var start = Math.Min(editor.SelectionStart, editor.SelectionEnd);
+        var end = Math.Max(editor.SelectionStart, editor.SelectionEnd);
+        editor.Text = text[..start] + token + text[end..];
+        editor.CaretIndex = start + token.Length;
+        editor.Focus();
     }
 
     private void FilterPresentWeatherTypes()
