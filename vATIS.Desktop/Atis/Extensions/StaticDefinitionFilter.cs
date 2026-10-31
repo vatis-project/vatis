@@ -34,13 +34,23 @@ public static class StaticDefinitionFilter
     /// <param name="atisFormat">The station format, used to find the ceiling layer. Weather rules are not met when
     /// this is null.</param>
     /// <param name="utcNow">The current time in UTC, or null to use the system clock.</param>
+    /// <param name="forced">Definitions the user turned on by hand, which are included whether or not their
+    /// conditions are met. They must still be enabled.</param>
+    /// <param name="ordinalOverrides">Positions the user set by hand, used in place of a definition's ordinal.</param>
+    /// <param name="hidden">Definitions the user turned off by hand, which are left out whatever their conditions.</param>
     public static List<StaticDefinition> GetActive(
         IEnumerable<StaticDefinition> definitions, IReadOnlyCollection<string>? onlineCallsigns,
-        DecodedMetar? metar = null, AtisFormat? atisFormat = null, DateTime? utcNow = null)
+        DecodedMetar? metar = null, AtisFormat? atisFormat = null, DateTime? utcNow = null,
+        IReadOnlySet<StaticDefinition>? forced = null,
+        IReadOnlyDictionary<StaticDefinition, int>? ordinalOverrides = null,
+        IReadOnlySet<StaticDefinition>? hidden = null)
     {
         return definitions
-            .Where(x => x.Enabled && IsConditionMet(x, onlineCallsigns, metar, atisFormat, utcNow))
-            .OrderBy(x => x.Ordinal)
+            .Where(x => x.Enabled && hidden?.Contains(x) != true &&
+                        (forced?.Contains(x) == true || IsConditionMet(x, onlineCallsigns, metar, atisFormat, utcNow)))
+            .OrderBy(x => ordinalOverrides != null && ordinalOverrides.TryGetValue(x, out var ordinal)
+                ? ordinal
+                : x.Ordinal)
             .ToList();
     }
 
@@ -102,6 +112,16 @@ public static class StaticDefinitionFilter
 
         // A condition that does not parse is never met.
         return GetStationExpression(definition.OnlineCondition!)?.Evaluate(onlineCallsigns, utcNow) ?? false;
+    }
+
+    /// <summary>
+    /// Determines whether the definition has a controller or weather condition.
+    /// </summary>
+    /// <param name="definition">The definition.</param>
+    /// <returns>True if the definition can be left out because of a condition.</returns>
+    public static bool HasCondition(StaticDefinition definition)
+    {
+        return IsConditional(definition) || !string.IsNullOrWhiteSpace(definition.WeatherCondition);
     }
 
     private static StationExpression? GetStationExpression(string condition)

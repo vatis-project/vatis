@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Linq;
 using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Networking.Vatsim;
@@ -98,6 +99,56 @@ public class StaticDefinitionFilterTests
         Assert.Contains("EPWA_APP", controllers);
         Assert.Contains("EPWA_DEL", controllers);
         Assert.Contains("EPWA_TWR", controllers);
+    }
+
+    [Fact]
+    public void Forced_IncludesDefinitionWhoseConditionIsNotMet()
+    {
+        var conditional = Def("LVP IN PROGRESS", 1, "EPWA_DEL");
+        var defs = new[] { conditional, Def("B", 2) };
+        var forced = new HashSet<StaticDefinition> { conditional };
+
+        var active = StaticDefinitionFilter.GetActive(defs, [], forced: forced).Select(x => x.Text);
+        Assert.Equal(["LVP IN PROGRESS", "B"], active);
+    }
+
+    [Fact]
+    public void Forced_DoesNotIncludeDisabledDefinition()
+    {
+        var disabled = Def("A", 1, "EPWA_DEL", enabled: false);
+        var forced = new HashSet<StaticDefinition> { disabled };
+
+        Assert.Empty(StaticDefinitionFilter.GetActive([disabled], [], forced: forced));
+    }
+
+    [Fact]
+    public void Hidden_LeavesOutDefinitionEvenWhenItsConditionIsMet()
+    {
+        var a = Def("A", 1);
+        var b = Def("B", 2, "EPWA_DEL");
+        var hidden = new HashSet<StaticDefinition> { a, b };
+
+        Assert.Empty(StaticDefinitionFilter.GetActive([a, b], ["EPWA_DEL"], hidden: hidden));
+    }
+
+    [Fact]
+    public void OrdinalOverrides_ChangeTheOrder()
+    {
+        var a = Def("A", 1);
+        var b = Def("B", 2);
+        var overrides = new Dictionary<StaticDefinition, int> { [a] = 2, [b] = 1 };
+
+        var active = StaticDefinitionFilter.GetActive([a, b], [], ordinalOverrides: overrides);
+        Assert.Equal(["B", "A"], active.Select(x => x.Text));
+    }
+
+    [Fact]
+    public void HasCondition_IsTrueForControllerOrWeatherConditions()
+    {
+        Assert.False(StaticDefinitionFilter.HasCondition(Def("A", 1)));
+        Assert.True(StaticDefinitionFilter.HasCondition(Def("A", 1, "EPWA_DEL")));
+        Assert.True(StaticDefinitionFilter.HasCondition(
+            new StaticDefinition("A", 1) { WeatherCondition = "visibility < 800m" }));
     }
 
     [Fact]

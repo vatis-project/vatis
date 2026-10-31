@@ -978,6 +978,98 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     }
 
     /// <summary>
+    /// Gets the enabled airport conditions or NOTAMs that have a condition, which the user can turn on by hand.
+    /// </summary>
+    /// <param name="notams">True for the NOTAMs, false for the airport conditions.</param>
+    /// <returns>The conditional definitions in order.</returns>
+    public IReadOnlyList<StaticDefinition> GetConditionalDefinitions(bool notams)
+    {
+        return (notams ? AtisStation.NotamDefinitions : AtisStation.AirportConditionDefinitions)
+            .Where(x => x.Enabled && !x.IsSpacer && StaticDefinitionFilter.HasCondition(x))
+            .OrderBy(x => x.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Gets the enabled airport conditions or NOTAMs that have no condition, which the user can turn off by hand.
+    /// </summary>
+    /// <param name="notams">True for the NOTAMs, false for the airport conditions.</param>
+    /// <returns>The unconditional definitions in order.</returns>
+    public IReadOnlyList<StaticDefinition> GetUnconditionalDefinitions(bool notams)
+    {
+        return (notams ? AtisStation.NotamDefinitions : AtisStation.AirportConditionDefinitions)
+            .Where(x => x.Enabled && !x.IsSpacer && !StaticDefinitionFilter.HasCondition(x))
+            .OrderBy(x => x.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Leaves a definition out of the ATIS, or puts it back. This only lasts until the app restarts.
+    /// </summary>
+    /// <param name="definition">The definition to change.</param>
+    /// <param name="hidden">True to leave the definition out whatever its conditions.</param>
+    public void SetDefinitionHidden(StaticDefinition definition, bool hidden)
+    {
+        if (hidden ? !AtisStation.HiddenDefinitions.Add(definition) : !AtisStation.HiddenDefinitions.Remove(definition))
+            return;
+
+        RefreshConditionalDefinitions(rebuildAtis: true, force: true);
+    }
+
+    /// <summary>
+    /// Turns a conditional definition on regardless of its conditions, or back to following them. This only lasts
+    /// until the app restarts.
+    /// </summary>
+    /// <param name="definition">The definition to change.</param>
+    /// <param name="forced">True to include the definition even when its conditions are not met.</param>
+    public void SetDefinitionForced(StaticDefinition definition, bool forced)
+    {
+        if (forced ? !AtisStation.ForcedDefinitions.Add(definition) : !AtisStation.ForcedDefinitions.Remove(definition))
+            return;
+
+        RefreshConditionalDefinitions(rebuildAtis: true);
+    }
+
+    /// <summary>
+    /// Gets the airport conditions or NOTAMs that are currently included, in the order they appear in the ATIS.
+    /// </summary>
+    /// <param name="notams">True for the NOTAMs, false for the airport conditions.</param>
+    /// <returns>The included definitions that have text.</returns>
+    public IReadOnlyList<StaticDefinition> GetIncludedDefinitions(bool notams)
+    {
+        return StaticDefinitionFilter.GetActive(
+                notams ? AtisStation.NotamDefinitions : AtisStation.AirportConditionDefinitions,
+                _vatsimDataService.OnlineControllers, _decodedMetar, AtisStation.AtisFormat,
+                forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions)
+            .Where(x => !x.IsSpacer)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Moves an included definition one place up or down by swapping positions with its neighbor. This only lasts
+    /// until the app restarts.
+    /// </summary>
+    /// <param name="definition">The definition to move.</param>
+    /// <param name="notams">True if the definition is a NOTAM, false if it is an airport condition.</param>
+    /// <param name="up">True to move it earlier in the ATIS, false to move it later.</param>
+    public void MoveDefinition(StaticDefinition definition, bool notams, bool up)
+    {
+        var included = GetIncludedDefinitions(notams);
+        var index = included.ToList().IndexOf(definition);
+        var neighbor = index + (up ? -1 : 1);
+        if (index < 0 || neighbor < 0 || neighbor >= included.Count)
+            return;
+
+        var overrides = AtisStation.OrdinalOverrides;
+        var other = included[neighbor];
+        var position = overrides.GetValueOrDefault(definition, definition.Ordinal);
+        overrides[definition] = overrides.GetValueOrDefault(other, other.Ordinal);
+        overrides[other] = position;
+
+        RefreshConditionalDefinitions(rebuildAtis: true, force: true);
+    }
+
+    /// <summary>
     /// Validates the given METAR and uses it in place of the one received from the network.
     /// </summary>
     /// <param name="text">The raw METAR text.</param>
@@ -1261,6 +1353,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             viewModel.Definitions.CollectionChanged += (_, _) =>
             {
                 var idx = 0;
+                AtisStation.OrdinalOverrides.Clear();
                 AtisStation.NotamDefinitions.Clear();
                 foreach (var item in viewModel.Definitions)
                 {
@@ -1328,6 +1421,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             viewModel.Definitions.CollectionChanged += (_, _) =>
             {
                 var idx = 0;
+                AtisStation.OrdinalOverrides.Clear();
                 AtisStation.AirportConditionDefinitions.Clear();
                 foreach (var item in viewModel.Definitions)
                 {
@@ -2321,15 +2415,18 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     {
         var online = _vatsimDataService.OnlineControllers;
         return string.Join("|",
-            StaticDefinitionFilter.GetActive(AtisStation.NotamDefinitions, online, _decodedMetar, AtisStation.AtisFormat)
+            StaticDefinitionFilter.GetActive(
+                    AtisStation.NotamDefinitions, online, _decodedMetar, AtisStation.AtisFormat,
+                    forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions)
                 .Concat(StaticDefinitionFilter.GetActive(
-                    AtisStation.AirportConditionDefinitions, online, _decodedMetar, AtisStation.AtisFormat))
+                    AtisStation.AirportConditionDefinitions, online, _decodedMetar, AtisStation.AtisFormat,
+                    forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions))
                 .Select(x => x.Text));
     }
 
-    private void RefreshConditionalDefinitions(bool rebuildAtis)
+    private void RefreshConditionalDefinitions(bool rebuildAtis, bool force = false)
     {
-        if (!HasStationConditions() && !HasWeatherConditions())
+        if (!force && !HasStationConditions() && !HasWeatherConditions() && AtisStation.OrdinalOverrides.Count == 0)
             return;
 
         // Only refresh when the controllers coming or going actually changed what this station says.
@@ -2365,7 +2462,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         // Retrieve and sort enabled NOTAMs by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
-            AtisStation.NotamDefinitions, _vatsimDataService.OnlineControllers, _decodedMetar, AtisStation.AtisFormat);
+            AtisStation.NotamDefinitions, _vatsimDataService.OnlineControllers, _decodedMetar, AtisStation.AtisFormat,
+            forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
@@ -2457,7 +2555,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         // Retrieve and sort enabled static airport conditions by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
             AtisStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers, _decodedMetar,
-            AtisStation.AtisFormat);
+            AtisStation.AtisFormat, forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions);
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
