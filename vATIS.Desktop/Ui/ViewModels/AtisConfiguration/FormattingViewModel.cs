@@ -2713,7 +2713,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private void UpdateVisibilityFormatRulesPreview()
     {
         var rules = VisibilityFormatRules?.ToList();
-        VisibilityFormatRulesPreview = new[] { 800, 5000, 7000, 9999 }
+        VisibilityFormatRulesPreview = new[] { 800, 5000, 7500, 9999 }
             .Select(m => new VisibilityFormatPreview(
                 m.ToString("D4"),
                 VisibilityFormatRule.ApplyText(rules, m),
