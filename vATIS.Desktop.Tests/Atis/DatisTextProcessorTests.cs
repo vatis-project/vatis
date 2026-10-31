@@ -73,6 +73,8 @@ public class DatisTextProcessorTests
     [InlineData("NOTICE TO AIRMEN. ")]
     [InlineData("NOTAMS. ")]
     [InlineData("NOTAM. ")]
+    [InlineData("NOTAMS.... ")]
+    [InlineData("NOTAMS... ")]
     public void Process_NormalizesNotamHeaderVariants(string header)
     {
         var body = $"KXXX ATIS INFO A 1200Z. 27010KT 10SM CLR. VISUAL APCH IN USE. {header}RWY 1 CLSD. ...ADVS YOU HAVE INFO A.";
@@ -81,6 +83,15 @@ public class DatisTextProcessorTests
 
         Assert.Equal("VISUAL APCH IN USE.", result.AirportConditions);
         Assert.Equal("RWY 1 CLSD.", result.Notams);
+    }
+
+    [Fact]
+    public void Process_NotamHeaderWithNoNotams_SplitsAndLeavesNotamsEmpty()
+    {
+        var result = Process("KXXX ATIS INFO A 1200Z. 27010KT 10SM CLR. VISUAL APCH IN USE. NOTAMS.... ...ADVS YOU HAVE INFO A.");
+
+        Assert.Equal("VISUAL APCH IN USE.", result.AirportConditions);
+        Assert.Equal(string.Empty, result.Notams);
     }
 
     [Fact]

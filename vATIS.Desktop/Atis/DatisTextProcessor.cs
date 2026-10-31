@@ -13,9 +13,13 @@ using Vatsim.Vatis.Profiles.Models;
 namespace Vatsim.Vatis.Atis;
 
 /// <inheritdoc cref="IDatisTextProcessor"/>
-public sealed class DatisTextProcessor : IDatisTextProcessor
+public sealed partial class DatisTextProcessor : IDatisTextProcessor
 {
     private const string NotamDelimiter = "NOTAMS... ";
+    private const string NotamDelimiterTrimmed = "NOTAMS...";
+
+    [GeneratedRegex(@"\b(?:NOTICE TO AIR MISSIONS, NOTAMS|NOTICE TO AIR MISSIONS|NOTICE TO AIR ?MEN|NOTAMS?)\s*\.+\s*(?=\S|$)")]
+    private static partial Regex NotamHeaderRegex { get; }
 
     /// <inheritdoc />
     public DatisResult Process(
@@ -70,13 +74,7 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
     /// </summary>
     private static string NormalizeNotamDelimiters(string text)
     {
-        text = text.Replace("NOTICE TO AIR MISSIONS, NOTAMS. ", NotamDelimiter);
-        text = text.Replace("NOTICE TO AIR MISSIONS. ", NotamDelimiter);
-        text = text.Replace("NOTICE TO AIR MEN. ", NotamDelimiter);
-        text = text.Replace("NOTICE TO AIRMEN. ", NotamDelimiter);
-        text = text.Replace("NOTAMS. ", NotamDelimiter);
-        text = text.Replace("NOTAM. ", NotamDelimiter);
-        return text;
+        return NotamHeaderRegex.Replace(text, NotamDelimiter);
     }
 
     /// <summary>
@@ -201,11 +199,11 @@ public sealed class DatisTextProcessor : IDatisTextProcessor
     /// </summary>
     private static (string AirportConditions, string Notams) SplitConditionsAndNotams(string text)
     {
-        var delimiterIndex = text.IndexOf(NotamDelimiter, StringComparison.Ordinal);
+        var delimiterIndex = text.IndexOf(NotamDelimiterTrimmed, StringComparison.Ordinal);
         if (delimiterIndex >= 0)
         {
             var conditions = text[..delimiterIndex].Trim();
-            var notams = text[(delimiterIndex + NotamDelimiter.Length)..].Trim();
+            var notams = text[(delimiterIndex + NotamDelimiterTrimmed.Length)..].Trim();
             return (conditions, notams);
         }
 
