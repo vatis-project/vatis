@@ -40,6 +40,9 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
     // The widest a message is allowed to be in the message menus before it wraps onto another line.
     private const double MaxMessageTextWidth = 420;
     private const double MaxOrderLabelWidth = 430;
+    private static readonly IBrush MovedRowBrush = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
+
+    private readonly HashSet<MenuItem> _trackedOrderMenus = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisStationView"/> class.
@@ -123,7 +126,6 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             Content = glyph,
             IsEnabled = enabled,
-            Focusable = false,
             Width = 28,
             Padding = new Thickness(0),
             HorizontalContentAlignment = HorizontalAlignment.Center,
@@ -163,13 +165,14 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         FillMenus(NotamsStaticMenu, NotamsConditionalMenu, NotamsOrderMenu, notams: true);
     }
 
-    private void FillOrderMenu(MenuItem menu, bool notams)
+    private void FillOrderMenu(MenuItem menu, bool notams, StaticDefinition? moved = null, bool movedUp = false)
     {
         if (ViewModel is not { } viewModel)
             return;
 
         var included = viewModel.GetIncludedDefinitions(notams);
         var items = new List<MenuItem>();
+        Button? focusTarget = null;
         for (var i = 0; i < included.Count; i++)
         {
             var definition = included[i];
@@ -195,7 +198,16 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             // The default menu item template reserves room for an icon, shortcut text and a submenu chevron, which
             // leaves a gap beside the arrows. Only the arrows do anything, so the row is the whole item.
             var content = new Border { Padding = new Thickness(12, 5), Child = row };
-            items.Add(new MenuItem
+
+            // After a move the row stays marked and its arrow keeps keyboard focus, so a message can be moved several
+            // places with Enter or Space, or with the Up and Down keys, without finding it again with the pointer.
+            if (ReferenceEquals(definition, moved))
+            {
+                content.Background = MovedRowBrush;
+                focusTarget = (movedUp ? up : down) is { IsEnabled: true } preferred ? preferred : up.IsEnabled ? up : down;
+            }
+
+            var item = new MenuItem
             {
                 StaysOpenOnClick = true,
                 Template = new FuncControlTemplate<MenuItem>((_, _) => new ContentPresenter
@@ -203,7 +215,16 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
                     Content = content,
                     HorizontalContentAlignment = HorizontalAlignment.Stretch,
                 }),
-            });
+            };
+
+            // Focus can end up on the row or on its arrow, depending on where the pointer is, so the keys are handled
+            // for the whole row rather than only when an arrow has focus.
+            if (moved is not null)
+            {
+                item.AddHandler(KeyDownEvent, (_, e) => OnMovedRowKeyDown(e, menu, moved, movedUp, notams, included), RoutingStrategies.Tunnel);
+            }
+
+            items.Add(item);
         }
 
         if (items.Count == 0)
@@ -212,12 +233,43 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         }
 
         menu.ItemsSource = items;
+        if (focusTarget is not null)
+        {
+            Dispatcher.UIThread.Post(() => focusTarget.Focus(), DispatcherPriority.Loaded);
+        }
+    }
+
+    private void OnMovedRowKeyDown(
+        KeyEventArgs e, MenuItem menu, StaticDefinition moved, bool lastMoveUp, bool notams, IReadOnlyList<StaticDefinition> order)
+    {
+        bool up;
+        switch (e.Key)
+        {
+            case Key.Up:
+                up = true;
+                break;
+            case Key.Down:
+                up = false;
+                break;
+            case Key.Enter or Key.Space:
+                up = lastMoveUp;
+                break;
+            default:
+                return;
+        }
+
+        e.Handled = true;
+        var index = order.ToList().IndexOf(moved);
+        if (up ? index > 0 : index >= 0 && index < order.Count - 1)
+        {
+            MoveAndRefresh(menu, moved, notams, up);
+        }
     }
 
     private void MoveAndRefresh(MenuItem menu, StaticDefinition definition, bool notams, bool up)
     {
         ViewModel?.MoveDefinition(definition, notams, up);
-        FillOrderMenu(menu, notams);
+        FillOrderMenu(menu, notams, definition, up);
     }
 
     private void FillToggleMenu(
@@ -292,6 +344,18 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             conditionalMenu, orderMenu, notams, viewModel.GetConditionalDefinitions(notams),
             x => station.ForcedDefinitions.Contains(x), viewModel.SetDefinitionForced, "No conditional messages");
         FillOrderMenu(orderMenu, notams);
+
+        // The moved row is only marked while the submenu is open, so leaving it and coming back starts clean.
+        if (_trackedOrderMenus.Add(orderMenu))
+        {
+            orderMenu.GetObservable(MenuItem.IsSubMenuOpenProperty).Subscribe(open =>
+            {
+                if (!open)
+                {
+                    FillOrderMenu(orderMenu, notams);
+                }
+            });
+        }
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
