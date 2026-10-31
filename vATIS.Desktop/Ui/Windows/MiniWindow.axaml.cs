@@ -5,6 +5,7 @@
 
 using System;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -19,6 +20,8 @@ namespace Vatsim.Vatis.Ui.Windows;
 /// </summary>
 public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseable, IDialogOwner
 {
+    private double _lastWidth;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MiniWindow"/> class with the specified view model.
     /// </summary>
@@ -50,6 +53,8 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
         PositionChanged += OnPositionChanged;
 
         ViewModel?.RestorePosition(this);
+        _lastWidth = Bounds.Width;
+        SizeChanged += OnSizeChanged;
     }
 
     private void OnClosed(object? sender, EventArgs e)
@@ -57,6 +62,7 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
         Closed -= OnClosed;
         Closing -= OnClosing;
         PositionChanged -= OnPositionChanged;
+        SizeChanged -= OnSizeChanged;
 
         ViewModel?.Dispose();
     }
@@ -89,6 +95,50 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
         if (e.Source is not Button && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             BeginMoveDrag(e);
+        }
+    }
+
+    private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        var newWidth = e.NewSize.Width;
+        var oldWidth = _lastWidth;
+        _lastWidth = newWidth;
+
+        // Ignore the first layout, the position is restored separately.
+        if (oldWidth <= 0)
+            return;
+
+        var screen = Screens.ScreenFromWindow(this);
+        if (screen is null)
+            return;
+
+        // Position and screen bounds are in device pixels, except on macOS where they are in points.
+        var scaling = OperatingSystem.IsMacOS() ? 1.0 : RenderScaling;
+        var x = Position.X;
+        var y = Position.Y;
+
+        // The window sizes to its content and grows from its left edge. When it sits on the right
+        // half of the screen, shift it so the right edge stays put and it grows leftward instead.
+        if (Math.Abs(newWidth - oldWidth) >= 0.5)
+        {
+            var centerX = x + (oldWidth * scaling / 2);
+            var screenCenterX = screen.Bounds.X + (screen.Bounds.Width / 2.0);
+            if (centerX > screenCenterX)
+            {
+                x -= (int)Math.Round((newWidth - oldWidth) * scaling);
+            }
+        }
+
+        // Safety net: keep the window inside the screen's working area (excludes taskbar/menu bar).
+        var area = screen.WorkingArea;
+        var width = (int)Math.Round(e.NewSize.Width * scaling);
+        var height = (int)Math.Round(e.NewSize.Height * scaling);
+        x = Math.Max(area.X, Math.Min(x, area.Right - width));
+        y = Math.Max(area.Y, Math.Min(y, area.Bottom - height));
+
+        if (x != Position.X || y != Position.Y)
+        {
+            Position = new PixelPoint(x, y);
         }
     }
 
