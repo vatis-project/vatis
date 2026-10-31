@@ -672,7 +672,9 @@ public class AtisBuilder : IAtisBuilder
         if (!string.IsNullOrEmpty(preset.AirportConditions) || station.AirportConditionDefinitions.Any(x => x.Enabled))
         {
             var acDefinitions = StaticDefinitionFilter.GetActive(
-                station.AirportConditionDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat);
+                station.AirportConditionDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat,
+                forced: station.ForcedDefinitions, ordinalOverrides: station.OrdinalOverrides,
+                hidden: station.HiddenDefinitions);
             acCustom = StaticDefinitionJoiner.HasCustomSeparators(acDefinitions, station.AirportConditionsSeparator);
             var acFree = StaticDefinitionJoiner.Prepare(preset.AirportConditions, acCustom);
             var acStatic = StaticDefinitionJoiner.Join(
@@ -701,7 +703,9 @@ public class AtisBuilder : IAtisBuilder
         if (!string.IsNullOrEmpty(preset.Notams) || station.NotamDefinitions.Any(x => x.Enabled))
         {
             var notamDefinitions = StaticDefinitionFilter.GetActive(
-                station.NotamDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat);
+                station.NotamDefinitions, _vatsimDataService?.OnlineControllers, metar, station.AtisFormat,
+                forced: station.ForcedDefinitions, ordinalOverrides: station.OrdinalOverrides,
+                hidden: station.HiddenDefinitions);
             notamsCustom = StaticDefinitionJoiner.HasCustomSeparators(notamDefinitions, station.NotamsSeparator);
             var notamFree = StaticDefinitionJoiner.Prepare(preset.Notams, notamsCustom);
             var notamStatic = StaticDefinitionJoiner.Join(

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a `recentweather` field to weather conditions for static airport conditions and NOTAMs, matching recent weather codes (e.g., `RERA`).
 - Added `trend`, `tempo` and `becmg` prefixes for weather conditions to read the trend forecast instead of the METAR (e.g., `trendweather INCLUDES SHRA`, `tempoceiling < 1000ft`, `becmgcloudtype INCLUDES CB`). `trend` reads any trend group, while `tempo` and `becmg` read only that kind. Supported for ceiling, cloud base, visibility, wind speed, gust, wind direction, weather, cloud type, and CAVOK.
 - Added a `trendtype` field to weather conditions to match the trend type (`TEMPO`, `BECMG` or `NOSIG`).
+- Added "Static Messages", "Conditional Messages" and "Display Order" items to the airport conditions and NOTAMs context menus. They turn a message off, include a conditional message even when its conditions are not met, and move messages up or down in the ATIS. These only last until the app is restarted.
 
 ### Changed
 - Improved keyboard accessibility throughout the app, including tab order, focus indicators, and keyboard controls for the ATIS letter, lists, and dialogs.
