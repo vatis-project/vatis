@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
+- Fixed the D-ATIS not splitting into airport conditions and NOTAMs when the NOTAMs header had a different number of periods (e.g., `NOTAMS....`) or had no NOTAMs after it.
 
 ## v4.1.0-beta.22
 ### Fixed
