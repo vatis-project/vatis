@@ -34,16 +34,16 @@ public class PDURadioMessage : PDUBase
     public static PDURadioMessage Parse(string[] fields)
     {
         if (fields.Length < 3) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
-        string[] freqs = fields[1].Split(new char[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
-        int[] freqInts = new int[freqs.Length];
-        for (int i = 0; i < freqs.Length; i++)
-        {
-            freqInts[i] = int.Parse(freqs[i].Substring(1));
-        }
-        StringBuilder msg = new StringBuilder(fields[2]);
-        for (int i = 3; i < fields.Length; i++) msg.AppendFormat(":{0}", fields[i]);
         try
         {
+            string[] freqs = fields[1].Split(new char[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
+            int[] freqInts = new int[freqs.Length];
+            for (int i = 0; i < freqs.Length; i++)
+            {
+                freqInts[i] = int.Parse(freqs[i].Substring(1));
+            }
+            StringBuilder msg = new StringBuilder(fields[2]);
+            for (int i = 3; i < fields.Length; i++) msg.AppendFormat(":{0}", fields[i]);
             return new PDURadioMessage(
                 fields[0],
                 freqInts,
