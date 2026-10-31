@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
+- Fixed weather conditions never being met when the METAR omitted the value being compared (e.g., rvr > 125m with no RVR, or cloudbase > 1000ft with clear skies). A missing gust group or runway deposit now counts as zero, so gust < 25kt and depth < 3mm are met.
 - Fixed a crash when receiving a radio message with a malformed frequency field.
 - Fixed a freeze and crash when selecting text on the second line of a long condition in the static airport condition and NOTAM editor.
 
