@@ -19,6 +19,8 @@ public class PDUMetarResponse : PDUBase
         msg.Append(DELIMITER);
         msg.Append(To);
         msg.Append(DELIMITER);
+        msg.Append("METAR");
+        msg.Append(DELIMITER);
         msg.Append(Metar);
         return msg.ToString();
     }

@@ -35,7 +35,7 @@ public class PDULegacyPlaneInfoResponse : PDUBase
 
     public static PDULegacyPlaneInfoResponse Parse(string[] fields)
     {
-        if (fields.Length < 6) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
+        if (fields.Length < 7) throw new PDUFormatException("Invalid field count.", Reassemble(fields));
         try
         {
             return new PDULegacyPlaneInfoResponse(
