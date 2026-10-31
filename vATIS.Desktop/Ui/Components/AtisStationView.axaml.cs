@@ -39,7 +39,7 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
 {
     // The widest a message is allowed to be in the message menus before it wraps onto another line.
     private const double MaxMessageTextWidth = 420;
-    private const double MaxOrderRowWidth = 520;
+    private const double MaxOrderLabelWidth = 430;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AtisStationView"/> class.
@@ -124,10 +124,17 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             Content = glyph,
             IsEnabled = enabled,
             Focusable = false,
-            Padding = new Thickness(6, 0),
+            Width = 28,
+            Padding = new Thickness(0),
+            HorizontalContentAlignment = HorizontalAlignment.Center,
             Background = Brushes.Transparent,
             Opacity = enabled ? 1 : 0.25,
         };
+
+        // A fixed width keeps the arrows in the same columns on every row, and the disabled theme would otherwise draw
+        // a filled box behind the dimmed arrow.
+        button.Resources["ButtonBackgroundDisabled"] = Brushes.Transparent;
+        button.Resources["ButtonBorderBrushDisabled"] = Brushes.Transparent;
         button.Click += (_, _) => onClick();
         return button;
     }
@@ -174,20 +181,20 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
             {
                 Text = definition.Text,
                 TextWrapping = TextWrapping.Wrap,
+                MaxWidth = MaxOrderLabelWidth,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0, 0, 12, 0),
             };
-            Grid.SetColumn(up, 1);
-            Grid.SetColumn(down, 2);
-            var row = new Grid
-            {
-                ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"),
-                Children = { label, up, down },
-            };
+
+            // The arrows are docked first so they always sit at the right edge. A grid star column can't shrink below
+            // the widest wrapped line of the label, which pushed the arrows of a wrapped row out of line.
+            var arrows = new StackPanel { Orientation = Orientation.Horizontal, Children = { up, down } };
+            DockPanel.SetDock(arrows, Dock.Right);
+            var row = new DockPanel { Children = { arrows, label } };
 
             // The default menu item template reserves room for an icon, shortcut text and a submenu chevron, which
             // leaves a gap beside the arrows. Only the arrows do anything, so the row is the whole item.
-            var content = new Border { Padding = new Thickness(12, 5), MaxWidth = MaxOrderRowWidth, Child = row };
+            var content = new Border { Padding = new Thickness(12, 5), Child = row };
             items.Add(new MenuItem
             {
                 StaysOpenOnClick = true,
