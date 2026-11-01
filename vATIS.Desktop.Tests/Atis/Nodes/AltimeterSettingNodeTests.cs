@@ -53,6 +53,20 @@ public class AltimeterSettingNodeTests
     }
 
     [Fact]
+    public async Task VariableFormats_NoDecimalStyle_DropsInHgDecimalInTextAndVoice()
+    {
+        var node = await ParseAsync(a =>
+        {
+            a.Template.Voice = "{altimeter|inhg}";
+            a.VariableFormats["inhg"].Text.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.NoDecimal;
+            a.VariableFormats["inhg"].Voice.Style = Vatsim.Vatis.Profiles.AtisFormat.Nodes.NumberStyle.NoDecimal;
+        });
+        Assert.Equal("1015|1015|2997|ONE ZERO ONE FIVE", node.TextAtis);
+        Assert.DoesNotContain("point", node.VoiceAtis, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("two niner niner seven", node.VoiceAtis, ignoreCase: true);
+    }
+
+    [Fact]
     public async Task VariableFormats_TextAndVoiceAreIndependent()
     {
         var node = await ParseAsync(a =>
