@@ -143,10 +143,6 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
         x = Math.Max(area.X, Math.Min(x, area.Right - width));
         y = Math.Max(area.Y, Math.Min(y, area.Bottom - height));
 
-        Log.Information(
-            "MiniWindow size {Old}->{New} scaling={Scale} pos=({PX},{PY}) target=({X},{Y}) rightEdge={Right} bounds={Bounds} client={Client} screen={Screen} area={Area}",
-            oldWidth, newWidth, scaling, Position.X, Position.Y, x, y, _rightEdge, Bounds.Width, ClientSize.Width, screen.Bounds, area);
-
         if (x != Position.X || y != Position.Y)
         {
             _ownPosition = new PixelPoint(x, y);
@@ -161,8 +157,6 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
 
     private void OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        Log.Information("MiniWindow position changed to {Point} (own={Own}) width={Width}", e.Point, _ownPosition, Bounds.Width);
-
         if (_ownPosition == e.Point)
         {
             ViewModel?.UpdatePosition(this);
