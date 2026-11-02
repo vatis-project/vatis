@@ -167,6 +167,46 @@ public static class StaticDefinitionJoiner
     }
 
     /// <summary>
+    /// Combines the free text with the joined static definitions using the station separator. Only one part is
+    /// returned untouched when the other is blank, so no stray punctuation is added.
+    /// </summary>
+    /// <param name="free">The free text.</param>
+    /// <param name="statics">The joined static definitions.</param>
+    /// <param name="staticFirst">Whether the static definitions come before the free text.</param>
+    /// <param name="stationSeparator">The station separator.</param>
+    /// <returns>The combined string.</returns>
+    public static string Combine(string free, string statics, bool staticFirst, string? stationSeparator)
+    {
+        if (string.IsNullOrWhiteSpace(free))
+        {
+            return statics;
+        }
+
+        if (string.IsNullOrWhiteSpace(statics))
+        {
+            return free;
+        }
+
+        var (first, second) = staticFirst ? (statics, free) : (free, statics);
+
+        // A line break typed at the end of the first part already separates the two.
+        if (first.EndsWith('\n') || first.EndsWith('\r'))
+        {
+            return first + " " + second;
+        }
+
+        var separator = Normalize(stationSeparator);
+
+        // The separator supplies the period, so the text before it doesn't need to end with punctuation as well.
+        if (separator.TrimStart().StartsWith('.'))
+        {
+            first = first.TrimEnd().TrimEnd('.', ',', ';', ':');
+        }
+
+        return first + separator + second;
+    }
+
+    /// <summary>
     /// Cleans free text that will be combined with a custom-separated block. Left untouched when no custom separators
     /// are used because the whole string is cleaned afterwards by <see cref="Finish"/>.
     /// </summary>

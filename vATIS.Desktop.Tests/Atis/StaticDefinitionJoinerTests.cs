@@ -153,4 +153,23 @@ public class StaticDefinitionJoinerTests
         Assert.Equal("X.", StaticDefinitionJoiner.Prepare("X ..", true));
         Assert.Equal("X ..", StaticDefinitionJoiner.Prepare("X ..", false));
     }
+
+    [Fact]
+    public void Combine_UsesStationSeparatorBetweenFreeTextAndStatics()
+    {
+        Assert.Equal("F. S", StaticDefinitionJoiner.Combine("F.", "S", false, null));
+        Assert.Equal("S. F", StaticDefinitionJoiner.Combine("F", "S", true, ". "));
+        Assert.Equal("F.\nS", StaticDefinitionJoiner.Combine("F", "S", false, ".\\n"));
+        Assert.Equal("F, S", StaticDefinitionJoiner.Combine("F", "S", false, ", "));
+        Assert.Equal("F. S", StaticDefinitionJoiner.Combine("F,", "S", false, null));
+        Assert.Equal("F. S", StaticDefinitionJoiner.Combine("F;", "S", false, null));
+        Assert.Equal("F!. S", StaticDefinitionJoiner.Combine("F!", "S", false, null));
+    }
+
+    [Fact]
+    public void Combine_BlankPart_AddsNoSeparator()
+    {
+        Assert.Equal("F", StaticDefinitionJoiner.Combine("F", "", false, null));
+        Assert.Equal("S", StaticDefinitionJoiner.Combine("  ", "S", false, null));
+    }
 }
