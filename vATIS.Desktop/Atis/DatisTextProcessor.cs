@@ -70,11 +70,12 @@ public sealed partial class DatisTextProcessor : IDatisTextProcessor
     }
 
     /// <summary>
-    /// Normalizes various NOTAM header variants into a single delimiter.
+    /// Normalizes various NOTAM header variants into a single delimiter. Only the first header is replaced so
+    /// a NOTAM that itself ends in "NOTAM." isn't turned into another delimiter.
     /// </summary>
     private static string NormalizeNotamDelimiters(string text)
     {
-        return NotamHeaderRegex.Replace(text, NotamDelimiter);
+        return NotamHeaderRegex.Replace(text, NotamDelimiter, 1);
     }
 
     /// <summary>
