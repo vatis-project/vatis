@@ -1146,6 +1146,7 @@
 													<x:String>Digits</x:String>
 													<x:String>Serial</x:String>
 													<x:String>Group</x:String>
+													<x:String>NoDecimal</x:String>
 												</ComboBox>
 											</DataTemplate>
 										</DataGridTemplateColumn.CellEditingTemplate>
@@ -1164,6 +1165,7 @@
 													<x:String>Digits</x:String>
 													<x:String>Serial</x:String>
 													<x:String>Group</x:String>
+													<x:String>NoDecimal</x:String>
 												</ComboBox>
 											</DataTemplate>
 										</DataGridTemplateColumn.CellEditingTemplate>

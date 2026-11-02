@@ -32,4 +32,10 @@ public enum NumberStyle
     /// Group-form words (e.g. TEN THIRTEEN).
     /// </summary>
     Group,
+
+    /// <summary>
+    /// Plain digits with the decimal point removed in the text ATIS (e.g. 2997) and digit-by-digit words
+    /// without the decimal in the voice ATIS (e.g. TWO NINER NINER SEVEN).
+    /// </summary>
+    NoDecimal,
 }

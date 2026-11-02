@@ -32,6 +32,9 @@ public static class VariableFormatter
         var body = format.Style switch
         {
             NumberStyle.Digits => digits,
+            NumberStyle.NoDecimal => uppercase
+                ? digits.Replace(".", string.Empty)
+                : ToWords(digits.Replace(".", string.Empty), false, pronounceDecimal),
             NumberStyle.Serial => ToWords(digits, false, pronounceDecimal),
             NumberStyle.Group => ToWords(digits, true, pronounceDecimal),
             _ => rendered,
