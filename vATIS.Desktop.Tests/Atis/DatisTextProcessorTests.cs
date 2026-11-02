@@ -86,6 +86,15 @@ public class DatisTextProcessorTests
     }
 
     [Fact]
+    public void Process_NotamEndingInNotam_OnlyFirstHeaderIsTheDelimiter()
+    {
+        var result = Process("KXXX ATIS INFO A 1200Z. 27010KT 10SM CLR. VISUAL APCH IN USE. NOTAMS. RWY 1 CLSD, SEE NOTAM. ...ADVS YOU HAVE INFO A.");
+
+        Assert.Equal("VISUAL APCH IN USE.", result.AirportConditions);
+        Assert.Equal("RWY 1 CLSD, SEE NOTAM.", result.Notams);
+    }
+
+    [Fact]
     public void Process_NotamHeaderWithNoNotams_SplitsAndLeavesNotamsEmpty()
     {
         var result = Process("KXXX ATIS INFO A 1200Z. 27010KT 10SM CLR. VISUAL APCH IN USE. NOTAMS.... ...ADVS YOU HAVE INFO A.");
