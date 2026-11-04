@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a `NoDecimal` style for the altimeter variable formats that drops the decimal point from inHg values (e.g., `2997` in the text ATIS and "two niner niner seven" in the voice ATIS).
 
 ### Changed
+- Normalized the volume of the clips in a WAV voice pack so every clip plays at the same level.
 - Combined the visibility direction spoken text and the Direction (Text) tab into a single Direction tab with a Text and a Voice column.
 - Moved the visibility CAVOK text and voice settings into a row of the table on the ICAO Formatting tab.
 - Changed the visibility meters cutoff, unit suffix, unit words and 9999 settings into the rows of the table on the visibility ICAO Formatting tab. Existing profiles are migrated automatically and sound the same.

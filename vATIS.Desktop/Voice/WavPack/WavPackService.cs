@@ -18,6 +18,9 @@ public class WavPackService : IWavPackService
 {
     private const int FrameSamples = 960; // 20 ms at 48 kHz, the Opus frame size used by the bot encoder
     private const string ManifestFileName = "manifest.json";
+    private const double TargetRms = 3277; // about -20 dBFS
+    private const double MaxPeak = 31130; // about -0.45 dBFS
+    private const int SilenceThreshold = 328; // about -40 dBFS
     private static readonly char[] s_pauseChars = [',', '.', ':', '!', '?'];
     private static readonly System.Text.RegularExpressions.Regex s_tenKmOrMore = new(
         @"\bONE ZERO ?(?:KM|KILOMET(?:RE|ER)S?) OR MORE(,)?",
@@ -214,6 +217,45 @@ public class WavPackService : IWavPackService
 
     private static WavPackManifest LoadManifest(string packFolder) => WavPackManifestStore.Load(packFolder);
 
+    /// <summary>
+    /// Scales a clip in place so every clip in a pack has the same perceived loudness. The level is measured over the
+    /// audible samples only, so silence at the start or end of a clip doesn't skew it, and the gain is limited so the
+    /// clip never clips.
+    /// </summary>
+    private static void NormalizeLevel(short[] samples)
+    {
+        double sumSquares = 0;
+        var active = 0;
+        var peak = 0;
+        foreach (var sample in samples)
+        {
+            var abs = Math.Abs((int)sample);
+            peak = Math.Max(peak, abs);
+            if (abs >= SilenceThreshold)
+            {
+                sumSquares += (double)sample * sample;
+                active++;
+            }
+        }
+
+        if (active == 0)
+        {
+            return;
+        }
+
+        var rms = Math.Sqrt(sumSquares / active);
+        var gain = Math.Min(TargetRms / rms, MaxPeak / peak);
+        if (Math.Abs(gain - 1) < 0.01)
+        {
+            return;
+        }
+
+        for (var i = 0; i < samples.Length; i++)
+        {
+            samples[i] = (short)Math.Clamp((int)Math.Round(samples[i] * gain), short.MinValue, short.MaxValue);
+        }
+    }
+
     private short[] LoadClip(string packFolder, string relative)
     {
         var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(packFolder));
@@ -235,6 +277,7 @@ public class WavPackService : IWavPackService
         }
 
         var samples = WavDecoder.Decode(File.ReadAllBytes(full));
+        NormalizeLevel(samples);
         _clipCache[full] = (stamp, samples);
         return samples;
     }
