@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Normalized the volume of the clips in a WAV voice pack so every clip plays at the same level.
 - Combined the visibility direction spoken text and the Direction (Text) tab into a single Direction tab with a Text and a Voice column.
-- Moved the visibility CAVOK text and voice settings into a row of the table on the ICAO Formatting tab.
 - Changed the visibility meters cutoff, unit suffix, unit words and 9999 settings into the rows of the table on the visibility ICAO Formatting tab. Existing profiles are migrated automatically and sound the same.
 - Improved keyboard accessibility throughout the app, including tab order, focus indicators, and keyboard controls for the ATIS letter, lists, and dialogs.
 - Changed the help for the controllers and weather conditions in the static airport condition and NOTAM editor to open from an info icon next to each label instead of a tooltip over the text box, which could flicker.
