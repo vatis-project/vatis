@@ -681,9 +681,8 @@ public class AtisBuilder : IAtisBuilder
                 acDefinitions, station.AirportConditionsSeparator,
                 terminate: !station.AirportConditionsBeforeFreeText || string.IsNullOrWhiteSpace(acFree));
 
-            airportConditions = string.Join(" ", (station.AirportConditionsBeforeFreeText
-                ? new[] { acStatic, acFree }
-                : new[] { acFree, acStatic }).Where(s => !string.IsNullOrWhiteSpace(s)));
+            airportConditions = StaticDefinitionJoiner.Combine(
+                acFree, acStatic, station.AirportConditionsBeforeFreeText, station.AirportConditionsSeparator);
         }
 
         // clean up duplicate punctuation
@@ -712,9 +711,8 @@ public class AtisBuilder : IAtisBuilder
                 notamDefinitions, station.NotamsSeparator,
                 terminate: !station.NotamsBeforeFreeText || string.IsNullOrWhiteSpace(notamFree));
 
-            notams += string.Join(". ", (station.NotamsBeforeFreeText
-                ? new[] { notamStatic, notamFree }
-                : new[] { notamFree, notamStatic }).Where(s => !string.IsNullOrWhiteSpace(s)));
+            notams += StaticDefinitionJoiner.Combine(
+                notamFree, notamStatic, station.NotamsBeforeFreeText, station.NotamsSeparator);
 
             // strip extraneous punctuation
             notams = StaticDefinitionJoiner.Finish(notams, notamsCustom);

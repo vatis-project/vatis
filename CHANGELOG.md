@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed the "Online:" label under static airport conditions and NOTAMs in the message lists to "Controllers:", "Time:" or "Controllers and time:", depending on what the condition checks.
 
 ### Fixed
+- Fixed the airport conditions and NOTAMs separator not being applied between the free text and the selectable messages. A period at the end of the free text is no longer needed and is dropped when the separator already supplies one.
 - Fixed "ATIS Hub Unavailable" errors when connecting a station while the hub connection was still being re-established.
 - Fixed the D-ATIS not splitting into airport conditions and NOTAMs when the NOTAMs header had a different number of periods (e.g., `NOTAMS....`) or had no NOTAMs after it.
 - Fixed weather conditions never being met when the METAR omitted the value being compared (e.g., rvr > 125m with no RVR, or cloudbase > 1000ft with clear skies). A missing gust group or runway deposit now counts as zero, so gust < 25kt and depth < 3mm are met.
