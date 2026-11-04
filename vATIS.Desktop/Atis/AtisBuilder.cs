@@ -379,6 +379,8 @@ public class AtisBuilder : IAtisBuilder
         var response = await _downloader.DownloadStringAsync(url);
 
         // clean-up response
+        // keep a sign attached to the number in the next bracket, e.g. "+[3,]" -> "[+3,]"
+        response = Regex.Replace(response, @"([+-])\[([\d.][^\]]*)\]", "[$1$2]");
         response = Regex.Replace(response, @"\[(.*?)\]", " $1 ");
         response = Regex.Replace(response, @"\s+", " ");
 
