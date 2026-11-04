@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,6 +20,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Profiles.AtisFormat.Nodes;
@@ -140,7 +143,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<VisibilityDirectionMeta>? _visibilityDirections;
     private ObservableCollection<VisibilityFormatRule>? _visibilityTextRules;
     private IReadOnlyList<VisibilityFormatPreview> _visibilityFormatRulesPreview = [];
-    private ObservableCollection<VisibilityCavokMeta>? _visibilityCavokRow;
     private ObservableCollection<VariableFormatMeta>? _altimeterVariableFormats;
     private ObservableCollection<VariableFormatMeta>? _windVariableFormats;
     private ObservableCollection<VariableFormatMeta>? _temperatureVariableFormats;
@@ -772,6 +774,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _visibilityCavokVoice, value);
             _changeTracker.TrackChange(nameof(VisibilityCavokVoice), value);
+            UpdateVisibilityFormatRulesPreview();
         }
     }
 
@@ -785,6 +788,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _visibilityCavokText, value);
             _changeTracker.TrackChange(nameof(VisibilityCavokText), value);
+            UpdateVisibilityFormatRulesPreview();
         }
     }
 
@@ -1487,15 +1491,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _visibilityTextRules;
         set => this.RaiseAndSetIfChanged(ref _visibilityTextRules, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the CAVOK row shown below the visibility format rules.
-    /// </summary>
-    public ObservableCollection<VisibilityCavokMeta>? VisibilityCavokRow
-    {
-        get => _visibilityCavokRow;
-        set => this.RaiseAndSetIfChanged(ref _visibilityCavokRow, value);
     }
 
     /// <summary>
@@ -2388,7 +2383,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats.Select(item =>
             new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
         VisibilityCavokText = station.AtisFormat.Visibility.CavokText;
-        VisibilityCavokRow = [new VisibilityCavokMeta("CAVOK", VisibilityCavokText ?? string.Empty, VisibilityCavokVoice ?? string.Empty)];
         RvrSpokenText = station.AtisFormat.RunwayVisualRange.SpokenText;
         RvrTendencyNeutralText = station.AtisFormat.RunwayVisualRange.NeutralTendency;
         RvrTendencyGoingUpText = station.AtisFormat.RunwayVisualRange.GoingUpTendency;
@@ -2717,8 +2711,22 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             .Select(m => new VisibilityFormatPreview(
                 m.ToString("D4"),
                 VisibilityFormatRule.ApplyText(rules, m),
-                VisibilityFormatRule.ApplyVoice(rules, m)))
+                SpellOutNumbers(VisibilityFormatRule.ApplyVoice(rules, m))))
+            .Append(new VisibilityFormatPreview("CAVOK", VisibilityCavokText ?? string.Empty, VisibilityCavokVoice ?? string.Empty))
             .ToList();
+    }
+
+    /// <summary>
+    /// Spells out digits left in a voice string, so the preview reads as it is spoken (e.g. 7.5 as "seven point five").
+    /// </summary>
+    private static string SpellOutNumbers(string voice)
+    {
+        return Regex.Replace(
+            voice,
+            @"\d+(\.\d+)?",
+            match => match.Groups[1].Success
+                ? match.Value.ToSerialFormat() ?? match.Value
+                : int.Parse(match.Value, CultureInfo.InvariantCulture).ToWordString());
     }
 
     private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
@@ -2741,14 +2749,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 case nameof(ConvectiveCloudTypes):
                     _changeTracker.TrackChange(nameof(ConvectiveCloudTypes), ConvectiveCloudTypes?.Select(item =>
                         new ConvectiveCloudTypeMeta(item.Key, item.Value, item.Text)).ToList());
-                    break;
-                case nameof(VisibilityCavokRow):
-                    if (VisibilityCavokRow?.FirstOrDefault() is { } cavok)
-                    {
-                        VisibilityCavokText = cavok.Text;
-                        VisibilityCavokVoice = cavok.Voice;
-                    }
-
                     break;
                 case nameof(VisibilityFormatRules):
                     UpdateVisibilityFormatRulesPreview();

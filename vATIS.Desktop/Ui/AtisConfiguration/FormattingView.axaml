@@ -27,9 +27,9 @@
 		<converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
 	</UserControl.Resources>
 	<Border Name="PartFormattingBorder" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">
-		<StackPanel Margin="5">
-			<TextBlock Text="Select Component:"/>
-			<ComboBox Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10" MaxDropDownHeight="300" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
+		<Grid Margin="5" RowDefinitions="Auto,Auto,*">
+			<TextBlock Grid.Row="0" Text="Select Component:"/>
+			<ComboBox Grid.Row="1" Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark" Margin="0,0,0,10" MaxDropDownHeight="300" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
 				<ComboBox.ItemTemplate>
 					<DataTemplate>
 						<TextBlock Text="{Binding}" />
@@ -37,7 +37,7 @@
 				</ComboBox.ItemTemplate>
 			</ComboBox>
 			<!--Observation Time-->
-			<StackPanel Orientation="Vertical" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Observation Time'}">
+			<StackPanel Grid.Row="2" Orientation="Vertical" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Observation Time'}">
 				<StackPanel Orientation="Vertical" Margin="0,0,0,10" Spacing="5">
 					<TextBlock Text="Routine Observation Time:" VerticalAlignment="Center" ToolTip.Tip="The routine observation time (minutes) of this METAR station. For example, if the METAR is normally updated at 53 minutes past the hour, enter 53. If the METAR has multiple routine observation times, enter the intervals separated by a comma (e.g. 15, 45)"/>
 					<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding RoutineObservationTime, DataType=vm:FormattingViewModel}" MinWidth="150" Theme="{StaticResource DarkTextBox}">
@@ -105,7 +105,7 @@
 				</groupBox:GroupBoxControl>
 			</StackPanel>
 			<!--Wind-->
-			<StackPanel Spacing="10" Margin="10,0,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,0,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind'}">
 				<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
                     <CheckBox x:Name="SpeakWindSpeedGroupFormat" IsChecked="{Binding SpeakWindSpeedGroupFormat, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Speak wind speed in group format</CheckBox>
                     <CheckBox IsEnabled="{Binding !#SpeakWindSpeedGroupFormat.IsChecked}" IsChecked="{Binding SpeakWindSpeedLeadingZero, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Speak wind speed leading zero</CheckBox>
@@ -431,10 +431,10 @@
 				</TabControl>
 			</StackPanel>
 			<!--Visibility-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Visibility'}">
+			<Grid Grid.Row="2" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Visibility'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
-						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
+						<groupBox:GroupBoxControl Header="Template" VerticalAlignment="Top" Theme="{StaticResource GroupBoxClassic}">
 							<StackPanel Orientation="Vertical" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<TextBlock Text="Text:" VerticalAlignment="Center"/>
@@ -453,48 +453,26 @@
 										{visibility}
 									</Button>
 								</StackPanel>
+								<TextBlock TextWrapping="Wrap" Opacity="0.8" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}" Text="CAVOK does not use the template. Its text and voice are set in the CAVOK fields on the ICAO Formatting tab."/>
 							</StackPanel>
 						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="ICAO Formatting" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
 						<groupBox:GroupBoxControl Header="Visibility Format" Theme="{StaticResource GroupBoxClassic}">
-							<ScrollViewer VerticalScrollBarVisibility="Auto">
-							<StackPanel Orientation="Vertical" Spacing="10" Margin="0,0,10,0">
-								<TextBlock TextWrapping="Wrap" Text="Choose how a visibility in meters is shown in the text ATIS and spoken in the voice ATIS."/>
-								<TextBlock TextWrapping="Wrap" Opacity="0.8" Text="Each row applies at or above its value, up to the next row."/>
-								<StackPanel Orientation="Vertical" Spacing="0">
-										<DataGrid x:Name="VisibilityFormatRules" MaxHeight="200" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityFormatRules, DataType=vm:FormattingViewModel}">
+							<Grid RowDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="0,0,10,0">
+								<TextBlock Grid.Row="0" Margin="0,0,0,10" TextWrapping="Wrap" Text="Choose how a visibility in meters is shown in the text ATIS and spoken in the voice ATIS."/>
+								<TextBlock Grid.Row="1" Margin="0,0,0,10" TextWrapping="Wrap" Opacity="0.8" Text="Each row applies at or above its value, up to the next row."/>
+																		<DataGrid Grid.Row="2" x:Name="VisibilityFormatRules" MinHeight="100" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityFormatRules, DataType=vm:FormattingViewModel}">
 										<Interaction.Behaviors>
 											<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityFormatRules"/>
 										</Interaction.Behaviors>
-										<DataGrid.Styles>
-											<Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
-												<Setter Property="Opacity" Value="0"/>
-											</Style>
-										</DataGrid.Styles>
 										<DataGrid.Columns>
 											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="At or above (m)" Width="140" IsReadOnly="False" Binding="{Binding FromMeters, DataType=models:VisibilityFormatRule}"/>
 											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Text" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:VisibilityFormatRule}"/>
 											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Header="Voice" Width="1*" IsReadOnly="False" Binding="{Binding Voice, DataType=models:VisibilityFormatRule}"/>
 										</DataGrid.Columns>
 									</DataGrid>
-									<DataGrid x:Name="VisibilityCavok" HeadersVisibility="None" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1,0,1,1" BorderBrush="#646464" Margin="0,-1,0,0" ItemsSource="{Binding VisibilityCavokRow, DataType=vm:FormattingViewModel}">
-										<Interaction.Behaviors>
-											<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityCavokRow"/>
-										</Interaction.Behaviors>
-										<DataGrid.Styles>
-											<Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:selected:focus:pointerover /template/ Rectangle#BackgroundRectangle, DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
-												<Setter Property="Opacity" Value="0"/>
-											</Style>
-										</DataGrid.Styles>
-										<DataGrid.Columns>
-											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Width="140" IsReadOnly="True" Binding="{Binding Key, DataType=models:VisibilityCavokMeta}"/>
-											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Width="1*" IsReadOnly="False" Binding="{Binding Text, DataType=models:VisibilityCavokMeta}"/>
-											<DataGridTextColumn FontFamily="{StaticResource Monospace}" Width="1*" IsReadOnly="False" Binding="{Binding Voice, DataType=models:VisibilityCavokMeta}"/>
-										</DataGrid.Columns>
-									</DataGrid>
-								</StackPanel>
-								<Grid ColumnDefinitions="*,Auto">
+								<Grid Grid.Row="3" Margin="0,10,0,0" ColumnDefinitions="*,Auto">
 									<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
 										<TextBlock VerticalAlignment="Center" Opacity="0.8" Text="Insert into selected cell:"/>
 										<Button Theme="{StaticResource DarkVariable}" ToolTip.Tip="Text only. The visibility as reported in the METAR (e.g. 0800)." Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}" CommandParameter="{Binding $self.Content}">{raw}</Button>
@@ -506,8 +484,18 @@
 										<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding AddVisibilityFormatRuleCommand, DataType=vm:FormattingViewModel}">Add New</Button>
 									</StackPanel>
 								</Grid>
-								<StackPanel Orientation="Vertical" Spacing="6" Margin="0,6,0,0">
-									<Grid ColumnDefinitions="90,200,*">
+								<Grid Grid.Row="4" Margin="0,16,0,0" ColumnDefinitions="*,*" ColumnSpacing="10">
+									<StackPanel Grid.Column="0" Orientation="Vertical" Spacing="4">
+										<TextBlock Text="CAVOK (Text ATIS):"/>
+										<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityCavokText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+									</StackPanel>
+									<StackPanel Grid.Column="1" Orientation="Vertical" Spacing="4">
+										<TextBlock Text="CAVOK (Voice ATIS):"/>
+										<TextBox FontFamily="{StaticResource Monospace}" Text="{Binding VisibilityCavokVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+									</StackPanel>
+								</Grid>
+								<StackPanel Grid.Row="5" Orientation="Vertical" Spacing="6" Margin="0,16,0,0">
+									<Grid ColumnDefinitions="90,110,*">
 										<TextBlock Grid.Column="0" Opacity="0.7" Text="Preview"/>
 										<TextBlock Grid.Column="1" Opacity="0.7" Text="Text ATIS"/>
 										<TextBlock Grid.Column="2" Opacity="0.7" Text="Voice ATIS"/>
@@ -515,7 +503,7 @@
 									<ItemsControl ItemsSource="{Binding VisibilityFormatRulesPreview, DataType=vm:FormattingViewModel}">
 										<ItemsControl.ItemTemplate>
 											<DataTemplate DataType="models:VisibilityFormatPreview">
-												<Grid ColumnDefinitions="90,200,*" Margin="0,0,0,2">
+												<Grid ColumnDefinitions="90,110,*" Margin="0,0,0,2">
 													<TextBlock Grid.Column="0" FontFamily="{StaticResource Monospace}" Text="{Binding Metar}"/>
 													<TextBlock Grid.Column="1" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="{Binding Text}"/>
 													<TextBlock Grid.Column="2" TextWrapping="Wrap" Text="{Binding Voice}"/>
@@ -524,8 +512,7 @@
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>
 								</StackPanel>
-							</StackPanel>
-							</ScrollViewer>
+							</Grid>
 						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Direction" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
@@ -560,9 +547,9 @@
 						</groupBox:GroupBoxControl>
 					</TabItem>
 				</TabControl>
-			</StackPanel>
+			</Grid>
             <!--Runway Visual Range-->
-			<StackPanel Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
+			<StackPanel Grid.Row="2" Spacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Visual Range'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Spoken">
 						<StackPanel Spacing="10">
@@ -623,7 +610,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--Weather-->
-			<StackPanel Spacing="10" Margin="10,10,0,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,0,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Weather'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}">
@@ -708,7 +695,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--Clouds-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Clouds'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Clouds'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 						<StackPanel Orientation="Vertical">
@@ -924,7 +911,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--Temperature-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Temperature'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Temperature'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 				<StackPanel Orientation="Vertical">
@@ -997,7 +984,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--Dewpoint-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Dewpoint'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Dewpoint'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 				<StackPanel Orientation="Vertical">
@@ -1070,7 +1057,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--Altimeter-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Altimeter'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Altimeter'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
@@ -1178,7 +1165,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--Runway Condition-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Condition'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Runway Condition'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 						<StackPanel Orientation="Vertical">
@@ -1312,7 +1299,7 @@
                 </Grid>
             </StackPanel>
             <!--Wind Shear-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind Shear'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Wind Shear'}">
                 <StackPanel Orientation="Vertical" Spacing="10">
                     <Grid ColumnDefinitions="100,10,*,10,*">
                         <TextBlock Grid.Column="2">Text</TextBlock>
@@ -1393,7 +1380,7 @@
                 </groupBox:GroupBoxControl>
             </StackPanel>
 			<!--Transition Level-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Transition Level'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Transition Level'}">
 				<TabControl Margin="-3">
 					<TabItem Header="Template">
 						<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
@@ -1451,7 +1438,7 @@
 				</TabControl>
 			</StackPanel>
 			<!--NOTAMs-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='NOTAMs'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='NOTAMs'}">
 				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
 					<StackPanel Orientation="Vertical" Spacing="10">
 						<StackPanel Orientation="Vertical">
@@ -1475,7 +1462,7 @@
 				</groupBox:GroupBoxControl>
 			</StackPanel>
 			<!--Closing Statement-->
-			<StackPanel Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Closing Statement'}">
+			<StackPanel Grid.Row="2" Spacing="10" Margin="10,10,10,0" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Closing Statement'}">
 				<CheckBox IsChecked="{Binding ClosingStatementAutoIncludeClosingStatement, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" ToolTip.Tip="If enabled, the closing statement will be automatically appended to the end of the ATIS without requiring the [CLOSING] variable in the ATIS preset template. This is useful if you want to customize the position of the closing statement in the ATIS.">Automatically include closing statement at the end of the ATIS</CheckBox>
 				<groupBox:GroupBoxControl Header="Template" Theme="{StaticResource GroupBoxClassic}" Margin="0,10,0,0">
 					<StackPanel Orientation="Vertical" Spacing="10">
@@ -1506,6 +1493,6 @@
 					</StackPanel>
 				</groupBox:GroupBoxControl>
 			</StackPanel>
-		</StackPanel>
+		</Grid>
 	</Border>
 </UserControl>
