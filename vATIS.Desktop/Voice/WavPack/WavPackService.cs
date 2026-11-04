@@ -217,32 +217,6 @@ public class WavPackService : IWavPackService
 
     private static WavPackManifest LoadManifest(string packFolder) => WavPackManifestStore.Load(packFolder);
 
-    private short[] LoadClip(string packFolder, string relative)
-    {
-        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(packFolder));
-        var full = Path.GetFullPath(Path.Combine(root, relative));
-        if (!full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-        {
-            throw new WavPackException($"Clip path escapes the pack folder: {relative}");
-        }
-
-        if (!File.Exists(full))
-        {
-            throw new WavPackException($"Clip file not found: {relative}");
-        }
-
-        var stamp = File.GetLastWriteTimeUtc(full);
-        if (_clipCache.TryGetValue(full, out var cached) && cached.Stamp == stamp)
-        {
-            return cached.Samples;
-        }
-
-        var samples = WavDecoder.Decode(File.ReadAllBytes(full));
-        NormalizeLevel(samples);
-        _clipCache[full] = (stamp, samples);
-        return samples;
-    }
-
     /// <summary>
     /// Scales a clip in place so every clip in a pack has the same perceived loudness. The level is measured over the
     /// audible samples only, so silence at the start or end of a clip doesn't skew it, and the gain is limited so the
@@ -280,5 +254,31 @@ public class WavPackService : IWavPackService
         {
             samples[i] = (short)Math.Clamp((int)Math.Round(samples[i] * gain), short.MinValue, short.MaxValue);
         }
+    }
+
+    private short[] LoadClip(string packFolder, string relative)
+    {
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(packFolder));
+        var full = Path.GetFullPath(Path.Combine(root, relative));
+        if (!full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            throw new WavPackException($"Clip path escapes the pack folder: {relative}");
+        }
+
+        if (!File.Exists(full))
+        {
+            throw new WavPackException($"Clip file not found: {relative}");
+        }
+
+        var stamp = File.GetLastWriteTimeUtc(full);
+        if (_clipCache.TryGetValue(full, out var cached) && cached.Stamp == stamp)
+        {
+            return cached.Samples;
+        }
+
+        var samples = WavDecoder.Decode(File.ReadAllBytes(full));
+        NormalizeLevel(samples);
+        _clipCache[full] = (stamp, samples);
+        return samples;
     }
 }
