@@ -22,7 +22,6 @@ namespace Vatsim.Vatis.Voice.Network;
 public class VoiceServerConnection : IVoiceServerConnection
 {
     private const string ClientName = "vATIS";
-    private const string VoiceServerUrl = "https://voice1.vatsim.net";
     private static readonly TimeSpan s_tokenRefreshInterval = TimeSpan.FromMinutes(55);
     private static readonly TimeSpan s_heartbeatInterval = TimeSpan.FromSeconds(30);
 
@@ -31,6 +30,10 @@ public class VoiceServerConnection : IVoiceServerConnection
     private Timer? _refreshTokenTimer;
     private Timer? _heartbeatTimer;
     private string? _jwtToken;
+
+    private static string VoiceServerUrl => AppRuntimeOptions.UseDownstairsGeekServers
+        ? AppRuntimeOptions.DownstairsGeekVoiceUrl
+        : "https://voice1.vatsim.net";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VoiceServerConnection"/> class.
