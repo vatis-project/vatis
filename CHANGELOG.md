@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a crash when receiving a radio message with a malformed frequency field.
 - Fixed a freeze and crash when selecting text on the second line of a long condition in the static airport condition and NOTAM editor.
 - Fixed the mini window growing off the right edge of the screen when the recording-expired dot appeared. On the right half of the screen it now expands to the left.
+- Fixed the sandbox ATIS continuing to play after the ATIS configuration window was closed.
 - Fixed a plus or minus sign from an external ATIS generator not being read as "plus" or "minus" when it was in a separate bracket from the digits (e.g., `+[3,]` or `-[3,]`), which caused a "missing clips" error with WAV voice packs.
 
 ## v4.1.0-beta.22

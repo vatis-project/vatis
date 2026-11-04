@@ -381,6 +381,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     /// <inheritdoc />
     public void Dispose()
     {
+        IsSandboxPlaybackActive = false;
+        NativeAudio.StopBufferPlayback();
         _disposables.Dispose();
 
         GC.SuppressFinalize(this);
