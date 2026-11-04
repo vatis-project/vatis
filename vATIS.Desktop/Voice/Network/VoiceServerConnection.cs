@@ -22,12 +22,12 @@ namespace Vatsim.Vatis.Voice.Network;
 public class VoiceServerConnection : IVoiceServerConnection
 {
     private const string ClientName = "vATIS";
-    private const string VoiceServerUrl = "https://voice1.vatsim.net";
     private static readonly TimeSpan s_tokenRefreshInterval = TimeSpan.FromMinutes(55);
     private static readonly TimeSpan s_heartbeatInterval = TimeSpan.FromSeconds(30);
 
     private readonly IDownloader _downloader;
     private readonly IAppConfig _appConfig;
+    private readonly string _voiceServerUrl;
     private Timer? _refreshTokenTimer;
     private Timer? _heartbeatTimer;
     private string? _jwtToken;
@@ -41,6 +41,9 @@ public class VoiceServerConnection : IVoiceServerConnection
     {
         _downloader = downloader;
         _appConfig = appConfig;
+        _voiceServerUrl = AppRuntimeOptions.UseDownstairsGeekServers
+            ? AppRuntimeOptions.DownstairsGeekVoiceUrl
+            : "https://voice1.vatsim.net";
     }
 
     /// <inheritdoc />
@@ -86,7 +89,7 @@ public class VoiceServerConnection : IVoiceServerConnection
             await RemoveBot(callsign, cancellationToken);
 
             var request = JsonSerializer.Serialize(dto, SourceGenerationContext.NewDefault.PutBotRequestDto);
-            var response = await _downloader.PutJson(VoiceServerUrl + "/api/v1/bots/" + callsign, request, _jwtToken,
+            var response = await _downloader.PutJson(_voiceServerUrl + "/api/v1/bots/" + callsign, request, _jwtToken,
                 cancellationToken);
             response.EnsureSuccessStatusCode();
 
@@ -124,7 +127,7 @@ public class VoiceServerConnection : IVoiceServerConnection
 
         try
         {
-            await _downloader.Delete(VoiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken, cancellationToken);
+            await _downloader.Delete(_voiceServerUrl + "/api/v1/bots/" + callsign, _jwtToken, cancellationToken);
             Log.Information("RemoveBot: {Callsign}", callsign);
 
             if (_heartbeatTimer != null)
@@ -161,7 +164,7 @@ public class VoiceServerConnection : IVoiceServerConnection
 
         try
         {
-            var response = await _downloader.GetAsync($"{VoiceServerUrl}/api/v1/bots/{callsign}/heartbeat", _jwtToken);
+            var response = await _downloader.GetAsync($"{_voiceServerUrl}/api/v1/bots/{callsign}/heartbeat", _jwtToken);
             if (response.IsSuccessStatusCode)
             {
                 Log.Information("Heartbeat: {Callsign}", callsign);
@@ -187,7 +190,7 @@ public class VoiceServerConnection : IVoiceServerConnection
         var dto = JsonSerializer.Serialize(
             new PostUserRequestDto(_appConfig.UserId, _appConfig.PasswordDecrypted, ClientName),
             SourceGenerationContext.NewDefault.PostUserRequestDto);
-        var response = await _downloader.PostJsonResponse(VoiceServerUrl + "/api/v1/auth", dto);
+        var response = await _downloader.PostJsonResponse(_voiceServerUrl + "/api/v1/auth", dto);
 
         response.EnsureSuccessStatusCode();
 

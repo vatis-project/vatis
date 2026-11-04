@@ -189,6 +189,13 @@ public class NetworkConnection : INetworkConnection, IDisposable
 
         await _authTokenManager.GetAuthToken();
 
+        if (AppRuntimeOptions.UseDownstairsGeekServers)
+        {
+            _fsdSession.Connect(AppRuntimeOptions.DownstairsGeekFsdHost, 6809);
+            _previousMetar = "";
+            return;
+        }
+
         var bestServer = await _downloader.DownloadStringAsync(VatsimServerEndpoint);
         if (!string.IsNullOrEmpty(bestServer))
         {
