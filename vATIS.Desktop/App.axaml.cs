@@ -100,9 +100,18 @@ public class App : Application
                 PathProvider.SetAppDataPath(_appDataPath);
 
                 var arguments = ParseArguments(desktop.Args ?? []);
+                AppRuntimeOptions.UseDownstairsGeekServers = arguments.ContainsKey("--dsg");
 
                 _serviceProvider = new Container.ServiceProvider();
                 SetupLogging(arguments.ContainsKey("--debug"));
+
+                if (AppRuntimeOptions.UseDownstairsGeekServers)
+                {
+                    Log.Information(
+                        "DSG startup override enabled. Using FSD host {FsdHost} and voice URL {VoiceUrl}",
+                        AppRuntimeOptions.DownstairsGeekFsdHost,
+                        AppRuntimeOptions.DownstairsGeekVoiceUrl);
+                }
 
                 // Tooltips in dialog windows close early on macOS.
                 ModalToolTipFallback.Register();

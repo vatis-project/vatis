@@ -169,7 +169,7 @@ internal sealed partial class ServiceProvider
 
     private IAtisHubConnection CreateAtisHubConnection()
     {
-        if (IsDevelopmentEnvironment())
+        if (IsDevelopmentEnvironment() || AppRuntimeOptions.UseDownstairsGeekServers)
         {
             return new MockAtisHubConnection(GetService<IDownloader>(), GetService<IAppConfigurationProvider>());
         }
