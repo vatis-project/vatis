@@ -12,12 +12,12 @@
 # built (the libraries are gitignored, so a stale one would silently ship): Linux .so with cmake, Windows .dll and
 # macOS .dylib via Docker (clang-cl + xwin, osxcross).
 #
-# Output goes to publish/release/{linux,windows,macos}. Those directories accumulate releases:
-# Delta packages are disabled (--delta None), but the previous release is kept so the new releases.*.json feed
-# still lists it. If a directory is empty,
-# the previous release is downloaded from VATIS_RELEASES_URL (default https://vatis.app/downloads,
-# with linux/, windows/, macos/ below it). Copy the new files to your server yourself, with the
-# releases.*.json feed last.
+# Output goes to publish/release/{linux,windows,macos}/<version>. Delta packages are disabled (--delta None), but the
+# previous release is needed so the new releases.*.json feed still lists it. When a version directory is empty, the
+# latest published release is downloaded into it from VATIS_RELEASES_URL (default https://vatis.app/downloads, with
+# linux/, windows/, macos/ below it), so the feed always continues from what is on the server and nothing left over
+# from an earlier local build ends up in it. Rebuilding the same version reuses its directory. Copy the new files to
+# your server yourself, with the releases.*.json feed last.
 #
 # ClientAuth.cs: the real Vatsim.Network/ClientAuth.cs comes from the private vatis-project/client-auth repo (git
 # needs read access; override the URL with VATIS_CLIENT_AUTH_REPO) and replaces the stub for the build only.
@@ -84,11 +84,11 @@ for p in "${PLATFORMS[@]}"; do
     case "$p" in linux|win|macos) ;; *) die "Unknown platform: $p" ;; esac
 done
 
-BUILD_DIR="$ROOT/artifacts/$VERSION"   # dotnet publish output
-OUT_DIR="$ROOT/publish/release"        # velopack output, one dir per platform
+BUILD_DIR="$ROOT/artifacts/$VERSION"     # dotnet publish output
+OUT_DIR="$ROOT/publish/release"          # velopack output: <platform>/<version> below it
 TOOLS_DIR="$ROOT/publish/tools"
 NATIVE_DIR="$ROOT/vATIS.Desktop/Voice/Audio/Native"
-DMG_APP_DIR="$BUILD_DIR/dmg"           # the signed macOS app, kept for --dmg-only
+DMG_APP_DIR="$BUILD_DIR/dmg"             # the signed macOS app, kept for --dmg-only
 mkdir -p "$BUILD_DIR" "$OUT_DIR" "$TOOLS_DIR"
 
 command -v dotnet >/dev/null || die "dotnet not found"
@@ -303,7 +303,7 @@ build_native_macos() {
 
 # ---------------------------------------------------------------------- linux
 build_linux() {
-    local out="$OUT_DIR/linux"
+    local out="$OUT_DIR/linux/$VERSION"
     mkdir -p "$out"
     [ -f "$NATIVE_DIR/lin/libNativeAudio.so" ] || die "Missing $NATIVE_DIR/lin/libNativeAudio.so"
     publish linux-x64
@@ -323,7 +323,7 @@ build_linux() {
 
 # -------------------------------------------------------------------- windows
 build_win() {
-    local out="$OUT_DIR/windows"
+    local out="$OUT_DIR/windows/$VERSION"
     mkdir -p "$out"
     [ -f "$NATIVE_DIR/win/NativeAudio.dll" ] || die "Missing $NATIVE_DIR/win/NativeAudio.dll"
     publish win-x64
@@ -349,7 +349,7 @@ build_win() {
 
 # ---------------------------------------------------------------------- macOS
 build_macos() {
-    local out="$OUT_DIR/macos"
+    local out="$OUT_DIR/macos/$VERSION"
     local bundle="$BUILD_DIR/macos/$APP_NAME.app"
     mkdir -p "$out"
     [ -f "$NATIVE_DIR/macos/libNativeAudio.dylib" ] || die "Missing macOS libNativeAudio.dylib"
@@ -506,8 +506,8 @@ use_private_client_auth() {
 # ----------------------------------------------------------------------- main
 if $DMG_ONLY; then
     # Rebuilds only vATIS.dmg (window layout, background) from the app left by the last full macOS build.
-    build_dmg "$OUT_DIR/macos"
-    info "Done: $OUT_DIR/macos/$APP_NAME.dmg"
+    build_dmg "$OUT_DIR/macos/$VERSION"
+    info "Done: $OUT_DIR/macos/$VERSION/$APP_NAME.dmg"
     exit 0
 fi
 
@@ -527,12 +527,12 @@ print_copy_instructions() {
     info "Done. Copy these files to your server:"
     for p in "${PLATFORMS[@]}"; do
         dir="${PLATFORM_DIR[$p]}"
-        printf '\n  \e[1mFrom:\e[0m %s/%s/\n  \e[1mTo:\e[0m   %s/%s/\n' "$OUT_DIR" "$dir" "${VATIS_RELEASES_URL%/}" "$dir"
+        printf '\n  \e[1mFrom:\e[0m %s/%s/%s/\n  \e[1mTo:\e[0m   %s/%s/\n' "$OUT_DIR" "$dir" "$VERSION" "${VATIS_RELEASES_URL%/}" "$dir"
         # Packages and installers for this version first, the feed last.
         while IFS= read -r f; do printf '      %s\n' "$f"; done \
-            < <(cd "$OUT_DIR/$dir" && find . -maxdepth 1 -type f \( -name "*$VERSION*" -o -name "$APP_NAME.AppImage" -o -name "$APP_NAME-Setup.exe" -o -name "$APP_NAME.dmg" \) -printf '%P\n' | sort)
+            < <(cd "$OUT_DIR/$dir/$VERSION" && find . -maxdepth 1 -type f \( -name "*$VERSION*" -o -name "$APP_NAME.AppImage" -o -name "$APP_NAME-Setup.exe" -o -name "$APP_NAME.dmg" \) -printf '%P\n' | sort)
         while IFS= read -r f; do printf '      %s  (copy last)\n' "$f"; done \
-            < <(cd "$OUT_DIR/$dir" && find . -maxdepth 1 -type f -name 'releases.*.json' -printf '%P\n' | sort)
+            < <(cd "$OUT_DIR/$dir/$VERSION" && find . -maxdepth 1 -type f -name 'releases.*.json' -printf '%P\n' | sort)
     done
     printf '\n  Do not copy: assets.*.json or RELEASES*.\n'
 }
