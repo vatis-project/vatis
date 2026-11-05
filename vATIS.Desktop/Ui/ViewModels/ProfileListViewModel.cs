@@ -90,7 +90,7 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         ImportProfileCommand = ReactiveCommand.CreateFromTask(HandleImportProfile);
         ExportProfileCommand = ReactiveCommand.CreateFromTask(HandleExportProfile, canExecute);
         DeleteProfileCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleDeleteProfile, canExecute);
-        StartClientSessionCommand = ReactiveCommand.Create<ProfileViewModel>(HandleStartSession, canExecute);
+        StartClientSessionCommand = ReactiveCommand.CreateFromTask<ProfileViewModel>(HandleStartSession, canExecute);
         ExitCommand = ReactiveCommand.Create(HandleExit);
         OpenReleaseNotesCommand = ReactiveCommand.CreateFromTask(HandleOpenReleaseNotes);
 
@@ -248,11 +248,14 @@ public class ProfileListViewModel : ReactiveViewModelBase, IDisposable
         _profileList.AddRange(profiles.Select(p => new ProfileViewModel(p)));
     }
 
-    private void HandleStartSession(ProfileViewModel model)
+    private async Task HandleStartSession(ProfileViewModel model)
     {
         if (model.Profile != null)
         {
-            _sessionManager.StartSession(model.Profile.Id);
+            // A double click starts the session while the mouse button is still down. Opening the main window
+            // right then leaves it without focus once the button is released, so let the click finish first.
+            await Task.Delay(150);
+            await _sessionManager.StartSession(model.Profile.Id);
         }
     }
 
