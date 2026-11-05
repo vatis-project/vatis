@@ -838,14 +838,14 @@
                             <StackPanel Spacing="6">
                                 <TextBlock FontWeight="SemiBold" Text="Undetermined height (///)"/>
                                 <Grid Margin="15,0,0,0" ColumnDefinitions="170,10,*,20,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
-                                    <TextBlock Grid.Row="0" Grid.Column="2" Opacity="0.7" Text="Voice ATIS"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="4" Opacity="0.7" Text="Text ATIS"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Replaces {altitude} if the cloud layer height is ///">Cloud layer</TextBlock>
-                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
-                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="0" Grid.Column="4" Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Opacity="0.7" Text="Text ATIS"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Opacity="0.7" Text="Voice ATIS"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Replaces {altitude} if the cloud layer height is ///">Cloud layer</TextBlock>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="2" Text="{Binding UndeterminedLayerAltitudeText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="1" Grid.Column="4" Text="{Binding UndeterminedLayerAltitudeVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                                     <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" ToolTip.Tip="Replaces {altitude} if the vertical visibility is ///">Vertical visibility</TextBlock>
-                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="2" Grid.Column="2" Text="{Binding UndeterminedVerticalVisibilityVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
-                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="2" Grid.Column="4" Text="{Binding UndeterminedVerticalVisibilityText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="2" Grid.Column="2" Text="{Binding UndeterminedVerticalVisibilityText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                                    <TextBox FontFamily="{StaticResource Monospace}" Grid.Row="2" Grid.Column="4" Text="{Binding UndeterminedVerticalVisibilityVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                                 </Grid>
                             </StackPanel>
                         </StackPanel>
