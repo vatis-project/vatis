@@ -32,17 +32,17 @@
 						<Button Theme="{StaticResource Dark}" Margin="10,8" Content="User Settings" Command="{Binding OpenSettingsDialogCommand, DataType=vm:MainWindowViewModel}"/>
 						<Button Theme="{StaticResource Dark}" Margin="0,8" Content="ATIS Configuration" Command="{Binding OpenProfileConfigurationWindowCommand, DataType=vm:MainWindowViewModel}"/>
 					</StackPanel>
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,0">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,0" Spacing="2">
 						<TextBlock VerticalAlignment="Center"
 								   Padding="10,0"
 								   Foreground="#cf480c"
 								   FontSize="26"
 								   FontFamily="{StaticResource Monospace}"
 								   Text="{Binding CurrentTime, DataType=vm:MainWindowViewModel, FallbackValue=0000/00}"/>
-						<ToggleButton Theme="{StaticResource PinButton}" Margin="5,8" Command="{Binding ToggleIsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, Mode=OneWay, Source={x:Static vm:TopMostViewModel.Instance}}" />
-						<Button Theme="{StaticResource MiniWindowButton}" Margin="0,8" Command="{Binding InvokeMiniWindowCommand, DataType=vm:MainWindowViewModel}" />
-						<Button Theme="{StaticResource MinimizeButton}" Margin="5,8" Click="OnMinimizeWindow" />
-						<Button Theme="{StaticResource CloseButton}" Margin="0,8" Command="{Binding EndClientSessionCommand, DataType=vm:MainWindowViewModel}"/>
+						<ToggleButton Theme="{StaticResource PinButton}" Command="{Binding ToggleIsTopMost, DataType=vm:TopMostViewModel, Source={x:Static vm:TopMostViewModel.Instance}}" IsChecked="{Binding IsTopMost, Mode=OneWay, Source={x:Static vm:TopMostViewModel.Instance}}" />
+						<Button Theme="{StaticResource MiniWindowButton}" Command="{Binding InvokeMiniWindowCommand, DataType=vm:MainWindowViewModel}" />
+						<Button Theme="{StaticResource MinimizeButton}" Click="OnMinimizeWindow" />
+						<Button Theme="{StaticResource CloseButton}" Command="{Binding EndClientSessionCommand, DataType=vm:MainWindowViewModel}"/>
 					</StackPanel>
 				</Grid>
 			</Border>
