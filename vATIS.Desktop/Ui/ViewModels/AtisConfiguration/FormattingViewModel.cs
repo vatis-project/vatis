@@ -39,11 +39,11 @@ namespace Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 /// </summary>
 public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 {
+    private const string QfeElevationToken = "{qfe|ELEVATION_FT}";
+
     private readonly CompositeDisposable _disposables = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
-    private const string QfeElevationToken = "{qfe|ELEVATION_FT}";
-
     private readonly IWindowFactory _windowFactory;
     private readonly ChangeTracker _changeTracker = new();
     private ObservableCollection<string>? _formattingOptions;
@@ -2341,6 +2341,38 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                a.Voice.Style == b.Voice.Style && a.Voice.Suffix == b.Voice.Suffix;
     }
 
+    // The page indexes match the order of the tabs of the component in the view.
+    private static (string Title, int Index)[] GetPages(string component, bool isFaaAtis)
+    {
+        return component switch
+        {
+            "Wind" => [("Standard", 0), ("Standard Gust", 1), ("Variable", 2), ("Variable Gust", 3), ("Variable Direction", 4), ("Calm", 5), ("Variable Format", 6)],
+            "Visibility" => isFaaAtis
+                ? [("Template", 0), ("Fractions (Voice)", 3)]
+                : [("Template", 0), ("ICAO Formatting", 1), ("Direction", 2)],
+            "Runway Visual Range" => [("Voice", 0), ("Text", 1)],
+            "Weather" => [("Template", 0), ("Recent Weather", 1), ("Weather Descriptors", 2)],
+            "Clouds" => [("Template", 0), ("Options", 1), ("Cloud Types", 2), ("Convective Cloud Types", 3), ("Variable Format", 4)],
+            "Temperature" or "Dewpoint" or "Altimeter" => [("Template", 0), ("Variable Format", 1)],
+            "Runway Condition" => [("Template", 0), ("Wording", 1)],
+            "Transition Level" => [("Template", 0), ("Transition Levels", 1)],
+            _ => [],
+        };
+    }
+
+    /// <summary>
+    /// Spells out digits left in a voice string, so the preview reads as it is spoken (e.g. 7.5 as "seven point five").
+    /// </summary>
+    private static string SpellOutNumbers(string voice)
+    {
+        return Regex.Replace(
+            voice,
+            @"\d+(\.\d+)?",
+            match => match.Groups[1].Success
+                ? match.Value.ToSerialFormat() ?? match.Value
+                : int.Parse(match.Value, CultureInfo.InvariantCulture).ToWordString());
+    }
+
     private void HandleAtisStationChanged(AtisStation? station)
     {
         if (station == null)
@@ -2769,25 +2801,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(VisibilityFormatRules), VisibilityFormatRules.Select(item => item with { }).ToList());
     }
 
-    // The page indexes match the order of the tabs of the component in the view.
-    private static (string Title, int Index)[] GetPages(string component, bool isFaaAtis)
-    {
-        return component switch
-        {
-            "Wind" => [("Standard", 0), ("Standard Gust", 1), ("Variable", 2), ("Variable Gust", 3), ("Variable Direction", 4), ("Calm", 5), ("Variable Format", 6)],
-            "Visibility" => isFaaAtis
-                ? [("Template", 0), ("Fractions (Voice)", 3)]
-                : [("Template", 0), ("ICAO Formatting", 1), ("Direction", 2)],
-            "Runway Visual Range" => [("Voice", 0), ("Text", 1)],
-            "Weather" => [("Template", 0), ("Recent Weather", 1), ("Weather Descriptors", 2)],
-            "Clouds" => [("Template", 0), ("Options", 1), ("Cloud Types", 2), ("Convective Cloud Types", 3), ("Variable Format", 4)],
-            "Temperature" or "Dewpoint" or "Altimeter" => [("Template", 0), ("Variable Format", 1)],
-            "Runway Condition" => [("Template", 0), ("Wording", 1)],
-            "Transition Level" => [("Template", 0), ("Transition Levels", 1)],
-            _ => [],
-        };
-    }
-
     private void UpdateFormattingPages()
     {
         var pages = SelectedFormattingOption == null
@@ -2809,19 +2822,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 SpellOutNumbers(VisibilityFormatRule.ApplyVoice(rules, m))))
             .Append(new VisibilityFormatPreview("CAVOK", VisibilityCavokText ?? string.Empty, VisibilityCavokVoice ?? string.Empty))
             .ToList();
-    }
-
-    /// <summary>
-    /// Spells out digits left in a voice string, so the preview reads as it is spoken (e.g. 7.5 as "seven point five").
-    /// </summary>
-    private static string SpellOutNumbers(string voice)
-    {
-        return Regex.Replace(
-            voice,
-            @"\d+(\.\d+)?",
-            match => match.Groups[1].Success
-                ? match.Value.ToSerialFormat() ?? match.Value
-                : int.Parse(match.Value, CultureInfo.InvariantCulture).ToWordString());
     }
 
     private void HandleCellEditEnding(DataGridCellEndEditEventArgEx e)
