@@ -62,7 +62,6 @@
 		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.13" />
 		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
 		<PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
-		<PackageReference Include="Avalonia.Svg" Version="11.3.0" />
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->

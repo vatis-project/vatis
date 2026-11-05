@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved keyboard accessibility throughout the app, including tab order, focus indicators, and keyboard controls for the ATIS letter, lists, and dialogs.
 - Changed the help for the controllers and weather conditions in the static airport condition and NOTAM editor to open from an info icon next to each label instead of a tooltip over the text box, which could flicker.
 - Changed the "Online:" label under static airport conditions and NOTAMs in the message lists to "Controllers:", "Time:" or "Controllers and time:", depending on what the condition checks.
+- Updated the window control buttons and the mini window menu buttons to a flat style with new icons.
 - Redesigned the layout of the Formatting tab.
 - Changed the unsaved changes prompt when switching stations in the ATIS configuration window to offer saving the changes first, with a Cancel button.
 
