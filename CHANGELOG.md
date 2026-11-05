@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a table on the visibility ICAO Formatting tab for non-FAA stations to choose how metric visibility is written in the text ATIS and spoken in the voice ATIS, with rows that switch format from a given number of meters (e.g., `7000` as `7 KM` / "seven kilometers", `800` as `800 M` / "eight hundred meters").
 - Added "Static Messages", "Conditional Messages" and "Display Order" items to the airport conditions and NOTAMs context menus. They turn a message off, include a conditional message even when its conditions are not met, and move messages up or down in the ATIS. These only last until the app is restarted.
 - Added a `NoDecimal` style for the altimeter variable formats that drops the decimal point from inHg values (e.g., `2997` in the text ATIS and "two niner niner seven" in the voice ATIS).
+- Added a prompt for the field elevation when clicking the `{qfe|ELEVATION_FT}` variable on the altimeter Template tab, which inserts the variable with the elevation (e.g., `{qfe|328}`).
 
 ### Changed
 - Normalized the volume of the clips in a WAV voice pack so every clip plays at the same level.
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved keyboard accessibility throughout the app, including tab order, focus indicators, and keyboard controls for the ATIS letter, lists, and dialogs.
 - Changed the help for the controllers and weather conditions in the static airport condition and NOTAM editor to open from an info icon next to each label instead of a tooltip over the text box, which could flicker.
 - Changed the "Online:" label under static airport conditions and NOTAMs in the message lists to "Controllers:", "Time:" or "Controllers and time:", depending on what the condition checks.
+- Redesigned the layout of the Formatting tab.
 
 ### Fixed
 - Fixed the airport conditions and NOTAMs separator not being applied between the free text and the selectable messages. A period at the end of the free text is no longer needed and is dropped when the separator already supplies one.
@@ -28,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the D-ATIS not splitting into airport conditions and NOTAMs when the NOTAMs header had a different number of periods (e.g., `NOTAMS....`) or had no NOTAMs after it.
 - Fixed weather conditions never being met when the METAR omitted the value being compared (e.g., rvr > 125m with no RVR, or cloudbase > 1000ft with clear skies). A missing gust group or runway deposit now counts as zero, so gust < 25kt and depth < 3mm are met.
 - Fixed a crash when receiving a radio message with a malformed frequency field.
+- Fixed the `{altitude:N}` variable overlapping the `{altitude}` variable in the Cloud Types template variables popup.
 - Fixed a freeze and crash when selecting text on the second line of a long condition in the static airport condition and NOTAM editor.
 - Fixed the mini window growing off the right edge of the screen when the recording-expired dot appeared. On the right half of the screen it now expands to the left.
 - Fixed the sandbox ATIS continuing to play after the ATIS configuration window was closed.
