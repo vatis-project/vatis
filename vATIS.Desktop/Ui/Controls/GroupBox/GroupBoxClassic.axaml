@@ -77,4 +77,21 @@
 			</ControlTemplate>
 		</Setter>
 	</ControlTheme>
+
+	<!-- A header above the content with no frame, for pages that have a single group. The header is hidden when it is empty. -->
+	<ControlTheme x:Key="GroupBoxSection"
+				  BasedOn="{StaticResource {x:Type groupBox:GroupBoxControl}}"
+				  TargetType="groupBox:GroupBoxControl">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Grid RowDefinitions="Auto,*">
+					<TextBlock Grid.Row="0" Margin="0,0,0,8" Text="{TemplateBinding Header}" FontWeight="Bold"
+							   IsVisible="{TemplateBinding Header, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+					<ContentPresenter Grid.Row="1" Name="PART_ContentPresenter"
+									  Padding="0"
+									  Content="{TemplateBinding Content}" />
+				</Grid>
+			</ControlTemplate>
+		</Setter>
+	</ControlTheme>
 </ResourceDictionary>
