@@ -12,6 +12,13 @@
              x:Class="Vatsim.Vatis.Ui.AtisConfiguration.PresetsView">
     <UserControl.Styles>
         <!-- Hide the sub-tab strip when only the Template sub-tab is available. -->
+        <!-- The tab control pads its content by itself, so the content is lined up with the controls above here. -->
+        <Style Selector="TabControl.PresetPages /template/ ContentPresenter#PART_SelectedContentHost">
+            <Setter Property="Padding" Value="0,8,0,0"/>
+        </Style>
+        <Style Selector="TabControl.PresetPages /template/ ItemsPresenter#PART_ItemsPresenter">
+            <Setter Property="Margin" Value="-3,0,0,0"/>
+        </Style>
         <Style Selector="TabControl.NoStrip /template/ ItemsPresenter#PART_ItemsPresenter">
             <Setter Property="IsVisible" Value="False"/>
         </Style>
@@ -44,7 +51,7 @@
 			</Grid>
 			<CheckBox Name="UseExternalAtisGenerator" Margin="0,8,0,0" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
 		</StackPanel>
-		<TabControl Grid.Row="1" Margin="-3,10,-3,-3" Classes.NoStrip="{Binding !ShowDatisSubTab, DataType=vm:PresetsViewModel}" SelectedIndex="{Binding SelectedSubTabIndex, DataType=vm:PresetsViewModel}">
+		<TabControl Grid.Row="1" Margin="0,10,0,2" Padding="0" Classes="PresetPages" Classes.NoStrip="{Binding !ShowDatisSubTab, DataType=vm:PresetsViewModel}" SelectedIndex="{Binding SelectedSubTabIndex, DataType=vm:PresetsViewModel}">
 		<TabItem Header="D-ATIS" x:DataType="vm:PresetsViewModel" IsVisible="{Binding ShowDatisSubTab}">
 			<views:DatisReplacementsView DataContext="{Binding DatisReplacementsViewModel}"/>
 		</TabItem>
