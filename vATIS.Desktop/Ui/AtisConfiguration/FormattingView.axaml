@@ -443,7 +443,22 @@
 					</TabItem>
 					<TabItem Header="Variable Format">
 						<StackPanel Orientation="Vertical" Spacing="10">
-							<TextBlock TextWrapping="Wrap" Text="Style changes how the number is written (Digits: 1013, Serial: ONE ZERO ONE THREE, Group: words in groups). Suffix is appended exactly as typed, so include a leading space if needed."/>
+							<StackPanel Orientation="Vertical" Spacing="6">
+								<TextBlock TextWrapping="Wrap" Text="Set how each wind variable is written. The Text columns apply to the text ATIS and the Voice columns to the voice ATIS."/>
+								<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+									<TextBlock Grid.Row="0" Grid.Column="0" Foreground="#B4B4B4" Text="Style"/>
+									<TextBlock Grid.Row="0" Grid.Column="1" Foreground="#B4B4B4" Text="Result"/>
+									<TextBlock Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Text="Default"/>
+									<TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Text="Digits in the text ATIS, digit by digit in the voice ATIS. The speed is read as a whole number if group format is on."/>
+									<TextBlock Grid.Row="2" Grid.Column="0" FontWeight="SemiBold" Text="Digits"/>
+									<TextBlock Grid.Row="2" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="25"/>
+									<TextBlock Grid.Row="3" Grid.Column="0" FontWeight="SemiBold" Text="Serial"/>
+									<TextBlock Grid.Row="3" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="TWO FIVE"/>
+									<TextBlock Grid.Row="4" Grid.Column="0" FontWeight="SemiBold" Text="Group"/>
+									<TextBlock Grid.Row="4" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="TWENTY-FIVE"/>
+								</Grid>
+								<TextBlock TextWrapping="Wrap" Foreground="#B4B4B4" Text="The suffix is added after the value exactly as typed, so start it with a space if you want one."/>
+							</StackPanel>
 							<DataGrid MaxHeight="230" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding WindVariableFormats, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="WindVariableFormats"/>
@@ -922,7 +937,22 @@
 					</TabItem>
 					<TabItem Header="Variable Format">
 						<StackPanel Orientation="Vertical" Spacing="10">
-							<TextBlock TextWrapping="Wrap" Text="Style changes how the number is written (Digits: 1013, Serial: ONE ZERO ONE THREE, Group: words in groups). Suffix is appended exactly as typed, so include a leading space if needed."/>
+							<StackPanel Orientation="Vertical" Spacing="6">
+								<TextBlock TextWrapping="Wrap" Text="Set how the cloud height is written. The Text columns apply to the text ATIS and the Voice columns to the voice ATIS."/>
+								<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+									<TextBlock Grid.Row="0" Grid.Column="0" Foreground="#B4B4B4" Text="Style"/>
+									<TextBlock Grid.Row="0" Grid.Column="1" Foreground="#B4B4B4" Text="Result"/>
+									<TextBlock Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Text="Default"/>
+									<TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Text="Digits in the text ATIS, words in the voice ATIS."/>
+									<TextBlock Grid.Row="2" Grid.Column="0" FontWeight="SemiBold" Text="Digits"/>
+									<TextBlock Grid.Row="2" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="3000"/>
+									<TextBlock Grid.Row="3" Grid.Column="0" FontWeight="SemiBold" Text="Serial"/>
+									<TextBlock Grid.Row="3" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="THREE ZERO ZERO ZERO"/>
+									<TextBlock Grid.Row="4" Grid.Column="0" FontWeight="SemiBold" Text="Group"/>
+									<TextBlock Grid.Row="4" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="THREE THOUSAND"/>
+								</Grid>
+								<TextBlock TextWrapping="Wrap" Foreground="#B4B4B4" Text="The suffix is added after the value exactly as typed, so start it with a space if you want one."/>
+							</StackPanel>
 							<DataGrid MaxHeight="230" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding CloudAltitudeFormats, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="CloudAltitudeFormats"/>
@@ -1012,7 +1042,22 @@
 					</TabItem>
 					<TabItem Header="Variable Format">
 						<StackPanel Orientation="Vertical" Spacing="10">
-							<TextBlock TextWrapping="Wrap" Text="Style changes how the number is written (Digits: 1013, Serial: ONE ZERO ONE THREE, Group: words in groups). Suffix is appended exactly as typed, so include a leading space if needed."/>
+							<StackPanel Orientation="Vertical" Spacing="6">
+								<TextBlock TextWrapping="Wrap" Text="Set how the temperature is written. The Text columns apply to the text ATIS and the Voice columns to the voice ATIS."/>
+								<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+									<TextBlock Grid.Row="0" Grid.Column="0" Foreground="#B4B4B4" Text="Style"/>
+									<TextBlock Grid.Row="0" Grid.Column="1" Foreground="#B4B4B4" Text="Result"/>
+									<TextBlock Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Text="Default"/>
+									<TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Text="Digits in the text ATIS, digit by digit in the voice ATIS."/>
+									<TextBlock Grid.Row="2" Grid.Column="0" FontWeight="SemiBold" Text="Digits"/>
+									<TextBlock Grid.Row="2" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="15"/>
+									<TextBlock Grid.Row="3" Grid.Column="0" FontWeight="SemiBold" Text="Serial"/>
+									<TextBlock Grid.Row="3" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="ONE FIVE"/>
+									<TextBlock Grid.Row="4" Grid.Column="0" FontWeight="SemiBold" Text="Group"/>
+									<TextBlock Grid.Row="4" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="FIFTEEN"/>
+								</Grid>
+								<TextBlock TextWrapping="Wrap" Foreground="#B4B4B4" Text="The suffix is added after the value exactly as typed, so start it with a space if you want one."/>
+							</StackPanel>
 							<DataGrid MaxHeight="230" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding TemperatureVariableFormats, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="TemperatureVariableFormats"/>
@@ -1085,7 +1130,22 @@
 					</TabItem>
 					<TabItem Header="Variable Format">
 						<StackPanel Orientation="Vertical" Spacing="10">
-							<TextBlock TextWrapping="Wrap" Text="Style changes how the number is written (Digits: 1013, Serial: ONE ZERO ONE THREE, Group: words in groups). Suffix is appended exactly as typed, so include a leading space if needed."/>
+							<StackPanel Orientation="Vertical" Spacing="6">
+								<TextBlock TextWrapping="Wrap" Text="Set how the dewpoint is written. The Text columns apply to the text ATIS and the Voice columns to the voice ATIS."/>
+								<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+									<TextBlock Grid.Row="0" Grid.Column="0" Foreground="#B4B4B4" Text="Style"/>
+									<TextBlock Grid.Row="0" Grid.Column="1" Foreground="#B4B4B4" Text="Result"/>
+									<TextBlock Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Text="Default"/>
+									<TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Text="Digits in the text ATIS, digit by digit in the voice ATIS."/>
+									<TextBlock Grid.Row="2" Grid.Column="0" FontWeight="SemiBold" Text="Digits"/>
+									<TextBlock Grid.Row="2" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="15"/>
+									<TextBlock Grid.Row="3" Grid.Column="0" FontWeight="SemiBold" Text="Serial"/>
+									<TextBlock Grid.Row="3" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="ONE FIVE"/>
+									<TextBlock Grid.Row="4" Grid.Column="0" FontWeight="SemiBold" Text="Group"/>
+									<TextBlock Grid.Row="4" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="FIFTEEN"/>
+								</Grid>
+								<TextBlock TextWrapping="Wrap" Foreground="#B4B4B4" Text="The suffix is added after the value exactly as typed, so start it with a space if you want one."/>
+							</StackPanel>
 							<DataGrid MaxHeight="230" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding DewpointVariableFormats, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="DewpointVariableFormats"/>
@@ -1174,7 +1234,24 @@
 					</TabItem>
 					<TabItem Header="Variable Format">
 						<StackPanel Orientation="Vertical" Spacing="10">
-							<TextBlock TextWrapping="Wrap" Text="Style changes how the number is written (Digits: 1013, Serial: ONE ZERO ONE THREE, Group: words in groups). Suffix is appended exactly as typed, so include a leading space if needed."/>
+							<StackPanel Orientation="Vertical" Spacing="6">
+								<TextBlock TextWrapping="Wrap" Text="Set how each altimeter variable is written. The Text columns apply to the text ATIS and the Voice columns to the voice ATIS."/>
+								<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+									<TextBlock Grid.Row="0" Grid.Column="0" Foreground="#B4B4B4" Text="Style"/>
+									<TextBlock Grid.Row="0" Grid.Column="1" Foreground="#B4B4B4" Text="Result"/>
+									<TextBlock Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Text="Default"/>
+									<TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Text="Digits in the text ATIS, digit by digit in the voice ATIS. The text variable is always digit by digit."/>
+									<TextBlock Grid.Row="2" Grid.Column="0" FontWeight="SemiBold" Text="Digits"/>
+									<TextBlock Grid.Row="2" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="1013 or 29.92"/>
+									<TextBlock Grid.Row="3" Grid.Column="0" FontWeight="SemiBold" Text="Serial"/>
+									<TextBlock Grid.Row="3" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="ONE ZERO ONE THREE"/>
+									<TextBlock Grid.Row="4" Grid.Column="0" FontWeight="SemiBold" Text="Group"/>
+									<TextBlock Grid.Row="4" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="ONE THOUSAND AND THIRTEEN"/>
+									<TextBlock Grid.Row="5" Grid.Column="0" FontWeight="SemiBold" Text="NoDecimal"/>
+									<TextBlock Grid.Row="5" Grid.Column="1" FontFamily="{StaticResource Monospace}" Text="2992"/>
+								</Grid>
+								<TextBlock TextWrapping="Wrap" Foreground="#B4B4B4" Text="The suffix is added after the value exactly as typed, so start it with a space if you want one."/>
+							</StackPanel>
 							<DataGrid MaxHeight="230" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding AltimeterVariableFormats, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="AltimeterVariableFormats"/>
