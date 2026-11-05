@@ -24,11 +24,13 @@
 		<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 		<Setter Property="VerticalContentAlignment" Value="Center" />
 		<Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+		<Setter Property="Padding" Value="5,3" />
+		<Setter Property="MaxHeight" Value="28" />
 		<Setter Property="PlaceholderForeground" Value="#C0C0C0" />
 
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid ColumnDefinitions="*,32" MaxHeight="28">
+				<Grid ColumnDefinitions="*,32">
 					<Border x:Name="Background"
 							Grid.Column="0"
 							Grid.ColumnSpan="2"
@@ -41,7 +43,7 @@
 									ContentTemplate="{TemplateBinding ItemTemplate}"
 									Grid.Column="0"
 									Foreground="White"
-									Padding="5,3"
+									Padding="{TemplateBinding Padding}"
 									HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
 									VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 
@@ -149,6 +151,33 @@
 					<Setter Property="Foreground" Value="{TemplateBinding Foreground}" />
 				</Style>
 			</Style>
+		</Style>
+		<!-- Opt-in larger rows for the drop-down list, to match a larger selected value. -->
+		<Style Selector="^.Large ComboBoxItem">
+			<Setter Property="Padding" Value="10,10"/>
+			<Setter Property="FontSize" Value="15"/>
+		</Style>
+		<!-- The list is lighter than the page and has a brighter border so it stands out while open, and sits a few
+		     pixels below the box. -->
+		<Style Selector="^.Large /template/ Border#PopupBorder">
+			<Setter Property="Background" Value="#2D2D2D"/>
+			<Setter Property="BorderBrush" Value="#9A9A9A"/>
+		</Style>
+		<!-- The first and last rows follow the rounded corners of the list so their highlight is not clipped. -->
+		<Style Selector="^.Large ComboBoxItem:nth-child(1) /template/ ContentPresenter">
+			<Setter Property="CornerRadius" Value="2,2,0,0"/>
+		</Style>
+		<Style Selector="^.Large ComboBoxItem:nth-last-child(1) /template/ ContentPresenter">
+			<Setter Property="CornerRadius" Value="0,0,2,2"/>
+		</Style>
+		<Style Selector="^.Large /template/ Popup#PART_Popup">
+			<Setter Property="VerticalOffset" Value="3"/>
+		</Style>
+		<Style Selector="^.Large ComboBoxItem:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#454545"/>
+		</Style>
+		<Style Selector="^.Large ComboBoxItem:selected /template/ ContentPresenter">
+			<Setter Property="Background" Value="#454545"/>
 		</Style>
 	</Style>
 </Styles>

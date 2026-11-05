@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Editing;
 using ReactiveUI;
@@ -41,12 +42,17 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private readonly CompositeDisposable _disposables = [];
     private readonly IProfileRepository _profileRepository;
     private readonly ISessionManager _sessionManager;
+    private const string QfeElevationToken = "{qfe|ELEVATION_FT}";
+
     private readonly IWindowFactory _windowFactory;
     private readonly ChangeTracker _changeTracker = new();
     private ObservableCollection<string>? _formattingOptions;
     private AtisStation? _selectedStation;
     private bool _hasUnsavedChanges;
     private string? _selectedFormattingOption;
+    private ObservableCollection<FormattingPage> _formattingPages = [];
+    private FormattingPage? _selectedFormattingPageItem;
+    private int _selectedFormattingPage;
     private string? _routineObservationTime;
     private string? _observationTimeTextTemplate;
     private string? _observationTimeVoiceTemplate;
@@ -267,7 +273,59 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     public string? SelectedFormattingOption
     {
         get => _selectedFormattingOption;
-        set => this.RaiseAndSetIfChanged(ref _selectedFormattingOption, value);
+        set
+        {
+            if (_selectedFormattingOption == value)
+            {
+                return;
+            }
+
+            this.RaiseAndSetIfChanged(ref _selectedFormattingOption, value);
+            UpdateFormattingPages();
+        }
+    }
+
+    /// <summary>
+    /// Gets the pages of the selected component. Empty if the component has a single page.
+    /// </summary>
+    public ObservableCollection<FormattingPage> FormattingPages
+    {
+        get => _formattingPages;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _formattingPages, value);
+            this.RaisePropertyChanged(nameof(HasFormattingPages));
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the selected component has more than one page.
+    /// </summary>
+    public bool HasFormattingPages => FormattingPages.Count > 0;
+
+    /// <summary>
+    /// Gets or sets the selected page of the selected component.
+    /// </summary>
+    public FormattingPage? SelectedFormattingPageItem
+    {
+        get => _selectedFormattingPageItem;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedFormattingPageItem, value);
+            if (value != null)
+            {
+                SelectedFormattingPage = value.Index;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the index of the page shown for the selected component.
+    /// </summary>
+    public int SelectedFormattingPage
+    {
+        get => _selectedFormattingPage;
+        private set => this.RaiseAndSetIfChanged(ref _selectedFormattingPage, value);
     }
 
     /// <summary>
@@ -2322,6 +2380,13 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
         FormattingOptions = [.. items];
 
+        if (SelectedFormattingOption == null || !items.Contains(SelectedFormattingOption))
+        {
+            SelectedFormattingOption = items[0];
+        }
+
+        UpdateFormattingPages();
+
         SpeakWindSpeedLeadingZero = station.AtisFormat.SurfaceWind.SpeakLeadingZero;
         SpeakWindSpeedGroupFormat = station.AtisFormat.SurfaceWind.SpeakWindSpeedGroupFormat;
         MagneticVariationEnabled = station.AtisFormat.SurfaceWind.MagneticVariation.Enabled;
@@ -2704,6 +2769,36 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(VisibilityFormatRules), VisibilityFormatRules.Select(item => item with { }).ToList());
     }
 
+    // The page indexes match the order of the tabs of the component in the view.
+    private static (string Title, int Index)[] GetPages(string component, bool isFaaAtis)
+    {
+        return component switch
+        {
+            "Wind" => [("Standard", 0), ("Standard Gust", 1), ("Variable", 2), ("Variable Gust", 3), ("Variable Direction", 4), ("Calm", 5), ("Variable Format", 6)],
+            "Visibility" => isFaaAtis
+                ? [("Template", 0), ("Fractions (Voice)", 3)]
+                : [("Template", 0), ("ICAO Formatting", 1), ("Direction", 2)],
+            "Runway Visual Range" => [("Voice", 0), ("Text", 1)],
+            "Weather" => [("Template", 0), ("Recent Weather", 1), ("Weather Descriptors", 2)],
+            "Clouds" => [("Template", 0), ("Options", 1), ("Cloud Types", 2), ("Convective Cloud Types", 3), ("Variable Format", 4)],
+            "Temperature" or "Dewpoint" or "Altimeter" => [("Template", 0), ("Variable Format", 1)],
+            "Runway Condition" => [("Template", 0), ("Wording", 1)],
+            "Transition Level" => [("Template", 0), ("Transition Levels", 1)],
+            _ => [],
+        };
+    }
+
+    private void UpdateFormattingPages()
+    {
+        var pages = SelectedFormattingOption == null
+            ? []
+            : GetPages(SelectedFormattingOption, SelectedStation?.IsFaaAtis ?? false);
+
+        FormattingPages = [.. pages.Select(p => new FormattingPage(p.Title, p.Index))];
+        SelectedFormattingPageItem = FormattingPages.FirstOrDefault();
+        SelectedFormattingPage = SelectedFormattingPageItem?.Index ?? 0;
+    }
+
     private void UpdateVisibilityFormatRulesPreview()
     {
         var rules = VisibilityFormatRules?.ToList();
@@ -2818,6 +2913,13 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 return;
             }
 
+            if (variable?.Replace("__", "_") == QfeElevationToken &&
+                focusedElement is TemplateVariableTextBox or TextArea)
+            {
+                _ = PromptForQfeElevation(focusedElement);
+                return;
+            }
+
             if (focusedElement is TemplateVariableTextBox focusedTextBox)
             {
                 // The raw runway condition is only meaningful in the text ATIS.
@@ -2836,6 +2938,55 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 focusedTextEditor.Caret.Offset = focusedTextEditor.Document.Text.Length;
             }
         }
+    }
+
+    // Asks for the field elevation and inserts the QFE variable with it, e.g. {qfe|328}.
+    private async Task PromptForQfeElevation(IInputElement target)
+    {
+        if (DialogOwner == null)
+        {
+            return;
+        }
+
+        var dialog = _windowFactory.CreateUserInputDialog();
+        if (dialog.DataContext is not UserInputDialogViewModel context)
+        {
+            return;
+        }
+
+        context.Title = "QFE Elevation";
+        context.Prompt = "Field elevation in feet:";
+        context.DialogResultChanged += (_, dialogResult) =>
+        {
+            if (dialogResult != DialogResult.Ok)
+            {
+                return;
+            }
+
+            context.ClearError();
+            if (!int.TryParse(context.UserValue?.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var elevation))
+            {
+                context.SetError("Enter the elevation as a whole number of feet (e.g. 328).");
+                return;
+            }
+
+            var text = $"{{qfe|{elevation}}}";
+            switch (target)
+            {
+                case TemplateVariableTextBox textBox:
+                    textBox.Text += text;
+                    textBox.CaretIndex = textBox.Text.Length;
+                    break;
+                case TextArea textArea:
+                    textArea.Document.Text += text;
+                    textArea.Caret.Offset = textArea.Document.Text.Length;
+                    break;
+            }
+
+            target.Focus();
+        };
+
+        await dialog.ShowDialog((Window)DialogOwner);
     }
 
     private void InsertIntoVisibilityFormatRuleCell(DataGrid grid, string? token)
