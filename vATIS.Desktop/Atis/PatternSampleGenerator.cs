@@ -207,7 +207,7 @@ public static class PatternSampleGenerator
                 case '\\':
                     return ParseEscape(inClass: false);
                 case '.':
-                    return new CharSet(s_letters, Negated: false);
+                    return new CharSet(s_letters, negated: false);
                 case '^' or '$':
                     return new Seq([]);
                 default:
@@ -343,15 +343,15 @@ public static class PatternSampleGenerator
             switch (c)
             {
                 case 'd':
-                    return new CharSet(s_digits, Negated: false);
+                    return new CharSet(s_digits, negated: false);
                 case 'D':
-                    return new CharSet(s_letters, Negated: false);
+                    return new CharSet(s_letters, negated: false);
                 case 'w':
-                    return new CharSet(s_word, Negated: false);
+                    return new CharSet(s_word, negated: false);
                 case 'W' or 's':
-                    return new CharSet(s_space, Negated: false);
+                    return new CharSet(s_space, negated: false);
                 case 'S':
-                    return new CharSet(s_letters, Negated: false);
+                    return new CharSet(s_letters, negated: false);
                 case 'n' or 't' or 'r':
                     return new Lit(' ');
                 case 'b' or 'B' or 'A' or 'Z' or 'z' or 'G' when !inClass:
@@ -438,22 +438,52 @@ public static class PatternSampleGenerator
         }
     }
 
-    private abstract record Node;
+    private abstract class Node;
 
-    private sealed record Seq(List<Node> Items) : Node;
-
-    private sealed record Alt(List<Node> Options) : Node;
-
-    private sealed record Lit(char Value) : Node;
-
-    private sealed record Repeat(Node Inner, int Min, int Max) : Node;
-
-    private sealed record Group(Node Inner, int? Index) : Node;
-
-    private sealed record BackReference(int Index, string? Name) : Node;
-
-    private sealed record CharSet((char Low, char High)[] Ranges, bool Negated) : Node
+    private sealed class Seq(List<Node> items) : Node
     {
+        public List<Node> Items { get; } = items;
+    }
+
+    private sealed class Alt(List<Node> options) : Node
+    {
+        public List<Node> Options { get; } = options;
+    }
+
+    private sealed class Lit(char value) : Node
+    {
+        public char Value { get; } = value;
+    }
+
+    private sealed class Repeat(Node inner, int min, int max) : Node
+    {
+        public Node Inner { get; } = inner;
+
+        public int Min { get; } = min;
+
+        public int Max { get; } = max;
+    }
+
+    private sealed class Group(Node inner, int? index) : Node
+    {
+        public Node Inner { get; } = inner;
+
+        public int? Index { get; } = index;
+    }
+
+    private sealed class BackReference(int index, string? name) : Node
+    {
+        public int Index { get; } = index;
+
+        public string? Name { get; } = name;
+    }
+
+    private sealed class CharSet((char Low, char High)[] ranges, bool negated) : Node
+    {
+        public (char Low, char High)[] Ranges { get; } = ranges;
+
+        public bool Negated { get; } = negated;
+
         public char Pick(Random random)
         {
             var candidates = new List<char>();
