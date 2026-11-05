@@ -597,7 +597,7 @@
 					</TabItem>
 					<TabItem Header="Fractions (Voice)" IsVisible="{Binding SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
 						<groupBox:GroupBoxControl Theme="{StaticResource GroupBoxSection}">
-							<DataGrid MaxHeight="230" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityFractionVoice, DataType=vm:FormattingViewModel}">
+							<DataGrid SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding VisibilityFractionVoice, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="VisibilityFractionVoice"/>
 								</Interaction.Behaviors>
