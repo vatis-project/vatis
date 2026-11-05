@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the sandbox ATIS continuing to play after the ATIS configuration window was closed.
 - Fixed a plus or minus sign from an external ATIS generator not being read as "plus" or "minus" when it was in a separate bracket from the digits (e.g., `+[3,]` or `-[3,]`), which caused a "missing clips" error with WAV voice packs.
 - Fixed the cloud height option on the Formatting tab saying "hundreds of feet" when it shows the height in feet.
+- Fixed the Text ATIS and Voice ATIS headers being hidden above the undetermined height fields on the Clouds Options tab, and listed the Text field first.
 
 ## v4.1.0-beta.22
 ### Fixed
