@@ -832,7 +832,7 @@
                                 <TextBlock FontWeight="SemiBold" Text="Units"/>
                                 <StackPanel Orientation="Horizontal" Spacing="30" Margin="15,0,0,0">
                                     <CheckBox Name="CloudToMetric" IsChecked="{Binding CloudsConvertToMetric, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}">Convert cloud layer altitude to metric</CheckBox>
-                                <CheckBox IsChecked="{Binding CloudHeightAltitudeInHundreds, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" IsEnabled="{Binding !#CloudToMetric.IsChecked}" ToolTip.Tip="Cloud height will displayed in hundreds of feet, for example FEW010 will be shown as FEW1000">Display cloud height in hundreds of feet in the text ATIS</CheckBox>
+                                <CheckBox IsChecked="{Binding CloudHeightAltitudeInHundreds, DataType=vm:FormattingViewModel}" Theme="{StaticResource CheckBox}" IsEnabled="{Binding !#CloudToMetric.IsChecked}" ToolTip.Tip="Cloud height will be displayed in feet instead of hundreds of feet, for example FEW010 will be shown as FEW1000">Display cloud height in feet in the text ATIS</CheckBox>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Spacing="6">
