@@ -295,7 +295,6 @@ public partial class AtisStationView : ReactiveUserControl<AtisStationViewModel>
         {
             var item = new MenuItem
             {
-
                 // A text block instead of a string, so underscores are shown as they are, and a long message wraps
                 // onto more lines instead of making the menu wider than the window.
                 Header = new TextBlock

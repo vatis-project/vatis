@@ -201,35 +201,6 @@ public class Visibility : BaseFormat, IJsonOnDeserialized
     }
 
     /// <summary>
-    /// Removes the text around {visibility} in the template from a former 9999 value, which replaced the whole
-    /// template, so that it can be used as the value of a rule instead.
-    /// </summary>
-    private static string StripTemplate(string? template, string value)
-    {
-        var index = template?.IndexOf("{visibility}", StringComparison.OrdinalIgnoreCase) ?? -1;
-        if (template == null || index < 0)
-        {
-            return value;
-        }
-
-        var prefix = template[..index].Trim();
-        var suffix = template[(index + "{visibility}".Length)..].Trim();
-        var result = value.Trim();
-
-        if (prefix.Length > 0 && result.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        {
-            result = result[prefix.Length..].TrimStart();
-        }
-
-        if (suffix.Length > 0 && result.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-        {
-            result = result[..^suffix.Length].TrimEnd();
-        }
-
-        return result;
-    }
-
-    /// <summary>
     /// Gets the spoken description of a compass direction.
     /// </summary>
     /// <param name="direction">The compass direction (e.g. N, NE).</param>
@@ -276,5 +247,34 @@ public class Visibility : BaseFormat, IJsonOnDeserialized
         var clone = (Visibility)MemberwiseClone();
         clone.FormatRules = [.. FormatRules];
         return clone;
+    }
+
+    /// <summary>
+    /// Removes the text around {visibility} in the template from a former 9999 value, which replaced the whole
+    /// template, so that it can be used as the value of a rule instead.
+    /// </summary>
+    private static string StripTemplate(string? template, string value)
+    {
+        var index = template?.IndexOf("{visibility}", StringComparison.OrdinalIgnoreCase) ?? -1;
+        if (template == null || index < 0)
+        {
+            return value;
+        }
+
+        var prefix = template[..index].Trim();
+        var suffix = template[(index + "{visibility}".Length)..].Trim();
+        var result = value.Trim();
+
+        if (prefix.Length > 0 && result.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            result = result[prefix.Length..].TrimStart();
+        }
+
+        if (suffix.Length > 0 && result.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+        {
+            result = result[..^suffix.Length].TrimEnd();
+        }
+
+        return result;
     }
 }

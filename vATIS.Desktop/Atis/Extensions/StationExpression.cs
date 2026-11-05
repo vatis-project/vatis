@@ -32,8 +32,6 @@ namespace Vatsim.Vatis.Atis.Extensions;
 /// </remarks>
 public sealed class StationExpression
 {
-    private delegate bool Matcher(IReadOnlyCollection<string> online, int minutes);
-
     private static readonly Regex s_timeRange = new(
         @"\G(\d{4})\s*[zZ]?\s*-\s*(\d{4})\s*[zZ]?(?![A-Za-z0-9_*])", RegexOptions.CultureInvariant);
 
@@ -47,6 +45,8 @@ public sealed class StationExpression
         HasTimeCondition = hasTimeCondition;
         HasCallsignCondition = hasCallsignCondition;
     }
+
+    private delegate bool Matcher(IReadOnlyCollection<string> online, int minutes);
 
     private enum TokenKind
     {
@@ -192,6 +192,36 @@ public sealed class StationExpression
         return (hours * 60) + minutes;
     }
 
+    private static Matcher Callsign(string pattern)
+    {
+        var regex = new Regex(
+            "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return (online, _) => online.Any(regex.IsMatch);
+    }
+
+    private static Matcher TimeRange(int start, int end)
+    {
+        return (_, minutes) => start < end
+            ? minutes >= start && minutes < end
+            : minutes >= start || minutes < end;
+    }
+
+    private static Matcher And(Matcher left, Matcher right)
+    {
+        return (online, minutes) => left(online, minutes) && right(online, minutes);
+    }
+
+    private static Matcher Or(Matcher left, Matcher right)
+    {
+        return (online, minutes) => left(online, minutes) || right(online, minutes);
+    }
+
+    private static Matcher Not(Matcher inner)
+    {
+        return (online, minutes) => !inner(online, minutes);
+    }
+
     private readonly record struct Token(TokenKind Kind, string Text, int Position, int Start = 0, int End = 0);
 
     private sealed class Parser(List<Token> tokens)
@@ -321,35 +351,5 @@ public sealed class StationExpression
             HasCallsignCondition = true;
             return Callsign(token.Text);
         }
-    }
-
-    private static Matcher Callsign(string pattern)
-    {
-        var regex = new Regex(
-            "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$",
-            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        return (online, _) => online.Any(regex.IsMatch);
-    }
-
-    private static Matcher TimeRange(int start, int end)
-    {
-        return (_, minutes) => start < end
-            ? minutes >= start && minutes < end
-            : minutes >= start || minutes < end;
-    }
-
-    private static Matcher And(Matcher left, Matcher right)
-    {
-        return (online, minutes) => left(online, minutes) && right(online, minutes);
-    }
-
-    private static Matcher Or(Matcher left, Matcher right)
-    {
-        return (online, minutes) => left(online, minutes) || right(online, minutes);
-    }
-
-    private static Matcher Not(Matcher inner)
-    {
-        return (online, minutes) => !inner(online, minutes);
     }
 }
