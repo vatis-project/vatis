@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed the help for the controllers and weather conditions in the static airport condition and NOTAM editor to open from an info icon next to each label instead of a tooltip over the text box, which could flicker.
 - Changed the "Online:" label under static airport conditions and NOTAMs in the message lists to "Controllers:", "Time:" or "Controllers and time:", depending on what the condition checks.
 - Redesigned the layout of the Formatting tab.
+- Changed the unsaved changes prompt when switching stations in the ATIS configuration window to offer saving the changes first, with a Cancel button.
 
 ### Fixed
 - Fixed the airport conditions and NOTAMs separator not being applied between the free text and the selectable messages. A period at the end of the free text is no longer needed and is dropped when the separator already supplies one.

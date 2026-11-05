@@ -96,16 +96,29 @@ public partial class AtisConfigurationWindow : ReactiveWindow<AtisConfigurationW
                 if (model.HasUnsavedChanges)
                 {
                     var result = await MessageBox.ShowDialog(this,
-                        "You have unsaved changes. Are you sure you want to discard them?",
+                        "You have unsaved changes. Would you like to save them first?",
                         "Confirm",
-                        MessageBoxButton.YesNo,
+                        MessageBoxButton.YesNoCancel,
                         MessageBoxIcon.Information);
 
-                    if (result == MessageBoxResult.No)
+                    if (result is MessageBoxResult.Cancel or MessageBoxResult.None)
                     {
                         RevertStationSelection();
                         e.Handled = true;
                         return;
+                    }
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        model.ApplyChangesCommand.Execute().Subscribe();
+
+                        // Stay on the station if the changes could not be applied.
+                        if (model.HasUnsavedChanges)
+                        {
+                            RevertStationSelection();
+                            e.Handled = true;
+                            return;
+                        }
                     }
 
                     model.HasUnsavedChanges = false;
