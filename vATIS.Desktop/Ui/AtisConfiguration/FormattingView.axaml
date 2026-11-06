@@ -1422,6 +1422,83 @@
 					</WrapPanel>
 				</Grid>
 			</Grid>
+            <!--Density Altitude-->
+            <Grid RowDefinitions="*" RowSpacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Density Altitude'}">
+				<Grid Grid.Row="0" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+					<Grid RowDefinitions="Auto,Auto" Grid.Row="0">
+						<TextBlock Text="Text:" VerticalAlignment="Center"/>
+						<controls:TemplateVariableTextBox Grid.Row="1" Text="{Binding DensityAltitudeText, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80" MaxHeight="180" Theme="{StaticResource DarkTextBox}"/>
+					</Grid>
+					<Grid RowDefinitions="Auto,Auto" Grid.Row="1">
+						<TextBlock Text="Voice:" VerticalAlignment="Center"/>
+						<controls:TemplateVariableTextBox Grid.Row="1" Text="{Binding DensityAltitudeVoice, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80" MaxHeight="180" Theme="{StaticResource DarkTextBox}"/>
+					</Grid>
+					<WrapPanel Grid.Row="2" Orientation="Horizontal" ItemSpacing="10" LineSpacing="6">
+						<Button
+							Theme="{StaticResource DarkVariable}"
+							ToolTip.Tip="The density altitude in feet."
+							Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+							CommandParameter="{Binding $self.Content}">
+							{altitude}
+						</Button>
+					</WrapPanel>
+					<StackPanel Grid.Row="3" Orientation="Vertical" Spacing="6">
+						<TextBlock TextWrapping="Wrap" Text="Set how the density altitude is written. The Text columns apply to the text ATIS and the Voice columns to the voice ATIS."/>
+						<Grid ColumnDefinitions="110,*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="2">
+							<TextBlock Grid.Row="0" Grid.Column="0" Foreground="#B4B4B4" Text="Style"/>
+							<TextBlock Grid.Row="0" Grid.Column="1" Foreground="#B4B4B4" Text="Text ATIS (1100)"/>
+							<TextBlock Grid.Row="0" Grid.Column="2" Foreground="#B4B4B4" Text="Voice ATIS (1100)"/>
+							<TextBlock Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Text="Default"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="1100"/>
+							<TextBlock Grid.Row="1" Grid.Column="2" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ONE ONE ZERO ZERO"/>
+							<TextBlock Grid.Row="2" Grid.Column="0" FontWeight="SemiBold" Text="Group"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ONE THOUSAND ONE HUNDRED"/>
+							<TextBlock Grid.Row="2" Grid.Column="2" FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ONE THOUSAND ONE HUNDRED"/>
+						</Grid>
+						<TextBlock TextWrapping="Wrap" Foreground="#B4B4B4" Text="The suffix is added after the value exactly as typed, so start it with a space if you want one (e.g. ' FT')."/>
+						<DataGrid MaxHeight="120" SelectionMode="Single" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding DensityAltitudeFormats, DataType=vm:FormattingViewModel}">
+							<Interaction.Behaviors>
+								<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="DensityAltitudeFormats"/>
+							</Interaction.Behaviors>
+							<DataGrid.Columns>
+								<DataGridTextColumn Header="Variable" Width="120" IsReadOnly="True" Binding="{Binding Key, DataType=models:VariableFormatMeta}"/>
+								<DataGridTemplateColumn Header="Text style" Width="110">
+									<DataGridTemplateColumn.CellTemplate>
+										<DataTemplate DataType="models:VariableFormatMeta">
+											<TextBlock Text="{Binding TextStyle}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+										</DataTemplate>
+									</DataGridTemplateColumn.CellTemplate>
+									<DataGridTemplateColumn.CellEditingTemplate>
+										<DataTemplate DataType="models:VariableFormatMeta">
+											<ComboBox Classes="Dark" HorizontalAlignment="Stretch" SelectedItem="{Binding TextStyle}">
+												<x:String>Default</x:String>
+												<x:String>Group</x:String>
+											</ComboBox>
+										</DataTemplate>
+									</DataGridTemplateColumn.CellEditingTemplate>
+								</DataGridTemplateColumn>
+								<DataGridTextColumn Header="Text suffix" Width="1*" Binding="{Binding TextSuffix, DataType=models:VariableFormatMeta}"/>
+								<DataGridTemplateColumn Header="Voice style" Width="110">
+									<DataGridTemplateColumn.CellTemplate>
+										<DataTemplate DataType="models:VariableFormatMeta">
+											<TextBlock Text="{Binding VoiceStyle}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+										</DataTemplate>
+									</DataGridTemplateColumn.CellTemplate>
+									<DataGridTemplateColumn.CellEditingTemplate>
+										<DataTemplate DataType="models:VariableFormatMeta">
+											<ComboBox Classes="Dark" HorizontalAlignment="Stretch" SelectedItem="{Binding VoiceStyle}">
+												<x:String>Default</x:String>
+												<x:String>Group</x:String>
+											</ComboBox>
+										</DataTemplate>
+									</DataGridTemplateColumn.CellEditingTemplate>
+								</DataGridTemplateColumn>
+								<DataGridTextColumn Header="Voice suffix" Width="1*" Binding="{Binding VoiceSuffix, DataType=models:VariableFormatMeta}"/>
+							</DataGrid.Columns>
+						</DataGrid>
+					</StackPanel>
+				</Grid>
+			</Grid>
             <!--Automatic Observation-->
             <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Automatic Observation'}">
 				<TextBlock Grid.Row="0" TextWrapping="Wrap" Text="Used by the [AUTO] variable. Only output when the METAR is flagged AUTO."/>
