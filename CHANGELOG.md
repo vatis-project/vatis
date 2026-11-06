@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added a `[DENSITY_ALT]` variable and a Density Altitude formatting tab for non-FAA stations to read the density altitude from the METAR remarks (e.g., `RMK DENSITY ALT 1100FT`).
+
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
 

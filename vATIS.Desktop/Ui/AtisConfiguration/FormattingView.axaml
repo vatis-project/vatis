@@ -1422,6 +1422,28 @@
 					</WrapPanel>
 				</Grid>
 			</Grid>
+            <!--Density Altitude-->
+            <Grid RowDefinitions="*" RowSpacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Density Altitude'}">
+				<Grid Grid.Row="0" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+					<Grid RowDefinitions="Auto,Auto" Grid.Row="0">
+						<TextBlock Text="Text:" VerticalAlignment="Center"/>
+						<controls:TemplateVariableTextBox Grid.Row="1" Text="{Binding DensityAltitudeText, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80" MaxHeight="180" Theme="{StaticResource DarkTextBox}"/>
+					</Grid>
+					<Grid RowDefinitions="Auto,Auto" Grid.Row="1">
+						<TextBlock Text="Voice:" VerticalAlignment="Center"/>
+						<controls:TemplateVariableTextBox Grid.Row="1" Text="{Binding DensityAltitudeVoice, DataType=vm:FormattingViewModel}" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80" MaxHeight="180" Theme="{StaticResource DarkTextBox}"/>
+					</Grid>
+					<WrapPanel Grid.Row="2" Orientation="Horizontal" ItemSpacing="10" LineSpacing="6">
+						<Button
+							Theme="{StaticResource DarkVariable}"
+							ToolTip.Tip="The density altitude in feet."
+							Command="{Binding TemplateVariableClicked, DataType=vm:FormattingViewModel}"
+							CommandParameter="{Binding $self.Content}">
+							{altitude}
+						</Button>
+					</WrapPanel>
+				</Grid>
+			</Grid>
             <!--Automatic Observation-->
             <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="10" IsVisible="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel, Converter={StaticResource StringToBoolConverter}, ConverterParameter='Automatic Observation'}">
 				<TextBlock Grid.Row="0" TextWrapping="Wrap" Text="Used by the [AUTO] variable. Only output when the METAR is flagged AUTO."/>

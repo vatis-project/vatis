@@ -127,6 +127,7 @@ public class MetarDecoder
         if (remarksIndex >= 0)
         {
             decodedMetar.RemarkWind = ParseRemarkWind(cleanMetar[remarksIndex..]);
+            decodedMetar.DensityAltitudeFeet = ParseDensityAltitude(cleanMetar[remarksIndex..]);
         }
 
         var withCavok = false;
@@ -207,6 +208,12 @@ public class MetarDecoder
             Speed = int.Parse(match.Groups["speed"].Value),
             Gust = match.Groups["gust"].Success ? int.Parse(match.Groups["gust"].Value) : null,
         };
+    }
+
+    private static int? ParseDensityAltitude(string remarks)
+    {
+        var match = Regex.Match(remarks, @"\bDENSITY ALT(?:ITUDE)? (?<alt>-?\d{1,5}) ?FT\b");
+        return match.Success ? int.Parse(match.Groups["alt"].Value) : null;
     }
 
     private static Dictionary<string, object> TryParsing(IMetarChunkDecoder chunkDecoder, bool strict,

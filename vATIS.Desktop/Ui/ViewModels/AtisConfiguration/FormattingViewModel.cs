@@ -133,6 +133,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _runwayConditionVoice;
     private string? _remarkWindText;
     private string? _remarkWindVoice;
+    private string? _densityAltitudeText;
+    private string? _densityAltitudeVoice;
     private string? _autoObservationText;
     private string? _autoObservationVoice;
     private string? _runwayWindShearText;
@@ -1333,6 +1335,32 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the text template for the density altitude.
+    /// </summary>
+    public string? DensityAltitudeText
+    {
+        get => _densityAltitudeText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeText, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the density altitude.
+    /// </summary>
+    public string? DensityAltitudeVoice
+    {
+        get => _densityAltitudeVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeVoice, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeVoice), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the text template for the automatic observation.
     /// </summary>
     public string? AutoObservationText
@@ -2218,6 +2246,16 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.RemarkWind.VoiceTemplate = RemarkWindVoice;
         }
 
+        if (SelectedStation.AtisFormat.DensityAltitude.TextTemplate != DensityAltitudeText)
+        {
+            SelectedStation.AtisFormat.DensityAltitude.TextTemplate = DensityAltitudeText;
+        }
+
+        if (SelectedStation.AtisFormat.DensityAltitude.VoiceTemplate != DensityAltitudeVoice)
+        {
+            SelectedStation.AtisFormat.DensityAltitude.VoiceTemplate = DensityAltitudeVoice;
+        }
+
         if (SelectedStation.AtisFormat.AutoObservation.TextTemplate != AutoObservationText)
         {
             SelectedStation.AtisFormat.AutoObservation.TextTemplate = AutoObservationText;
@@ -2402,6 +2440,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             items.Add("Wind Shear");
             items.Add("Runway Condition");
             items.Add("Remark Wind");
+            items.Add("Density Altitude");
             items.Add("Trend Forecast");
             items.Add("Transition Level");
         }
@@ -2524,6 +2563,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(RunwayConditionTerms), RunwayConditionTerms.ToList());
         RemarkWindText = station.AtisFormat.RemarkWind.TextTemplate;
         RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
+        DensityAltitudeText = station.AtisFormat.DensityAltitude.TextTemplate;
+        DensityAltitudeVoice = station.AtisFormat.DensityAltitude.VoiceTemplate;
         AutoObservationText = station.AtisFormat.AutoObservation.TextTemplate;
         AutoObservationVoice = station.AtisFormat.AutoObservation.VoiceTemplate;
         RunwayWindShearText = station.AtisFormat.WindShear.RunwayText;
