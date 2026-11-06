@@ -444,7 +444,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 Altimeter = sync.Dto.Altimeter;
                 Metar = sync.Dto.Metar;
                 ObservationTime = _decodedMetar?.Time.Replace(":", "");
-                AtisStation.TextAtis = sync.Dto.TextAtis;
+                TextAtis = sync.Dto.TextAtis;
                 NetworkConnectionStatus = sync.Dto.IsOnline
                     ? NetworkConnectionStatus.Observer
                     : NetworkConnectionStatus.Disconnected;
@@ -496,7 +496,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                     ObservationTime = null;
                     NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
                     IsNewAtis = false;
-                    AtisStation.TextAtis = null;
+                    TextAtis = null;
 
                     // Clear Airport Conditions and NOTAMs
                     if (AirportConditionsTextDocument != null)
@@ -675,6 +675,23 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     {
         get => _atisLetter;
         set => this.RaiseAndSetIfChanged(ref _atisLetter, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the current text ATIS. Writes through to the station and raises change notification
+    /// so bindings (e.g. the mini-window tooltip) stay current.
+    /// </summary>
+    public string? TextAtis
+    {
+        get => AtisStation.TextAtis;
+        set
+        {
+            if (AtisStation.TextAtis == value)
+                return;
+
+            AtisStation.TextAtis = value;
+            this.RaisePropertyChanged();
+        }
     }
 
     /// <summary>
@@ -1569,7 +1586,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
                         try
                         {
-                            AtisStation.TextAtis = textAtis;
+                            TextAtis = textAtis;
                             AtisStation.AtisLetter = AtisLetter;
 
                             // Publish the ATIS to the hub
@@ -2715,7 +2732,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                     _decodedMetar, cancelToken);
 
                 // Sets the textual ATIS
-                AtisStation.TextAtis = textAtis?.ToUpperInvariant();
+                TextAtis = textAtis?.ToUpperInvariant();
 
                 // Sets the ATIS letter
                 AtisStation.AtisLetter = AtisLetter;
