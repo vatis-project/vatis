@@ -21,6 +21,11 @@ public class DensityAltitude : BaseFormat
     public string? VoiceTemplate { get; set; } = "Density altitude {altitude} feet";
 
     /// <summary>
+    /// Gets or sets how the <c>{altitude}</c> variable is written in the text and voice ATIS.
+    /// </summary>
+    public VariableFormat Format { get; set; } = new();
+
+    /// <summary>
     /// Creates a new instance of <see cref="DensityAltitude"/> that is a copy of the current instance.
     /// </summary>
     /// <returns>A new <see cref="DensityAltitude"/> instance that is a copy of this instance.</returns>
