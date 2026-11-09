@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Fixed
+- Fixed the update flash on an ATIS published by another controller appearing a second time after it was acknowledged, when the new METAR and the new letter arrived separately.
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
 
 ## v4.1.0-beta.23
