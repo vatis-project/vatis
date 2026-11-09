@@ -150,6 +150,10 @@ public partial class MiniWindow : ReactiveWindow<MiniWindowViewModel>, ICloseabl
         }
 
         _rightEdge = x + width;
+
+        // Save again now that the new width is known, so the position can be restored by its right edge.
+        if (Math.Abs(newWidth - oldWidth) >= 0.5)
+            ViewModel?.UpdatePosition(this);
     }
 
     // Position and screen bounds are in device pixels, except on macOS where they are in points.

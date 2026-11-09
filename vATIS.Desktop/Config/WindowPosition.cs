@@ -10,4 +10,5 @@ namespace Vatsim.Vatis.Config;
 /// </summary>
 /// <param name="X">The horizontal position of the window.</param>
 /// <param name="Y">The vertical position of the window.</param>
-public record WindowPosition(int X, int Y);
+/// <param name="Width">The window width in pixels when saved, if tracked.</param>
+public record WindowPosition(int X, int Y, int? Width = null);
