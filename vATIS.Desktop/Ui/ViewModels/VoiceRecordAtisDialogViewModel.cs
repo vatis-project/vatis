@@ -19,6 +19,7 @@ using Avalonia.Threading;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using ReactiveUI;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -283,9 +284,12 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets the script currently displayed for reading aloud.
+    /// Gets the script currently displayed for reading aloud. The voice script shows numbers, runways and letters
+    /// as digits and letters instead of spoken words.
     /// </summary>
-    public string? AtisScript => _showVoiceScript && HasVoiceScript ? _voiceScript : _textScript;
+    public string? AtisScript => _showVoiceScript && HasVoiceScript
+        ? SpokenTextDigitsConverter.Convert(_voiceScript!)
+        : _textScript;
 
     /// <summary>
     /// Gets the document displaying the current <see cref="AtisScript"/>.
