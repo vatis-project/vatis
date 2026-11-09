@@ -27,6 +27,9 @@ public class SpokenTextDigitsConverterTests
         Assert.Equal("RUNWAY 28R", SpokenTextDigitsConverter.Convert("RUNWAY TWO EIGHT RIGHT"));
         Assert.Equal("CONTACT 121.7", SpokenTextDigitsConverter.Convert("CONTACT ONE TWO ONE DECIMAL SEVEN"));
         Assert.Equal("TAXIWAY A", SpokenTextDigitsConverter.Convert("TAXIWAY ALPHA"));
+        Assert.Equal("20000 SCATTERED", SpokenTextDigitsConverter.Convert("TWO ZERO THOUSAND SCATTERED"));
+        Assert.Equal("12500 BROKEN", SpokenTextDigitsConverter.Convert("ONE TWO THOUSAND FIVE HUNDRED BROKEN"));
+        Assert.Equal("SKY CLEAR BELOW one-two thousand", SpokenTextDigitsConverter.Convert("SKY CLEAR BELOW one-two thousand"));
         Assert.Equal("3000 BROKEN", SpokenTextDigitsConverter.Convert("THREE THOUSAND BROKEN"));
     }
 }

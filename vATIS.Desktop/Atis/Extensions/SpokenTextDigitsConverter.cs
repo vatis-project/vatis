@@ -19,6 +19,10 @@ public static class SpokenTextDigitsConverter
     private const string DigitWord = @"(?:zero|one|two|three|four|five|six|seven|eight|niner|nine)";
     private const string DigitRun = $@"{DigitWord}(?:\s+{DigitWord})*";
 
+    // Word boundaries that also reject a hyphen, so "one-two thousand" is left alone.
+    private const string Start = @"(?<![\w-])";
+    private const string End = @"(?![\w-])";
+
     private static readonly Dictionary<string, char> s_digits = new(System.StringComparer.OrdinalIgnoreCase)
     {
         ["zero"] = '0',
@@ -44,12 +48,12 @@ public static class SpokenTextDigitsConverter
     };
 
     private static readonly Regex s_thousands = new(
-        $@"\b({DigitWord})\s+thousand(?:\s+({DigitWord})\s+hundred)?\b", RegexOptions.IgnoreCase);
+        $@"{Start}({DigitRun})\s+thousand(?:\s+({DigitWord})\s+hundred)?{End}", RegexOptions.IgnoreCase);
 
-    private static readonly Regex s_hundreds = new($@"\b({DigitWord})\s+hundred\b", RegexOptions.IgnoreCase);
+    private static readonly Regex s_hundreds = new($@"{Start}({DigitWord})\s+hundred{End}", RegexOptions.IgnoreCase);
 
     private static readonly Regex s_numbers = new(
-        $@"\b({DigitRun})(?:\s+(?:decimal|point)\s+({DigitRun}))?\b", RegexOptions.IgnoreCase);
+        $@"{Start}({DigitRun})(?:\s+(?:decimal|point)\s+({DigitRun}))?{End}", RegexOptions.IgnoreCase);
 
     private static readonly Regex s_runwaySide = new(@"(?<=\d)\s+(left|right|center)\b", RegexOptions.IgnoreCase);
 
@@ -68,7 +72,8 @@ public static class SpokenTextDigitsConverter
         // Group form first: "four thousand two hundred" -> 4200.
         script = s_thousands.Replace(script, m =>
         {
-            var value = Digit(m.Groups[1].Value) * 1000;
+            // "two zero thousand" -> 20000, "four thousand two hundred" -> 4200.
+            var value = long.Parse(ToDigits(m.Groups[1].Value), CultureInfo.InvariantCulture) * 1000;
             if (m.Groups[2].Success)
             {
                 value += Digit(m.Groups[2].Value) * 100;
