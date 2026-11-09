@@ -46,6 +46,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     private string? _textScript;
     private string? _voiceScript;
     private bool _showVoiceScript;
+    private bool _useDigits = true;
     private TextDocument _scriptDocument = new();
     private bool _isPlaybackEnabled;
     private bool _isPreviousRecording;
@@ -284,12 +285,25 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets the script currently displayed for reading aloud. The voice script shows numbers, runways and letters
-    /// as digits and letters instead of spoken words.
+    /// Gets the script currently displayed for reading aloud.
     /// </summary>
     public string? AtisScript => _showVoiceScript && HasVoiceScript
-        ? SpokenTextDigitsConverter.Convert(_voiceScript!)
+        ? _useDigits ? SpokenTextDigitsConverter.Convert(_voiceScript!) : _voiceScript
         : _textScript;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the voice script shows numbers, runways and letters as digits
+    /// and letters instead of spoken words.
+    /// </summary>
+    public bool UseDigits
+    {
+        get => _useDigits;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useDigits, value);
+            OnAtisScriptChanged();
+        }
+    }
 
     /// <summary>
     /// Gets the document displaying the current <see cref="AtisScript"/>.

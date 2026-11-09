@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Added numbers, runways and letters shown as digits and letters in the Voice script of the Record ATIS dialog (e.g., "wind 090 at 8" instead of "wind zero niner zero at eight"), which is easier to read aloud.
+- Added a Words/Digits switch next to the Voice switch in the Record ATIS dialog to show numbers, runways and letters in the voice script as digits and letters (e.g., "wind 090 at 8" instead of "wind zero niner zero at eight"). It defaults to Digits.
 
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
