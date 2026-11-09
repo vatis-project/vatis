@@ -216,6 +216,11 @@ public class DecodedMetar
     public RemarkWind? RemarkWind { get; set; }
 
     /// <summary>
+    /// Gets or sets the density altitude in feet reported in the remarks (e.g. <c>RMK DENSITY ALT 1100FT</c>).
+    /// </summary>
+    public int? DensityAltitudeFeet { get; set; }
+
+    /// <summary>
     /// Gets or sets the trend forecast information.
     /// </summary>
     public TrendForecast? TrendForecast { get; set; }

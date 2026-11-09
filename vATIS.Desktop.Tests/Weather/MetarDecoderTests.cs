@@ -56,6 +56,23 @@ public class MetarDecoderTests
     }
 
     [Fact]
+    public void Parse_DensityAltitude_DecodesAltitude()
+    {
+        var metar = _decoder.ParseNotStrict(
+            "CYHM 052100Z 24010G16KT 15SM FEW030 BKN038 BKN045 14/08 A2975 RMK CF1SC6SC1 CF TR SLP078 DENSITY ALT 1100FT");
+
+        Assert.Equal(1100, metar.DensityAltitudeFeet);
+    }
+
+    [Fact]
+    public void Parse_NoDensityAltitude_IsNull()
+    {
+        var metar = _decoder.ParseNotStrict("CYHM 052100Z 24010KT 15SM FEW030 14/08 A2975 RMK SLP078");
+
+        Assert.Null(metar.DensityAltitudeFeet);
+    }
+
+    [Fact]
     public void Parse_RunwayCondition_DecodesWetWithFriction()
     {
         var metar = _decoder.ParseNotStrict(
