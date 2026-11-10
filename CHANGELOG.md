@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Fixed
+- Fixed the mini window shifting left after restoring it from the main window when a voice ATIS recording indicator had appeared or cleared in the meantime.
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
 - Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.
 
