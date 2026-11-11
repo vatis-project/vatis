@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Added "Record Airport Conditions..." and "Record NOTAMs..." items to their context menus on the ATIS view. A recording is spliced into the voice ATIS in place of the text-to-speech or WAV voice pack audio for that section, is reused when the ATIS letter changes, and is discarded when the text changes or the station disconnects.
+- Added "Record Airport Conditions..." and "Record NOTAMs..." items to their context menus on the ATIS view and in the sandbox. A recording is spliced into the voice ATIS in place of the text-to-speech or WAV voice pack audio for that section, is reused when the ATIS letter changes, and is discarded when the text changes or the station disconnects.
 
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.

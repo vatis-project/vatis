@@ -55,6 +55,7 @@
 			<Grid RowDefinitions="Auto,*" Grid.Column="0">
 				<StackPanel Orientation="Horizontal" Spacing="5">
 					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:SandboxViewModel}">AIRPORT CONDITIONS</Button>
+					<TextBlock Text="RECORDED" FontSize="11" Foreground="#FCBA03" VerticalAlignment="Center" Margin="0,0,0,5" IsVisible="{Binding HasRecordedAirportConditions, DataType=vm:SandboxViewModel}"/>
 					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedAirportConditions, DataType=vm:SandboxViewModel, FallbackValue=False}" Command="{Binding SaveAirportConditionsTextCommand, DataType=vm:SandboxViewModel}">*SAVE CHANGES*</Button>
 				</StackPanel>
 				<editor:TextEditor Name="AirportConditions" Grid.Row="1" MinHeight="60" Padding="4" Document="{Binding AirportConditionsTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" TextChanged="AirportConditions_OnTextChanged">
@@ -63,11 +64,18 @@
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:SandboxViewModel}"/>
 						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
+					<editor:TextEditor.ContextMenu>
+						<ContextMenu>
+							<MenuItem Header="Record Airport Conditions..." ToolTip.Tip="Record the airport conditions yourself instead of using the synthesized or stitched voice." Command="{Binding RecordAirportConditionsCommand, DataType=vm:SandboxViewModel}"/>
+							<MenuItem Header="Clear Recording" IsVisible="{Binding HasRecordedAirportConditions, DataType=vm:SandboxViewModel}" Command="{Binding ClearRecordedAirportConditionsCommand, DataType=vm:SandboxViewModel}"/>
+						</ContextMenu>
+					</editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
 			</Grid>
 			<Grid RowDefinitions="Auto,*" Grid.Column="2">
 				<StackPanel Orientation="Horizontal" Spacing="5">
 					<Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:SandboxViewModel}">NOTAMS</Button>
+					<TextBlock Text="RECORDED" FontSize="11" Foreground="#FCBA03" VerticalAlignment="Center" Margin="0,0,0,5" IsVisible="{Binding HasRecordedNotams, DataType=vm:SandboxViewModel}"/>
 					<Button Theme="{StaticResource HyperlinkButtonSave}" FontFamily="{StaticResource Monospace}" FontWeight="Bold" IsVisible="{Binding HasUnsavedNotams, DataType=vm:SandboxViewModel, FallbackValue=False}" Command="{Binding SaveNotamsTextCommand, DataType=vm:SandboxViewModel}">*SAVE CHANGES*</Button>
 				</StackPanel>
 				<editor:TextEditor Name="NotamFreeText" Grid.Row="1" MinHeight="60" Padding="4" Document="{Binding NotamsTextDocument, DataType=vm:SandboxViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" TextChanged="NotamFreeText_OnTextChanged">
@@ -76,6 +84,12 @@
 						<behaviors:TextEditorCompletionBehavior CompletionData="{Binding ContractionCompletionData, DataType=vm:SandboxViewModel}"/>
 						<behaviors:TextEditorSpokenTextBehavior/>
 					</Interaction.Behaviors>
+					<editor:TextEditor.ContextMenu>
+						<ContextMenu>
+							<MenuItem Header="Record NOTAMs..." ToolTip.Tip="Record the NOTAMs yourself instead of using the synthesized or stitched voice." Command="{Binding RecordNotamsCommand, DataType=vm:SandboxViewModel}"/>
+							<MenuItem Header="Clear Recording" IsVisible="{Binding HasRecordedNotams, DataType=vm:SandboxViewModel}" Command="{Binding ClearRecordedNotamsCommand, DataType=vm:SandboxViewModel}"/>
+						</ContextMenu>
+					</editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
 			</Grid>
 		</Grid>
