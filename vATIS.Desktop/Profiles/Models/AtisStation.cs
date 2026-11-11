@@ -102,6 +102,12 @@ public class AtisStation : ReactiveObject
     public bool RandomizeAtisLetterOnConnect { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether this station's letter stays half a code range away from the
+    /// letter of the departure/arrival station at the same airport.
+    /// </summary>
+    public bool LinkAtisLetters { get; set; }
+
+    /// <summary>
     /// Gets or sets the metadata related to the ATIS voice configuration.
     /// </summary>
     public AtisVoiceMeta AtisVoice { get; set; } = new();
@@ -309,6 +315,7 @@ public class AtisStation : ReactiveObject
             CustomMetarUrl = CustomMetarUrl,
             UseDecimalTerminology = UseDecimalTerminology,
             RandomizeAtisLetterOnConnect = RandomizeAtisLetterOnConnect,
+            LinkAtisLetters = LinkAtisLetters,
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),
             Contractions = Contractions.Select(x => x.Clone()).ToList(),
