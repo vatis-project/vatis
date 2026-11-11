@@ -6,6 +6,9 @@
 using System;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
+using Avalonia.Threading;
+using Serilog;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Profiles.Models;
@@ -42,7 +45,9 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
 
         _disposables.Add(EventBus.Instance.Subscribe<MetarReceived>(evt =>
         {
-            if (evt.Metar.Icao == station.Identifier)
+            // Every station at the airport hears the METAR another station downloads. One that isn't connected
+            // must not remember it, or it would treat that METAR as already delivered when it does connect.
+            if (IsConnected && evt.Metar.Icao == station.Identifier)
             {
                 var isNewMetar = !string.IsNullOrEmpty(_previousMetar) &&
                                  evt.Metar.RawMetar?.Trim() != _previousMetar?.Trim();
@@ -95,10 +100,11 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
     /// <inheritdoc />
     public Task Connect(string? serverAddress)
     {
-        _metarRepository.GetMetar(Station.Identifier, monitor: true, customUrl: Station.CustomMetarUrl);
-
+        _previousMetar = null;
         NetworkConnected?.Invoke(this, EventArgs.Empty);
         IsConnected = true;
+
+        RequestMetarAsync().SafeFireAndForget(onException: ex => Log.Error(ex, "Failed to request METAR"));
 
         return Task.CompletedTask;
     }
@@ -129,5 +135,27 @@ public class MockNetworkConnection : INetworkConnection, IDisposable
     {
         _disposables.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private async Task RequestMetarAsync()
+    {
+        var metar = await _metarRepository.GetMetar(Station.Identifier, monitor: true,
+            customUrl: Station.CustomMetarUrl);
+
+        // The repository only publishes a METAR it has just downloaded. When another station at the same airport
+        // already cached it, nothing is published, so hand it over here. A freshly published one has already been
+        // delivered by the subscription above, which the previous METAR check skips. This is queued on the UI
+        // thread so it lands after the station has processed NetworkConnected, which it ignores METARs before.
+        if (metar?.RawMetar == null)
+            return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_previousMetar == metar.RawMetar)
+                return;
+
+            MetarResponseReceived?.Invoke(this, new MetarResponseReceived(metar, false));
+            _previousMetar = metar.RawMetar;
+        });
     }
 }
