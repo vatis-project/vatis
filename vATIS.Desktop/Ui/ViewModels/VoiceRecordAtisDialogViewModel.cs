@@ -32,7 +32,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
-    private static readonly TimeSpan MinimumRecordingDuration = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan DefaultMinimumRecordingDuration = TimeSpan.FromSeconds(5);
     private readonly CompositeDisposable _disposables = new();
     private readonly IWindowLocationService _windowLocationService;
     private readonly Stopwatch _recordingStopwatch;
@@ -236,6 +236,23 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         get => _scriptLoadError;
         set => this.RaiseAndSetIfChanged(ref _scriptLoadError, value);
     }
+
+    /// <summary>
+    /// Gets or sets the shortest recording that can be saved. A full ATIS needs at least five seconds, but a
+    /// single NOTAM or airport condition can be much shorter.
+    /// </summary>
+    public TimeSpan MinimumRecordingDuration { get; set; } = DefaultMinimumRecordingDuration;
+
+    /// <summary>
+    /// Gets the warning shown when the recording is shorter than <see cref="MinimumRecordingDuration"/>.
+    /// </summary>
+    public string MinimumDurationMessage =>
+        $"Recording must be at least {MinimumRecordingDuration.TotalSeconds:0.#} seconds to save.";
+
+    /// <summary>
+    /// Gets or sets the heading shown above the script.
+    /// </summary>
+    public string ScriptHeader { get; set; } = "ATIS Script:";
 
     /// <summary>
     /// Gets or sets the text ATIS script.

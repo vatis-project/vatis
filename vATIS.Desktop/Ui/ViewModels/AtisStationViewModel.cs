@@ -128,6 +128,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private bool _useTexToSpeech;
     private RecordedAtisState _recordedAtisState = RecordedAtisState.Disconnected;
     private byte[]? _lastRecordedAtisAudio;
+    private RecordedSection? _recordedAirportConditions;
+    private RecordedSection? _recordedNotams;
     private NetworkConnectionStatus _networkConnectionStatus = NetworkConnectionStatus.Disconnected;
     private List<ICompletionData> _contractionCompletionData = [];
     private bool _hasUnsavedAirportConditions;
@@ -233,6 +235,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
         OpenStaticAirportConditionsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenAirportConditionsDialog);
         OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
+        RecordAirportConditionsCommand = ReactiveCommand.CreateFromTask(() => HandleRecordSection(notams: false));
+        RecordNotamsCommand = ReactiveCommand.CreateFromTask(() => HandleRecordSection(notams: true));
+        ClearRecordedAirportConditionsCommand = ReactiveCommand.CreateFromTask(() => HandleClearRecordedSection(false));
+        ClearRecordedNotamsCommand = ReactiveCommand.CreateFromTask(() => HandleClearRecordedSection(true));
         var isConnected = this.WhenAnyValue(x => x.NetworkConnectionStatus)
             .Select(status => status == NetworkConnectionStatus.Connected);
         OverrideMetarCommand = ReactiveCommand.Create(HandleOverrideMetar, isConnected);
@@ -604,6 +610,42 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     /// Gets the command for opening the static NOTAMs dialog.
     /// </summary>
     public ReactiveCommand<Unit, Unit> OpenStaticNotamsDialogCommand { get; }
+
+    /// <summary>
+    /// Gets the command to record the airport conditions.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RecordAirportConditionsCommand { get; }
+
+    /// <summary>
+    /// Gets the command to record the NOTAMs.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RecordNotamsCommand { get; }
+
+    /// <summary>
+    /// Gets the command to discard the airport conditions recording.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ClearRecordedAirportConditionsCommand { get; }
+
+    /// <summary>
+    /// Gets the command to discard the NOTAMs recording.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ClearRecordedNotamsCommand { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the airport conditions or NOTAMs can be recorded by hand.
+    /// They are spliced into the synthesized or stitched voice ATIS, so the station must build its own audio.
+    /// </summary>
+    public bool CanRecordSections => AtisStation.AtisVoice.IsAutomatic;
+
+    /// <summary>
+    /// Gets a value indicating whether a recording is replacing the spoken airport conditions.
+    /// </summary>
+    public bool HasRecordedAirportConditions => _recordedAirportConditions != null;
+
+    /// <summary>
+    /// Gets a value indicating whether a recording is replacing the spoken NOTAMs.
+    /// </summary>
+    public bool HasRecordedNotams => _recordedNotams != null;
 
     /// <summary>
     /// Gets the command that prompts for a METAR to use in place of the one received from the network.
@@ -992,6 +1034,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         NetworkConnectionStatus = NetworkConnectionStatus.Disconnected;
         RecordedAtisState = RecordedAtisState.Disconnected;
         _lastRecordedAtisAudio = null;
+
+        // Section recordings only last for the session.
+        SetRecordedSection(notams: false, null);
+        SetRecordedSection(notams: true, null);
     }
 
     /// <summary>
@@ -1485,6 +1531,130 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         });
     }
 
+    private void RestoreMainWindowForDialog(IClassicDesktopStyleApplicationLifetime lifetime)
+    {
+        // The dialog needs a visible owner, so leave the mini window and restore the main window first.
+        if (lifetime.MainWindow == null || lifetime.MainWindow.IsVisible)
+            return;
+
+        foreach (var miniWindow in lifetime.Windows.OfType<Ui.Windows.MiniWindow>().ToList())
+        {
+            miniWindow.Close();
+        }
+
+        lifetime.MainWindow.Show();
+    }
+
+    private void SetRecordedSection(bool notams, RecordedSection? section)
+    {
+        if (notams)
+        {
+            _recordedNotams = section;
+            this.RaisePropertyChanged(nameof(HasRecordedNotams));
+        }
+        else
+        {
+            _recordedAirportConditions = section;
+            this.RaisePropertyChanged(nameof(HasRecordedAirportConditions));
+        }
+    }
+
+    private async Task HandleClearRecordedSection(bool notams)
+    {
+        SetRecordedSection(notams, null);
+        await RequestVoiceAtis(CancellationToken.None);
+    }
+
+    private async Task HandleRecordSection(bool notams)
+    {
+        try
+        {
+            if (SelectedAtisPreset == null || _decodedMetar == null)
+                return;
+
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime ||
+                lifetime.MainWindow == null)
+            {
+                return;
+            }
+
+            // Typed text only reaches the preset after a short delay, so apply it now.
+            if (notams)
+                ApplyNotams(saveToProfile: false);
+            else
+                ApplyAirportConditions(saveToProfile: false);
+
+            var name = notams ? "NOTAMs" : "airport conditions";
+            var sections = await _atisBuilder.BuildVoiceSectionText(AtisStation, SelectedAtisPreset, AtisLetter,
+                _decodedMetar, CancellationToken.None);
+            var spoken = notams ? sections.Notams : sections.AirportConditions;
+            if (string.IsNullOrWhiteSpace(spoken))
+            {
+                NotificationManager?.Show(new Notification("Nothing to record", $"There are no {name} to record."),
+                    NotificationType.Information);
+                return;
+            }
+
+            RestoreMainWindowForDialog(lifetime);
+
+            var window = _windowFactory.CreateVoiceRecordAtisDialog();
+            if (window.DataContext is not VoiceRecordAtisDialogViewModel vm)
+                return;
+
+            vm.SpokenTextSource = this;
+            vm.ScriptHeader = notams ? "NOTAMs Script:" : "Airport Conditions Script:";
+            vm.MinimumRecordingDuration = TimeSpan.Zero;
+            vm.TextScript = spoken;
+            window.Topmost = lifetime.MainWindow!.Topmost;
+
+            var existing = notams ? _recordedNotams : _recordedAirportConditions;
+            if (existing != null)
+            {
+                vm.SetPreviousRecording(existing.Pcm);
+            }
+
+            if (!await window.ShowDialog<bool>(lifetime.MainWindow) || vm.AudioBuffer.Length == 0)
+                return;
+
+            SetRecordedSection(notams, new RecordedSection(vm.AudioBuffer, spoken));
+            await RequestVoiceAtis(CancellationToken.None);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "HandleRecordSection Exception");
+            NotificationManager?.Show(new Notification("Record Error", e.Message), NotificationType.Error);
+        }
+    }
+
+    /// <summary>
+    /// Gets the recordings that still match what the ATIS would say, dropping any that no longer do.
+    /// </summary>
+    private async Task<VoiceSectionRecordings?> GetCurrentSectionRecordings(CancellationToken cancellationToken)
+    {
+        if (_recordedAirportConditions == null && _recordedNotams == null)
+            return null;
+
+        var sections = await _atisBuilder.BuildVoiceSectionText(AtisStation, SelectedAtisPreset!, AtisLetter,
+            _decodedMetar!, cancellationToken);
+
+        // A changed section no longer matches its recording, so discard it.
+        if (_recordedAirportConditions != null && _recordedAirportConditions.SpokenText != sections.AirportConditions)
+        {
+            Dispatcher.UIThread.Post(() => SetRecordedSection(notams: false, null));
+            _recordedAirportConditions = null;
+        }
+
+        if (_recordedNotams != null && _recordedNotams.SpokenText != sections.Notams)
+        {
+            Dispatcher.UIThread.Post(() => SetRecordedSection(notams: true, null));
+            _recordedNotams = null;
+        }
+
+        return _recordedAirportConditions == null && _recordedNotams == null
+            ? null
+            : new VoiceSectionRecordings(_recordedAirportConditions?.Pcm, _recordedNotams?.Pcm);
+    }
+
     private async Task HandleVoiceRecordAtisCommand()
     {
         try
@@ -1503,16 +1673,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 if (lifetime.MainWindow == null)
                     return;
 
-                // The dialog needs a visible owner, so leave the mini window and restore the main window first.
-                if (!lifetime.MainWindow.IsVisible)
-                {
-                    foreach (var miniWindow in lifetime.Windows.OfType<Ui.Windows.MiniWindow>().ToList())
-                    {
-                        miniWindow.Close();
-                    }
-
-                    lifetime.MainWindow.Show();
-                }
+                RestoreMainWindowForDialog(lifetime);
 
                 var window = _windowFactory.CreateVoiceRecordAtisDialog();
                 if (window.DataContext is VoiceRecordAtisDialogViewModel vm)
@@ -2357,8 +2518,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 await _voiceRequestLock.WaitAsync(cancellationToken);
                 try
                 {
+                    var recordings = await GetCurrentSectionRecordings(cancellationToken);
                     var voiceAtis = await _atisBuilder.BuildVoiceAtis(AtisStation, SelectedAtisPreset, AtisLetter,
-                        _decodedMetar, cancellationToken);
+                        _decodedMetar, cancellationToken, recordings: recordings);
 
                     if (voiceAtis.AudioBytes != null)
                     {
@@ -3025,4 +3187,11 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         else
             AtisLetter--;
     }
+
+    /// <summary>
+    /// A recording of a voice ATIS section and the spoken text it was recorded for.
+    /// </summary>
+    /// <param name="Pcm">The recorded audio.</param>
+    /// <param name="SpokenText">The spoken text at the time of recording.</param>
+    private sealed record RecordedSection(byte[] Pcm, string SpokenText);
 }

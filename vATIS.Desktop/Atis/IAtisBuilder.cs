@@ -31,8 +31,22 @@ public interface IAtisBuilder
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <param name="sandboxRequest">Whether the request is a sandbox request.</param>
     /// <returns>A <see cref="AtisBuilderVoiceAtisResponse"/> object representing the voice ATIS message.</returns>
+    /// <param name="recordings">Optional controller recordings spliced in place of the airport conditions and NOTAMs audio.</param>
     public Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset, char currentAtisLetter,
-        DecodedMetar decodedMetar, CancellationToken cancellationToken, bool sandboxRequest = false);
+        DecodedMetar decodedMetar, CancellationToken cancellationToken, bool sandboxRequest = false,
+        VoiceSectionRecordings? recordings = null);
+
+    /// <summary>
+    /// Gets the spoken text of the airport conditions and NOTAMs sections of the voice ATIS.
+    /// </summary>
+    /// <param name="station">The ATIS station.</param>
+    /// <param name="preset">The ATIS preset.</param>
+    /// <param name="currentAtisLetter">The current ATIS letter.</param>
+    /// <param name="decodedMetar">The decoded METAR.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The spoken text of each section, empty when a section has nothing to say.</returns>
+    public Task<VoiceSectionText> BuildVoiceSectionText(AtisStation station, AtisPreset preset,
+        char currentAtisLetter, DecodedMetar decodedMetar, CancellationToken cancellationToken);
 
     /// <summary>
     /// Builds the spoken text of the voice ATIS without synthesizing any audio.

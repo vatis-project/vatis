@@ -83,7 +83,10 @@
 			<!--Airport Conditions/Notams-->
 			<Grid Grid.ColumnSpan="3" Grid.Column="0" Grid.Row="1" Margin="0,5,0,0" ColumnDefinitions="2*,10,2*" RowDefinitions="Auto,*">
 				<!--Airport Conditions-->
-                <Button Grid.Column="0" Grid.Row="0" Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:AtisStationViewModel}">AIRPORT CONDITIONS</Button>
+                <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0,0,0,5">
+                    <Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Command="{Binding OpenStaticAirportConditionsDialogCommand, DataType=vm:AtisStationViewModel}">AIRPORT CONDITIONS</Button>
+                    <TextBlock Text="RECORDED" FontSize="11" Foreground="#FCBA03" VerticalAlignment="Center" IsVisible="{Binding HasRecordedAirportConditions, DataType=vm:AtisStationViewModel}" ToolTip.Tip="A recording replaces the spoken airport conditions."/>
+                </StackPanel>
 				<editor:TextEditor Name="AirportConditions" Grid.Row="1" Grid.Column="0" Document="{Binding AirportConditionsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="AirportConditions_OnTextChanged" IsReadOnly="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Observer}}">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
@@ -97,11 +100,17 @@
                             <MenuItem Name="AirportConditionsStaticMenu" Header="Static Messages"/>
                             <MenuItem Name="AirportConditionsConditionalMenu" Header="Conditional Messages"/>
                             <MenuItem Name="AirportConditionsOrderMenu" Header="Display Order"/>
+                            <Separator/>
+                            <MenuItem Header="Record Airport Conditions..." ToolTip.Tip="Record the airport conditions yourself instead of using the synthesized or stitched voice." IsEnabled="{Binding CanRecordSections, DataType=vm:AtisStationViewModel}" Command="{Binding RecordAirportConditionsCommand, DataType=vm:AtisStationViewModel}"/>
+                            <MenuItem Header="Clear Recording" IsVisible="{Binding HasRecordedAirportConditions, DataType=vm:AtisStationViewModel}" Command="{Binding ClearRecordedAirportConditionsCommand, DataType=vm:AtisStationViewModel}"/>
                         </ContextMenu>
                     </editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
 				<!--Notams-->
-                <Button Grid.Column="2" Grid.Row="0" Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,0,5" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:AtisStationViewModel}">NOTAMS</Button>
+                <StackPanel Grid.Column="2" Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0,0,0,5">
+                    <Button Theme="{StaticResource HyperlinkButton}" FontWeight="Medium" VerticalAlignment="Center" Command="{Binding OpenStaticNotamsDialogCommand, DataType=vm:AtisStationViewModel}">NOTAMS</Button>
+                    <TextBlock Text="RECORDED" FontSize="11" Foreground="#FCBA03" VerticalAlignment="Center" IsVisible="{Binding HasRecordedNotams, DataType=vm:AtisStationViewModel}" ToolTip.Tip="A recording replaces the spoken NOTAMs."/>
+                </StackPanel>
 				<editor:TextEditor Name="NotamText" Grid.Row="1" Grid.Column="2" Document="{Binding NotamsTextDocument, DataType=vm:AtisStationViewModel}" WordWrap="True" ShowLineNumbers="False" HorizontalAlignment="Stretch" FontFamily="{StaticResource Monospace}" Padding="4" TextChanged="NotamText_OnTextChanged" IsReadOnly="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static networking:NetworkConnectionStatus.Observer}}">
 					<Interaction.Behaviors>
 						<behaviors:TextEditorUpperCaseBehavior/>
@@ -115,6 +124,9 @@
                             <MenuItem Name="NotamsStaticMenu" Header="Static Messages"/>
                             <MenuItem Name="NotamsConditionalMenu" Header="Conditional Messages"/>
                             <MenuItem Name="NotamsOrderMenu" Header="Display Order"/>
+                            <Separator/>
+                            <MenuItem Header="Record NOTAMs..." ToolTip.Tip="Record the NOTAMs yourself instead of using the synthesized or stitched voice." IsEnabled="{Binding CanRecordSections, DataType=vm:AtisStationViewModel}" Command="{Binding RecordNotamsCommand, DataType=vm:AtisStationViewModel}"/>
+                            <MenuItem Header="Clear Recording" IsVisible="{Binding HasRecordedNotams, DataType=vm:AtisStationViewModel}" Command="{Binding ClearRecordedNotamsCommand, DataType=vm:AtisStationViewModel}"/>
                         </ContextMenu>
                     </editor:TextEditor.ContextMenu>
 				</editor:TextEditor>
