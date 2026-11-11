@@ -38,6 +38,11 @@ namespace Vatsim.Vatis.Atis;
 /// </summary>
 public class AtisBuilder : IAtisBuilder
 {
+    private const int RecordedSectionGapBytes = 24000; // 250 ms of 48 kHz mono 16-bit silence
+
+    private static readonly Regex RecordedSectionPattern = new(
+        @"ZZRECORDED(ARPTCOND|NOTAMS)ZZ", RegexOptions.Compiled);
+
     private readonly IDownloader? _downloader;
     private readonly IMetarRepository? _metarRepository;
     private readonly INavDataRepository? _navDataRepository;
@@ -76,7 +81,7 @@ public class AtisBuilder : IAtisBuilder
     /// <inheritdoc/>
     public async Task<AtisBuilderVoiceAtisResponse> BuildVoiceAtis(AtisStation station, AtisPreset preset,
         char currentAtisLetter, DecodedMetar decodedMetar, CancellationToken cancellationToken,
-        bool sandboxRequest = false)
+        bool sandboxRequest = false, VoiceSectionRecordings? recordings = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -99,9 +104,34 @@ public class AtisBuilder : IAtisBuilder
         var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
 
         var (spokenText, audioBytes) =
-            await CreateVoiceAtis(station, preset, currentAtisLetter, variables, decodedMetar, cancellationToken);
+            await CreateVoiceAtis(station, preset, currentAtisLetter, variables, decodedMetar, cancellationToken,
+                recordings);
 
         return new AtisBuilderVoiceAtisResponse(spokenText, audioBytes);
+    }
+
+    /// <inheritdoc/>
+    public async Task<VoiceSectionText> BuildVoiceSectionText(AtisStation station, AtisPreset preset,
+        char currentAtisLetter, DecodedMetar decodedMetar, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ArgumentNullException.ThrowIfNull(station);
+        ArgumentNullException.ThrowIfNull(preset);
+        ArgumentNullException.ThrowIfNull(decodedMetar);
+
+        var airportData = _navDataRepository?.GetAirport(station.Identifier) ??
+                          throw new AtisBuilderException($"{station.Identifier} not found in airport database.");
+
+        var variables = await ParseNodesFromMetar(station, preset, decodedMetar, airportData, currentAtisLetter);
+
+        string Spoken(string find)
+        {
+            var voice = variables.FirstOrDefault(v => v.Find == find)?.VoiceReplace;
+            return string.IsNullOrWhiteSpace(voice) ? string.Empty : FormatForTextToSpeech(voice.ToUpper(), station).Trim();
+        }
+
+        return new VoiceSectionText(Spoken("ARPT_COND"), Spoken("NOTAMS"));
     }
 
     /// <inheritdoc/>
@@ -395,9 +425,14 @@ public class AtisBuilder : IAtisBuilder
     }
 
     private async Task<(string? SpokenText, byte[]? AudioBytes)> CreateVoiceAtis(AtisStation station, AtisPreset preset,
-        char currentAtisLetter, List<AtisVariable> variables, DecodedMetar metar, CancellationToken cancellationToken)
+        char currentAtisLetter, List<AtisVariable> variables, DecodedMetar metar, CancellationToken cancellationToken,
+        VoiceSectionRecordings? recordings = null)
     {
-        var text = await BuildVoiceText(station, preset, currentAtisLetter, variables, metar, cancellationToken);
+        var text = await BuildVoiceText(station, preset, currentAtisLetter, variables, metar, cancellationToken,
+            recordings);
+
+        if (recordings != null && RecordedSectionPattern.IsMatch(text))
+            return await BuildSplicedVoiceAtis(text, station, currentAtisLetter, recordings, cancellationToken);
 
         if (station.AtisVoice.UseTextToSpeech)
         {
@@ -414,10 +449,100 @@ public class AtisBuilder : IAtisBuilder
         return (text, null);
     }
 
+    /// <summary>
+    /// Builds the voice ATIS in order, using the recordings for their sections and TTS or the WAV pack for the rest.
+    /// </summary>
+    private async Task<(string? SpokenText, byte[]? AudioBytes)> BuildSplicedVoiceAtis(string text,
+        AtisStation station, char currentAtisLetter, VoiceSectionRecordings recordings,
+        CancellationToken cancellationToken)
+    {
+        // Short silence between spliced pieces.
+        var gap = new byte[RecordedSectionGapBytes];
+
+        var audio = new List<byte[]>();
+        var spoken = new List<string>();
+        var position = 0;
+
+        async Task AddText(string piece)
+        {
+            piece = piece.Trim();
+            if (!piece.Any(char.IsLetterOrDigit))
+                return;
+
+            if (station.AtisVoice.UseTextToSpeech)
+            {
+                if (_textToSpeechService == null)
+                    throw new AtisBuilderException("TextToSpeech service not initialized");
+
+                var synthesized = await _textToSpeechService.RequestAudio(piece, station, currentAtisLetter,
+                    cancellationToken);
+                if (synthesized == null)
+                    throw new AtisBuilderException("Failed to synthesize voice ATIS audio.");
+
+                audio.Add(synthesized);
+            }
+            else if (station.AtisVoice.UseWavPack)
+            {
+                audio.Add(BuildWavPackAudio(piece, station).Pcm);
+            }
+            else
+            {
+                return;
+            }
+
+            spoken.Add(piece);
+        }
+
+        foreach (Match match in RecordedSectionPattern.Matches(text))
+        {
+            await AddText(text[position..match.Index]);
+            position = match.Index + match.Length;
+
+            var recording = match.Groups[1].Value == "ARPTCOND" ? recordings.AirportConditions : recordings.Notams;
+            if (recording is { Length: > 0 })
+            {
+                audio.Add(recording);
+                spoken.Add("[RECORDED]");
+            }
+        }
+
+        await AddText(text[position..]);
+
+        var combined = new List<byte>();
+        foreach (var piece in audio)
+        {
+            if (combined.Count > 0)
+                combined.AddRange(gap);
+            combined.AddRange(piece);
+        }
+
+        // Pad to a whole Opus frame (960 samples, 16-bit) as the WAV pack builder does.
+        const int frameBytes = 960 * 2;
+        var remainder = combined.Count % frameBytes;
+        if (remainder != 0)
+            combined.AddRange(new byte[frameBytes - remainder]);
+
+        return (string.Join(' ', spoken), combined.ToArray());
+    }
+
     private async Task<string> BuildVoiceText(AtisStation station, AtisPreset preset, char currentAtisLetter,
-        List<AtisVariable> variables, DecodedMetar metar, CancellationToken cancellationToken)
+        List<AtisVariable> variables, DecodedMetar metar, CancellationToken cancellationToken,
+        VoiceSectionRecordings? recordings = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Recorded sections are replaced by a marker that is split out again once the text is formatted.
+        if (recordings != null)
+        {
+            variables = variables.Select(v => v.Find switch
+            {
+                "ARPT_COND" when recordings.AirportConditions != null && !string.IsNullOrWhiteSpace(v.VoiceReplace) =>
+                    new AtisVariable(v.Find, v.TextReplace, " ZZRECORDEDARPTCONDZZ ", v.Aliases),
+                "NOTAMS" when recordings.Notams != null && !string.IsNullOrWhiteSpace(v.VoiceReplace) =>
+                    new AtisVariable(v.Find, v.TextReplace, " ZZRECORDEDNOTAMSZZ ", v.Aliases),
+                _ => v,
+            }).ToList();
+        }
 
         var template = preset.Template ?? "";
 

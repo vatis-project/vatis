@@ -32,7 +32,7 @@ namespace Vatsim.Vatis.Ui.ViewModels;
 /// </summary>
 public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextSource
 {
-    private static readonly TimeSpan MinimumRecordingDuration = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan DefaultMinimumRecordingDuration = TimeSpan.FromSeconds(5);
     private readonly CompositeDisposable _disposables = new();
     private readonly IWindowLocationService _windowLocationService;
     private readonly Stopwatch _recordingStopwatch;
@@ -49,6 +49,8 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     private bool _isPlaybackEnabled;
     private bool _isPreviousRecording;
     private bool _showMinimumDurationWarning;
+    private TimeSpan _minimumRecordingDuration = DefaultMinimumRecordingDuration;
+    private string _scriptHeader = "ATIS Script:";
     private bool _isPlaybackActive;
     private bool _isRecordingActive;
     private bool _isRecordingEnabled;
@@ -187,7 +189,9 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         {
             ((INotifyCollectionChanged)lifetime.Windows).CollectionChanged += (_, _) =>
             {
-                ShowOverlay = lifetime.Windows.Count(w => w.GetType() != typeof(Windows.MainWindow)) > 1;
+                // The ATIS configuration window (sandbox) is an ordinary owner, not another dialog stacked on top.
+                ShowOverlay = lifetime.Windows.Count(w => w.GetType() != typeof(Windows.MainWindow) &&
+                                                          w.GetType() != typeof(Windows.AtisConfigurationWindow)) > 1;
             };
         }
     }
@@ -235,6 +239,35 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         get => _scriptLoadError;
         set => this.RaiseAndSetIfChanged(ref _scriptLoadError, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the shortest recording that can be saved. A full ATIS needs at least five seconds, but a
+    /// single NOTAM or airport condition can be much shorter.
+    /// </summary>
+    public TimeSpan MinimumRecordingDuration
+    {
+        get => _minimumRecordingDuration;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _minimumRecordingDuration, value);
+            this.RaisePropertyChanged(nameof(MinimumDurationMessage));
+        }
+    }
+
+    /// <summary>
+    /// Gets the warning shown when the recording is shorter than <see cref="MinimumRecordingDuration"/>.
+    /// </summary>
+    public string MinimumDurationMessage =>
+        $"Recording must be at least {MinimumRecordingDuration.TotalSeconds:0.#} seconds to save.";
+
+    /// <summary>
+    /// Gets or sets the heading shown above the script.
+    /// </summary>
+    public string ScriptHeader
+    {
+        get => _scriptHeader;
+        set => this.RaiseAndSetIfChanged(ref _scriptHeader, value);
     }
 
     /// <summary>

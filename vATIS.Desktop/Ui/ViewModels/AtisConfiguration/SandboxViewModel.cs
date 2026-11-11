@@ -72,6 +72,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private List<ICompletionData> _contractionCompletionData = [];
     private bool _isSandboxPlaybackActive;
     private AtisBuilderVoiceAtisResponse? _atisBuilderVoiceResponse;
+    private RecordedSection? _recordedAirportConditions;
+    private RecordedSection? _recordedNotams;
     private string? _previousFreeTextNotams;
     private string? _previousFreeTextAirportConditions;
 
@@ -106,6 +108,10 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         OpenStaticNotamsDialogCommand = ReactiveCommand.CreateFromTask(HandleOpenStaticNotamsDialog);
         SaveAirportConditionsTextCommand = ReactiveCommand.Create(HandleSaveAirportConditionsText);
         SaveNotamsTextCommand = ReactiveCommand.Create(HandleSaveNotamsText);
+        RecordAirportConditionsCommand = ReactiveCommand.CreateFromTask(() => HandleRecordSection(notams: false));
+        RecordNotamsCommand = ReactiveCommand.CreateFromTask(() => HandleRecordSection(notams: true));
+        ClearRecordedAirportConditionsCommand = ReactiveCommand.CreateFromTask(() => HandleClearRecordedSection(false));
+        ClearRecordedNotamsCommand = ReactiveCommand.CreateFromTask(() => HandleClearRecordedSection(true));
 
         var canRefreshAtis = this.WhenAnyValue(
             x => x.IsSandboxPlaybackActive,
@@ -182,6 +188,36 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     /// Gets the command used to save the NOTAMs text.
     /// </summary>
     public ReactiveCommand<Unit, Unit> SaveNotamsTextCommand { get; }
+
+    /// <summary>
+    /// Gets the command to record the airport conditions.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RecordAirportConditionsCommand { get; }
+
+    /// <summary>
+    /// Gets the command to record the NOTAMs.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> RecordNotamsCommand { get; }
+
+    /// <summary>
+    /// Gets the command to discard the airport conditions recording.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ClearRecordedAirportConditionsCommand { get; }
+
+    /// <summary>
+    /// Gets the command to discard the NOTAMs recording.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ClearRecordedNotamsCommand { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether a recording is replacing the spoken airport conditions.
+    /// </summary>
+    public bool HasRecordedAirportConditions => _recordedAirportConditions != null;
+
+    /// <summary>
+    /// Gets a value indicating whether a recording is replacing the spoken NOTAMs.
+    /// </summary>
+    public bool HasRecordedNotams => _recordedNotams != null;
 
     /// <summary>
     /// Gets the command used to refresh the sandbox ATIS.
@@ -454,6 +490,8 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         SandboxMetar = "";
         HasUnsavedAirportConditions = false;
         HasUnsavedNotams = false;
+        SetRecordedSection(notams: false, null);
+        SetRecordedSection(notams: true, null);
         TextAtisTextDocument.Text = "";
         VoiceAtisTextDocument.Text = "";
 
@@ -527,43 +565,15 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
                     return;
                 }
 
-                var preset = SelectedPreset;
-
-                // Preview the free text as it is in the editors, saved or not, using a copy of the preset so the
-                // saved preset is left untouched until Save is clicked.
-                if (HasUnsavedAirportConditions || HasUnsavedNotams)
-                {
-                    preset = preset.Clone();
-                    if (HasUnsavedAirportConditions)
-                    {
-                        preset.AirportConditions = GetFreeText(AirportConditionsTextDocument, ReadOnlyAirportConditions);
-                    }
-
-                    if (HasUnsavedNotams)
-                    {
-                        preset.Notams = GetFreeText(NotamsTextDocument, ReadOnlyNotams);
-                    }
-                }
-
-                // For a D-ATIS preset, build from a copy populated with the processed real-world D-ATIS
-                // so the saved preset is left untouched.
-                if (string.Equals(preset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
-                {
-                    var datis = await _datisRepository.FetchAsync(SelectedStation);
-                    preset = preset.Clone();
-                    preset.AirportConditions = datis.AirportConditions;
-                    preset.Notams = datis.Notams;
-
-                    if (datis.AtisLetter.HasValue)
-                    {
-                        randomLetter = datis.AtisLetter.Value;
-                    }
-                }
+                var (preset, letter) = await GetPreviewPreset(SelectedStation, SelectedPreset, randomLetter);
+                randomLetter = letter;
 
                 var textAtis = await _atisBuilder.BuildTextAtis(SelectedStation, preset, randomLetter,
                     decodedMetar, _cancellationToken.Token);
+                var recordings = await GetCurrentSectionRecordings(preset, randomLetter, decodedMetar,
+                    _cancellationToken.Token);
                 AtisBuilderVoiceResponse = await _atisBuilder.BuildVoiceAtis(SelectedStation, preset,
-                    randomLetter, decodedMetar, _cancellationToken.Token, true);
+                    randomLetter, decodedMetar, _cancellationToken.Token, true, recordings);
                 TextAtisTextDocument.Text = textAtis?.ToUpperInvariant() ?? "";
                 VoiceAtisTextDocument.Text = AtisBuilderVoiceResponse.SpokenText?.ToUpperInvariant() ?? "";
             }
@@ -778,6 +788,158 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         // Update the free-form text area after the dialog is closed
         PopulateAirportConditions();
+    }
+
+    /// <summary>
+    /// Gets the preset the sandbox previews: the free text as it is in the editors, saved or not, and the real-world
+    /// D-ATIS for a D-ATIS preset. A copy is used so the saved preset is left untouched until Save is clicked.
+    /// </summary>
+    private async Task<(AtisPreset Preset, char Letter)> GetPreviewPreset(AtisStation station, AtisPreset selected,
+        char letter)
+    {
+        var preset = selected;
+
+        if (HasUnsavedAirportConditions || HasUnsavedNotams)
+        {
+            preset = preset.Clone();
+            if (HasUnsavedAirportConditions)
+            {
+                preset.AirportConditions = GetFreeText(AirportConditionsTextDocument, ReadOnlyAirportConditions);
+            }
+
+            if (HasUnsavedNotams)
+            {
+                preset.Notams = GetFreeText(NotamsTextDocument, ReadOnlyNotams);
+            }
+        }
+
+        if (string.Equals(preset.Name, "D-ATIS", StringComparison.OrdinalIgnoreCase))
+        {
+            var datis = await _datisRepository.FetchAsync(station);
+            preset = preset.Clone();
+            preset.AirportConditions = datis.AirportConditions;
+            preset.Notams = datis.Notams;
+
+            if (datis.AtisLetter.HasValue)
+            {
+                letter = datis.AtisLetter.Value;
+            }
+        }
+
+        return (preset, letter);
+    }
+
+    private void SetRecordedSection(bool notams, RecordedSection? section)
+    {
+        if (notams)
+        {
+            _recordedNotams = section;
+            this.RaisePropertyChanged(nameof(HasRecordedNotams));
+        }
+        else
+        {
+            _recordedAirportConditions = section;
+            this.RaisePropertyChanged(nameof(HasRecordedAirportConditions));
+        }
+    }
+
+    private async Task HandleClearRecordedSection(bool notams)
+    {
+        SetRecordedSection(notams, null);
+        if (await RefreshSandboxAtisCommand.CanExecute.FirstAsync())
+        {
+            await RefreshSandboxAtisCommand.Execute();
+        }
+    }
+
+    private async Task HandleRecordSection(bool notams)
+    {
+        try
+        {
+            if (DialogOwner is not Window owner || SelectedStation == null || SelectedPreset == null)
+                return;
+
+            var metar = GetSandboxMetar();
+            if (metar == null || IsExternalPreset)
+            {
+                await MessageBox.ShowDialog(owner,
+                    IsExternalPreset
+                        ? "Recording isn't available for presets that use an external ATIS generator."
+                        : "Enter or fetch a METAR first, so the sandbox knows what the section will say.",
+                    "Record", MessageBoxButton.Ok, MessageBoxIcon.Information);
+                return;
+            }
+
+            var letter = (char)_random.Next(SelectedStation.CodeRange.Low, SelectedStation.CodeRange.High + 1);
+            var (preset, _) = await GetPreviewPreset(SelectedStation, SelectedPreset, letter);
+            var sections = await _atisBuilder.BuildVoiceSectionText(SelectedStation, preset, letter, metar,
+                CancellationToken.None);
+            var spoken = notams ? sections.Notams : sections.AirportConditions;
+            if (string.IsNullOrWhiteSpace(spoken))
+            {
+                await MessageBox.ShowDialog(owner,
+                    $"There are no {(notams ? "NOTAMs" : "airport conditions")} to record.", "Record",
+                    MessageBoxButton.Ok, MessageBoxIcon.Information);
+                return;
+            }
+
+            var window = _windowFactory.CreateVoiceRecordAtisDialog();
+            if (window.DataContext is not VoiceRecordAtisDialogViewModel vm)
+                return;
+
+            vm.SpokenTextSource = this;
+            vm.ScriptHeader = notams ? "NOTAMs Script:" : "Airport Conditions Script:";
+            vm.MinimumRecordingDuration = TimeSpan.Zero;
+            vm.TextScript = spoken;
+            window.Topmost = owner.Topmost;
+
+            var existing = notams ? _recordedNotams : _recordedAirportConditions;
+            if (existing != null)
+            {
+                vm.SetPreviousRecording(existing.Pcm);
+            }
+
+            if (!await window.ShowDialog<bool>(owner) || vm.AudioBuffer.Length == 0)
+                return;
+
+            SetRecordedSection(notams, new RecordedSection(vm.AudioBuffer, spoken));
+            if (await RefreshSandboxAtisCommand.CanExecute.FirstAsync())
+            {
+                await RefreshSandboxAtisCommand.Execute();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to record sandbox section");
+        }
+    }
+
+    /// <summary>
+    /// Gets the recordings that still match what the ATIS would say, dropping any that no longer do.
+    /// </summary>
+    private async Task<VoiceSectionRecordings?> GetCurrentSectionRecordings(AtisPreset preset, char letter,
+        DecodedMetar metar, CancellationToken cancellationToken)
+    {
+        if (_recordedAirportConditions == null && _recordedNotams == null)
+            return null;
+
+        var sections = await _atisBuilder.BuildVoiceSectionText(SelectedStation!, preset, letter, metar,
+            cancellationToken);
+
+        // A changed section no longer matches its recording, so discard it.
+        if (_recordedAirportConditions != null && _recordedAirportConditions.SpokenText != sections.AirportConditions)
+        {
+            SetRecordedSection(notams: false, null);
+        }
+
+        if (_recordedNotams != null && _recordedNotams.SpokenText != sections.Notams)
+        {
+            SetRecordedSection(notams: true, null);
+        }
+
+        return _recordedAirportConditions == null && _recordedNotams == null
+            ? null
+            : new VoiceSectionRecordings(_recordedAirportConditions?.Pcm, _recordedNotams?.Pcm);
     }
 
     private DecodedMetar? GetSandboxMetar()
@@ -1068,4 +1230,11 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             }
         }
     }
+
+    /// <summary>
+    /// A recording of a voice ATIS section and the spoken text it was recorded for.
+    /// </summary>
+    /// <param name="Pcm">The recorded audio.</param>
+    /// <param name="SpokenText">The spoken text at the time of recording.</param>
+    private sealed record RecordedSection(byte[] Pcm, string SpokenText);
 }
