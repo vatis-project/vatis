@@ -43,6 +43,12 @@ public interface IAppConfig
     public bool MuteOwnAtisUpdateSound { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to show a notification listing the messages added or removed when
+    /// conditional NOTAMs or airport conditions change.
+    /// </summary>
+    public bool ShowConditionalChangeNotification { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to suppress update sound for shared ATIS updates.
     /// </summary>
     public bool MuteSharedAtisUpdateSound { get; set; }

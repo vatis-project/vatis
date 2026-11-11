@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added automatic advancing of the ATIS letter when a conditional NOTAM or airport condition is displayed or hidden, with a notification listing what was added or removed. The notification can be turned off with the new "Show notification for conditional message changes" setting.
+
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
 - Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.
