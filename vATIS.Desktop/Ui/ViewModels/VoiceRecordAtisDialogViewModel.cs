@@ -35,6 +35,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     private static readonly TimeSpan MinimumRecordingDuration = TimeSpan.FromSeconds(5);
     private readonly CompositeDisposable _disposables = new();
+    private readonly IAppConfig _appConfig;
     private readonly IWindowLocationService _windowLocationService;
     private readonly Stopwatch _recordingStopwatch;
     private readonly System.Timers.Timer _elapsedTimeUpdateTimer;
@@ -69,7 +70,10 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="windowLocationService">The service to manage window location.</param>
     public VoiceRecordAtisDialogViewModel(IAppConfig appConfig, IWindowLocationService windowLocationService)
     {
+        _appConfig = appConfig;
         _windowLocationService = windowLocationService;
+        _showVoiceScript = appConfig.RecordAtisShowVoiceScript;
+        _useDigits = appConfig.RecordAtisUseDigits;
         _recordingStopwatch = new Stopwatch();
         _elapsedTimeUpdateTimer = new System.Timers.Timer();
         _elapsedTimeUpdateTimer.Interval = 50;
@@ -280,6 +284,8 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _showVoiceScript, value);
+            _appConfig.RecordAtisShowVoiceScript = value;
+            _appConfig.SaveConfig();
             OnAtisScriptChanged();
         }
     }
@@ -301,6 +307,8 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _useDigits, value);
+            _appConfig.RecordAtisUseDigits = value;
+            _appConfig.SaveConfig();
             OnAtisScriptChanged();
         }
     }

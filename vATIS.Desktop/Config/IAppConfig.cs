@@ -119,6 +119,16 @@ public interface IAppConfig
     public bool SuppressReleaseNotes { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the Record ATIS dialog shows the voice script instead of the text script.
+    /// </summary>
+    public bool RecordAtisShowVoiceScript { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the voice script shows numbers and letters as digits instead of words.
+    /// </summary>
+    public bool RecordAtisUseDigits { get; set; }
+
+    /// <summary>
     /// Loads the configuration settings for the application.
     /// </summary>
     public void LoadConfig();
