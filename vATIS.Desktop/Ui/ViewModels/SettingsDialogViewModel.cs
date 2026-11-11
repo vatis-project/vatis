@@ -27,6 +27,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     private string? _selectedNetworkRating;
     private ObservableCollection<ComboBoxItemMeta>? _networkRatings;
     private bool _muteOwnAtisUpdateSound;
+    private bool _showConditionalChangeNotification;
     private bool _muteSharedAtisUpdateSound;
     private bool _autoFetchAtisLetter;
     private bool _autoFetchDatis;
@@ -43,6 +44,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         UserId = _appConfig.UserId;
         Password = _appConfig.PasswordDecrypted;
         MuteOwnAtisUpdateSound = _appConfig.MuteOwnAtisUpdateSound;
+        ShowConditionalChangeNotification = _appConfig.ShowConditionalChangeNotification;
         MuteSharedAtisUpdateSound = _appConfig.MuteSharedAtisUpdateSound;
         SelectedNetworkRating = _appConfig.NetworkRating.ToString();
         AutoFetchAtisLetter = _appConfig.AutoFetchAtisLetter;
@@ -127,6 +129,15 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to show a notification when conditional messages are added or removed.
+    /// </summary>
+    public bool ShowConditionalChangeNotification
+    {
+        get => _showConditionalChangeNotification;
+        set => this.RaiseAndSetIfChanged(ref _showConditionalChangeNotification, value);
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether notification sounds for shared ATIS updates should be muted.
     /// </summary>
     public bool MuteSharedAtisUpdateSound
@@ -175,6 +186,7 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         _appConfig.UserId = UserId?.Trim() ?? "";
         _appConfig.PasswordDecrypted = Password?.Trim() ?? "";
         _appConfig.MuteOwnAtisUpdateSound = MuteOwnAtisUpdateSound;
+        _appConfig.ShowConditionalChangeNotification = ShowConditionalChangeNotification;
         _appConfig.MuteSharedAtisUpdateSound = MuteSharedAtisUpdateSound;
         _appConfig.AutoFetchAtisLetter = AutoFetchAtisLetter;
         _appConfig.AutoFetchDatis = AutoFetchDatis;

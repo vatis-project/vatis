@@ -35,6 +35,9 @@ public class AppConfig : IAppConfig
     public bool MuteOwnAtisUpdateSound { get; set; }
 
     /// <inheritdoc />
+    public bool ShowConditionalChangeNotification { get; set; } = true;
+
+    /// <inheritdoc />
     public bool MuteSharedAtisUpdateSound { get; set; }
 
     /// <inheritdoc />
@@ -107,6 +110,7 @@ public class AppConfig : IAppConfig
             Password = config.Password;
             NetworkRating = config.NetworkRating;
             MuteOwnAtisUpdateSound = config.MuteOwnAtisUpdateSound;
+            ShowConditionalChangeNotification = config.ShowConditionalChangeNotification;
             MuteSharedAtisUpdateSound = config.MuteSharedAtisUpdateSound;
             AlwaysOnTop = config.AlwaysOnTop;
             MiniWindowAlwaysOnTop = config.MiniWindowAlwaysOnTop;

@@ -45,6 +45,7 @@
 				</StackPanel>
 				<StackPanel>
 					<CheckBox Theme="{StaticResource CheckBox}" Content="Mute own ATIS update sound" IsChecked="{Binding MuteOwnAtisUpdateSound, DataType=vm:SettingsDialogViewModel}" />
+					<CheckBox Theme="{StaticResource CheckBox}" Content="Show notification for conditional message changes" ToolTip.Tip="Show a notification listing the NOTAMs and airport conditions that were added or removed when a conditional message changes." IsChecked="{Binding ShowConditionalChangeNotification, DataType=vm:SettingsDialogViewModel}" />
                     <CheckBox Theme="{StaticResource CheckBox}" Content="Mute shared ATIS update sound" IsChecked="{Binding MuteSharedAtisUpdateSound, DataType=vm:SettingsDialogViewModel}" />
 					<CheckBox Theme="{StaticResource CheckBox}" Content="Automatically fetch ATIS letter" ToolTip.Tip="Fetch the real-world ATIS letter for supported stations automatically after connecting to the network." IsChecked="{Binding AutoFetchAtisLetter, DataType=vm:SettingsDialogViewModel}" IsEnabled="{Binding !AutoFetchDatis, DataType=vm:SettingsDialogViewModel}" />
 					<CheckBox Theme="{StaticResource CheckBox}" Content="Automatically fetch D-ATIS" ToolTip.Tip="Fetch real-world D-ATIS data and populate airport conditions and NOTAMs for stations with a D-ATIS preset." IsChecked="{Binding AutoFetchDatis, DataType=vm:SettingsDialogViewModel}" />

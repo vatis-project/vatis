@@ -89,6 +89,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     private readonly string? _identifier;
     private readonly TimeSpan _debounceDelay = TimeSpan.FromSeconds(5);
     private string _activeStaticDefinitionsKey = string.Empty;
+    private IReadOnlyList<string> _activeStaticDefinitionTexts = [];
     private DispatcherTimer? _timeConditionTimer;
     private bool _autoFetchDatis;
     private CancellationTokenSource _buildAtisCts = new();
@@ -323,7 +324,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                 UseTexToSpeech = !evt.UseAutomaticVoice;
             }
         }));
-        _activeStaticDefinitionsKey = GetActiveStaticDefinitionsKey();
+        _activeStaticDefinitionTexts = GetActiveStaticDefinitionTexts();
+        _activeStaticDefinitionsKey = string.Join("|", _activeStaticDefinitionTexts);
         MonitorOnlineControllersIfNeeded();
         _disposables.Add(EventBus.Instance.Subscribe<OnlineControllersUpdated>(_ =>
             Dispatcher.UIThread.Post(() => RefreshConditionalDefinitions(rebuildAtis: true))));
@@ -2013,7 +2015,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             // Save the decoded metar so its individual properties can be sent to clients
             // connected via the websocket.
             _decodedMetar = e.Metar;
-            Dispatcher.UIThread.Post(() => RefreshConditionalDefinitions(rebuildAtis: false));
+            Dispatcher.UIThread.Post(() => RefreshConditionalDefinitions(rebuildAtis: false, announce: e.IsNewMetar));
 
             try
             {
@@ -2428,30 +2430,41 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                StaticDefinitionFilter.HasWeatherConditions(AtisStation.AirportConditionDefinitions);
     }
 
-    private string GetActiveStaticDefinitionsKey()
+    private IReadOnlyList<string> GetActiveStaticDefinitionTexts()
     {
         var online = _vatsimDataService.OnlineControllers;
-        return string.Join("|",
+        return
             StaticDefinitionFilter.GetActive(
                     AtisStation.NotamDefinitions, online, _decodedMetar, AtisStation.AtisFormat,
                     forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions)
                 .Concat(StaticDefinitionFilter.GetActive(
                     AtisStation.AirportConditionDefinitions, online, _decodedMetar, AtisStation.AtisFormat,
                     forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions))
-                .Select(x => x.Text));
+                .Select(x => x.Text)
+                .ToList();
     }
 
-    private void RefreshConditionalDefinitions(bool rebuildAtis, bool force = false)
+    private void RefreshConditionalDefinitions(bool rebuildAtis, bool force = false, bool announce = false)
     {
         if (!force && !HasStationConditions() && !HasWeatherConditions() && AtisStation.OrdinalOverrides.Count == 0)
             return;
 
         // Only refresh when the controllers coming or going actually changed what this station says.
-        var key = GetActiveStaticDefinitionsKey();
+        var texts = GetActiveStaticDefinitionTexts();
+        var key = string.Join("|", texts);
         if (key == _activeStaticDefinitionsKey)
             return;
 
+        var previousTexts = _activeStaticDefinitionTexts;
+        _activeStaticDefinitionTexts = texts;
         _activeStaticDefinitionsKey = key;
+
+        // A change the user made by hand needs no announcement. A new METAR already advances the letter, so
+        // that case only gets the notification.
+        if (rebuildAtis && !force)
+            AnnounceConditionalChange(previousTexts, texts, advanceLetter: true);
+        else if (announce)
+            AnnounceConditionalChange(previousTexts, texts, advanceLetter: false);
 
         if (NetworkConnectionStatus != NetworkConnectionStatus.Observer)
         {
@@ -2470,6 +2483,52 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             Log.Error(exception, "BuildAtis Exception after conditional definitions changed");
         });
+    }
+
+    private void AnnounceConditionalChange(
+        IReadOnlyList<string> previous, IReadOnlyList<string> current, bool advanceLetter)
+    {
+        if (NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+            return;
+
+        var shown = current.Except(previous).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+        var hidden = previous.Except(current).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+        if (shown.Count == 0 && hidden.Count == 0)
+            return;
+
+        if (_appConfig.ShowConditionalChangeNotification)
+        {
+            var lines = shown.Select(x => "Added: " + Truncate(x)).Concat(hidden.Select(x => "Removed: " + Truncate(x)));
+            NotificationManager?.Show(
+                new Notification("ATIS Updated", string.Join(Environment.NewLine, lines)),
+                NotificationType.Information,
+                TimeSpan.FromSeconds(10));
+        }
+
+        if (!advanceLetter)
+            return;
+
+        if (!_appConfig.MuteOwnAtisUpdateSound && IsVisibleOnMiniWindow)
+        {
+            NativeAudio.EmitSound(SoundType.Notification);
+        }
+
+        IsNewAtis = false;
+        AcknowledgeOrIncrementAtisLetter();
+        IsNewAtis = true;
+
+        if (!AtisStation.AtisVoice.IsAutomatic)
+        {
+            RecordedAtisState = RecordedAtisState.Expired;
+        }
+
+        return;
+
+        static string Truncate(string text)
+        {
+            var single = text.ReplaceLineEndings(" ").Trim();
+            return single.Length > 80 ? single[..80] + "..." : single;
+        }
     }
 
     private void PopulateNotams(bool presetChanged = false)
