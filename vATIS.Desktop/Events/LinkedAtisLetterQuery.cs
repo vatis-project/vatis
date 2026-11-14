@@ -45,4 +45,9 @@ public class LinkedAtisLetterQuery : IEvent
     /// Gets or sets the letter of the connected partner station, or null when the partner isn't connected.
     /// </summary>
     public char? PartnerLetter { get; set; }
+
+    /// <summary>
+    /// Gets or sets the letter link of the connected partner station, or null when it has none enabled.
+    /// </summary>
+    public AtisLetterLinkMeta? PartnerLink { get; set; }
 }

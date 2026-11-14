@@ -14,6 +14,6 @@ namespace Vatsim.Vatis.Events;
 /// <param name="Identifier">The airport identifier of the station.</param>
 /// <param name="AtisType">The ATIS type of the station.</param>
 /// <param name="Letter">The new letter.</param>
-/// <param name="LinkRequested">Whether the changed station has letter linking enabled.</param>
+/// <param name="Link">The letter link of the changed station, or null when it has none enabled.</param>
 public record AtisLetterChanged(
-    string StationId, string Identifier, AtisType AtisType, char Letter, bool LinkRequested) : IEvent;
+    string StationId, string Identifier, AtisType AtisType, char Letter, AtisLetterLinkMeta? Link) : IEvent;

@@ -1216,23 +1216,30 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         }
     }
 
+    private AtisLetterLinkMeta? GetActiveLetterLink()
+    {
+        return AtisStation.LetterLink is { Enabled: true } link ? link : null;
+    }
+
     private void PublishLinkedAtisLetter(char letter)
     {
         if (AtisStation.AtisType == AtisType.Combined)
             return;
 
         EventBus.Instance.Publish(new AtisLetterChanged(
-            AtisStation.Id, AtisStation.Identifier, AtisStation.AtisType, letter, AtisStation.LinkAtisLetters));
+            AtisStation.Id, AtisStation.Identifier, AtisStation.AtisType, letter, GetActiveLetterLink()));
     }
 
     private void HandleLinkedAtisLetterChanged(AtisLetterChanged evt)
     {
-        if (!(AtisStation.LinkAtisLetters || evt.LinkRequested) || evt.StationId == AtisStation.Id ||
+        // Either station of the pair can turn linking on, and the one that did decides the offset.
+        var link = GetActiveLetterLink() ?? evt.Link;
+        if (link == null || evt.StationId == AtisStation.Id ||
             evt.Identifier != AtisStation.Identifier || evt.AtisType == AtisStation.AtisType ||
             AtisStation.AtisType == AtisType.Combined || NetworkConnectionStatus == NetworkConnectionStatus.Observer)
             return;
 
-        if (GetLinkedLetter(evt.Letter) is { } linked)
+        if (GetLinkedLetter(evt.Letter, link) is { } linked)
             Dispatcher.UIThread.Post(() => AtisLetter = linked);
     }
 
@@ -1244,19 +1251,24 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             return;
 
         query.PartnerLetter = AtisLetter;
+        query.PartnerLink = GetActiveLetterLink();
     }
 
-    // Offset by half the code range so the two letters are always as far apart as possible (13 for A-Z).
-    private char? GetLinkedLetter(char letter)
+    // The arrival letter is offset letters ahead of the departure letter, wrapping within the code range. The
+    // offset defaults to half the range so the two letters are as far apart as possible (13 for A-Z).
+    private char? GetLinkedLetter(char partnerLetter, AtisLetterLinkMeta link)
     {
         var low = AtisStation.CodeRange.Low;
         var size = AtisStation.CodeRange.High - low + 1;
-        var half = size / 2;
-        var index = letter - low;
-        if (index < 0 || index >= size || half == 0)
+        var index = partnerLetter - low;
+        if (index < 0 || index >= size)
             return null;
 
-        return (char)(low + (index < half ? index + half : index - half));
+        var offset = link.Offset ?? size / 2;
+        if (AtisStation.AtisType == AtisType.Departure)
+            offset = -offset;
+
+        return (char)(low + ((((index + offset) % size) + size) % size));
     }
 
     // Lines this station up with its partner before connecting. A partner that is already online keeps its
@@ -1264,15 +1276,19 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
     // stations in this app are considered, so linking never reacts to another controller's ATIS.
     private void AlignLinkedAtisLetter()
     {
-        if (!AtisStation.LinkAtisLetters || AtisStation.AtisType == AtisType.Combined)
+        if (AtisStation.AtisType == AtisType.Combined)
             return;
 
         var query = new LinkedAtisLetterQuery(AtisStation.Id, AtisStation.Identifier, AtisStation.AtisType);
         EventBus.Instance.Publish(query);
 
+        var link = GetActiveLetterLink() ?? query.PartnerLink;
+        if (link == null)
+            return;
+
         if (query.PartnerLetter is { } partnerLetter)
         {
-            if (GetLinkedLetter(partnerLetter) is { } linked)
+            if (GetLinkedLetter(partnerLetter, link) is { } linked)
                 AtisLetter = linked;
         }
         else

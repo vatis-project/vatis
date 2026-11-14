@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Added a "Link departure/arrival letters" station option that keeps the departure and arrival ATIS letters for an airport half a code range apart (13 letters for A-Z), so changing one also changes the other.
+- Added a `letterLink` station option to the profile file that keeps the departure and arrival ATIS letters for an airport a set number of letters apart (13 for A-Z by default, or a custom `offset`), so changing one also changes the other.
 
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.

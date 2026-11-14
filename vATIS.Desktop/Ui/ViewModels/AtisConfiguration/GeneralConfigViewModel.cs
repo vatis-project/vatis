@@ -51,7 +51,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     private string? _textToSpeechVoice;
     private bool _useDecimalTerminology;
     private bool _randomizeAtisLetterOnConnect;
-    private bool _linkAtisLetters;
     private string? _idsEndpoint;
     private ObservableCollection<VoiceMetaData>? _availableVoices;
     private bool _showDuplicateAtisTypeError;
@@ -144,15 +143,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _atisType, value);
-            this.RaisePropertyChanged(nameof(IsLinkAtisLettersAvailable));
             _changeTracker.TrackChange(nameof(AtisType), value);
         }
     }
-
-    /// <summary>
-    /// Gets a value indicating whether letter linking applies, which it only does for departure and arrival ATIS.
-    /// </summary>
-    public bool IsLinkAtisLettersAvailable => AtisType != AtisType.Combined;
 
     /// <summary>
     /// Gets or sets the low range of the code.
@@ -306,19 +299,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the letter is linked to the paired departure/arrival ATIS.
-    /// </summary>
-    public bool LinkAtisLetters
-    {
-        get => _linkAtisLetters;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _linkAtisLetters, value);
-            _changeTracker.TrackChange(nameof(LinkAtisLetters), value);
-        }
-    }
-
-    /// <summary>
     /// Gets or sets the IDS endpoint.
     /// </summary>
     public string? IdsEndpoint
@@ -386,7 +366,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         CodeRangeHigh = '\0';
         UseDecimalTerminology = false;
         RandomizeAtisLetterOnConnect = false;
-        LinkAtisLetters = false;
         UseTextToSpeech = true;
         UseWavPack = false;
         SelectedWavPack = null;
@@ -475,22 +454,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         if (SelectedStation.RandomizeAtisLetterOnConnect != RandomizeAtisLetterOnConnect)
         {
             SelectedStation.RandomizeAtisLetterOnConnect = RandomizeAtisLetterOnConnect;
-        }
-
-        if (SelectedStation.LinkAtisLetters != LinkAtisLetters)
-        {
-            SelectedStation.LinkAtisLetters = LinkAtisLetters;
-
-            // Keep the paired station's checkbox in step so the two never disagree.
-            if (SelectedStation.AtisType != AtisType.Combined && _sessionManager.CurrentProfile?.Stations != null)
-            {
-                foreach (var partner in _sessionManager.CurrentProfile.Stations.Where(x =>
-                             x != SelectedStation && x.Identifier == SelectedStation.Identifier &&
-                             x.AtisType != AtisType.Combined))
-                {
-                    partner.LinkAtisLetters = LinkAtisLetters;
-                }
-            }
         }
 
         if (SelectedStation.IdsEndpoint != IdsEndpoint)
@@ -623,7 +586,6 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         CodeRangeHigh = station.CodeRange.High;
         UseDecimalTerminology = station.UseDecimalTerminology;
         RandomizeAtisLetterOnConnect = station.RandomizeAtisLetterOnConnect;
-        LinkAtisLetters = station.LinkAtisLetters;
         IdsEndpoint = station.IdsEndpoint;
         UseTextToSpeech = station.AtisVoice.UseTextToSpeech;
         UseWavPack = station.AtisVoice.UseWavPack;
