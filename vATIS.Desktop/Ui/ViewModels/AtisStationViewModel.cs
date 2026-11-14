@@ -316,6 +316,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             AcknowledgeAtisUpdateCommand.Execute().Subscribe();
         }));
+        _disposables.Add(EventBus.Instance.Subscribe<AtisLetterChanged>(HandleLinkedAtisLetterChanged));
+        _disposables.Add(EventBus.Instance.Subscribe<LinkedAtisLetterQuery>(HandleLinkedAtisLetterQuery));
         _disposables.Add(EventBus.Instance.Subscribe<AtisVoiceTypeChanged>(evt =>
         {
             if (evt.Id == AtisStation.Id)
@@ -546,6 +548,10 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             .Select(_ => Observable.FromAsync(() => PublishAtisToWebsocket()))
             .Concat()
             .Subscribe();
+
+        this.WhenAnyValue(x => x.AtisLetter)
+            .Skip(1)
+            .Subscribe(PublishLinkedAtisLetter);
 
         this.WhenAnyValue(x => x.AtisLetter)
             .Skip(1)
@@ -1210,6 +1216,87 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         }
     }
 
+    private AtisLetterLinkMeta? GetActiveLetterLink()
+    {
+        return AtisStation.LetterLink is { Enabled: true } link ? link : null;
+    }
+
+    private void PublishLinkedAtisLetter(char letter)
+    {
+        if (AtisStation.AtisType == AtisType.Combined)
+            return;
+
+        EventBus.Instance.Publish(new AtisLetterChanged(
+            AtisStation.Id, AtisStation.Identifier, AtisStation.AtisType, letter, GetActiveLetterLink()));
+    }
+
+    private void HandleLinkedAtisLetterChanged(AtisLetterChanged evt)
+    {
+        // Either station of the pair can turn linking on, and the one that did decides the offset.
+        var link = GetActiveLetterLink() ?? evt.Link;
+        if (link == null || evt.StationId == AtisStation.Id ||
+            evt.Identifier != AtisStation.Identifier || evt.AtisType == AtisStation.AtisType ||
+            AtisStation.AtisType == AtisType.Combined || NetworkConnectionStatus == NetworkConnectionStatus.Observer)
+            return;
+
+        if (GetLinkedLetter(evt.Letter, link) is { } linked)
+            Dispatcher.UIThread.Post(() => AtisLetter = linked);
+    }
+
+    private void HandleLinkedAtisLetterQuery(LinkedAtisLetterQuery query)
+    {
+        if (query.StationId == AtisStation.Id || query.Identifier != AtisStation.Identifier ||
+            query.AtisType == AtisStation.AtisType || AtisStation.AtisType == AtisType.Combined ||
+            NetworkConnectionStatus != NetworkConnectionStatus.Connected)
+            return;
+
+        query.PartnerLetter = AtisLetter;
+        query.PartnerLink = GetActiveLetterLink();
+    }
+
+    // The arrival letter is offset letters ahead of the departure letter, wrapping within the code range. The
+    // offset defaults to half the range so the two letters are as far apart as possible (13 for A-Z).
+    private char? GetLinkedLetter(char partnerLetter, AtisLetterLinkMeta link)
+    {
+        var low = AtisStation.CodeRange.Low;
+        var size = AtisStation.CodeRange.High - low + 1;
+        var index = partnerLetter - low;
+        if (index < 0 || index >= size)
+            return null;
+
+        var offset = link.Offset ?? size / 2;
+        if (AtisStation.AtisType == AtisType.Departure)
+            offset = -offset;
+
+        return (char)(low + ((((index + offset) % size) + size) % size));
+    }
+
+    // Lines this station up with its partner before connecting. A partner that is already online keeps its
+    // letter and this station moves to match; otherwise the idle partner is moved to match this one. Only
+    // stations in this app are considered, so linking never reacts to another controller's ATIS.
+    private void AlignLinkedAtisLetter()
+    {
+        if (AtisStation.AtisType == AtisType.Combined)
+            return;
+
+        var query = new LinkedAtisLetterQuery(AtisStation.Id, AtisStation.Identifier, AtisStation.AtisType);
+        EventBus.Instance.Publish(query);
+
+        var link = GetActiveLetterLink() ?? query.PartnerLink;
+        if (link == null)
+            return;
+
+        if (query.PartnerLetter is { } partnerLetter)
+        {
+            if (GetLinkedLetter(partnerLetter, link) is { } linked)
+                AtisLetter = linked;
+        }
+        else
+        {
+            PublishLinkedAtisLetter(AtisLetter);
+        }
+    }
+
     private void HandleSetAtisLetter(char letter)
     {
         if (letter < AtisStation.CodeRange.Low || letter > AtisStation.CodeRange.High)
@@ -1817,6 +1904,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
                     var range = AtisStation.CodeRange;
                     AtisLetter = (char)Random.Shared.Next(range.Low, range.High + 1);
                 }
+
+                AlignLinkedAtisLetter();
 
                 await _networkConnection.Connect();
             }

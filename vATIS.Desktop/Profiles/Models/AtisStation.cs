@@ -102,6 +102,13 @@ public class AtisStation : ReactiveObject
     public bool RandomizeAtisLetterOnConnect { get; set; }
 
     /// <summary>
+    /// Gets or sets how this station's letter is linked to the departure/arrival station at the same airport.
+    /// Only set through the profile file.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AtisLetterLinkMeta? LetterLink { get; set; }
+
+    /// <summary>
     /// Gets or sets the metadata related to the ATIS voice configuration.
     /// </summary>
     public AtisVoiceMeta AtisVoice { get; set; } = new();
@@ -309,6 +316,7 @@ public class AtisStation : ReactiveObject
             CustomMetarUrl = CustomMetarUrl,
             UseDecimalTerminology = UseDecimalTerminology,
             RandomizeAtisLetterOnConnect = RandomizeAtisLetterOnConnect,
+            LetterLink = LetterLink is null ? null : new AtisLetterLinkMeta { Enabled = LetterLink.Enabled, Offset = LetterLink.Offset },
             AtisVoice = AtisVoice.Clone(),
             Presets = Presets.Select(x => x.Clone()).ToList(),
             Contractions = Contractions.Select(x => x.Clone()).ToList(),
