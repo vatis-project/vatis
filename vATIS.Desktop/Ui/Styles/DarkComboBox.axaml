@@ -47,6 +47,12 @@
 									HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
 									VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 
+					<Border x:Name="GlyphSection"
+							Grid.Column="1"
+							IsHitTestVisible="False"
+							Margin="4"
+							Background="Transparent"
+							CornerRadius="3" />
 					<PathIcon x:Name="DropDownGlyph"
 							  Grid.Column="1"
 							  UseLayoutRounding="True"
@@ -69,22 +75,24 @@
 							IsOpen="{TemplateBinding IsDropDownOpen,Mode=TwoWay}"
 							HorizontalAlignment="Stretch"
 							WindowManagerAddShadowHint="False">
-							<Border
-								x:Name="PopupBorder"
-								Margin="0"
-								HorizontalAlignment="Stretch"
-								Background="#141414"
-								BorderBrush="{TemplateBinding BorderBrush}"
-								BorderThickness="{TemplateBinding BorderThickness}"
-								ClipToBounds="True"
-								CornerRadius="{TemplateBinding CornerRadius}">
-								<ScrollViewer
-									HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
-									VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
-									<ItemsPresenter
-										Name="PART_ItemsPresenter"
-										ItemsPanel="{TemplateBinding ItemsPanel}" />
-								</ScrollViewer>
+							<Border x:Name="PopupShadowHost" Background="Transparent">
+								<Border
+									x:Name="PopupBorder"
+									MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+									HorizontalAlignment="Stretch"
+									Background="#141414"
+									BorderBrush="{TemplateBinding BorderBrush}"
+									BorderThickness="{TemplateBinding BorderThickness}"
+									ClipToBounds="True"
+									CornerRadius="{TemplateBinding CornerRadius}">
+									<ScrollViewer
+										HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+										VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+										<ItemsPresenter
+											Name="PART_ItemsPresenter"
+											ItemsPanel="{TemplateBinding ItemsPanel}" />
+									</ScrollViewer>
+								</Border>
 							</Border>
 						</Popup>
 				</Grid>
@@ -154,7 +162,8 @@
 		</Style>
 		<!-- Opt-in larger rows for the drop-down list, to match a larger selected value. -->
 		<Style Selector="^.Large ComboBoxItem">
-			<Setter Property="Padding" Value="10,10"/>
+			<Setter Property="Padding" Value="10,9"/>
+			<Setter Property="Margin" Value="4,1"/>
 			<Setter Property="FontSize" Value="15"/>
 		</Style>
 		<!-- The list is lighter than the page and has a brighter border so it stands out while open, and sits a few
@@ -162,16 +171,44 @@
 		<Style Selector="^.Large /template/ Border#PopupBorder">
 			<Setter Property="Background" Value="#2D2D2D"/>
 			<Setter Property="BorderBrush" Value="#9A9A9A"/>
+			<Setter Property="CornerRadius" Value="3"/>
+			<Setter Property="Padding" Value="0,4"/>
+			<!-- The popup window clips to its content, so the margin leaves room for the shadow to draw. Clipping the
+			     border itself would cut it off too; the rows are inset so nothing overflows the rounded corners. -->
+			<Setter Property="ClipToBounds" Value="False"/>
+						<Setter Property="BoxShadow" Value="0 12 32 0 #B0000000"/>
 		</Style>
-		<!-- The first and last rows follow the rounded corners of the list so their highlight is not clipped. -->
-		<Style Selector="^.Large ComboBoxItem:nth-child(1) /template/ ContentPresenter">
-			<Setter Property="CornerRadius" Value="2,2,0,0"/>
+		<Style Selector="^.Large /template/ Border#PopupShadowHost">
+			<Setter Property="Padding" Value="32,12,32,44"/>
 		</Style>
-		<Style Selector="^.Large ComboBoxItem:nth-last-child(1) /template/ ContentPresenter">
-			<Setter Property="CornerRadius" Value="0,0,2,2"/>
+		<!-- The arrow sits in its own lighter rounded chip inside the border, and the box brightens on hover, so the closed
+		     control reads as a drop-down rather than a flat text field. -->
+		<Style Selector="^.Large /template/ Border#GlyphSection">
+			<Setter Property="Background" Value="#4A4A4A"/>
+		</Style>
+		<Style Selector="^.Large /template/ Border#Background">
+			<Setter Property="Background" Value="#2D2D2D"/>
+		</Style>
+		<Style Selector="^.Large:pointerover /template/ Border#Background">
+			<Setter Property="Background" Value="#353535"/>
+			<Setter Property="BorderBrush" Value="#9A9A9A"/>
+		</Style>
+		<Style Selector="^.Large:pointerover /template/ Border#GlyphSection">
+			<Setter Property="Background" Value="#5E5E5E"/>
+		</Style>
+		<Style Selector="^.Large /template/ PathIcon#DropDownGlyph">
+			<Setter Property="Foreground" Value="#FFFFFF"/>
+		</Style>
+		<Style Selector="^.Large:dropdownopen /template/ Border#Background">
+			<Setter Property="Background" Value="#2D2D2D"/>
+			<Setter Property="BorderBrush" Value="#9A9A9A"/>
+		</Style>
+		<!-- Rows are rounded and inset from the edge of the list. -->
+		<Style Selector="^.Large ComboBoxItem /template/ ContentPresenter">
+			<Setter Property="CornerRadius" Value="3"/>
 		</Style>
 		<Style Selector="^.Large /template/ Popup#PART_Popup">
-			<Setter Property="VerticalOffset" Value="3"/>
+			<Setter Property="VerticalOffset" Value="-9"/>
 		</Style>
 		<Style Selector="^.Large ComboBoxItem:pointerover /template/ ContentPresenter">
 			<Setter Property="Background" Value="#454545"/>
