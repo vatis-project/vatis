@@ -83,6 +83,11 @@ public class AtisFormat
     public RemarkWind RemarkWind { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the formatting for the density altitude component.
+    /// </summary>
+    public DensityAltitude DensityAltitude { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the automatic observation component of the ATIS format.
     /// </summary>
     public AutoObservation AutoObservation { get; set; } = new();
@@ -124,6 +129,7 @@ public class AtisFormat
             WindShear = WindShear.Clone(),
             RunwayCondition = RunwayCondition.Clone(),
             RemarkWind = RemarkWind.Clone(),
+            DensityAltitude = DensityAltitude.Clone(),
             AutoObservation = AutoObservation.Clone(),
             TransitionLevel = TransitionLevel.Clone(),
             Notams = Notams.Clone(),
