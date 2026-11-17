@@ -135,7 +135,10 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _remarkWindVoice;
     private string? _densityAltitudeText;
     private string? _densityAltitudeVoice;
-    private ObservableCollection<VariableFormatMeta>? _densityAltitudeFormats;
+    private string _densityAltitudeTextStyle = nameof(NumberStyle.Default);
+    private string? _densityAltitudeTextSuffix;
+    private string _densityAltitudeVoiceStyle = nameof(NumberStyle.Default);
+    private string? _densityAltitudeVoiceSuffix;
     private string? _autoObservationText;
     private string? _autoObservationVoice;
     private string? _runwayWindShearText;
@@ -1362,12 +1365,60 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the style and suffix options for the density altitude variable.
+    /// Gets the number styles available for the density altitude.
     /// </summary>
-    public ObservableCollection<VariableFormatMeta>? DensityAltitudeFormats
+    public IReadOnlyList<string> DensityAltitudeStyles { get; } = [nameof(NumberStyle.Default), nameof(NumberStyle.Group)];
+
+    /// <summary>
+    /// Gets or sets the number style of the density altitude in the text ATIS.
+    /// </summary>
+    public string DensityAltitudeTextStyle
     {
-        get => _densityAltitudeFormats;
-        set => this.RaiseAndSetIfChanged(ref _densityAltitudeFormats, value);
+        get => _densityAltitudeTextStyle;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeTextStyle, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeTextStyle), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the suffix added after the density altitude in the text ATIS.
+    /// </summary>
+    public string? DensityAltitudeTextSuffix
+    {
+        get => _densityAltitudeTextSuffix;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeTextSuffix, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeTextSuffix), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the number style of the density altitude in the voice ATIS.
+    /// </summary>
+    public string DensityAltitudeVoiceStyle
+    {
+        get => _densityAltitudeVoiceStyle;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeVoiceStyle, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeVoiceStyle), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the suffix added after the density altitude in the voice ATIS.
+    /// </summary>
+    public string? DensityAltitudeVoiceSuffix
+    {
+        get => _densityAltitudeVoiceSuffix;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeVoiceSuffix, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeVoiceSuffix), value);
+        }
     }
 
     /// <summary>
@@ -2266,13 +2317,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.DensityAltitude.VoiceTemplate = DensityAltitudeVoice;
         }
 
-        if (DensityAltitudeFormats is { Count: > 0 })
+        var densityAltitudeFormat = ToFormat(new VariableFormatMeta(
+            "altitude", DensityAltitudeTextStyle, DensityAltitudeTextSuffix ?? string.Empty, DensityAltitudeVoiceStyle, DensityAltitudeVoiceSuffix ?? string.Empty));
+        if (!FormatsEqual(SelectedStation.AtisFormat.DensityAltitude.Format, densityAltitudeFormat))
         {
-            var format = ToFormat(DensityAltitudeFormats[0]);
-            if (!FormatsEqual(SelectedStation.AtisFormat.DensityAltitude.Format, format))
-            {
-                SelectedStation.AtisFormat.DensityAltitude.Format = format;
-            }
+            SelectedStation.AtisFormat.DensityAltitude.Format = densityAltitudeFormat;
         }
 
         if (SelectedStation.AtisFormat.AutoObservation.TextTemplate != AutoObservationText)
@@ -2584,9 +2633,11 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
         DensityAltitudeText = station.AtisFormat.DensityAltitude.TextTemplate;
         DensityAltitudeVoice = station.AtisFormat.DensityAltitude.VoiceTemplate;
-        DensityAltitudeFormats = [ToMeta("altitude", station.AtisFormat.DensityAltitude.Format)];
-        _changeTracker.TrackChange(nameof(DensityAltitudeFormats), DensityAltitudeFormats.Select(item =>
-            new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
+        var densityAltitudeFormat = ToMeta("altitude", station.AtisFormat.DensityAltitude.Format);
+        DensityAltitudeTextStyle = densityAltitudeFormat.TextStyle;
+        DensityAltitudeTextSuffix = densityAltitudeFormat.TextSuffix;
+        DensityAltitudeVoiceStyle = densityAltitudeFormat.VoiceStyle;
+        DensityAltitudeVoiceSuffix = densityAltitudeFormat.VoiceSuffix;
         AutoObservationText = station.AtisFormat.AutoObservation.TextTemplate;
         AutoObservationVoice = station.AtisFormat.AutoObservation.VoiceTemplate;
         RunwayWindShearText = station.AtisFormat.WindShear.RunwayText;
@@ -2919,10 +2970,6 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
                 case nameof(RvrVoicePhrases):
                     _changeTracker.TrackChange(nameof(RvrVoicePhrases), RvrVoicePhrases?.Select(item =>
                         new TextOverrideMeta(item.Key, item.Text)).ToList());
-                    break;
-                case nameof(DensityAltitudeFormats):
-                    _changeTracker.TrackChange(nameof(DensityAltitudeFormats), DensityAltitudeFormats?.Select(item =>
-                        new VariableFormatMeta(item.Key, item.TextStyle, item.TextSuffix, item.VoiceStyle, item.VoiceSuffix)).ToList());
                     break;
                 case nameof(CloudAltitudeFormats):
                     _changeTracker.TrackChange(nameof(CloudAltitudeFormats), CloudAltitudeFormats?.Select(item =>
