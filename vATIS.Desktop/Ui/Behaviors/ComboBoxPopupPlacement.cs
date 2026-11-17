@@ -7,6 +7,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 
@@ -44,6 +45,7 @@ public static class ComboBoxPopupPlacement
         if (e.NewValue is not true)
         {
             popup.ClearValue(Popup.VerticalOffsetProperty);
+            GetArrow(comboBox)?.ClearValue(Visual.RenderTransformProperty);
             return;
         }
 
@@ -52,15 +54,36 @@ public static class ComboBoxPopupPlacement
 
     private static void Adjust(ComboBox comboBox, Popup popup)
     {
-        if (!comboBox.IsDropDownOpen || popup.Child is not Border host || host.GetVisualRoot() is not PopupRoot root)
+        if (!comboBox.IsDropDownOpen || popup.Child is not Border host)
         {
             return;
         }
 
         var comboTop = comboBox.PointToScreen(default).Y;
-        if (root.PointToScreen(default).Y < comboTop)
+        var isAbove = false;
+
+        if (host.GetVisualRoot() is PopupRoot root)
         {
-            popup.VerticalOffset = host.Padding.Bottom - Gap;
+            isAbove = root.PointToScreen(default).Y < comboTop;
+            if (isAbove)
+            {
+                popup.VerticalOffset = host.Padding.Bottom - Gap;
+            }
         }
+        else if (host.TranslatePoint(default, comboBox) is { } position)
+        {
+            isAbove = position.Y < 0;
+        }
+
+        // Point the arrow up while the list opens above the box.
+        if (isAbove && GetArrow(comboBox) is { } arrow)
+        {
+            arrow.RenderTransform = new RotateTransform(180);
+        }
+    }
+
+    private static PathIcon? GetArrow(ComboBox comboBox)
+    {
+        return comboBox.GetVisualDescendants().OfType<PathIcon>().FirstOrDefault(x => x.Name == "DropDownGlyph");
     }
 }
