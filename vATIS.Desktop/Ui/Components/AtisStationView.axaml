@@ -139,7 +139,7 @@
 						</RoutedEventTriggerBehavior>
 					</Interaction.Behaviors>
 				</controls:NonNavigableComboBox>
-				<Button Grid.Column="2" Margin="5,0,0,0" Theme="{StaticResource Dark}" Content="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectButtonLabelConverter}, FallbackValue=CONNECT}" Command="{Binding NetworkConnectCommand, DataType=vm:AtisStationViewModel}" Background="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectButtonColorConverter}}" />
+				<Button Grid.Column="2" Margin="5,0,0,0" Classes="KeepBackground" Theme="{StaticResource Dark}" Content="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectButtonLabelConverter}, FallbackValue=CONNECT}" Command="{Binding NetworkConnectCommand, DataType=vm:AtisStationViewModel}" Background="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource ConnectButtonColorConverter}}" />
 			</Grid>
 		</Grid>
 	</Border>
