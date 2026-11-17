@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a hover color to buttons.
 
 ### Changed
+- Changed checked checkboxes to the same blue as the selected radio buttons.
 - Updated the drop-downs to look more like drop-downs, with a raised arrow button, a hover state, and a rounded list with a shadow.
 
 ### Fixed
