@@ -17,6 +17,10 @@
         <StyleInclude Source="/Ui/Styles/DataGridStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/TreeDataGridStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/KeyboardNavigationStyles.axaml"/>
+        <!-- Popups (context menus, tooltips, lists) take on the UI scale of the control they open from. -->
+        <Style Selector="Popup">
+            <Setter Property="InheritsTransform" Value="True"/>
+        </Style>
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>

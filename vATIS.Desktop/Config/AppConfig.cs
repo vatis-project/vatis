@@ -74,6 +74,9 @@ public class AppConfig : IAppConfig
     public bool AutoFetchDatis { get; set; }
 
     /// <inheritdoc />
+    public int UiScale { get; set; } = 100;
+
+    /// <inheritdoc />
     public bool SuppressReleaseNotes { get; set; }
 
     /// <inheritdoc />
@@ -121,6 +124,7 @@ public class AppConfig : IAppConfig
             AutoFetchDatis = config.AutoFetchDatis;
             AutoFetchAtisLetter = config.AutoFetchAtisLetter || AutoFetchDatis;
             SuppressReleaseNotes = config.SuppressReleaseNotes;
+            UiScale = Math.Clamp(config.UiScale, 100, 300);
         }
 
         SaveConfig();

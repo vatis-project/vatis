@@ -69,6 +69,7 @@ public class App : Application
             ShowErrorAsync(ex.Message);
         });
         AvaloniaXamlLoader.Load(this);
+        UiScaling.Register();
     }
 
     /// <inheritdoc/>
@@ -147,6 +148,7 @@ public class App : Application
                     appConfig.SaveConfig();
                 }
 
+                UiScaling.SetPercent(appConfig.UiScale);
                 TopMostViewModel.Instance.Initialize(appConfig);
                 MiniWindowTopMostViewModel.Instance.Initialize(appConfig);
 
