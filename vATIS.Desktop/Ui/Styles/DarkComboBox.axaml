@@ -189,10 +189,10 @@
 			<Setter Property="Background" Value="#4A4A4A"/>
 		</Style>
 		<Style Selector="^ /template/ Border#Background">
-			<Setter Property="Background" Value="#2D2D2D"/>
+			<Setter Property="Background" Value="#1E1E1E"/>
 		</Style>
 		<Style Selector="^:pointerover:not(:focus-visible) /template/ Border#Background">
-			<Setter Property="Background" Value="#353535"/>
+			<Setter Property="Background" Value="#282828"/>
 			<Setter Property="BorderBrush" Value="#808080"/>
 		</Style>
 		<Style Selector="^:pointerover /template/ Border#GlyphSection">
@@ -202,7 +202,7 @@
 			<Setter Property="Foreground" Value="#FFFFFF"/>
 		</Style>
 		<Style Selector="^:dropdownopen /template/ Border#Background">
-			<Setter Property="Background" Value="#2D2D2D"/>
+			<Setter Property="Background" Value="#1E1E1E"/>
 			<Setter Property="BorderBrush" Value="#9A9A9A"/>
 		</Style>
 		<!-- Rows are rounded and inset from the edge of the list. -->
