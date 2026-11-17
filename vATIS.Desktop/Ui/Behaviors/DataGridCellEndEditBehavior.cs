@@ -6,6 +6,8 @@
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using Vatsim.Vatis.Events;
 
@@ -55,6 +57,7 @@ public class DataGridCellEndEditBehavior : Behavior<DataGrid>
         if (AssociatedObject != null)
         {
             AssociatedObject.CellEditEnding += AssociatedObjectOnCellEditEnding;
+            AssociatedObject.AddHandler(SelectingItemsControl.SelectionChangedEvent, OnEditorSelectionChanged);
         }
     }
 
@@ -66,6 +69,17 @@ public class DataGridCellEndEditBehavior : Behavior<DataGrid>
         if (AssociatedObject != null)
         {
             AssociatedObject.CellEditEnding -= AssociatedObjectOnCellEditEnding;
+            AssociatedObject.RemoveHandler(SelectingItemsControl.SelectionChangedEvent, OnEditorSelectionChanged);
+        }
+    }
+
+    private void OnEditorSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        // A combo box editor only commits when it loses focus, so commit as soon as the user picks a new value.
+        // The initial binding fires with nothing removed, which is ignored.
+        if (e.Source is ComboBox && e.RemovedItems.Count > 0 && e.AddedItems.Count > 0)
+        {
+            Dispatcher.UIThread.Post(() => AssociatedObject?.CommitEdit());
         }
     }
 
