@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added a hover color to buttons.
+
+### Changed
+- Changed selected radio buttons to a blue ring with a white dot.
+- Changed checked checkboxes to the same blue as the selected radio buttons.
+- Updated the drop-downs to look more like drop-downs, with a raised arrow button, a hover state, and a rounded list with a shadow.
+
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
 - Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.

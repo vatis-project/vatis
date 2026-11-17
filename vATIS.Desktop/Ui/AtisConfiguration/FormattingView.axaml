@@ -75,7 +75,7 @@
 		<converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
 	</UserControl.Resources>
 	<Grid RowDefinitions="Auto,Auto,Auto,*">
-		<ComboBox Grid.Row="0" Margin="0,0,0,10" Padding="10,10" FontSize="15" MaxHeight="100" Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark Large" MaxDropDownHeight="520" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
+		<ComboBox Grid.Row="0" Margin="0,0,0,10" Padding="10,10" FontSize="15" MaxHeight="100" Name="ComponentDropdown" HorizontalContentAlignment="Left" Classes="Dark Large" MaxDropDownHeight="640" ItemsSource="{Binding FormattingOptions, DataType=vm:FormattingViewModel}" SelectedItem="{Binding SelectedFormattingOption, DataType=vm:FormattingViewModel}">
 			<ComboBox.ItemTemplate>
 				<DataTemplate>
 					<TextBlock Text="{Binding}" />

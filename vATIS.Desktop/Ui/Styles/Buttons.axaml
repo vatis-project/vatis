@@ -253,8 +253,11 @@
 		</Style>
 		<Style Selector="^:pointerover /template/ ContentPresenter">
 			<Setter Property="Cursor" Value="Hand"/>
-			<Setter Property="Background" Value="{TemplateBinding Background}"/>
-			<Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}"/>
+			<Setter Property="BorderBrush" Value="#808080"/>
+		</Style>
+		<!-- Buttons that set their own background (like the connect button's status color) keep it on hover. -->
+		<Style Selector="^:not(.KeepBackground):pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#3C3C3C"/>
 		</Style>
 		<Style Selector="^:pressed /template/ ContentPresenter">
 			<Setter Property="Cursor" Value="Hand"/>
