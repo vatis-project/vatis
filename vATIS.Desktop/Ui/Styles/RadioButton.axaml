@@ -44,19 +44,19 @@
 								Name="CheckOuterEllipse"
 								Width="20"
 								Height="20"
-								Fill="#0666B2"
+								Fill="#1E1E1E"
 								Opacity="0"
 								Stroke="#0666B2"
-								StrokeThickness="{DynamicResource RadioButtonBorderThemeThickness}"
+								StrokeThickness="2"
 								UseLayoutRounding="False" />
 
 							<Ellipse
 								Name="CheckGlyph"
-								Width="8"
-								Height="8"
-								Fill="{DynamicResource RadioButtonCheckGlyphFill}"
+								Width="10"
+								Height="10"
+								Fill="#FFFFFF"
 								Opacity="0"
-								Stroke="{DynamicResource RadioButtonCheckGlyphStroke}"
+								Stroke="#FFFFFF"
 								UseLayoutRounding="False" />
 						</Grid>
 
@@ -92,12 +92,12 @@
 
 		<Style Selector="^:pointerover /template/ Ellipse#CheckOuterEllipse">
 			<Setter Property="Stroke" Value="#0C548D" />
-			<Setter Property="Fill" Value="#0C548D" />
+			<Setter Property="Fill" Value="#1E1E1E" />
 		</Style>
 
 		<Style Selector="^:pointerover /template/ Ellipse#CheckGlyph">
-			<Setter Property="Stroke" Value="{DynamicResource RadioButtonCheckGlyphStrokePointerOver}" />
-			<Setter Property="Fill" Value="{DynamicResource RadioButtonCheckGlyphFillPointerOver}" />
+			<Setter Property="Stroke" Value="#E0E0E0" />
+			<Setter Property="Fill" Value="#E0E0E0" />
 		</Style>
 
 
@@ -112,13 +112,13 @@
 		</Style>
 
 		<Style Selector="^:pressed /template/ Ellipse#CheckOuterEllipse">
-			<Setter Property="Stroke" Value="{DynamicResource RadioButtonOuterEllipseCheckedStrokePressed}" />
-			<Setter Property="Fill" Value="{DynamicResource RadioButtonOuterEllipseCheckedFillPressed}" />
+			<Setter Property="Stroke" Value="#0C548D" />
+			<Setter Property="Fill" Value="#1E1E1E" />
 		</Style>
 
 		<Style Selector="^:pressed /template/ Ellipse#CheckGlyph">
-			<Setter Property="Stroke" Value="{DynamicResource RadioButtonCheckGlyphStrokePressed}" />
-			<Setter Property="Fill" Value="{DynamicResource RadioButtonCheckGlyphFillPressed}" />
+			<Setter Property="Stroke" Value="#E0E0E0" />
+			<Setter Property="Fill" Value="#E0E0E0" />
 		</Style>
 
 
@@ -138,13 +138,13 @@
 		</Style>
 
 		<Style Selector="^:disabled /template/ Ellipse#CheckOuterEllipse">
-			<Setter Property="Stroke" Value="{DynamicResource RadioButtonOuterEllipseCheckedStrokeDisabled}" />
-			<Setter Property="Fill" Value="{DynamicResource RadioButtonOuterEllipseCheckedFillDisabled}" />
+			<Setter Property="Stroke" Value="#3A3A3A" />
+			<Setter Property="Fill" Value="#2A2A2A" />
 		</Style>
 
 		<Style Selector="^:disabled /template/ Ellipse#CheckGlyph">
-			<Setter Property="Stroke" Value="{DynamicResource RadioButtonCheckGlyphFillDisabled}" />
-			<Setter Property="Fill" Value="{DynamicResource RadioButtonCheckGlyphStrokeDisabled}" />
+			<Setter Property="Stroke" Value="#3A3A3A" />
+			<Setter Property="Fill" Value="#3A3A3A" />
 		</Style>
 
 
