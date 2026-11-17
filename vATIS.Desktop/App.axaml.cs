@@ -187,6 +187,24 @@ public class App : Application
                     Log.Error(ex, "Error running client updater.");
                 }
 
+                // Imported before the profile updates are checked, so that the imported profile is brought up to date
+                // like the others rather than starting the session with the version that was imported.
+                string? importedProfileId = null;
+                var importProfile = arguments.TryGetValue("--import-profile", out var importProfilePath);
+                if (importProfile)
+                {
+                    try
+                    {
+                        Log.Information($"Launching vATIS with --import-profile {importProfilePath}");
+                        importedProfileId = (await _serviceProvider.GetService<IProfileRepository>()
+                            .ImportWithId(importProfilePath!)).Id;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Failed to import profile from path {importProfilePath}");
+                    }
+                }
+
                 // Profile updates, navdata and the voice list are independent network round trips, so run them
                 // concurrently instead of one after another.
                 var profileUpdatesTask = CheckForProfileUpdatesAsync();
@@ -234,20 +252,21 @@ public class App : Application
                 _startupWindow.Close();
 
                 var sessionManager = _serviceProvider.GetService<ISessionManager>();
-                if (arguments.TryGetValue("--import-profile", out var importProfilePath))
+                if (importedProfileId != null)
                 {
                     try
                     {
-                        Log.Information($"Launching vATIS with --import-profile {importProfilePath}");
-                        var importedProfile =
-                            await _serviceProvider.GetService<IProfileRepository>().ImportWithId(importProfilePath);
-                        await sessionManager.StartSession(importedProfile.Id);
+                        await sessionManager.StartSession(importedProfileId);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex, $"Failed to import profile from path {importProfilePath}");
+                        Log.Error(ex, $"Failed to start a session with imported profile {importedProfileId}");
                         sessionManager.Run();
                     }
+                }
+                else if (importProfile)
+                {
+                    sessionManager.Run();
                 }
                 else if (arguments.TryGetValue("--profile", out var profileId))
                 {
