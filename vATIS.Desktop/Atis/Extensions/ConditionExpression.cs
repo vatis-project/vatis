@@ -47,6 +47,9 @@ public sealed class ConditionExpression
 
     private static readonly Regex s_singleTime = new(@"^\d{4}[zZ]?-?$", RegexOptions.CultureInvariant);
 
+    // The positions a controller can sign in as.
+    private static readonly string[] s_atcSuffixes = ["ATIS", "DEL", "GND", "RMP", "RDO", "TMU", "FMP", "TWR", "APP", "DEP", "CTR", "FSS"];
+
     private readonly Matcher _root;
 
     private ConditionExpression(Matcher root, Parser parser)
@@ -100,8 +103,11 @@ public sealed class ConditionExpression
     /// <param name="text">The condition text.</param>
     /// <param name="expression">The parsed condition, when parsing succeeds.</param>
     /// <param name="error">A message describing the first problem, when parsing fails.</param>
+    /// <param name="validateCallsigns">True to also require every callsign to look like a valid ATC callsign (see
+    /// <see cref="IsValidCallsign"/>). Left off when evaluating, so a condition saved earlier never stops working.</param>
     /// <returns>True if the text is a valid condition.</returns>
-    public static bool TryParse(string? text, out ConditionExpression? expression, out string? error)
+    public static bool TryParse(
+        string? text, out ConditionExpression? expression, out string? error, bool validateCallsigns = false)
     {
         expression = null;
         if (string.IsNullOrWhiteSpace(text))
@@ -112,7 +118,7 @@ public sealed class ConditionExpression
 
         try
         {
-            var parser = new Parser(Tokenize(text));
+            var parser = new Parser(Tokenize(text), validateCallsigns);
             var root = parser.ParseAll();
             expression = new ConditionExpression(root, parser);
             error = null;
@@ -123,6 +129,56 @@ public sealed class ConditionExpression
             error = ex.Message;
             return false;
         }
+    }
+
+    /// <summary>
+    /// Determines whether a callsign, which may contain * wildcards, can match a real ATC callsign: letters and digits
+    /// in parts separated by underscores, ending in a position suffix, e.g. <c>LAX_TWR</c> or <c>LAX_E_GND</c>. A
+    /// * may stand in for any characters, so <c>LAX_*CTR</c> and <c>EPWW_*_CTR</c> are valid, and so is a pattern
+    /// that ends in * such as <c>LAX_*</c>.
+    /// </summary>
+    /// <param name="callsign">The callsign or pattern.</param>
+    /// <returns>True if the callsign could match an ATC callsign.</returns>
+    public static bool IsValidCallsign(string callsign)
+    {
+        if (callsign.Length == 0 || !callsign.All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '*'))
+        {
+            return false;
+        }
+
+        // Anything can follow a trailing *, so the suffix is not known.
+        if (callsign.EndsWith('*'))
+        {
+            return callsign.Length > 1;
+        }
+
+        var suffix = s_atcSuffixes.FirstOrDefault(x => callsign.EndsWith(x, StringComparison.OrdinalIgnoreCase));
+        if (suffix == null || callsign.Length == suffix.Length)
+        {
+            return false;
+        }
+
+        // The suffix follows an underscore, or a * that may stand for one, as in LAX_*CTR.
+        var before = callsign[^(suffix.Length + 1)];
+        if (before == '*')
+        {
+            return true;
+        }
+
+        if (before != '_')
+        {
+            return false;
+        }
+
+        // Without a wildcard, the rest must be a prefix of at least two characters and optional middle parts.
+        var rest = callsign[..^(suffix.Length + 1)];
+        if (rest.Contains('*'))
+        {
+            return !rest.StartsWith('_') && !rest.Contains("__", StringComparison.Ordinal) && !rest.EndsWith('_');
+        }
+
+        var parts = rest.Split('_');
+        return parts[0].Length >= 2 && parts.All(x => x.Length > 0);
     }
 
     /// <summary>
@@ -340,7 +396,7 @@ public sealed class ConditionExpression
 
     private readonly record struct Token(TokenKind Kind, string Text, int Position, int Start = 0, int End = 0);
 
-    private sealed class Parser(List<Token> tokens)
+    private sealed class Parser(List<Token> tokens, bool validateCallsigns)
     {
         private int _position;
 
@@ -565,6 +621,14 @@ public sealed class ConditionExpression
             var colon = token.Text.IndexOf(':');
             if (colon < 0)
             {
+                if (validateCallsigns && !IsValidCallsign(token.Text))
+                {
+                    throw Error(
+                        $"'{token.Text}' is not a valid ATC callsign. Callsigns look like LAX_TWR or LAX_E_GND and " +
+                        $"end in {string.Join(", ", s_atcSuffixes.Select(x => "_" + x))}; use * as a wildcard, e.g. LAX_*CTR.",
+                        token);
+                }
+
                 HasCallsign = true;
                 return Callsign(token.Text);
             }

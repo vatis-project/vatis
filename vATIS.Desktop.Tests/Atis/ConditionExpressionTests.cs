@@ -404,4 +404,62 @@ public class ConditionExpressionTests
         Assert.DoesNotContain("onlineCondition", written);
         Assert.DoesNotContain("weatherCondition", written);
     }
+
+    [Theory]
+    [InlineData("LAX_TWR")]
+    [InlineData("lax_e_gnd")]
+    [InlineData("EGLL_N_APP")]
+    [InlineData("N90_APP")]
+    [InlineData("EPWA_ATIS")]
+    [InlineData("KJFK_N_RMP")]
+    [InlineData("ZNY_RDO")]
+    [InlineData("ZNY_TMU")]
+    [InlineData("ZNY_FMP")]
+    [InlineData("LAX_*CTR")]
+    [InlineData("EPWW_*_CTR")]
+    [InlineData("*_TWR")]
+    [InlineData("*CTR")]
+    [InlineData("LAX_*")]
+    [InlineData("LAX*")]
+    [InlineData("LA*_TWR")]
+    public void ValidCallsigns_AndPatterns_AreAccepted(string callsign)
+    {
+        Assert.True(ConditionExpression.IsValidCallsign(callsign));
+        Assert.True(ConditionExpression.TryParse(callsign, out _, out var error, validateCallsigns: true), error);
+    }
+
+    [Theory]
+    [InlineData("FOO")]
+    [InlineData("LAX")]
+    [InlineData("LAX_TOWER")]
+    [InlineData("LAXTWR")]
+    [InlineData("X_TWR")]
+    [InlineData("_TWR")]
+    [InlineData("LAX__GND")]
+    [InlineData("LAX_E_")]
+    [InlineData("LAX-TWR")]
+    [InlineData("LAX_TW R")]
+    [InlineData("*")]
+    public void InvalidCallsigns_AreRejected_OnlyWhenValidating(string callsign)
+    {
+        Assert.False(ConditionExpression.IsValidCallsign(callsign));
+        if (!callsign.Contains(' ') && !callsign.Contains('-'))
+        {
+            Assert.True(ConditionExpression.TryParse(callsign, out _, out _));
+        }
+
+        Assert.False(ConditionExpression.TryParse(callsign, out _, out var error, validateCallsigns: true));
+        Assert.False(string.IsNullOrEmpty(error));
+    }
+
+    [Fact]
+    public void CallsignValidation_AppliesToEveryCallsignInTheCondition_AndNotToOtherTerms()
+    {
+        Assert.True(ConditionExpression.TryParse(
+            "(LAX_TWR OR LAX_*CTR) AND dep:07 AND ceiling < 200ft AND 2200z-0600z", out _, out var error,
+            validateCallsigns: true), error);
+        Assert.False(ConditionExpression.TryParse("LAX_TWR AND FOO", out _, out error, validateCallsigns: true));
+        Assert.Contains("'FOO' is not a valid ATC callsign", error);
+        Assert.EndsWith("(position 13)", error);
+    }
 }

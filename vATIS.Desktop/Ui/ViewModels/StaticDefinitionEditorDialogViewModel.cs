@@ -144,7 +144,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
         set
         {
             this.RaiseAndSetIfChanged(ref _condition, value);
-            ConditionError = string.IsNullOrWhiteSpace(value) || ConditionExpression.TryParse(value, out _, out var error)
+            ConditionError = string.IsNullOrWhiteSpace(value) || ConditionExpression.TryParse(value, out _, out var error, validateCallsigns: true)
                 ? null
                 : error;
         }
