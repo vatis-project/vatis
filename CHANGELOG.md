@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added arrival and departure runways to ATIS presets, so airport conditions and NOTAMs can depend on the runways in use (e.g., `dep:07L`, `arr:25*`, `rwy:16`).
+- Changed the controller and weather conditions on static airport conditions and NOTAMs into a single condition box, so controllers online, time, weather and runways can be mixed with AND, OR and NOT (e.g., `EPKK_E_APP AND dep:07 AND NOT ceiling < 200ft`). Legacy controller and weather conditions are combined automatically. Runway names need a `dep:`, `arr:` or `rwy:` prefix, and a word that is a weather field name (e.g., `wind`) is read as weather rather than a callsign.
+
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
 - Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.

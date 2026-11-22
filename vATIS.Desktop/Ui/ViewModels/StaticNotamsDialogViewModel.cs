@@ -18,6 +18,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
@@ -178,6 +179,11 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the runways of the station's presets, suggested while a condition is typed.
+    /// </summary>
+    public ActiveRunways? Runways { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of completion data used for contraction suggestions in the NOTAM editor dialog.
     /// </summary>
     public List<ICompletionData> ContractionCompletionData
@@ -309,6 +315,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                     vm.SeparatorAfter = definition.SeparatorAfter;
                     vm.LoadConditionsFrom(definition);
                     vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.Runways = Runways;
                     vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
                     {
@@ -364,6 +371,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
             {
                 vm.Title = "New NOTAM";
                 vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.Runways = Runways;
                 vm.SpokenTextSource = SpokenTextSource;
                 vm.DialogResultChanged += (_, result) =>
                 {

@@ -23,14 +23,14 @@ public class WeatherRuleEvaluatorTests
     private static bool Met(DecodedMetar? metar, string expression)
     {
         Assert.True(
-            WeatherExpression.TryParse(expression, out var parsed, out var error),
+            ConditionExpression.TryParse(expression, out var parsed, out var error),
             $"'{expression}' should parse: {error}");
-        return parsed!.Evaluate(metar, s_format);
+        return parsed!.Evaluate(new ConditionContext(Metar: metar, AtisFormat: s_format));
     }
 
     private static string ParseError(string expression)
     {
-        Assert.False(WeatherExpression.TryParse(expression, out _, out var error), $"'{expression}' should not parse");
+        Assert.False(ConditionExpression.TryParse(expression, out _, out var error), $"'{expression}' should not parse");
         return error!;
     }
 
@@ -439,7 +439,7 @@ public class WeatherRuleEvaluatorTests
     [InlineData("ceiling < abc", "Expected a number")]
     [InlineData("ceiling < 200kt", "'kt' is not a unit for ceiling")]
     [InlineData("ceiling < 200ft AND", "ends too soon")]
-    [InlineData("ceiling < 200ft AND OR rvr < 5m", "Expected a field name")]
+    [InlineData("ceiling < 200ft AND OR rvr < 5m", "Expected a condition")]
     [InlineData("(ceiling < 200ft", "Missing a closing ')'")]
     [InlineData("ceiling < 200ft)", "without a matching '('")]
     [InlineData("ceiling < 200ft rvr < 5m", "Expected AND or OR")]
@@ -447,7 +447,7 @@ public class WeatherRuleEvaluatorTests
     [InlineData("weather includes", "Expected the codes")]
     [InlineData("weather includes \"TS", "Missing closing quote")]
     [InlineData("windshear < 5", "either reported or not")]
-    [InlineData("()", "Expected a field name")]
+    [InlineData("()", "Expected a condition")]
     public void InvalidExpressions_ReportAClearError(string expression, string expectedFragment)
     {
         Assert.Contains(expectedFragment, ParseError(expression));
@@ -469,7 +469,7 @@ public class WeatherRuleEvaluatorTests
     [InlineData("((vis < 1000m OR ceiling < 200ft) AND rvr < 550m) OR wx EXCLUDES FG")]
     public void ExamplesFromTheDocumentationParse(string expression)
     {
-        Assert.True(WeatherExpression.TryParse(expression, out _, out var error), error);
+        Assert.True(ConditionExpression.TryParse(expression, out _, out var error), error);
     }
 
     [Fact]
@@ -484,40 +484,40 @@ public class WeatherRuleEvaluatorTests
         var metar = Metar("EPWA 191200Z 24005KT 0400 R33/0500N FG OVC001 10/09 Q1013");
         var lvp = new StaticDefinition("LVP IN OPERATION", 1)
         {
-            WeatherCondition = "ceiling < 200ft OR rvr < 550m",
+            Condition = "ceiling < 200ft OR rvr < 550m",
         };
 
         Assert.Single(StaticDefinitionFilter.GetActive([lvp], null, metar, s_format));
         Assert.Empty(StaticDefinitionFilter.GetActive([lvp], null, null, s_format));
         Assert.Empty(StaticDefinitionFilter.GetActive([lvp], null, metar, null));
 
-        lvp.OnlineCondition = "EPWA_APP";
+        lvp.Condition = "EPWA_APP AND (ceiling < 200ft OR rvr < 550m)";
         Assert.Empty(StaticDefinitionFilter.GetActive([lvp], ["EPWA_TWR"], metar, s_format));
         Assert.Single(StaticDefinitionFilter.GetActive([lvp], ["EPWA_APP"], metar, s_format));
         Assert.True(StaticDefinitionFilter.HasWeatherConditions([lvp]));
         Assert.False(StaticDefinitionFilter.HasWeatherConditions([new StaticDefinition("A", 1)]));
         Assert.False(StaticDefinitionFilter.HasWeatherConditions(
-            [new StaticDefinition("A", 1, enabled: false) { WeatherCondition = "cavok" }]));
+            [new StaticDefinition("A", 1, enabled: false) { Condition = "cavok" }]));
     }
 
     [Fact]
     public void Filter_InvalidConditionIsNeverMet()
     {
         var metar = Metar("EPWA 191200Z 24005KT 0400 FG OVC001 10/09 Q1013");
-        var bad = new StaticDefinition("X", 1) { WeatherCondition = "ceiling << 200ft" };
+        var bad = new StaticDefinition("X", 1) { Condition = "ceiling << 200ft" };
         Assert.Empty(StaticDefinitionFilter.GetActive([bad], null, metar, s_format));
     }
 
     [Fact]
     public void Definition_RoundTripsThroughJson_AndClones()
     {
-        var def = new StaticDefinition("LVP", 1) { WeatherCondition = "ceiling < 200ft AND (rvr < 550m OR vis < 100m)" };
+        var def = new StaticDefinition("LVP", 1) { Condition = "ceiling < 200ft AND (rvr < 550m OR vis < 100m)" };
         var station = new AtisStation { Identifier = "EPWA", Name = "W", AirportConditionDefinitions = [def] };
 
         var json = JsonSerializer.Serialize(station, SourceGenerationContext.NewDefault.AtisStation);
         var loaded = JsonSerializer.Deserialize(json, SourceGenerationContext.NewDefault.AtisStation)!;
-        Assert.Equal(def.WeatherCondition, loaded.AirportConditionDefinitions.Single().WeatherCondition);
-        Assert.Equal(def.WeatherCondition, def.Clone().WeatherCondition);
+        Assert.Equal(def.Condition, loaded.AirportConditionDefinitions.Single().Condition);
+        Assert.Equal(def.Condition, def.Clone().Condition);
 
         var plain = JsonSerializer.Serialize(
             new AtisStation { Identifier = "EPWA", Name = "W", NotamDefinitions = [new StaticDefinition("A", 1)] },

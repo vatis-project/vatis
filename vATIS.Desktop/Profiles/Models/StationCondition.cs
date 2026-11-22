@@ -10,7 +10,7 @@ namespace Vatsim.Vatis.Profiles.Models;
 /// </summary>
 /// <remarks>
 /// Only used to read profiles saved before conditions were written as text. It is converted to
-/// <see cref="StaticDefinition.OnlineCondition"/> when the profile is loaded.
+/// <see cref="StaticDefinition.Condition"/> when the profile is loaded.
 /// </remarks>
 public enum StationCondition
 {

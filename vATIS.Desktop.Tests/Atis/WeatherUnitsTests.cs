@@ -20,8 +20,8 @@ public class WeatherUnitsTests
     private static bool Met(string metar, string expression)
     {
         var decoded = new MetarDecoder().ParseNotStrict(metar);
-        Assert.True(WeatherExpression.TryParse(expression, out var parsed, out var error), $"'{expression}': {error}");
-        return parsed!.Evaluate(decoded, s_format);
+        Assert.True(ConditionExpression.TryParse(expression, out var parsed, out var error), $"'{expression}': {error}");
+        return parsed!.Evaluate(new ConditionContext(Metar: decoded, AtisFormat: s_format));
     }
 
     [Theory]
@@ -121,7 +121,7 @@ public class WeatherUnitsTests
     [InlineData("ceiling < 1sm", "not a unit for ceiling")]
     public void InvalidUnitsAndFractions_ReportAClearError(string expression, string expectedMessage)
     {
-        Assert.False(WeatherExpression.TryParse(expression, out _, out var error));
+        Assert.False(ConditionExpression.TryParse(expression, out _, out var error));
         Assert.Contains(expectedMessage, error);
     }
 

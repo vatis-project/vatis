@@ -63,6 +63,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     private string _externalGeneratorDepartureRunways = string.Empty;
     private string _externalGeneratorApproaches = string.Empty;
     private string _externalGeneratorRemarks = string.Empty;
+    private string _arrivalRunways = string.Empty;
+    private string _departureRunways = string.Empty;
     private string _atisTemplateText = string.Empty;
 
     /// <summary>
@@ -331,6 +333,32 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
     }
 
     /// <summary>
+    /// Gets or sets the arrival runways of the selected preset, e.g. <c>07L, 07R</c>.
+    /// </summary>
+    public string ArrivalRunways
+    {
+        get => _arrivalRunways;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _arrivalRunways, value);
+            _changeTracker.TrackChange(nameof(ArrivalRunways), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the departure runways of the selected preset, e.g. <c>07L</c>.
+    /// </summary>
+    public string DepartureRunways
+    {
+        get => _departureRunways;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _departureRunways, value);
+            _changeTracker.TrackChange(nameof(DepartureRunways), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the external generator remarks.
     /// </summary>
     public string ExternalGeneratorRemarks
@@ -403,6 +431,11 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         {
             SelectedPreset.Template = AtisTemplateText;
         }
+
+        var arrival = string.Join(", ", ActiveRunways.Split(ArrivalRunways));
+        var departure = string.Join(", ", ActiveRunways.Split(DepartureRunways));
+        SelectedPreset.ArrivalRunways = arrival.Length == 0 ? null : arrival;
+        SelectedPreset.DepartureRunways = departure.Length == 0 ? null : departure;
 
         if (SelectedPreset is { ExternalGenerator: not null })
         {
@@ -768,6 +801,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
 
         SelectedPreset = preset;
         AtisTemplateText = SelectedPreset?.Template ?? string.Empty;
+        ArrivalRunways = SelectedPreset?.ArrivalRunways ?? string.Empty;
+        DepartureRunways = SelectedPreset?.DepartureRunways ?? string.Empty;
 
         if (SelectedPreset?.ExternalGenerator != null)
         {
@@ -881,6 +916,8 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         Presets = new ObservableCollection<AtisPreset>(station.Presets);
         UseExternalAtisGenerator = false;
         AtisTemplateText = "";
+        ArrivalRunways = "";
+        DepartureRunways = "";
         ExternalGeneratorTextUrl = "";
         ExternalGeneratorArrivalRunways = "";
         ExternalGeneratorDepartureRunways = "";

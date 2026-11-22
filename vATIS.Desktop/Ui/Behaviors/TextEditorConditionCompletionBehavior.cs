@@ -23,21 +23,21 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
 {
     /// <summary>
-    /// Defines the <see cref="Kind"/> property.
+    /// Defines the <see cref="Runways"/> property.
     /// </summary>
-    public static readonly StyledProperty<ConditionCompletionKind> KindProperty =
-        AvaloniaProperty.Register<TextEditorConditionCompletionBehavior, ConditionCompletionKind>(nameof(Kind));
+    public static readonly StyledProperty<ActiveRunways?> RunwaysProperty =
+        AvaloniaProperty.Register<TextEditorConditionCompletionBehavior, ActiveRunways?>(nameof(Runways));
 
     private CompletionWindow? _window;
     private TextEditor? _editor;
 
     /// <summary>
-    /// Gets or sets which kind of condition is being edited.
+    /// Gets or sets the runways to suggest after dep:, arr: and rwy:.
     /// </summary>
-    public ConditionCompletionKind Kind
+    public ActiveRunways? Runways
     {
-        get => GetValue(KindProperty);
-        set => SetValue(KindProperty, value);
+        get => GetValue(RunwaysProperty);
+        set => SetValue(RunwaysProperty, value);
     }
 
     /// <inheritdoc/>
@@ -94,7 +94,7 @@ public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
             _window = null;
         }
 
-        if (char.IsLetter(c) || c is ' ' or '(')
+        if (char.IsLetter(c) || c is ' ' or '(' or ':')
         {
             Show();
         }
@@ -142,9 +142,7 @@ public class TextEditorConditionCompletionBehavior : Behavior<TextEditor>
 
     private CompletionSuggestionResult GetSuggestions(string text, int caret)
     {
-        return Kind == ConditionCompletionKind.Station
-            ? StationCompletion.GetSuggestions(text, caret)
-            : WeatherCompletion.GetSuggestions(text, caret);
+        return ConditionCompletion.GetSuggestions(text, caret, Runways);
     }
 
     private void OnInserted(CompletionSuggestion suggestion)

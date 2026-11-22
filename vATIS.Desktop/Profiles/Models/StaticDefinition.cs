@@ -74,34 +74,41 @@ public class StaticDefinition : ReactiveObject, IJsonOnDeserialized
     public string? SeparatorAfter { get; set; }
 
     /// <summary>
-    /// Gets or sets a condition on which VATSIM controllers are online that must be met for this definition to be
-    /// included, written as text, e.g. <c>LAS_E_GND NOT LAS_W_GND</c>. A <c>*</c> in a callsign matches any run of
-    /// characters. See <see cref="StationExpression"/> for the syntax.
+    /// Gets or sets a condition that must be met for this definition to be included, written as text. It can test
+    /// which VATSIM controllers are online, the time of day, the METAR and the runways of the selected preset, and mix
+    /// them with AND, OR and NOT, e.g. <c>EPKK_E_APP AND dep:07L AND NOT ceiling &lt; 200ft</c>. See
+    /// <see cref="ConditionExpression"/> for the syntax.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Condition { get; set; }
+
+    /// <summary>
+    /// Gets or sets the controller condition from before conditions were combined. Only read from old profiles and
+    /// merged into <see cref="Condition"/> when loaded.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? OnlineCondition { get; set; }
 
     /// <summary>
+    /// Gets or sets the weather condition from before conditions were combined. Only read from old profiles and
+    /// merged into <see cref="Condition"/> when loaded.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WeatherCondition { get; set; }
+
+    /// <summary>
     /// Gets or sets the station condition from before conditions were written as text. Only read from old profiles
-    /// and converted to <see cref="OnlineCondition"/> when loaded.
+    /// and merged into <see cref="Condition"/> when loaded.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public StationCondition StationCondition { get; set; }
 
     /// <summary>
-    /// Gets or sets the callsigns for the old <see cref="StationCondition"/>. Only read from old profiles and
-    /// converted to <see cref="OnlineCondition"/> when loaded.
+    /// Gets or sets the callsigns for the old <see cref="StationCondition"/>. Only read from old profiles and merged
+    /// into <see cref="Condition"/> when loaded.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StationCallsigns { get; set; }
-
-    /// <summary>
-    /// Gets or sets a condition on the METAR that must be met for this definition to be included, written as text,
-    /// e.g. <c>ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m)</c>. Combined with
-    /// <see cref="OnlineCondition"/>: both must pass.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? WeatherCondition { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the static definition is enabled.
@@ -113,15 +120,20 @@ public class StaticDefinition : ReactiveObject, IJsonOnDeserialized
     }
 
     /// <summary>
-    /// Converts a station condition from an old profile to an <see cref="OnlineCondition"/>.
+    /// Merges the separate station, controller and weather conditions of an old profile into <see cref="Condition"/>.
     /// </summary>
     public void OnDeserialized()
     {
-        if (string.IsNullOrWhiteSpace(OnlineCondition))
+        if (string.IsNullOrWhiteSpace(Condition))
         {
-            OnlineCondition = StationExpression.FromLegacy(StationCondition, StationCallsigns);
+            var online = string.IsNullOrWhiteSpace(OnlineCondition)
+                ? ConditionExpression.FromLegacy(StationCondition, StationCallsigns)
+                : OnlineCondition;
+            Condition = ConditionExpression.Combine(online, WeatherCondition);
         }
 
+        OnlineCondition = null;
+        WeatherCondition = null;
         StationCondition = StationCondition.Always;
         StationCallsigns = null;
     }
@@ -144,8 +156,7 @@ public class StaticDefinition : ReactiveObject, IJsonOnDeserialized
         return new StaticDefinition(Text, Ordinal, Enabled)
         {
             SeparatorAfter = SeparatorAfter,
-            OnlineCondition = OnlineCondition,
-            WeatherCondition = WeatherCondition,
+            Condition = Condition,
         };
     }
 }

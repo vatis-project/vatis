@@ -22,13 +22,13 @@ public class StaticDefinitionSummaryTests
     {
         var online = new StaticDefinition("A", 1)
         {
-            OnlineCondition = "EPWA_APP,   EPWW_*_CTR\n epwa_f_app",
+            Condition = "EPWA_APP,   EPWW_*_CTR\n epwa_f_app",
         };
         Assert.Equal(["Controllers: EPWA_APP, EPWW_*_CTR epwa_f_app"], StaticDefinitionSummary.Describe(online));
 
         var offline = new StaticDefinition("A", 1)
         {
-            OnlineCondition = "NOT EPWA_DEL",
+            Condition = "NOT EPWA_DEL",
         };
         Assert.Equal(["Controllers: NOT EPWA_DEL"], StaticDefinitionSummary.Describe(offline));
     }
@@ -39,39 +39,33 @@ public class StaticDefinitionSummaryTests
     [InlineData("LAX_TWR AND 2200z-0600z", "Controllers and time: LAX_TWR AND 2200z-0600z")]
     [InlineData("(LAX_TWR OR LAX_GND) 0600z-1400z", "Controllers and time: (LAX_TWR OR LAX_GND) 0600z-1400z")]
     [InlineData("LAX_TWR", "Controllers: LAX_TWR")]
-    [InlineData("LAX_TWR AND (", "Controllers: LAX_TWR AND (")]
+    [InlineData("LAX_TWR AND (", "Condition: LAX_TWR AND (")]
+    [InlineData("dep:07L", "Runways: dep:07L")]
     public void OnlineLabel_ReflectsWhatTheConditionChecks(string condition, string expected)
     {
-        var def = new StaticDefinition("A", 1) { OnlineCondition = condition };
+        var def = new StaticDefinition("A", 1) { Condition = condition };
         Assert.Equal([expected], StaticDefinitionSummary.Describe(def));
     }
 
     [Fact]
     public void Weather_IsOneLineWithWhitespaceCollapsed()
     {
-        var def = new StaticDefinition("LVP", 1) { WeatherCondition = "  ceiling < 200ft\n  AND (rvr < 550m   OR vis < 100m) " };
+        var def = new StaticDefinition("LVP", 1) { Condition = "  ceiling < 200ft\n  AND (rvr < 550m   OR vis < 100m) " };
         Assert.Equal(["Weather: ceiling < 200ft AND (rvr < 550m OR vis < 100m)"], StaticDefinitionSummary.Describe(def));
     }
 
     [Fact]
-    public void BothConditions_GiveTwoLines_ControllersFirst()
+    public void MixedConditions_GiveOneLabelledLine()
     {
-        var def = new StaticDefinition("X", 1)
-        {
-            OnlineCondition = "EPWA_APP",
-            WeatherCondition = "cavok",
-        };
-        Assert.Equal(["Controllers: EPWA_APP", "Weather: cavok"], StaticDefinitionSummary.Describe(def));
+        var def = new StaticDefinition("X", 1) { Condition = "EPWA_APP AND cavok AND dep:07" };
+        Assert.Equal(
+            ["Controllers, weather and runways: EPWA_APP AND cavok AND dep:07"], StaticDefinitionSummary.Describe(def));
     }
 
     [Fact]
     public void ACondition_WithNothingToCheck_IsIgnored()
     {
-        var def = new StaticDefinition("X", 1)
-        {
-            OnlineCondition = "  ",
-            WeatherCondition = " ",
-        };
+        var def = new StaticDefinition("X", 1) { Condition = "  " };
         Assert.Empty(StaticDefinitionSummary.Describe(def));
     }
 }

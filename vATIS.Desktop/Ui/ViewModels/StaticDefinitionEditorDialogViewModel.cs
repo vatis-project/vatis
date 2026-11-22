@@ -29,10 +29,9 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     private string? _title = "Definition Editor";
     private string? _dataValidation;
     private string? _separatorAfter;
-    private string? _onlineCondition;
-    private string? _onlineConditionError;
-    private string? _weatherCondition;
-    private string? _weatherConditionError;
+    private string? _condition;
+    private ActiveRunways? _runways;
+    private string? _conditionError;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticDefinitionEditorDialogViewModel"/> class.
@@ -99,6 +98,15 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     }
 
     /// <summary>
+    /// Gets or sets the runways of the station's presets, suggested while a condition is typed.
+    /// </summary>
+    public ActiveRunways? Runways
+    {
+        get => _runways;
+        set => this.RaiseAndSetIfChanged(ref _runways, value);
+    }
+
+    /// <summary>
     /// Gets or sets the list of completion data used for contraction suggestions in the editor.
     /// This allows the editor to provide relevant completion suggestions when editing definitions.
     /// </summary>
@@ -127,70 +135,38 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     }
 
     /// <summary>
-    /// Gets or sets the condition on which controllers are online, as text, e.g. <c>LAS_E_GND NOT LAS_W_GND</c>.
+    /// Gets or sets the condition, as text, e.g. <c>EPKK_E_APP AND dep:07 AND ceiling &lt; 200ft</c>. It can test
+    /// controllers online, time, weather and runways.
     /// </summary>
-    public string? OnlineCondition
+    public string? Condition
     {
-        get => _onlineCondition;
+        get => _condition;
         set
         {
-            this.RaiseAndSetIfChanged(ref _onlineCondition, value);
-            OnlineConditionError = string.IsNullOrWhiteSpace(value) || StationExpression.TryParse(value, out _, out var error)
+            this.RaiseAndSetIfChanged(ref _condition, value);
+            ConditionError = string.IsNullOrWhiteSpace(value) || ConditionExpression.TryParse(value, out _, out var error, validateCallsigns: true)
                 ? null
                 : error;
         }
     }
 
     /// <summary>
-    /// Gets the problem with the online condition as typed, or null if it is empty or valid.
+    /// Gets the problem with the condition as typed, or null if it is empty or valid.
     /// </summary>
-    public string? OnlineConditionError
+    public string? ConditionError
     {
-        get => _onlineConditionError;
+        get => _conditionError;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _onlineConditionError, value);
-            this.RaisePropertyChanged(nameof(HasOnlineConditionError));
+            this.RaiseAndSetIfChanged(ref _conditionError, value);
+            this.RaisePropertyChanged(nameof(HasConditionError));
         }
     }
 
     /// <summary>
-    /// Gets a value indicating whether the online condition has a problem.
+    /// Gets a value indicating whether the condition has a problem.
     /// </summary>
-    public bool HasOnlineConditionError => _onlineConditionError != null;
-
-    /// <summary>
-    /// Gets or sets the condition on the METAR, as text, e.g. <c>ceiling &lt; 200ft AND rvr &lt; 550m</c>.
-    /// </summary>
-    public string? WeatherCondition
-    {
-        get => _weatherCondition;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _weatherCondition, value);
-            WeatherConditionError = string.IsNullOrWhiteSpace(value) || WeatherExpression.TryParse(value, out _, out var error)
-                ? null
-                : error;
-        }
-    }
-
-    /// <summary>
-    /// Gets the problem with the weather condition as typed, or null if it is empty or valid.
-    /// </summary>
-    public string? WeatherConditionError
-    {
-        get => _weatherConditionError;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref _weatherConditionError, value);
-            this.RaisePropertyChanged(nameof(HasWeatherConditionError));
-        }
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether the weather condition has a problem.
-    /// </summary>
-    public bool HasWeatherConditionError => _weatherConditionError != null;
+    public bool HasConditionError => _conditionError != null;
 
     /// <summary>
     /// Gets or sets the validation message associated with data input. This property provides feedback
@@ -203,43 +179,36 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     }
 
     /// <summary>
-    /// Loads the station and weather conditions of an existing definition.
+    /// Loads the condition of an existing definition.
     /// </summary>
     /// <param name="definition">The definition.</param>
     public void LoadConditionsFrom(StaticDefinition definition)
     {
-        OnlineCondition = definition.OnlineCondition;
-        WeatherCondition = definition.WeatherCondition;
+        Condition = definition.Condition;
     }
 
     /// <summary>
-    /// Copies the station and weather conditions being edited onto a definition.
+    /// Copies the condition being edited onto a definition.
     /// </summary>
     /// <param name="definition">The definition.</param>
     /// <returns>The same definition.</returns>
     public StaticDefinition ApplyConditionsTo(StaticDefinition definition)
     {
-        definition.OnlineCondition = string.IsNullOrWhiteSpace(OnlineCondition) ? null : OnlineCondition.Trim();
-        definition.WeatherCondition = string.IsNullOrWhiteSpace(WeatherCondition) ? null : WeatherCondition.Trim();
+        definition.Condition = string.IsNullOrWhiteSpace(Condition) ? null : Condition.Trim();
         return definition;
     }
 
     /// <summary>
-    /// Raises validation errors for incomplete station or weather conditions.
+    /// Checks the condition.
     /// </summary>
-    /// <returns>True if the conditions are valid; otherwise, false.</returns>
+    /// <returns>True if the condition is valid; otherwise, false.</returns>
     /// <remarks>
-    /// A weather condition problem is not raised as an error here because it is already shown next to the field,
-    /// so the caller must not save when this returns false.
+    /// A problem is not raised as an error here because it is already shown next to the field, so the caller must not
+    /// save when this returns false.
     /// </remarks>
     public bool ValidateConditions()
     {
-        if (!string.IsNullOrWhiteSpace(OnlineCondition) && !StationExpression.TryParse(OnlineCondition, out _, out var stationError))
-        {
-            RaiseError("DataValidation", stationError!);
-        }
-
-        return !HasErrors && !HasWeatherConditionError;
+        return !HasErrors && !HasConditionError;
     }
 
     /// <inheritdoc/>
@@ -262,7 +231,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         DialogResultChanged?.Invoke(this, DialogResult.Ok);
         DialogResult = DialogResult.Ok;
-        if (!HasErrors && !HasWeatherConditionError)
+        if (!HasErrors && !HasConditionError)
         {
             window.Close();
         }
