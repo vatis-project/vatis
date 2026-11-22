@@ -64,6 +64,19 @@ public class AtisPreset
     public bool IsNotamsDirty { get; set; }
 
     /// <summary>
+    /// Gets or sets the arrival runways this preset uses, separated by commas or spaces, e.g. <c>07L, 07R</c>.
+    /// Airport conditions and NOTAMs with a runway condition are included or left out depending on them.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ArrivalRunways { get; set; }
+
+    /// <summary>
+    /// Gets or sets the departure runways this preset uses, separated by commas or spaces, e.g. <c>07L</c>.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DepartureRunways { get; set; }
+
+    /// <summary>
     /// Gets a value indicating whether the template contains any of the defined closing variables.
     /// </summary>
     [JsonIgnore]
@@ -94,6 +107,8 @@ public class AtisPreset
             Name = Name,
             AirportConditions = AirportConditions,
             Notams = Notams,
+            ArrivalRunways = ArrivalRunways,
+            DepartureRunways = DepartureRunways,
             Template = Template,
             ExternalGenerator = ExternalGenerator,
         };

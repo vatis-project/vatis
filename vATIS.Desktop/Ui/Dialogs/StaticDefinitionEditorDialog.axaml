@@ -69,7 +69,7 @@
 							<behaviors:TextEditorSpokenTextBehavior/>
 						</Interaction.Behaviors>
 					</editor:TextEditor>
-					<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto">
+					<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 						<Grid.Styles>
 							<Style Selector="ComboBox.field, TextBox.field, Button.field">
 								<Setter Property="Height" Value="28" />
@@ -301,6 +301,19 @@
 									<MultiBinding Converter="{x:Static BoolConverters.And}" x:DataType="vm:StaticDefinitionEditorDialogViewModel">
 										<Binding Path="HasWeatherConditionError" x:DataType="vm:StaticDefinitionEditorDialogViewModel" />
 										<Binding Path="!#WeatherEditor.IsKeyboardFocusWithin" />
+									</MultiBinding>
+								</TextBlock.IsVisible>
+							</TextBlock>
+						</StackPanel>
+						<TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Margin="0,10,0,0" Text="Runways:" />
+						<StackPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0" Spacing="3">
+							<TextBox Name="RunwayEditor" FontFamily="{StaticResource Monospace}" Text="{Binding RunwayCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}" Watermark="e.g. dep:07L OR arr:25*" />
+							<TextBlock TextWrapping="Wrap" Opacity="0.6" FontSize="12" Text="Runways from the preset, with AND, OR and NOT. Use dep: or arr: to look at departure or arrival runways only, and * to match 07L and 07R (07*). Leave blank to always include." />
+							<TextBlock TextWrapping="Wrap" Foreground="#FCBA03" Text="{Binding RunwayConditionError, DataType=vm:StaticDefinitionEditorDialogViewModel}">
+								<TextBlock.IsVisible>
+									<MultiBinding Converter="{x:Static BoolConverters.And}" x:DataType="vm:StaticDefinitionEditorDialogViewModel">
+										<Binding Path="HasRunwayConditionError" x:DataType="vm:StaticDefinitionEditorDialogViewModel" />
+										<Binding Path="!#RunwayEditor.IsKeyboardFocusWithin" />
 									</MultiBinding>
 								</TextBlock.IsVisible>
 							</TextBlock>

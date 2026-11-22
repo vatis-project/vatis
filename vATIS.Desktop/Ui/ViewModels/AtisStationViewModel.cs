@@ -332,6 +332,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             if (evt.Id == AtisStation.Id)
             {
                 AtisPresetList = [.. AtisStation.Presets.OrderBy(x => x.Ordinal)];
+
+                // A preset's runway configuration may have changed.
+                RefreshConditionalDefinitions(rebuildAtis: true);
             }
         }));
         _disposables.Add(EventBus.Instance.Subscribe<GeneralSettingsUpdated>(_ =>
@@ -1057,7 +1060,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         return StaticDefinitionFilter.GetActive(
                 notams ? AtisStation.NotamDefinitions : AtisStation.AirportConditionDefinitions,
                 _vatsimDataService.OnlineControllers, _decodedMetar, AtisStation.AtisFormat,
-                forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions)
+                forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions,
+            runways: ActiveRunways.From(SelectedAtisPreset))
             .Where(x => !x.IsSpacer)
             .ToList();
     }
@@ -2304,6 +2308,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
 
                 PopulateAirportConditions(presetChanged: true);
                 PopulateNotams(presetChanged: true);
+                _activeStaticDefinitionsKey = GetActiveStaticDefinitionsKey();
 
                 HasUnsavedNotams = false;
                 HasUnsavedAirportConditions = false;
@@ -2434,10 +2439,12 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         return string.Join("|",
             StaticDefinitionFilter.GetActive(
                     AtisStation.NotamDefinitions, online, _decodedMetar, AtisStation.AtisFormat,
-                    forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions)
+                    forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions,
+            runways: ActiveRunways.From(SelectedAtisPreset))
                 .Concat(StaticDefinitionFilter.GetActive(
                     AtisStation.AirportConditionDefinitions, online, _decodedMetar, AtisStation.AtisFormat,
-                    forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions))
+                    forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions,
+            runways: ActiveRunways.From(SelectedAtisPreset)))
                 .Select(x => x.Text));
     }
 
@@ -2480,7 +2487,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         // Retrieve and sort enabled NOTAMs by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
             AtisStation.NotamDefinitions, _vatsimDataService.OnlineControllers, _decodedMetar, AtisStation.AtisFormat,
-            forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions);
+            forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions,
+            runways: ActiveRunways.From(SelectedAtisPreset));
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
@@ -2572,7 +2580,8 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         // Retrieve and sort enabled static airport conditions by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
             AtisStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers, _decodedMetar,
-            AtisStation.AtisFormat, forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions);
+            AtisStation.AtisFormat, forced: AtisStation.ForcedDefinitions, ordinalOverrides: AtisStation.OrdinalOverrides, hidden: AtisStation.HiddenDefinitions,
+            runways: ActiveRunways.From(SelectedAtisPreset));
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)

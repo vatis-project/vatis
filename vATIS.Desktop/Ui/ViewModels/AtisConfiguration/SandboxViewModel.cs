@@ -877,7 +877,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         // Retrieve and sort enabled static NOTAM definitions by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
             SelectedStation.NotamDefinitions, _vatsimDataService.OnlineControllers, GetSandboxMetar(),
-            SelectedStation.AtisFormat);
+            SelectedStation.AtisFormat, runways: ActiveRunways.From(SelectedPreset));
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)
@@ -977,7 +977,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         // Retrieve and sort enabled static airport conditions by their ordinal value.
         var staticDefinitions = StaticDefinitionFilter.GetActive(
             SelectedStation.AirportConditionDefinitions, _vatsimDataService.OnlineControllers, GetSandboxMetar(),
-            SelectedStation.AtisFormat);
+            SelectedStation.AtisFormat, runways: ActiveRunways.From(SelectedPreset));
 
         // Get user entered free-text before refreshing, in case the user entered new text, and it's not saved.
         if (!presetChanged)

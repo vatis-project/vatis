@@ -157,4 +157,43 @@ public class StaticDefinitionFilterTests
         var clone = Def("A", 1, "EPWA_APP").Clone();
         Assert.Equal("EPWA_APP", clone.OnlineCondition);
     }
+
+    private static string[] ActiveWithRunways(StaticDefinition[] defs, string[] online, string[] arr, string[] dep)
+    {
+        return StaticDefinitionFilter.GetActive(defs, online, runways: new ActiveRunways(arr, dep))
+            .Select(x => x.Text).ToArray();
+    }
+
+    [Fact]
+    public void RunwayCondition_RequiresTheRunway()
+    {
+        var defs = new[] { new StaticDefinition("E APP", 1) { RunwayCondition = "dep:07" } };
+        Assert.Equal(["E APP"], ActiveWithRunways(defs, [], ["25"], ["07"]));
+        Assert.Empty(ActiveWithRunways(defs, [], ["07"], ["25"]));
+        Assert.Empty(StaticDefinitionFilter.GetActive(defs, []));
+    }
+
+    [Fact]
+    public void RunwayCondition_IsCombinedWithTheOnlineCondition()
+    {
+        var defs = new[]
+        {
+            new StaticDefinition("E APP", 1) { RunwayCondition = "dep:07", OnlineCondition = "EPKK_E_APP" },
+            new StaticDefinition("APP", 2) { RunwayCondition = "dep:25 OR dep:07", OnlineCondition = "NOT EPKK_E_APP" },
+        };
+
+        Assert.Equal(["E APP"], ActiveWithRunways(defs, ["EPKK_E_APP"], ["07"], ["07"]));
+        Assert.Equal(["APP"], ActiveWithRunways(defs, [], ["07"], ["07"]));
+        Assert.Empty(ActiveWithRunways(defs, ["EPKK_E_APP"], ["25"], ["25"]));
+        Assert.Equal(["APP"], ActiveWithRunways(defs, [], ["25"], ["25"]));
+    }
+
+    [Fact]
+    public void RunwayCondition_CountsAsACondition()
+    {
+        var def = new StaticDefinition("X", 1) { RunwayCondition = "dep:07" };
+        Assert.True(StaticDefinitionFilter.HasCondition(def));
+        Assert.True(StaticDefinitionFilter.HasRunwayConditions([def]));
+        Assert.False(StaticDefinitionFilter.HasRunwayConditions([new StaticDefinition("Y", 1)]));
+    }
 }

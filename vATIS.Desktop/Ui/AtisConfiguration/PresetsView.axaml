@@ -49,6 +49,12 @@
 					</DropDownButton>
 				</StackPanel>
 			</Grid>
+			<Grid ColumnDefinitions="Auto,160,20,Auto,160" Margin="0,8,0,0" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="The runways this preset uses, separated by commas. Airport conditions and NOTAMs can include or leave out text depending on them, using their Runways condition.">
+				<TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0" Text="Arrival runways:"/>
+				<TextBox Grid.Column="1" FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Watermark="e.g. 07L, 07R" Text="{Binding ArrivalRunways, DataType=vm:PresetsViewModel}"/>
+				<TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0" Text="Departure runways:"/>
+				<TextBox Grid.Column="4" FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Watermark="e.g. 07L" Text="{Binding DepartureRunways, DataType=vm:PresetsViewModel}"/>
+			</Grid>
 			<CheckBox Name="UseExternalAtisGenerator" Margin="0,8,0,0" IsEnabled="{Binding #SelectedPreset.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" IsChecked="{Binding UseExternalAtisGenerator, DataType=vm:PresetsViewModel}" Theme="{StaticResource CheckBox}" Content="Use external ATIS generator (e.g. UniATIS)" />
 		</StackPanel>
 		<TabControl Grid.Row="1" Margin="0,10,0,2" Padding="0" Classes="PresetPages" Classes.NoStrip="{Binding !ShowDatisSubTab, DataType=vm:PresetsViewModel}" SelectedIndex="{Binding SelectedSubTabIndex, DataType=vm:PresetsViewModel}">

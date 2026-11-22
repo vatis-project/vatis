@@ -33,6 +33,8 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     private string? _onlineConditionError;
     private string? _weatherCondition;
     private string? _weatherConditionError;
+    private string? _runwayCondition;
+    private string? _runwayConditionError;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StaticDefinitionEditorDialogViewModel"/> class.
@@ -193,6 +195,39 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     public bool HasWeatherConditionError => _weatherConditionError != null;
 
     /// <summary>
+    /// Gets or sets the condition on the active runway configuration, as text, e.g. <c>07 OR 25</c>.
+    /// </summary>
+    public string? RunwayCondition
+    {
+        get => _runwayCondition;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayCondition, value);
+            RunwayConditionError = string.IsNullOrWhiteSpace(value) || RunwayExpression.TryParse(value, out _, out var error)
+                ? null
+                : error;
+        }
+    }
+
+    /// <summary>
+    /// Gets the problem with the runway condition as typed, or null if it is empty or valid.
+    /// </summary>
+    public string? RunwayConditionError
+    {
+        get => _runwayConditionError;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _runwayConditionError, value);
+            this.RaisePropertyChanged(nameof(HasRunwayConditionError));
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the runway condition has a problem.
+    /// </summary>
+    public bool HasRunwayConditionError => _runwayConditionError != null;
+
+    /// <summary>
     /// Gets or sets the validation message associated with data input. This property provides feedback
     /// or error messages related to the data validation process.
     /// </summary>
@@ -210,6 +245,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         OnlineCondition = definition.OnlineCondition;
         WeatherCondition = definition.WeatherCondition;
+        RunwayCondition = definition.RunwayCondition;
     }
 
     /// <summary>
@@ -221,6 +257,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         definition.OnlineCondition = string.IsNullOrWhiteSpace(OnlineCondition) ? null : OnlineCondition.Trim();
         definition.WeatherCondition = string.IsNullOrWhiteSpace(WeatherCondition) ? null : WeatherCondition.Trim();
+        definition.RunwayCondition = string.IsNullOrWhiteSpace(RunwayCondition) ? null : RunwayCondition.Trim();
         return definition;
     }
 
@@ -239,7 +276,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
             RaiseError("DataValidation", stationError!);
         }
 
-        return !HasErrors && !HasWeatherConditionError;
+        return !HasErrors && !HasWeatherConditionError && !HasRunwayConditionError;
     }
 
     /// <inheritdoc/>
@@ -262,7 +299,7 @@ public class StaticDefinitionEditorDialogViewModel : ReactiveViewModelBase, IDis
     {
         DialogResultChanged?.Invoke(this, DialogResult.Ok);
         DialogResult = DialogResult.Ok;
-        if (!HasErrors && !HasWeatherConditionError)
+        if (!HasErrors && !HasWeatherConditionError && !HasRunwayConditionError)
         {
             window.Close();
         }

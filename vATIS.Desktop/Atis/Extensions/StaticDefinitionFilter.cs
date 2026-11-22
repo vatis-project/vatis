@@ -22,6 +22,7 @@ public static class StaticDefinitionFilter
 
     private static readonly ConcurrentDictionary<string, WeatherExpression?> s_weatherConditions = new();
     private static readonly ConcurrentDictionary<string, StationExpression?> s_stationConditions = new();
+    private static readonly ConcurrentDictionary<string, RunwayExpression?> s_runwayConditions = new();
 
     /// <summary>
     /// Returns the enabled definitions whose station and weather conditions are met, ordered by ordinal.
@@ -38,16 +39,17 @@ public static class StaticDefinitionFilter
     /// conditions are met. They must still be enabled.</param>
     /// <param name="ordinalOverrides">Positions the user set by hand, used in place of a definition's ordinal.</param>
     /// <param name="hidden">Definitions the user turned off by hand, which are left out whatever their conditions.</param>
+    /// <param name="runways">The runways in use, or null when none are known.</param>
     public static List<StaticDefinition> GetActive(
         IEnumerable<StaticDefinition> definitions, IReadOnlyCollection<string>? onlineCallsigns,
         DecodedMetar? metar = null, AtisFormat? atisFormat = null, DateTime? utcNow = null,
         IReadOnlySet<StaticDefinition>? forced = null,
         IReadOnlyDictionary<StaticDefinition, int>? ordinalOverrides = null,
-        IReadOnlySet<StaticDefinition>? hidden = null)
+        IReadOnlySet<StaticDefinition>? hidden = null, ActiveRunways? runways = null)
     {
         return definitions
             .Where(x => x.Enabled && hidden?.Contains(x) != true &&
-                        (forced?.Contains(x) == true || IsConditionMet(x, onlineCallsigns, metar, atisFormat, utcNow)))
+                        (forced?.Contains(x) == true || IsConditionMet(x, onlineCallsigns, metar, atisFormat, utcNow, runways)))
             .OrderBy(x => ordinalOverrides != null && ordinalOverrides.TryGetValue(x, out var ordinal)
                 ? ordinal
                 : x.Ordinal)
@@ -87,18 +89,36 @@ public static class StaticDefinitionFilter
     }
 
     /// <summary>
-    /// Determines whether the definition's station and weather conditions are met.
+    /// Determines whether any enabled definition depends on the active runway configuration.
+    /// </summary>
+    /// <param name="definitions">The definitions to check.</param>
+    /// <returns>True if at least one enabled definition has a runway condition.</returns>
+    public static bool HasRunwayConditions(IEnumerable<StaticDefinition> definitions)
+    {
+        return definitions.Any(x => x.Enabled && !string.IsNullOrWhiteSpace(x.RunwayCondition));
+    }
+
+    /// <summary>
+    /// Determines whether the definition's station, weather and runway conditions are met.
     /// </summary>
     /// <param name="definition">The definition.</param>
     /// <param name="onlineCallsigns">The online controller callsigns, or null when unknown.</param>
     /// <param name="metar">The current decoded METAR, or null when none is available.</param>
     /// <param name="atisFormat">The station format, used to find the ceiling layer.</param>
     /// <param name="utcNow">The current time in UTC, or null to use the system clock.</param>
+    /// <param name="runways">The runways in use, or null when none are known.</param>
     /// <returns>True if the definition applies.</returns>
     public static bool IsConditionMet(
         StaticDefinition definition, IReadOnlyCollection<string>? onlineCallsigns,
-        DecodedMetar? metar = null, AtisFormat? atisFormat = null, DateTime? utcNow = null)
+        DecodedMetar? metar = null, AtisFormat? atisFormat = null, DateTime? utcNow = null,
+        ActiveRunways? runways = null)
     {
+        if (!string.IsNullOrWhiteSpace(definition.RunwayCondition) &&
+            !IsRunwayConditionMet(definition.RunwayCondition, runways ?? ActiveRunways.None))
+        {
+            return false;
+        }
+
         if (!string.IsNullOrWhiteSpace(definition.WeatherCondition) &&
             (atisFormat == null || !IsWeatherConditionMet(definition.WeatherCondition, metar, atisFormat)))
         {
@@ -115,13 +135,14 @@ public static class StaticDefinitionFilter
     }
 
     /// <summary>
-    /// Determines whether the definition has a controller or weather condition.
+    /// Determines whether the definition has a controller, weather or runway condition.
     /// </summary>
     /// <param name="definition">The definition.</param>
     /// <returns>True if the definition can be left out because of a condition.</returns>
     public static bool HasCondition(StaticDefinition definition)
     {
-        return IsConditional(definition) || !string.IsNullOrWhiteSpace(definition.WeatherCondition);
+        return IsConditional(definition) || !string.IsNullOrWhiteSpace(definition.WeatherCondition) ||
+               !string.IsNullOrWhiteSpace(definition.RunwayCondition);
     }
 
     private static StationExpression? GetStationExpression(string condition)
@@ -140,6 +161,24 @@ public static class StaticDefinitionFilter
         }
 
         return expression;
+    }
+
+    private static bool IsRunwayConditionMet(string condition, ActiveRunways runways)
+    {
+        if (!s_runwayConditions.TryGetValue(condition, out var expression))
+        {
+            // A condition that does not parse is never met. The editor refuses to save one, so this only happens for
+            // a hand-edited profile.
+            RunwayExpression.TryParse(condition, out expression, out _);
+            if (s_runwayConditions.Count >= MaxCachedConditions)
+            {
+                s_runwayConditions.Clear();
+            }
+
+            s_runwayConditions[condition] = expression;
+        }
+
+        return expression?.Evaluate(runways) ?? false;
     }
 
     private static bool IsWeatherConditionMet(string condition, DecodedMetar? metar, AtisFormat atisFormat)

@@ -104,6 +104,13 @@ public class StaticDefinition : ReactiveObject, IJsonOnDeserialized
     public string? WeatherCondition { get; set; }
 
     /// <summary>
+    /// Gets or sets a condition on the runways of the selected preset that must be met for this definition to be
+    /// included, written as text, e.g. <c>dep:07L OR arr:25*</c>. Combined with the other conditions: all must pass. See <see cref="RunwayExpression"/> for the syntax.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? RunwayCondition { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the static definition is enabled.
     /// </summary>
     public bool Enabled
@@ -146,6 +153,7 @@ public class StaticDefinition : ReactiveObject, IJsonOnDeserialized
             SeparatorAfter = SeparatorAfter,
             OnlineCondition = OnlineCondition,
             WeatherCondition = WeatherCondition,
+            RunwayCondition = RunwayCondition,
         };
     }
 }
