@@ -19,8 +19,8 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 
 /// <summary>
 /// Makes a list of rows with a check box column usable from the keyboard. The whole list is a single Tab stop and the
-/// arrow keys move between rows. Tabbing in selects the row, Enter runs the edit command and Space toggles the check
-/// box of the row. Alt+Up and Alt+Down run the move commands, for lists that can be reordered.
+/// arrow keys move between rows. Tabbing in selects the row, Enter or a double click on the row runs the edit command
+/// and Space toggles the check box of the row. Alt+Up and Alt+Down run the move commands, for lists that can be reordered.
 /// </summary>
 public class TreeDataGridKeyboardBehavior : Behavior<TreeDataGrid>
 {
@@ -100,6 +100,7 @@ public class TreeDataGridKeyboardBehavior : Behavior<TreeDataGrid>
         grid.AddHandler(InputElement.GotFocusEvent, OnGotFocus);
         grid.AddHandler(InputElement.KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         grid.AddHandler(InputElement.PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
+        grid.AddHandler(InputElement.DoubleTappedEvent, OnDoubleTapped);
 
         if (FocusFirstRow)
         {
@@ -117,6 +118,7 @@ public class TreeDataGridKeyboardBehavior : Behavior<TreeDataGrid>
             grid.RemoveHandler(InputElement.GotFocusEvent, OnGotFocus);
             grid.RemoveHandler(InputElement.KeyDownEvent, OnKeyDown);
             grid.RemoveHandler(InputElement.PointerPressedEvent, OnPointerPressed);
+            grid.RemoveHandler(InputElement.DoubleTappedEvent, OnDoubleTapped);
         }
 
         base.OnDetaching();
@@ -140,6 +142,22 @@ public class TreeDataGridKeyboardBehavior : Behavior<TreeDataGrid>
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         SetKeyboardNavigation(false);
+    }
+
+    // Double clicking a row edits it. The check box is left alone, because two clicks on it would toggle it twice and
+    // then open the editor.
+    private void OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (RowOf(e.Source) == null || (e.Source as Visual)?.FindAncestorOfType<CheckBox>(includeSelf: true) != null)
+        {
+            return;
+        }
+
+        if (EditCommand is { } edit && edit.CanExecute(null))
+        {
+            edit.Execute(null);
+            e.Handled = true;
+        }
     }
 
     private void OnLayoutUpdatedFocusFirstRow(object? sender, EventArgs e)
