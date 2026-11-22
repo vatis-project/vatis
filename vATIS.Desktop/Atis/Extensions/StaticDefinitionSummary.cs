@@ -16,41 +16,56 @@ namespace Vatsim.Vatis.Atis.Extensions;
 public static partial class StaticDefinitionSummary
 {
     /// <summary>
-    /// Gets one line for each condition on the definition, or nothing if it is always included.
+    /// Gets one line for the condition on the definition, or nothing if it is always included.
     /// </summary>
     /// <param name="definition">The definition.</param>
-    /// <returns>The lines, e.g. <c>Controllers: EPWA_DEL</c>, <c>Time: 0600z-2246z</c> and <c>Weather: ceiling &lt; 200ft</c>.</returns>
+    /// <returns>The lines, e.g. <c>Controllers and weather: EPWA_DEL AND ceiling &lt; 200ft</c>.</returns>
     public static IReadOnlyList<string> Describe(StaticDefinition definition)
     {
-        var lines = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(definition.OnlineCondition))
+        if (string.IsNullOrWhiteSpace(definition.Condition))
         {
-            lines.Add($"{OnlineLabel(definition.OnlineCondition)}: {Whitespace().Replace(definition.OnlineCondition.Trim(), " ")}");
+            return [];
         }
 
-        if (!string.IsNullOrWhiteSpace(definition.WeatherCondition))
-        {
-            lines.Add($"Weather: {Whitespace().Replace(definition.WeatherCondition.Trim(), " ")}");
-        }
-
-        return lines;
+        return [$"{Label(definition.Condition)}: {Whitespace().Replace(definition.Condition.Trim(), " ")}"];
     }
 
-    // The condition can test the controllers online, the time of day, or both.
-    private static string OnlineLabel(string condition)
+    // The condition can test controllers, the time, the weather and the runways, in any mix.
+    private static string Label(string condition)
     {
-        if (!StationExpression.TryParse(condition, out var expression, out _) || expression == null)
+        if (!ConditionExpression.TryParse(condition, out var expression, out _) || expression == null)
         {
-            return "Controllers";
+            return "Condition";
         }
 
-        return expression switch
+        var parts = new List<string>();
+        if (expression.HasCallsignCondition)
         {
-            { HasTimeCondition: true, HasCallsignCondition: true } => "Controllers and time",
-            { HasTimeCondition: true } => "Time",
-            _ => "Controllers",
-        };
+            parts.Add("controllers");
+        }
+
+        if (expression.HasTimeCondition)
+        {
+            parts.Add("time");
+        }
+
+        if (expression.HasWeatherCondition)
+        {
+            parts.Add("weather");
+        }
+
+        if (expression.HasRunwayCondition)
+        {
+            parts.Add("runways");
+        }
+
+        if (parts.Count == 0)
+        {
+            return "Condition";
+        }
+
+        var text = parts.Count == 1 ? parts[0] : string.Join(", ", parts[..^1]) + " and " + parts[^1];
+        return char.ToUpperInvariant(text[0]) + text[1..];
     }
 
     [GeneratedRegex(@"\s+")]

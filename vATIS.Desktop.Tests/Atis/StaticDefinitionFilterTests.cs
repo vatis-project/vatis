@@ -16,7 +16,7 @@ public class StaticDefinitionFilterTests
 {
     private static StaticDefinition Def(string text, int ordinal, string? condition = null, bool enabled = true)
     {
-        return new StaticDefinition(text, ordinal, enabled) { OnlineCondition = condition };
+        return new StaticDefinition(text, ordinal, enabled) { Condition = condition };
     }
 
     private static string[] Active(StaticDefinition[] defs, params string[] online)
@@ -148,14 +148,14 @@ public class StaticDefinitionFilterTests
         Assert.False(StaticDefinitionFilter.HasCondition(Def("A", 1)));
         Assert.True(StaticDefinitionFilter.HasCondition(Def("A", 1, "EPWA_DEL")));
         Assert.True(StaticDefinitionFilter.HasCondition(
-            new StaticDefinition("A", 1) { WeatherCondition = "visibility < 800m" }));
+            new StaticDefinition("A", 1) { Condition = "visibility < 800m" }));
     }
 
     [Fact]
     public void Clone_PreservesCondition()
     {
         var clone = Def("A", 1, "EPWA_APP").Clone();
-        Assert.Equal("EPWA_APP", clone.OnlineCondition);
+        Assert.Equal("EPWA_APP", clone.Condition);
     }
 
     private static string[] ActiveWithRunways(StaticDefinition[] defs, string[] online, string[] arr, string[] dep)
@@ -165,21 +165,21 @@ public class StaticDefinitionFilterTests
     }
 
     [Fact]
-    public void RunwayCondition_RequiresTheRunway()
+    public void Condition_CanTestTheRunway()
     {
-        var defs = new[] { new StaticDefinition("E APP", 1) { RunwayCondition = "dep:07" } };
+        var defs = new[] { new StaticDefinition("E APP", 1) { Condition = "dep:07" } };
         Assert.Equal(["E APP"], ActiveWithRunways(defs, [], ["25"], ["07"]));
         Assert.Empty(ActiveWithRunways(defs, [], ["07"], ["25"]));
         Assert.Empty(StaticDefinitionFilter.GetActive(defs, []));
     }
 
     [Fact]
-    public void RunwayCondition_IsCombinedWithTheOnlineCondition()
+    public void Condition_CanMixRunwaysAndControllers()
     {
         var defs = new[]
         {
-            new StaticDefinition("E APP", 1) { RunwayCondition = "dep:07", OnlineCondition = "EPKK_E_APP" },
-            new StaticDefinition("APP", 2) { RunwayCondition = "dep:25 OR dep:07", OnlineCondition = "NOT EPKK_E_APP" },
+            new StaticDefinition("E APP", 1) { Condition = "dep:07 AND EPKK_E_APP" },
+            new StaticDefinition("APP", 2) { Condition = "(dep:25 OR dep:07) AND NOT EPKK_E_APP" },
         };
 
         Assert.Equal(["E APP"], ActiveWithRunways(defs, ["EPKK_E_APP"], ["07"], ["07"]));
@@ -189,9 +189,9 @@ public class StaticDefinitionFilterTests
     }
 
     [Fact]
-    public void RunwayCondition_CountsAsACondition()
+    public void Condition_WithARunwayTerm_IsARunwayCondition()
     {
-        var def = new StaticDefinition("X", 1) { RunwayCondition = "dep:07" };
+        var def = new StaticDefinition("X", 1) { Condition = "dep:07" };
         Assert.True(StaticDefinitionFilter.HasCondition(def));
         Assert.True(StaticDefinitionFilter.HasRunwayConditions([def]));
         Assert.False(StaticDefinitionFilter.HasRunwayConditions([new StaticDefinition("Y", 1)]));

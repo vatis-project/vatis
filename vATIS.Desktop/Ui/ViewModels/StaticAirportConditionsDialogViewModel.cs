@@ -18,6 +18,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs;
@@ -172,6 +173,11 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     }
 
     /// <summary>
+    /// Gets or sets the runways of the station's presets, suggested while a condition is typed.
+    /// </summary>
+    public ActiveRunways? Runways { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of contraction completion data used for providing completion suggestions.
     /// </summary>
     public List<ICompletionData> ContractionCompletionData
@@ -303,6 +309,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                     vm.SeparatorAfter = definition.SeparatorAfter;
                     vm.LoadConditionsFrom(definition);
                     vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.Runways = Runways;
                     vm.SpokenTextSource = SpokenTextSource;
                     vm.DialogResultChanged += (_, result) =>
                     {
@@ -358,6 +365,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
             {
                 vm.Title = "New Airport Condition";
                 vm.ContractionCompletionData = ContractionCompletionData;
+                    vm.Runways = Runways;
                 vm.SpokenTextSource = SpokenTextSource;
                 vm.DialogResultChanged += (_, result) =>
                 {

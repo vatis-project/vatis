@@ -1,4 +1,4 @@
-// <copyright file="WeatherCompletionTests.cs" company="Justin Shannon">
+// <copyright file="ConditionCompletionTests.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -9,13 +9,13 @@ using Xunit;
 
 namespace Vatsim.Vatis.Tests.Atis;
 
-public class WeatherCompletionTests
+public class ConditionCompletionTests
 {
     // "|" marks the caret.
     private static CompletionSuggestionResult At(string textWithCaret)
     {
         var caret = textWithCaret.IndexOf('|');
-        return WeatherCompletion.GetSuggestions(textWithCaret.Remove(caret, 1), caret);
+        return ConditionCompletion.GetSuggestions(textWithCaret.Remove(caret, 1), caret);
     }
 
     private static string[] Names(CompletionSuggestionResult result) => result.Items.Select(x => x.Text).ToArray();
@@ -28,7 +28,10 @@ public class WeatherCompletionTests
         Assert.Contains("rvr", names);
         Assert.Contains("cavok", names);
         Assert.Contains("NOT", names);
-        Assert.Equal(45, names.Length);
+        Assert.Contains("dep:", names);
+        Assert.Contains("arr:", names);
+        Assert.Contains("rwy:", names);
+        Assert.Equal(48, names.Length);
     }
 
     [Fact]
@@ -162,9 +165,15 @@ public class WeatherCompletionTests
     }
 
     [Fact]
-    public void UnknownFieldOrJunk_SuggestsNothing()
+    public void AfterACallsignOrRunway_SuggestsJoiners()
     {
-        Assert.Empty(Names(At("height |")));
+        Assert.Equal(["AND", "OR"], Names(At("EPKK_E_APP |")));
+        Assert.Equal(["AND", "OR"], Names(At("dep:07 |")));
+    }
+
+    [Fact]
+    public void Junk_SuggestsNothing()
+    {
         Assert.Empty(Names(At("ceiling < 200ft ceiling |")));
     }
 
@@ -191,7 +200,49 @@ public class WeatherCompletionTests
     [Fact]
     public void OutOfRangeCaret_IsClamped()
     {
-        Assert.NotNull(WeatherCompletion.GetSuggestions("ceiling ", 999));
-        Assert.NotEmpty(WeatherCompletion.GetSuggestions(null, 5).Items);
+        Assert.NotNull(ConditionCompletion.GetSuggestions("ceiling ", 999));
+        Assert.NotEmpty(ConditionCompletion.GetSuggestions(null, 5).Items);
+    }
+
+    private static readonly ActiveRunways s_runways = new(["25L", "25R", "07"], ["07", "07L"]);
+
+    private static CompletionSuggestionResult AtWithRunways(string textWithCaret)
+    {
+        var caret = textWithCaret.IndexOf('|');
+        return ConditionCompletion.GetSuggestions(textWithCaret.Remove(caret, 1), caret, s_runways);
+    }
+
+    [Fact]
+    public void AfterDepPrefix_SuggestsDepartureRunways_FromTheEndOfThePrefix()
+    {
+        var result = AtWithRunways("EPKK_APP AND dep:|");
+        Assert.Equal(["07", "07L"], Names(result));
+        Assert.Equal("EPKK_APP AND dep:".Length, result.StartOffset);
+    }
+
+    [Fact]
+    public void AfterArrPrefix_SuggestsArrivalRunways_AndFiltersByWhatIsTyped()
+    {
+        Assert.Equal(["25L", "25R", "07"], Names(AtWithRunways("arr:|")));
+        Assert.Equal(["25L", "25R"], Names(AtWithRunways("ARR:25|")));
+    }
+
+    [Fact]
+    public void AfterRwyPrefix_SuggestsBothWithoutDuplicates()
+    {
+        Assert.Equal(["07", "07L", "25L", "25R"], Names(AtWithRunways("rwy:|")));
+    }
+
+    [Fact]
+    public void RunwaySuggestions_NeedRunways_AndAKnownPrefix()
+    {
+        Assert.Empty(Names(At("dep:|")));
+        Assert.Empty(Names(AtWithRunways("taxi:|")));
+    }
+
+    [Fact]
+    public void RunwayPrefixes_ContinueIntoTheRunwayList()
+    {
+        Assert.All(At("|").Items.Where(x => x.Text.EndsWith(':')), x => Assert.True(x.ContinueAfter));
     }
 }

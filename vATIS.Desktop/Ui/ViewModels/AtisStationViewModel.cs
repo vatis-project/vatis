@@ -1344,6 +1344,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.Runways = ActiveRunways.FromPresets(AtisStation.Presets);
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.NotamsBeforeFreeText;
             viewModel.Separator = AtisStation.NotamsSeparator;
@@ -1412,6 +1413,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(AtisStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.Runways = ActiveRunways.FromPresets(AtisStation.Presets);
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = AtisStation.AirportConditionsBeforeFreeText;
             viewModel.Separator = AtisStation.AirportConditionsSeparator;

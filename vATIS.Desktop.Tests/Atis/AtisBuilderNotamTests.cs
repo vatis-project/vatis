@@ -27,7 +27,7 @@ public class AtisBuilderNotamTests
         station.AtisFormat.ClosingStatement.AutoIncludeClosingStatement = false;
         station.NotamDefinitions.Add(new StaticDefinition("CHECK DENSITY ALTITUDE", 1, true)
         {
-            WeatherCondition = condition,
+            Condition = condition,
         });
 
         var preset = new AtisPreset { Name = "P", Template = "[WIND] [NOTAMS]" };

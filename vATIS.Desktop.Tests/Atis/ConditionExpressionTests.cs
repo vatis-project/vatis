@@ -1,4 +1,4 @@
-// <copyright file="StationExpressionTests.cs" company="Justin Shannon">
+// <copyright file="ConditionExpressionTests.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -8,17 +8,19 @@ using System.Linq;
 using System.Text.Json;
 using Vatsim.Vatis;
 using Vatsim.Vatis.Atis.Extensions;
+using Vatsim.Vatis.Profiles.AtisFormat;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Weather.Decoder;
 using Xunit;
 
 namespace Vatsim.Vatis.Tests.Atis;
 
-public class StationExpressionTests
+public class ConditionExpressionTests
 {
     private static bool Eval(string text, params string[] online)
     {
-        Assert.True(StationExpression.TryParse(text, out var expression, out var error), error);
-        return expression!.Evaluate(online);
+        Assert.True(ConditionExpression.TryParse(text, out var expression, out var error), error);
+        return expression!.Evaluate(new ConditionContext(online));
     }
 
     [Theory]
@@ -90,12 +92,12 @@ public class StationExpressionTests
     [Fact]
     public void UnknownFeed_TreatedAsNobodyOnline()
     {
-        StationExpression.TryParse("NOT A", out var expression, out _);
-        Assert.True(expression!.Evaluate(null));
+        ConditionExpression.TryParse("NOT A", out var expression, out _);
+        Assert.True(expression!.Evaluate(new ConditionContext()));
     }
 
     [Theory]
-    [InlineData("", "Enter at least one callsign.")]
+    [InlineData("", "Enter a condition")]
     [InlineData("A AND", "ends too soon")]
     [InlineData("A OR OR B", "not 'OR'")]
     [InlineData("(A B", "Missing a closing ')'")]
@@ -104,7 +106,7 @@ public class StationExpressionTests
     [InlineData("()", "not ')'")]
     public void InvalidExpressions_ReportAClearError(string text, string expectedMessage)
     {
-        Assert.False(StationExpression.TryParse(text, out var expression, out var error));
+        Assert.False(ConditionExpression.TryParse(text, out var expression, out var error));
         Assert.Null(expression);
         Assert.Contains(expectedMessage, error);
     }
@@ -112,15 +114,15 @@ public class StationExpressionTests
     [Fact]
     public void Errors_IncludeAPosition()
     {
-        StationExpression.TryParse("A AND OR", out _, out var error);
+        ConditionExpression.TryParse("A AND OR", out _, out var error);
         Assert.Contains("(position 7)", error);
     }
 
     [Fact]
     public void Filter_AppliesTheOperators()
     {
-        var online = new StaticDefinition("GC COMBINED ON 121.1", 1) { OnlineCondition = "LAS_E_GND NOT LAS_W_GND" };
-        var offline = new StaticDefinition("USE WEST GROUND", 2) { OnlineCondition = "NOT (LAS_E_GND NOT LAS_W_GND)" };
+        var online = new StaticDefinition("GC COMBINED ON 121.1", 1) { Condition = "LAS_E_GND NOT LAS_W_GND" };
+        var offline = new StaticDefinition("USE WEST GROUND", 2) { Condition = "NOT (LAS_E_GND NOT LAS_W_GND)" };
 
         string[] Active(params string[] callsigns) =>
             StaticDefinitionFilter.GetActive([online, offline], callsigns).Select(x => x.Text).ToArray();
@@ -133,7 +135,7 @@ public class StationExpressionTests
     [Fact]
     public void Filter_InvalidStationConditionIsNeverMet()
     {
-        var bad = new StaticDefinition("A", 1) { OnlineCondition = "(A" };
+        var bad = new StaticDefinition("A", 1) { Condition = "(A" };
         Assert.Empty(StaticDefinitionFilter.GetActive([bad], ["A"]));
         Assert.Empty(StaticDefinitionFilter.GetActive([bad], []));
     }
@@ -147,7 +149,7 @@ public class StationExpressionTests
     [InlineData(StationCondition.WhenOffline, "EPWA_DEL EPWA_APP", "NOT (EPWA_DEL OR EPWA_APP)")]
     public void FromLegacy_ConvertsTheOldCondition(StationCondition condition, string callsigns, string? expected)
     {
-        Assert.Equal(expected, StationExpression.FromLegacy(condition, callsigns));
+        Assert.Equal(expected, ConditionExpression.FromLegacy(condition, callsigns));
     }
 
     [Theory]
@@ -155,12 +157,12 @@ public class StationExpressionTests
     [InlineData(StationCondition.WhenOffline, "EPWA_APP, EPWW_*_CTR")]
     public void FromLegacy_KeepsTheOldMeaning(StationCondition condition, string callsigns)
     {
-        var converted = StationExpression.FromLegacy(condition, callsigns);
-        Assert.True(StationExpression.TryParse(converted, out var expression, out _));
+        var converted = ConditionExpression.FromLegacy(condition, callsigns);
+        Assert.True(ConditionExpression.TryParse(converted, out var expression, out _));
         foreach (var online in new[] { new string[0], ["EPWA_APP"], ["EPWW_E_CTR"], ["EPWA_TWR"], ["EPWA_APP", "EPWA_TWR"] })
         {
             var any = online.Any(x => x is "EPWA_APP" || x.StartsWith("EPWW_") && x.EndsWith("_CTR"));
-            Assert.Equal(condition == StationCondition.WhenOnline ? any : !any, expression!.Evaluate(online));
+            Assert.Equal(condition == StationCondition.WhenOnline ? any : !any, expression!.Evaluate(new ConditionContext(online)));
         }
     }
 
@@ -175,23 +177,24 @@ public class StationExpressionTests
             """;
         var station = JsonSerializer.Deserialize(json, SourceGenerationContext.NewDefault.AtisStation)!;
         var loaded = station.AirportConditionDefinitions.Single();
-        Assert.Equal("NOT (EPWA_DEL OR EPWA_APP)", loaded.OnlineCondition);
+        Assert.Equal("NOT (EPWA_DEL OR EPWA_APP)", loaded.Condition);
         Assert.Equal(StationCondition.Always, loaded.StationCondition);
         Assert.Null(loaded.StationCallsigns);
-        Assert.Equal("LAS_E_GND NOT LAS_W_GND", station.NotamDefinitions.Single().OnlineCondition);
+        Assert.Equal("LAS_E_GND NOT LAS_W_GND", station.NotamDefinitions.Single().Condition);
 
         var written = JsonSerializer.Serialize(station, SourceGenerationContext.NewDefault.AtisStation);
         Assert.DoesNotContain("stationCondition", written);
         Assert.DoesNotContain("stationCallsigns", written);
-        Assert.Contains("\"onlineCondition\": \"NOT (EPWA_DEL OR EPWA_APP)\"", written);
+        Assert.Contains("\"condition\": \"NOT (EPWA_DEL OR EPWA_APP)\"", written);
+        Assert.DoesNotContain("onlineCondition", written);
     }
 
     private static bool EvalAt(string text, string time, params string[] online)
     {
-        Assert.True(StationExpression.TryParse(text, out var expression, out var error), error);
+        Assert.True(ConditionExpression.TryParse(text, out var expression, out var error), error);
         var parts = time.Split(':');
         var now = new DateTime(2026, 10, 24, int.Parse(parts[0]), int.Parse(parts[1]), 0, DateTimeKind.Utc);
-        return expression!.Evaluate(online, now);
+        return expression!.Evaluate(new ConditionContext(online, UtcNow: now));
     }
 
     [Theory]
@@ -247,8 +250,8 @@ public class StationExpressionTests
     [Fact]
     public void HasTimeCondition_IsOnlySetWhenATimeRangeIsUsed()
     {
-        StationExpression.TryParse("LAX_TWR AND 0700z-1400z", out var withTime, out _);
-        StationExpression.TryParse("LAX_TWR OR LAX_GND", out var without, out _);
+        ConditionExpression.TryParse("LAX_TWR AND 0700z-1400z", out var withTime, out _);
+        ConditionExpression.TryParse("LAX_TWR OR LAX_GND", out var without, out _);
         Assert.True(withTime!.HasTimeCondition);
         Assert.False(without!.HasTimeCondition);
     }
@@ -263,22 +266,142 @@ public class StationExpressionTests
     [InlineData("0700z-", "Write a time as a range")]
     public void InvalidTimes_ReportAClearError(string text, string expectedMessage)
     {
-        Assert.False(StationExpression.TryParse(text, out _, out var error));
+        Assert.False(ConditionExpression.TryParse(text, out _, out var error));
         Assert.Contains(expectedMessage, error);
     }
 
     [Fact]
     public void Filter_UsesTheGivenTime()
     {
-        var def = new StaticDefinition("NOISE ABATEMENT PROCEDURES IN EFFECT", 1) { OnlineCondition = "2200z-0600z" };
+        var def = new StaticDefinition("NOISE ABATEMENT PROCEDURES IN EFFECT", 1) { Condition = "2200z-0600z" };
         var at = (int hour) => StaticDefinitionFilter
             .GetActive([def], null, utcNow: new DateTime(2026, 10, 24, hour, 0, 0, DateTimeKind.Utc)).Count;
         Assert.Equal(1, at(23));
         Assert.Equal(0, at(12));
         Assert.True(StaticDefinitionFilter.HasTimeConditions([def]));
         Assert.False(StaticDefinitionFilter.HasTimeConditions(
-            [new StaticDefinition("A", 1) { OnlineCondition = "LAX_TWR" }]));
+            [new StaticDefinition("A", 1) { Condition = "LAX_TWR" }]));
         Assert.False(StaticDefinitionFilter.HasTimeConditions(
-            [new StaticDefinition("A", 1, enabled: false) { OnlineCondition = "2200z-0600z" }]));
+            [new StaticDefinition("A", 1, enabled: false) { Condition = "2200z-0600z" }]));
+    }
+
+    private static readonly AtisFormat s_format = new();
+
+    private static bool Mixed(string text, ConditionContext context)
+    {
+        Assert.True(ConditionExpression.TryParse(text, out var expression, out var error), error);
+        return expression!.Evaluate(context);
+    }
+
+    private static ConditionContext Context(
+        string[]? online = null, string? metar = null, string[]? arr = null, string[]? dep = null)
+    {
+        return new ConditionContext(
+            online ?? [],
+            metar == null ? null : new MetarDecoder().ParseNotStrict(metar),
+            s_format,
+            Runways: new ActiveRunways(arr ?? [], dep ?? []));
+    }
+
+    [Fact]
+    public void Runways_MatchDepartureArrivalOrEither()
+    {
+        var ctx = Context(arr: ["25L", "25R"], dep: ["07"]);
+        Assert.True(Mixed("dep:07", ctx));
+        Assert.False(Mixed("arr:07", ctx));
+        Assert.True(Mixed("arr:25L", ctx));
+        Assert.True(Mixed("rwy:07", ctx));
+        Assert.True(Mixed("rwy:25r", ctx));
+        Assert.True(Mixed("arr:25*", ctx));
+        Assert.False(Mixed("dep:25*", ctx));
+        Assert.True(Mixed("DEPARTURE:07", ctx));
+        Assert.False(Mixed("dep:07", Context()));
+        Assert.True(Mixed("NOT dep:07", Context()));
+    }
+
+    [Fact]
+    public void ControllersWeatherRunwaysAndTime_CanBeMixedWithAndOr()
+    {
+        const string text = "(EPKK_E_APP AND dep:07) OR (NOT EPKK_E_APP AND dep:25 AND ceiling < 200ft)";
+        const string low = "EPKK 191200Z 24005KT 9999 OVC001 10/09 Q1013";
+        const string high = "EPKK 191200Z 24005KT 9999 OVC050 10/09 Q1013";
+
+        Assert.True(Mixed(text, Context(["EPKK_E_APP"], high, dep: ["07"])));
+        Assert.False(Mixed(text, Context([], high, dep: ["07"])));
+        Assert.True(Mixed(text, Context([], low, dep: ["25"])));
+        Assert.False(Mixed(text, Context([], high, dep: ["25"])));
+        Assert.False(Mixed(text, Context(["EPKK_E_APP"], low, dep: ["25"])));
+    }
+
+    [Fact]
+    public void WeatherTerms_AreUnknownWithoutAMetar_SoOtherTermsCanStillDecide()
+    {
+        Assert.False(Mixed("ceiling < 200ft", Context()));
+        Assert.False(Mixed("NOT ceiling < 200ft", Context()));
+        Assert.True(Mixed("ceiling < 200ft OR dep:07", Context(dep: ["07"])));
+        Assert.False(Mixed("ceiling < 200ft AND dep:07", Context(dep: ["07"])));
+        Assert.False(Mixed("ceiling < 200ft AND dep:25", Context(dep: ["07"])));
+
+        // A false term decides an AND even when the weather is unknown, so its negation is true.
+        Assert.True(Mixed("NOT (ceiling < 200ft AND dep:25)", Context(dep: ["07"])));
+    }
+
+    [Fact]
+    public void FieldNames_AreWeather_AndOtherWordsAreCallsigns()
+    {
+        Assert.True(ConditionExpression.TryParse("cavok AND LAX_TWR", out var expression, out _));
+        Assert.True(expression!.HasWeatherCondition);
+        Assert.True(expression.HasCallsignCondition);
+        Assert.False(expression.HasRunwayCondition);
+    }
+
+    [Theory]
+    [InlineData("dep:")]
+    [InlineData("taxi:07")]
+    [InlineData("ceiling < 200ft LAX_TWR")]
+    [InlineData("LAX_TWR ceiling < 200ft")]
+    [InlineData("dep:07 NOT")]
+    public void MixedErrors_AreReported(string text)
+    {
+        Assert.False(ConditionExpression.TryParse(text, out var expression, out var error));
+        Assert.Null(expression);
+        Assert.False(string.IsNullOrEmpty(error));
+    }
+
+    [Theory]
+    [InlineData("LAX_TWR dep:07", true)]
+    [InlineData("dep:16, dep:07", true)]
+    [InlineData("dep:16 dep:34", false)]
+    public void ListedCallsignsAndRunways_AreAnyOf(string text, bool expected)
+    {
+        Assert.Equal(expected, Mixed(text, Context(["LAX_TWR"], dep: ["07"])));
+    }
+
+    [Fact]
+    public void Combine_JoinsOldControllerAndWeatherConditions()
+    {
+        Assert.Null(ConditionExpression.Combine(null, "  "));
+        Assert.Equal("EPWA_APP", ConditionExpression.Combine(" EPWA_APP ", null));
+        Assert.Equal("cavok", ConditionExpression.Combine(null, "cavok"));
+        Assert.Equal("(A B) AND (cavok OR windshear)", ConditionExpression.Combine("A B", "cavok OR windshear"));
+    }
+
+    [Fact]
+    public void OldProfileJson_WithControllerAndWeatherConditions_IsMergedIntoOne()
+    {
+        const string json = """
+            {"identifier":"EPWA","name":"W","notamDefinitions":[
+              {"text":"B","ordinal":1,"enabled":true,"onlineCondition":"EPWA_APP, EPWA_TWR","weatherCondition":"ceiling < 200ft"}]}
+            """;
+        var station = JsonSerializer.Deserialize(json, SourceGenerationContext.NewDefault.AtisStation)!;
+        var loaded = station.NotamDefinitions.Single();
+        Assert.Equal("(EPWA_APP, EPWA_TWR) AND (ceiling < 200ft)", loaded.Condition);
+        Assert.Null(loaded.OnlineCondition);
+        Assert.Null(loaded.WeatherCondition);
+        Assert.True(ConditionExpression.TryParse(loaded.Condition, out _, out var error), error);
+
+        var written = JsonSerializer.Serialize(station, SourceGenerationContext.NewDefault.AtisStation);
+        Assert.DoesNotContain("onlineCondition", written);
+        Assert.DoesNotContain("weatherCondition", written);
     }
 }

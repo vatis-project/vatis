@@ -69,7 +69,7 @@
 							<behaviors:TextEditorSpokenTextBehavior/>
 						</Interaction.Behaviors>
 					</editor:TextEditor>
-					<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+					<Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto">
 						<Grid.Styles>
 							<Style Selector="ComboBox.field, TextBox.field, Button.field">
 								<Setter Property="Height" Value="28" />
@@ -116,14 +116,14 @@
 						<TextBlock Classes="label" Grid.Row="0" Grid.Column="0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Use \n for a line break. Leave blank to use the list's default separator. Ignored for the last entry." />
 						<TextBox Classes="field" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" FontFamily="{StaticResource Monospace}" Watermark="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
 
-						<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-							<TextBlock Classes="label" Text="Controllers:" />
+						<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,6,0,0">
+							<TextBlock Classes="label" Text="Condition:" />
 							<Button Classes="info">
 								<TextBlock Text="i" />
 								<Button.Flyout>
 									<Flyout Placement="BottomEdgeAlignedLeft">
-										<StackPanel MaxWidth="340" Spacing="8">
-											<TextBlock TextWrapping="Wrap" Text="Include or exclude this message depending on which controllers are online or offline, based on the VATSIM data feed, or on the time of day in Zulu. Leave blank to always include it."/>
+										<StackPanel MaxWidth="360" Spacing="8">
+											<TextBlock TextWrapping="Wrap" Text="Include this message only while the condition is met. Mix controllers online, the time in Zulu, the METAR and the preset's runways with AND, OR, NOT and parentheses. Leave blank to always include."/>
 											<StackPanel>
 												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR"/>
 												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when LAX Tower is online"/>
@@ -133,62 +133,9 @@
 												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when SoCal Approach is offline"/>
 											</StackPanel>
 											<StackPanel>
-												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAS_E_GND AND NOT LAS_W_GND"/>
-												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Las Vegas East Ground is online and West Ground is not"/>
-											</StackPanel>
-											<StackPanel>
 												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="2200z-0600z"/>
 												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="between 2200Z and 0600Z, which can cross midnight"/>
 											</StackPanel>
-											<StackPanel>
-												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND 0700z-1400z"/>
-												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when LAX Tower is online between 0700Z and 1400Z"/>
-											</StackPanel>
-											<StackPanel>
-												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND (LAX_GND OR LAX_DEL)"/>
-												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Tower and either Ground or Delivery are online"/>
-											</StackPanel>
-											<TextBlock TextWrapping="Wrap">
-												<Run Text="Use "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="*"/>
-												<Run Text=" as a wildcard: "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="LAX_*CTR"/>
-												<Run Text=" matches "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="LAX_CTR"/>
-												<Run Text=" and "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="LAX_25_CTR"/>
-												<Run Text="."/>
-											</TextBlock>
-										</StackPanel>
-									</Flyout>
-								</Button.Flyout>
-							</Button>
-						</StackPanel>
-						<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" Spacing="3">
-							<editor:TextEditor Name="OnlineEditor" WordWrap="True" MinHeight="40" FontFamily="{StaticResource Monospace}" Padding="6,4">
-								<Interaction.Behaviors>
-									<behaviors:DocumentTextBindingBehavior Text="{Binding OnlineCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
-									<behaviors:TextEditorConditionCompletionBehavior Kind="Station"/>
-								</Interaction.Behaviors>
-							</editor:TextEditor>
-							<TextBlock TextWrapping="Wrap" Foreground="#FCBA03" Text="{Binding OnlineConditionError, DataType=vm:StaticDefinitionEditorDialogViewModel}">
-								<TextBlock.IsVisible>
-									<MultiBinding Converter="{x:Static BoolConverters.And}" x:DataType="vm:StaticDefinitionEditorDialogViewModel">
-										<Binding Path="HasOnlineConditionError" x:DataType="vm:StaticDefinitionEditorDialogViewModel" />
-										<Binding Path="!#OnlineEditor.IsKeyboardFocusWithin" />
-									</MultiBinding>
-								</TextBlock.IsVisible>
-							</TextBlock>
-						</StackPanel>
-
-						<StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,6,0,0">
-							<TextBlock Classes="label" Text="Weather:" />
-							<Button Classes="info">
-								<TextBlock Text="i" />
-								<Button.Flyout>
-									<Flyout Placement="BottomEdgeAlignedLeft">
-										<StackPanel MaxWidth="340" Spacing="8">
-											<TextBlock TextWrapping="Wrap" Text="The message is included while the METAR meets this condition. Leave blank to ignore the weather."/>
 											<StackPanel>
 												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ceiling &lt; 200ft"/>
 												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the ceiling is below 200 ft"/>
@@ -198,122 +145,51 @@
 												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when a thunderstorm is reported"/>
 											</StackPanel>
 											<StackPanel>
-												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="cloudtype EXCLUDES CB"/>
-												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when no cumulonimbus is reported"/>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="dep:07L"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when 07L is one of the preset's departure runways"/>
 											</StackPanel>
 											<StackPanel>
-												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="NOT cavok"/>
-												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the METAR does not report CAVOK"/>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="arr:25*"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when an arrival runway is 25L, 25R and so on"/>
 											</StackPanel>
 											<StackPanel>
-												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m)"/>
-												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when the ceiling is below 200 ft and either RVR is below 550 m or visibility is below 100 m"/>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="EPKK_E_APP AND dep:07"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when E_APP is online and 07 is a departure runway"/>
+											</StackPanel>
+											<StackPanel>
+												<TextBlock FontFamily="{StaticResource Monospace}" TextWrapping="Wrap" Text="LAX_TWR AND (ceiling &lt; 200ft OR rvr &lt; 550m)"/>
+												<TextBlock Margin="12,1,0,0" Opacity="0.7" TextWrapping="Wrap" Text="when Tower is online and the weather is poor"/>
 											</StackPanel>
 											<TextBlock TextWrapping="Wrap">
-												<Run Text="Compare with "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="&lt;"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="&lt;="/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="&gt;"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="&gt;="/>
+												<Run Text="A plain word is a controller callsign, and "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="*"/>
+												<Run Text=" matches any characters. Runways need "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="dep:"/>
+												<Run Text=", "/>
+												<Run FontFamily="{StaticResource Monospace}" Text="arr:"/>
 												<Run Text=" or "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="="/>
-											</TextBlock>
-											<TextBlock TextWrapping="Wrap">
-												<Run Text="Units are optional, e.g. "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="200ft"/>
-												<Run Text=", "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="550m"/>
-												<Run Text=", "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="15kt"/>
-											</TextBlock>
-											<TextBlock TextWrapping="Wrap">
-												<Run Text="Fields: "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="ceiling"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="cloudbase"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="rvr"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="visibility"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="windspeed"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="gust"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="winddir"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="temperature"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="dewpoint"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="qnh"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="depth"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="weather"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="recentweather"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="trendtype"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="cloudtype"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="windshear"/>
-												<Run Text=" "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="cavok"/>
-											</TextBlock>
-											<TextBlock TextWrapping="Wrap">
-												<Run Text="Put "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="trend"/>
-												<Run Text=", "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="tempo"/>
-												<Run Text=" or "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="becmg"/>
-												<Run Text=" in front of a wind, visibility, cloud or weather field to read the trend instead, e.g. "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="tempoweather INCLUDES RA"/>
-												<Run Text=". "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="trend"/>
-												<Run Text=" reads any trend, "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="tempo"/>
-												<Run Text=" and "/>
-												<Run FontFamily="{StaticResource Monospace}" Text="becmg"/>
-												<Run Text=" only that kind."/>
+												<Run FontFamily="{StaticResource Monospace}" Text="rwy:"/>
+												<Run Text=" (either). Weather terms are never met when there is no METAR."/>
 											</TextBlock>
 										</StackPanel>
 									</Flyout>
 								</Button.Flyout>
 							</Button>
 						</StackPanel>
-						<editor:TextEditor Grid.Row="2" Grid.Column="1" Name="WeatherEditor" WordWrap="True" MinHeight="56" FontFamily="{StaticResource Monospace}" Padding="6,4">
-							<Interaction.Behaviors>
-								<behaviors:DocumentTextBindingBehavior Text="{Binding WeatherCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
-								<behaviors:TextEditorConditionCompletionBehavior Kind="Weather"/>
-							</Interaction.Behaviors>
-						</editor:TextEditor>
-						<StackPanel Grid.Row="3" Grid.Column="1" Margin="0,5,0,0" Spacing="3">
-							<TextBlock TextWrapping="Wrap" Opacity="0.6" FontSize="12" Text="Example: ceiling &lt; 200ft AND (rvr &lt; 550m OR visibility &lt; 100m). Suggestions appear as you type." />
-							<TextBlock TextWrapping="Wrap" Foreground="#FCBA03" Text="{Binding WeatherConditionError, DataType=vm:StaticDefinitionEditorDialogViewModel}">
+						<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" Spacing="3">
+							<editor:TextEditor Name="ConditionEditor" WordWrap="True" MinHeight="64" FontFamily="{StaticResource Monospace}" Padding="6,4">
+								<Interaction.Behaviors>
+									<behaviors:DocumentTextBindingBehavior Text="{Binding Condition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}"/>
+									<behaviors:TextEditorConditionCompletionBehavior Runways="{Binding Runways, DataType=vm:StaticDefinitionEditorDialogViewModel}"/>
+								</Interaction.Behaviors>
+							</editor:TextEditor>
+							<TextBlock TextWrapping="Wrap" Opacity="0.6" FontSize="12" Text="Example: EPKK_E_APP AND dep:07 AND NOT ceiling &lt; 200ft. Suggestions appear as you type." />
+							<TextBlock TextWrapping="Wrap" Foreground="#FCBA03" Text="{Binding ConditionError, DataType=vm:StaticDefinitionEditorDialogViewModel}">
 								<TextBlock.IsVisible>
 									<!-- Not while the box has focus: an unfinished condition is not an error yet. -->
 									<MultiBinding Converter="{x:Static BoolConverters.And}" x:DataType="vm:StaticDefinitionEditorDialogViewModel">
-										<Binding Path="HasWeatherConditionError" x:DataType="vm:StaticDefinitionEditorDialogViewModel" />
-										<Binding Path="!#WeatherEditor.IsKeyboardFocusWithin" />
-									</MultiBinding>
-								</TextBlock.IsVisible>
-							</TextBlock>
-						</StackPanel>
-						<TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Margin="0,10,0,0" Text="Runways:" />
-						<StackPanel Grid.Row="4" Grid.Column="1" Margin="0,10,0,0" Spacing="3">
-							<TextBox Name="RunwayEditor" FontFamily="{StaticResource Monospace}" Text="{Binding RunwayCondition, DataType=vm:StaticDefinitionEditorDialogViewModel, Mode=TwoWay}" Watermark="e.g. dep:07L OR arr:25*" />
-							<TextBlock TextWrapping="Wrap" Opacity="0.6" FontSize="12" Text="Runways from the preset, with AND, OR and NOT. Use dep: or arr: to look at departure or arrival runways only, and * to match 07L and 07R (07*). Leave blank to always include." />
-							<TextBlock TextWrapping="Wrap" Foreground="#FCBA03" Text="{Binding RunwayConditionError, DataType=vm:StaticDefinitionEditorDialogViewModel}">
-								<TextBlock.IsVisible>
-									<MultiBinding Converter="{x:Static BoolConverters.And}" x:DataType="vm:StaticDefinitionEditorDialogViewModel">
-										<Binding Path="HasRunwayConditionError" x:DataType="vm:StaticDefinitionEditorDialogViewModel" />
-										<Binding Path="!#RunwayEditor.IsKeyboardFocusWithin" />
+										<Binding Path="HasConditionError" x:DataType="vm:StaticDefinitionEditorDialogViewModel" />
+										<Binding Path="!#ConditionEditor.IsKeyboardFocusWithin" />
 									</MultiBinding>
 								</TextBlock.IsVisible>
 							</TextBlock>

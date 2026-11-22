@@ -655,6 +655,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         {
             viewModel.Definitions = new ObservableCollection<StaticDefinition>(SelectedStation.NotamDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.Runways = ActiveRunways.FromPresets(SelectedStation?.Presets ?? []);
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.NotamsBeforeFreeText;
             viewModel.Separator = SelectedStation.NotamsSeparator;
@@ -730,6 +731,7 @@ public class SandboxViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
             viewModel.Definitions =
                 new ObservableCollection<StaticDefinition>(SelectedStation.AirportConditionDefinitions);
             viewModel.ContractionCompletionData = ContractionCompletionData;
+            viewModel.Runways = ActiveRunways.FromPresets(SelectedStation?.Presets ?? []);
             viewModel.SpokenTextSource = this;
             viewModel.IncludeBeforeFreeText = SelectedStation.AirportConditionsBeforeFreeText;
             viewModel.Separator = SelectedStation.AirportConditionsSeparator;

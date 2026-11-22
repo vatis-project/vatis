@@ -1,4 +1,4 @@
-// <copyright file="WeatherCompletion.cs" company="Justin Shannon">
+// <copyright file="ConditionCompletion.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -12,9 +12,10 @@ using Vatsim.Vatis.Profiles.Models;
 namespace Vatsim.Vatis.Atis.Extensions;
 
 /// <summary>
-/// Works out what can come next in a weather condition at the caret, for auto-complete.
+/// Works out what can come next in a condition at the caret, for auto-complete. Weather fields and their
+/// comparisons are suggested as they are typed, along with runway prefixes, AND, OR and NOT.
 /// </summary>
-public static partial class WeatherCompletion
+public static partial class ConditionCompletion
 {
     // The fields a trend group can carry. Each is offered with a trend, tempo and becmg prefix.
     private static readonly (string Name, string Description)[] s_trendFields =
@@ -122,7 +123,8 @@ public static partial class WeatherCompletion
     /// <param name="text">The condition typed so far.</param>
     /// <param name="caret">The caret offset in the text.</param>
     /// <returns>The suggestions, which may be empty.</returns>
-    public static CompletionSuggestionResult GetSuggestions(string? text, int caret)
+    /// <param name="runways">The runways to suggest after dep:, arr: and rwy:, or null for none.</param>
+    public static CompletionSuggestionResult GetSuggestions(string? text, int caret, ActiveRunways? runways = null)
     {
         text ??= string.Empty;
         caret = Math.Clamp(caret, 0, text.Length);
@@ -140,6 +142,15 @@ public static partial class WeatherCompletion
         while (partialStart > 0 && IsWordChar(prefix[partialStart - 1]))
         {
             partialStart--;
+        }
+
+        // After dep:, arr: or rwy: the runways of the presets are offered.
+        var colon = prefix[partialStart..].IndexOf(':');
+        if (colon >= 0)
+        {
+            var kind = prefix[partialStart..(partialStart + colon)].ToUpperInvariant();
+            var start = partialStart + colon + 1;
+            return Filter(start, prefix[start..], RunwaysFor(kind, runways));
         }
 
         // A unit can follow a number directly, e.g. "200f".
@@ -177,6 +188,26 @@ public static partial class WeatherCompletion
         return new CompletionSuggestionResult(start, items);
     }
 
+    private static IEnumerable<CompletionSuggestion> RunwaysFor(string prefix, ActiveRunways? runways)
+    {
+        var lists = prefix switch
+        {
+            "DEP" or "DEPARTURE" => [("departure", runways?.Departure)],
+            "ARR" or "ARRIVAL" => [("arrival", runways?.Arrival)],
+            "RWY" or "RUNWAY" => new[] { ("departure", runways?.Departure), ("arrival", runways?.Arrival) },
+            _ => [],
+        };
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (label, list) in lists)
+        {
+            foreach (var runway in (list ?? []).Where(seen.Add))
+            {
+                yield return new CompletionSuggestion(runway, runway, $"{label} runway in a preset", ContinueAfter: false);
+            }
+        }
+    }
+
     private static IEnumerable<CompletionSuggestion> CodesFor(WeatherField? field)
     {
         var codes = field == WeatherField.CloudType ? s_cloudTypes : field == WeatherField.TrendType ? s_trendTypes : field is WeatherField.PresentWeather or WeatherField.RecentWeather ? s_weatherCodes : [];
@@ -194,6 +225,9 @@ public static partial class WeatherCompletion
                 }
 
                 yield return new CompletionSuggestion("NOT", "NOT ", "reverse the next condition");
+                yield return new CompletionSuggestion("dep:", "dep:", "a departure runway of the preset, e.g. dep:07L");
+                yield return new CompletionSuggestion("arr:", "arr:", "an arrival runway of the preset, e.g. arr:25*");
+                yield return new CompletionSuggestion("rwy:", "rwy:", "an arrival or departure runway of the preset");
                 break;
             case Expecting.NumericOperator:
                 foreach (var (op, description) in s_numericOperators)
@@ -314,7 +348,8 @@ public static partial class WeatherCompletion
 
                 if (!WeatherExpression.TryGetField(word, out var f))
                 {
-                    return (Expecting.Nothing, null);
+                    // A callsign, a runway or a time, which can be followed by AND or OR.
+                    return (Expecting.AfterCondition, null);
                 }
 
                 return WeatherFieldInfo.GetKind(f) switch

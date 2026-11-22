@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Added arrival and departure runways to ATIS presets, and a Runways condition on static airport conditions and NOTAMs that includes them only for certain runways (e.g., `dep:07L`, `arr:25*`, `NOT dep:07R`). It combines with the existing online and weather conditions, so a departure frequency can depend on both the active departure runway and which controllers are online.
+- Added arrival and departure runways to ATIS presets, so airport conditions and NOTAMs can depend on the runways in use (e.g., `dep:07L`, `arr:25*`, `rwy:16`).
+- Changed the controller and weather conditions on static airport conditions and NOTAMs into a single condition box, so controllers online, time, weather and runways can be mixed with AND, OR and NOT (e.g., `EPKK_E_APP AND dep:07 AND NOT ceiling < 200ft`). Legacy controller and weather conditions are combined automatically. Runway names need a `dep:`, `arr:` or `rwy:` prefix, and a word that is a weather field name (e.g., `wind`) is read as weather rather than a callsign.
 
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
