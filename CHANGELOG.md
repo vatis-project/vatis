@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
+- Fixed the magnetic variation not being applied to the wind direction in the text ATIS when the wind is calm, or anywhere else the `{wind}` variable is used.
 - Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.
 
 ## v4.1.0-beta.23

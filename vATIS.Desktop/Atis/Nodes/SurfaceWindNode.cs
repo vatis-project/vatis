@@ -170,7 +170,14 @@ public class SurfaceWindNode : BaseNode<SurfaceWind>
         format = Regex.Replace(format, "{wind_vmin}", _ => Render("wind_vmin", VarDigits(minDirectionVariation), VarDigits(minDirectionVariation), false), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_vmax}", _ => Render("wind_vmax", VarDigits(maxDirectionVariation), VarDigits(maxDirectionVariation), false), RegexOptions.IgnoreCase);
         format = Regex.Replace(format, "{wind_unit}", node.SpeedUnit.ToString(), RegexOptions.IgnoreCase);
-        format = Regex.Replace(format, "{wind}", node.RawValue ?? "", RegexOptions.IgnoreCase);
+        var rawWind = node.RawValue?.Trim() ?? "";
+        if (node.MeanDirection != null && !node.VariableDirection && Regex.IsMatch(rawWind, @"^\d{3}"))
+        {
+            // Swap the raw direction digits for the magnetic direction.
+            rawWind = meanDirectionMag + rawWind[3..];
+        }
+
+        format = Regex.Replace(format, "{wind}", _ => rawWind, RegexOptions.IgnoreCase);
 
         return format;
     }

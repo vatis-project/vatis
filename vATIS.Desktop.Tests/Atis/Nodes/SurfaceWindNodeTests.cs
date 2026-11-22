@@ -101,4 +101,20 @@ public class SurfaceWindNodeTests
         Assert.Equal("04!", node.ParseTextVariables(wind, "{wind_spd}"));
         Assert.Contains("!", node.ParseTextVariables(wind, "{wind_spd|kt}"));
     }
+
+    [Theory]
+    [InlineData("KJFK 011651Z 00000KT 10SM CLR 20/10 A3000", "00000KT")]
+    [InlineData("KJFK 011651Z 36002KT 10SM CLR 20/10 A3000", "01002KT")]
+    [InlineData("KJFK 011651Z 25009G15KT 10SM CLR 20/10 A3000", "26009G15KT")]
+    [InlineData("KJFK 011651Z VRB02KT 10SM CLR 20/10 A3000", "VRB02KT")]
+    public void ParseTextVariables_RawWind_AppliesMagVar(string metar, string expected)
+    {
+        var node = Node(w =>
+        {
+            w.MagneticVariation.Enabled = true;
+            w.MagneticVariation.MagneticDegrees = 10;
+        });
+        var wind = new MetarDecoder().ParseNotStrict(metar).SurfaceWind!;
+        Assert.Equal(expected, node.ParseTextVariables(wind, "{wind}"));
+    }
 }
