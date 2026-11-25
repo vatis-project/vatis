@@ -43,12 +43,12 @@ public class AtisVoiceMeta
     public bool IsAutomatic => UseTextToSpeech || UseWavPack;
 
     /// <summary>
-    /// Gets or sets the name of the voice to be used for ATIS voice configuration.
+    /// Gets or sets the id of the voice to be used for ATIS voice configuration (older profiles hold its name).
     /// </summary>
-    public string? Voice { get; set; } = "Default";
+    public string? Voice { get; set; } = "default";
 
     /// <summary>
-    /// Gets or sets voice names to cycle through, one per ATIS letter. When it has two or more entries it
+    /// Gets or sets voice ids to cycle through, one per ATIS letter. When it has two or more entries it
     /// overrides <see cref="Voice"/>. This is a JSON-only option.
     /// </summary>
     public string[]? AlternatingVoices { get; set; }

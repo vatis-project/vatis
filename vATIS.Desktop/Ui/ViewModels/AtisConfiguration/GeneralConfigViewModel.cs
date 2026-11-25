@@ -592,7 +592,9 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
         _wavPackId = station.AtisVoice.WavPackId;
         _wavPackPath = station.AtisVoice.WavPackPath;
         RefreshWavPacks();
-        TextToSpeechVoice = station.AtisVoice.Voice;
+        TextToSpeechVoice = AvailableVoices is { Count: > 0 }
+            ? AvailableVoices.ResolveVoiceId(station.AtisVoice.Voice)
+            : station.AtisVoice.Voice;
 
         // Ensure speech rate is a valid value.
         SelectedSpeechRate = s_allowedSpeechRates.Contains(station.AtisVoice.SpeechRate)

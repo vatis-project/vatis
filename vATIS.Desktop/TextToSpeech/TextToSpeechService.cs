@@ -61,14 +61,14 @@ public class TextToSpeechService : ITextToSpeechService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var voiceName = station.AtisVoice.Voice;
+        var savedVoice = station.AtisVoice.Voice;
         if (station.AtisVoice.AlternatingVoices is { Length: >= 2 } voices)
         {
             var index = (atisLetter - station.CodeRange.Low) % voices.Length;
-            voiceName = voices[index < 0 ? index + voices.Length : index];
+            savedVoice = voices[index < 0 ? index + voices.Length : index];
         }
 
-        var voiceId = VoiceList.FirstOrDefault(v => v.Name == voiceName)?.Id ?? "default";
+        var voiceId = VoiceList.ResolveVoiceId(savedVoice);
 
         var authToken = await _authTokenManager.GetAuthToken(cancellationToken);
 
