@@ -8,6 +8,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Vatsim.Vatis.Voice.WavPack;
 
@@ -31,6 +33,42 @@ public class WavPackService : IWavPackService
 
     /// <inheritdoc/>
     public WavPackResult Build(string spokenText, string packFolder)
+    {
+        var (pieces, missing) = Plan(spokenText, packFolder);
+        return missing.Count > 0 ? new WavPackResult(null, missing) : new WavPackResult(Assemble(pieces), missing);
+    }
+
+    /// <inheritdoc/>
+    public async Task<WavPackResult> BuildAsync(string spokenText, string packFolder,
+        Func<string, Task<byte[]?>> synthesize, CancellationToken cancellationToken)
+    {
+        var (pieces, missing) = Plan(spokenText, packFolder);
+        if (missing.Count == 0)
+        {
+            return new WavPackResult(Assemble(pieces), missing);
+        }
+
+        // Each run of consecutive words without a clip is spoken in one request so it keeps natural intonation.
+        foreach (var piece in pieces.Where(p => p.MissingText != null))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var audio = await synthesize(piece.MissingText!);
+            if (audio == null || audio.Length < 2)
+            {
+                return new WavPackResult(null, missing);
+            }
+
+            var samples = new short[audio.Length / 2];
+            Buffer.BlockCopy(audio, 0, samples, 0, samples.Length * 2);
+            NormalizeLevel(samples);
+            piece.Samples = samples;
+            piece.MissingText = null;
+        }
+
+        return new WavPackResult(Assemble(pieces), missing);
+    }
+
+    private (List<Piece> Pieces, List<string> Missing) Plan(string spokenText, string packFolder)
     {
         var manifest = LoadManifest(packFolder);
 
@@ -90,7 +128,7 @@ public class WavPackService : IWavPackService
         }
 
         var missing = new List<string>();
-        var pieces = new List<short[]>();
+        var pieces = new List<Piece>();
         var gap = Silence(manifest.GapMs);
 
         var i = 0;
@@ -113,8 +151,8 @@ public class WavPackService : IWavPackService
 
                 if (file != null)
                 {
-                    pieces.Add(LoadClip(packFolder, file));
-                    pieces.Add(gap);
+                    pieces.Add(new Piece(LoadClip(packFolder, file)));
+                    pieces.Add(new Piece(gap));
                     matched = len;
                 }
             }
@@ -126,6 +164,16 @@ public class WavPackService : IWavPackService
                     missing.Add(tokens[i].Word);
                 }
 
+                // Merge with a directly preceding missing word so the run is synthesized as one phrase.
+                if (pieces.Count > 0 && pieces[^1].MissingText != null)
+                {
+                    pieces[^1].MissingText += " " + tokens[i].Word;
+                }
+                else
+                {
+                    pieces.Add(new Piece(null) { MissingText = tokens[i].Word });
+                }
+
                 matched = 1;
             }
 
@@ -133,35 +181,35 @@ public class WavPackService : IWavPackService
             {
                 if (manifest.PauseMs.TryGetValue(p, out var ms))
                 {
-                    pieces.Add(Silence(ms));
+                    pieces.Add(new Piece(Silence(ms)));
                 }
             }
 
             i += matched;
         }
 
-        if (missing.Count > 0)
-        {
-            return new WavPackResult(null, missing);
-        }
+        return (pieces, missing);
+    }
 
-        var total = pieces.Sum(p => p.Length);
+    private static byte[] Assemble(List<Piece> pieces)
+    {
+        var total = pieces.Sum(p => p.Samples!.Length);
         total -= total % FrameSamples;
         var pcm = new byte[total * 2];
         var offset = 0;
         foreach (var piece in pieces)
         {
-            var take = Math.Min(piece.Length, total - offset);
+            var take = Math.Min(piece.Samples!.Length, total - offset);
             if (take <= 0)
             {
                 break;
             }
 
-            Buffer.BlockCopy(piece, 0, pcm, offset * 2, take * 2);
+            Buffer.BlockCopy(piece.Samples, 0, pcm, offset * 2, take * 2);
             offset += take;
         }
 
-        return new WavPackResult(pcm, missing);
+        return pcm;
     }
 
     /// <inheritdoc/>
@@ -280,5 +328,12 @@ public class WavPackService : IWavPackService
         NormalizeLevel(samples);
         _clipCache[full] = (stamp, samples);
         return samples;
+    }
+
+    private sealed class Piece(short[]? samples)
+    {
+        public short[]? Samples { get; set; } = samples;
+
+        public string? MissingText { get; set; }
     }
 }

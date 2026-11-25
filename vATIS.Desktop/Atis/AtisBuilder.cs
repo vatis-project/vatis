@@ -201,8 +201,8 @@ public class AtisBuilder : IAtisBuilder
 
         if (station.AtisVoice.UseWavPack)
         {
-            var (spokenText, pcm) = BuildWavPackAudio(result, station);
-            return new AtisBuilderVoiceAtisResponse(spokenText, pcm);
+            var (spokenText, audio) = await BuildWavPackAudio(result, station, currentAtisLetter[0], cancellationToken);
+            return audio != null ? new AtisBuilderVoiceAtisResponse(spokenText, audio) : null;
         }
 
         if (_textToSpeechService == null)
@@ -409,7 +409,7 @@ public class AtisBuilder : IAtisBuilder
         }
 
         if (station.AtisVoice.UseWavPack)
-            return BuildWavPackAudio(text, station);
+            return await BuildWavPackAudio(text, station, currentAtisLetter, cancellationToken);
 
         return (text, null);
     }
@@ -497,7 +497,8 @@ public class AtisBuilder : IAtisBuilder
         return text;
     }
 
-    private (string SpokenText, byte[] Pcm) BuildWavPackAudio(string text, AtisStation station)
+    private async Task<(string SpokenText, byte[]? Audio)> BuildWavPackAudio(string text, AtisStation station,
+        char atisLetter, CancellationToken cancellationToken)
     {
         var packFolder = WavPackLibrary.ResolveFolder(station.AtisVoice) ??
                          throw new AtisBuilderException(
@@ -505,14 +506,36 @@ public class AtisBuilder : IAtisBuilder
 
         try
         {
-            var result = _wavPackService.Build(text, packFolder);
-            if (result.Pcm == null)
+            if (_textToSpeechService == null)
             {
-                throw new AtisBuilderException(
-                    $"Voice pack is missing clips for: {string.Join(", ", result.MissingTokens)}. Spoken text: {text}");
+                var result = _wavPackService.Build(text, packFolder);
+                if (result.Pcm == null)
+                {
+                    throw new AtisBuilderException(
+                        $"Voice pack is missing clips for: {string.Join(", ", result.MissingTokens)}. Spoken text: {text}");
+                }
+
+                return (text, result.Pcm);
             }
 
-            return (text, result.Pcm);
+            // Free-text conditions and NOTAMs can't always be covered by a pack, so any words without a clip
+            // are spoken with text-to-speech and spliced in.
+            var filled = await _wavPackService.BuildAsync(text, packFolder,
+                phrase => _textToSpeechService.RequestAudio(phrase, station, atisLetter, cancellationToken),
+                cancellationToken);
+            if (filled.MissingTokens.Count > 0)
+            {
+                Log.Warning("Voice pack is missing clips for: {Missing}. Used text-to-speech for them.",
+                    string.Join(", ", filled.MissingTokens));
+            }
+
+            if (filled.Pcm == null)
+            {
+                throw new AtisBuilderException(
+                    $"Voice pack is missing clips for: {string.Join(", ", filled.MissingTokens)}, and text-to-speech failed for them. Spoken text: {text}");
+            }
+
+            return (text, filled.Pcm);
         }
         catch (Exception ex) when (ex is WavPackException or InvalidOperationException or System.IO.IOException)
         {

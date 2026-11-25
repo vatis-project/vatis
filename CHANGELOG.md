@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Changed the voice ATIS to speak any words a WAV voice pack has no clip for (e.g., in free-text airport conditions or NOTAMs) with text-to-speech instead of failing to generate it.
+
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
 - Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.

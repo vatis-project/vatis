@@ -430,6 +430,10 @@ public class AtisBuilderExternalAtisTests
             return new WavPackResult(Pcm, Missing);
         }
 
+        public Task<WavPackResult> BuildAsync(string spokenText, string packFolder,
+            Func<string, Task<byte[]?>> synthesize, CancellationToken cancellationToken)
+            => Task.FromResult(Build(spokenText, packFolder));
+
         public (int ClipCount, IReadOnlyList<string> Problems) Validate(string packFolder) => (0, []);
     }
 
