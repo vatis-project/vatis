@@ -3,7 +3,10 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Vatsim.Vatis.Voice.WavPack;
 
@@ -20,6 +23,19 @@ public interface IWavPackService
     /// <returns>The stitched PCM bytes and any tokens that had no clip.</returns>
     /// <exception cref="WavPackException">The pack is missing or invalid.</exception>
     public WavPackResult Build(string spokenText, string packFolder);
+
+    /// <summary>
+    /// Stitches the spoken text like <see cref="Build"/>, but speaks any words that have no clip using the given
+    /// synthesizer instead of leaving them out.
+    /// </summary>
+    /// <param name="spokenText">The spoken text, as produced for text-to-speech.</param>
+    /// <param name="packFolder">The folder containing manifest.json and the WAV clips.</param>
+    /// <param name="synthesize">Returns 48 kHz mono 16-bit PCM for a phrase, or null if it failed.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The stitched PCM bytes (null if a phrase could not be synthesized) and the tokens that had no clip.</returns>
+    /// <exception cref="WavPackException">The pack is missing or invalid.</exception>
+    public Task<WavPackResult> BuildAsync(string spokenText, string packFolder,
+        Func<string, Task<byte[]?>> synthesize, CancellationToken cancellationToken);
 
     /// <summary>
     /// Validates a pack folder and returns a human readable summary.

@@ -7,6 +7,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Vatsim.Vatis.Profiles.Models;
 using Vatsim.Vatis.Voice.WavPack;
 using Xunit;
@@ -63,6 +65,36 @@ public class WavPackTests : IDisposable
 
         Assert.Null(result.Pcm);
         Assert.Equal(["THREE", "FOUR"], result.MissingTokens);
+    }
+
+    [Fact]
+    public async Task BuildAsync_MissingWords_AreSynthesizedAsOnePhraseAndSpliced()
+    {
+        WritePack(("ONE", new short[960]), ("TWO", new short[960]));
+        var phrases = new System.Collections.Generic.List<string>();
+
+        var result = await new WavPackService().BuildAsync("ONE THREE FOUR TWO", _dir, phrase =>
+        {
+            phrases.Add(phrase);
+            return Task.FromResult<byte[]?>(new byte[960 * 2 * 3]);
+        }, CancellationToken.None);
+
+        Assert.Equal(["THREE FOUR"], phrases);
+        Assert.NotNull(result.Pcm);
+        Assert.Equal(["THREE", "FOUR"], result.MissingTokens);
+        Assert.True(result.Pcm!.Length / 2 >= 960 * 5);
+    }
+
+    [Fact]
+    public async Task BuildAsync_SynthesisFails_ReturnsNoPcm()
+    {
+        WritePack(("ONE", new short[960]));
+
+        var result = await new WavPackService().BuildAsync("ONE THREE", _dir,
+            _ => Task.FromResult<byte[]?>(null), CancellationToken.None);
+
+        Assert.Null(result.Pcm);
+        Assert.Equal(["THREE"], result.MissingTokens);
     }
 
     [Fact]
