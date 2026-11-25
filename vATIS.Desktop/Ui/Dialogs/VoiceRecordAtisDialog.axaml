@@ -106,7 +106,10 @@
 				<StackPanel Grid.Column="2" Spacing="5">
 					<Grid ColumnDefinitions="*,Auto">
 						<TextBlock Text="ATIS Script:" VerticalAlignment="Center"/>
-						<ToggleSwitch Grid.Column="1" Theme="{StaticResource ToggleSwitch}" OffContent="Text" OnContent="Voice" IsChecked="{Binding ShowVoiceScript, DataType=vm:VoiceRecordAtisDialogViewModel, Mode=TwoWay}" IsVisible="{Binding HasVoiceScript, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=False}" ToolTip.Tip="Show the spoken (voice) version of the ATIS instead of the text version."/>
+						<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+							<ToggleSwitch Theme="{StaticResource ToggleSwitch}" OffContent="Words" OnContent="Digits" IsChecked="{Binding UseDigits, DataType=vm:VoiceRecordAtisDialogViewModel, Mode=TwoWay}" IsVisible="{Binding ShowVoiceScript, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=False}" ToolTip.Tip="Show numbers, runways and letters as digits and letters instead of spoken words."/>
+							<ToggleSwitch Theme="{StaticResource ToggleSwitch}" OffContent="Text" OnContent="Voice" IsChecked="{Binding ShowVoiceScript, DataType=vm:VoiceRecordAtisDialogViewModel, Mode=TwoWay}" IsVisible="{Binding HasVoiceScript, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=False}" ToolTip.Tip="Show the spoken (voice) version of the ATIS instead of the text version."/>
+						</StackPanel>
 					</Grid>
 					<Grid Height="280">
 						<editor:TextEditor x:Name="ScriptEditor" DocumentChanged="ScriptEditor_OnDocumentChanged" Document="{Binding ScriptDocument, DataType=vm:VoiceRecordAtisDialogViewModel}" IsReadOnly="True" WordWrap="True" ShowLineNumbers="False" FontFamily="{StaticResource Monospace}" Padding="6,4">

@@ -77,6 +77,12 @@ public class AppConfig : IAppConfig
     public bool SuppressReleaseNotes { get; set; }
 
     /// <inheritdoc />
+    public bool RecordAtisShowVoiceScript { get; set; }
+
+    /// <inheritdoc />
+    public bool RecordAtisUseDigits { get; set; } = true;
+
+    /// <inheritdoc />
     [JsonIgnore]
     public string PasswordDecrypted
     {
@@ -121,6 +127,8 @@ public class AppConfig : IAppConfig
             AutoFetchDatis = config.AutoFetchDatis;
             AutoFetchAtisLetter = config.AutoFetchAtisLetter || AutoFetchDatis;
             SuppressReleaseNotes = config.SuppressReleaseNotes;
+            RecordAtisShowVoiceScript = config.RecordAtisShowVoiceScript;
+            RecordAtisUseDigits = config.RecordAtisUseDigits;
         }
 
         SaveConfig();
