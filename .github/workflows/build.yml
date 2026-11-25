@@ -50,7 +50,9 @@ jobs:
   build:
     needs: changes
     runs-on: ${{ matrix.os }}
-    if: ${{ needs.changes.outputs.docs_only != 'true' && !contains(github.event.pull_request.title, '[skip ci]') && 
+    if: ${{ needs.changes.outputs.docs_only != 'true' &&
+        (needs.changes.outputs.native == 'true' || needs.changes.outputs.dotnet == 'true') &&
+        !contains(github.event.pull_request.title, '[skip ci]') && 
         !contains(github.event.pull_request.body, '[skip ci]') && 
         !contains(join(github.event.pull_request.labels.*.name, ','), 'skip ci') }}
     strategy:
