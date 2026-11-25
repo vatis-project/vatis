@@ -15,6 +15,7 @@ using Serilog;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Io;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.TextToSpeech;
 using Vatsim.Vatis.Voice.WavPack;
 
 namespace Vatsim.Vatis.Profiles;
@@ -354,6 +355,44 @@ public class ProfileRepository : IProfileRepository
             UpdateTo4(profile);
             wasUpdated = true;
         }
+
+        // Older profiles stored the TTS voice's display name; it is now the voice id.
+        if (ConvertVoiceNamesToIds(profile))
+        {
+            wasUpdated = true;
+        }
+    }
+
+    private static bool ConvertVoiceNamesToIds(Profile profile)
+    {
+        var changed = false;
+        foreach (var voice in profile.Stations?.Select(s => s.AtisVoice) ?? [])
+        {
+            var id = VoiceMetaDataExtensions.ConvertLegacyVoiceName(voice.Voice);
+            if (id != voice.Voice)
+            {
+                Log.Information($"Converting voice '{voice.Voice}' to '{id}' in profile {profile.Name}");
+                voice.Voice = id;
+                changed = true;
+            }
+
+            if (voice.AlternatingVoices is not { } alternating)
+            {
+                continue;
+            }
+
+            for (var i = 0; i < alternating.Length; i++)
+            {
+                var converted = VoiceMetaDataExtensions.ConvertLegacyVoiceName(alternating[i]);
+                if (converted != alternating[i])
+                {
+                    alternating[i] = converted!;
+                    changed = true;
+                }
+            }
+        }
+
+        return changed;
     }
 
     private void UpdateTo4(Profile profile)
