@@ -251,6 +251,16 @@ public class AtisBuilder : IAtisBuilder
         await PostIdsUpdate(station, request, cancellationToken);
     }
 
+    /// <summary>
+    /// Gets the lowest QNH in hPa from the given pressure values, ignoring missing ones.
+    /// </summary>
+    /// <param name="pressures">The decoded pressure values.</param>
+    /// <returns>The lowest QNH in hPa, or null if none are available.</returns>
+    internal static int? GetLowestQnh(IEnumerable<Value?> pressures)
+    {
+        return pressures.Select(AltimeterSettingNode.GetQnhHpa).Where(q => q != null).Min();
+    }
+
     private static string ReplaceContractionVariable(string text, AtisStation station, bool voiceVariable = true)
     {
         text = PatternMatcher.Apply(text, station.Patterns, voiceVariable, runwayLeadingZero: !station.IsFaaAtis);
@@ -641,6 +651,30 @@ public class AtisBuilder : IAtisBuilder
         return template;
     }
 
+    private async Task<double?> GetTransitionLevelQnh(AtisStation station, DecodedMetar metar)
+    {
+        var icaos = station.AtisFormat.TransitionLevel.AirportIcaos;
+        if (icaos.Count == 0 || _metarRepository == null)
+        {
+            return metar.Pressure?.Value?.ActualValue;
+        }
+
+        var metars = await Task.WhenAll(icaos.Select(async icao =>
+        {
+            try
+            {
+                return await _metarRepository.GetMetar(icao, triggerMessageBus: false);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to get METAR for transition level airport {Icao}", icao);
+                return null;
+            }
+        }));
+
+        return GetLowestQnh(metars.Prepend(metar).Select(m => m?.Pressure?.Value));
+    }
+
     private async Task<List<AtisVariable>> ParseNodesFromMetar(AtisStation station, AtisPreset preset,
         DecodedMetar metar, Airport airportData, char currentAtisLetter)
     {
@@ -782,8 +816,8 @@ public class AtisBuilder : IAtisBuilder
 
         if (!station.IsFaaAtis)
         {
-            var trl = station.AtisFormat.TransitionLevel.Values.FirstOrDefault(t =>
-                metar.Pressure?.Value?.ActualValue >= t.Low && metar.Pressure.Value?.ActualValue <= t.High);
+            var qnh = await GetTransitionLevelQnh(station, metar);
+            var trl = station.AtisFormat.TransitionLevel.Values.FirstOrDefault(t => qnh >= t.Low && qnh <= t.High);
 
             if (trl != null)
             {

@@ -27,11 +27,19 @@ public class TransitionLevel : BaseFormat
     public List<TransitionLevelMeta> Values { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets additional airports whose QNH is also checked. When set, the lowest QNH
+    /// among these airports and the station's own is used to select the transition level.
+    /// </summary>
+    public List<string> AirportIcaos { get; set; } = new();
+
+    /// <summary>
     /// Creates a new instance of <see cref="TransitionLevel"/> that is a copy of the current instance.
     /// </summary>
     /// <returns>A new <see cref="TransitionLevel"/> instance that is a copy of this instance.</returns>
     public TransitionLevel Clone()
     {
-        return (TransitionLevel)MemberwiseClone();
+        var clone = (TransitionLevel)MemberwiseClone();
+        clone.AirportIcaos = [..AirportIcaos];
+        return clone;
     }
 }
