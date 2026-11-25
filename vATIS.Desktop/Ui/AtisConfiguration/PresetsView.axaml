@@ -223,6 +223,14 @@
                     <Button
                         Margin="0,0,5,5"
                         Theme="{StaticResource DarkVariable}"
+                        ToolTip.Tip="The density altitude reported in the METAR remarks"
+                        Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
+                        CommandParameter="{Binding $self.Content}">
+                        [DENSITY__ALT]
+                    </Button>
+                    <Button
+                        Margin="0,0,5,5"
+                        Theme="{StaticResource DarkVariable}"
                         ToolTip.Tip="Inserts the Automatic Observation text only when the METAR is flagged AUTO."
                         Command="{Binding TemplateVariableClicked, DataType=vm:PresetsViewModel}"
                         CommandParameter="{Binding $self.Content}">

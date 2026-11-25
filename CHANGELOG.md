@@ -8,9 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Added a Words/Digits switch next to the Voice switch in the Record ATIS dialog to show numbers, runways and letters in the voice script as digits and letters (e.g., "wind 090 at 8" instead of "wind zero niner zero at eight"). It defaults to Digits. The Text/Voice and Words/Digits switches are remembered between openings and sessions.
+- Added a `[DENSITY_ALT]` variable and a Density Altitude formatting tab for non-FAA stations to read the density altitude from the METAR remarks (e.g., `RMK DENSITY ALT 1100FT`), with Default and Group styles and a suffix for the `{altitude}` value (e.g., "one thousand one hundred feet").
 
 ### Fixed
+- Fixed the mini window shifting left after restoring it from the main window when a voice ATIS recording indicator had appeared or cleared in the meantime.
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
+- Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.
 
 ## v4.1.0-beta.23
 ### Added

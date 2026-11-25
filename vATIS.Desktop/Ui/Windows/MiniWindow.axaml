@@ -38,7 +38,7 @@
                 Foreground="{Binding NetworkConnectionStatus, DataType=vm:AtisStationViewModel, Converter={StaticResource AtisLetterColorConverter}, FallbackValue=Aqua}"
                 Classes.NeedsAck="{Binding IsNewAtis, DataType=vm:AtisStationViewModel}">
                 <ToolTip.Tip>
-                    <TextBlock Text="{Binding AtisStation.TextAtis, DataType=vm:AtisStationViewModel}"
+                    <TextBlock Text="{Binding TextAtis, DataType=vm:AtisStationViewModel}"
                                FontFamily="{StaticResource Monospace}" FontSize="14"/>
                 </ToolTip.Tip>
                 <Control.Styles>
@@ -47,7 +47,7 @@
                         <Setter Property="Cursor" Value="Hand"/>
                     </Style>
                     <Style Selector="ToolTip">
-                        <Setter Property="IsVisible" Value="{Binding AtisStation.TextAtis, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        <Setter Property="IsVisible" Value="{Binding TextAtis, DataType=vm:AtisStationViewModel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                     </Style>
                 </Control.Styles>
                 <Interaction.Behaviors>
