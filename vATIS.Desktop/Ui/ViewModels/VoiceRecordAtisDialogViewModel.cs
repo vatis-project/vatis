@@ -19,6 +19,7 @@ using Avalonia.Threading;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using ReactiveUI;
+using Vatsim.Vatis.Atis.Extensions;
 using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
@@ -34,6 +35,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
 {
     private static readonly TimeSpan MinimumRecordingDuration = TimeSpan.FromSeconds(5);
     private readonly CompositeDisposable _disposables = new();
+    private readonly IAppConfig _appConfig;
     private readonly IWindowLocationService _windowLocationService;
     private readonly Stopwatch _recordingStopwatch;
     private readonly System.Timers.Timer _elapsedTimeUpdateTimer;
@@ -45,6 +47,7 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     private string? _textScript;
     private string? _voiceScript;
     private bool _showVoiceScript;
+    private bool _useDigits = true;
     private TextDocument _scriptDocument = new();
     private bool _isPlaybackEnabled;
     private bool _isPreviousRecording;
@@ -67,7 +70,10 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <param name="windowLocationService">The service to manage window location.</param>
     public VoiceRecordAtisDialogViewModel(IAppConfig appConfig, IWindowLocationService windowLocationService)
     {
+        _appConfig = appConfig;
         _windowLocationService = windowLocationService;
+        _showVoiceScript = appConfig.RecordAtisShowVoiceScript;
+        _useDigits = appConfig.RecordAtisUseDigits;
         _recordingStopwatch = new Stopwatch();
         _elapsedTimeUpdateTimer = new System.Timers.Timer();
         _elapsedTimeUpdateTimer.Interval = 50;
@@ -278,6 +284,8 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _showVoiceScript, value);
+            _appConfig.RecordAtisShowVoiceScript = value;
+            _appConfig.SaveConfig();
             OnAtisScriptChanged();
         }
     }
@@ -285,7 +293,25 @@ public class VoiceRecordAtisDialogViewModel : ReactiveViewModelBase, IDisposable
     /// <summary>
     /// Gets the script currently displayed for reading aloud.
     /// </summary>
-    public string? AtisScript => _showVoiceScript && HasVoiceScript ? _voiceScript : _textScript;
+    public string? AtisScript => _showVoiceScript && HasVoiceScript
+        ? _useDigits ? SpokenTextDigitsConverter.Convert(_voiceScript!) : _voiceScript
+        : _textScript;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the voice script shows numbers, runways and letters as digits
+    /// and letters instead of spoken words.
+    /// </summary>
+    public bool UseDigits
+    {
+        get => _useDigits;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useDigits, value);
+            _appConfig.RecordAtisUseDigits = value;
+            _appConfig.SaveConfig();
+            OnAtisScriptChanged();
+        }
+    }
 
     /// <summary>
     /// Gets the document displaying the current <see cref="AtisScript"/>.

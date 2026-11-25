@@ -659,6 +659,7 @@ public class AtisBuilder : IAtisBuilder
         var windshear = NodeParser.Parse<WindShearNode, string>(metar, station);
         var runwayCondition = NodeParser.Parse<RunwayConditionNode, RunwayCondition>(metar, station);
         var remarkWind = NodeParser.Parse<RemarkWindNode, RemarkWind>(metar, station);
+        var densityAltitude = NodeParser.Parse<DensityAltitudeNode, int>(metar, station);
         var autoNode = new AutoObservationNode { Station = station };
         autoNode.Parse(metar);
         var autoText = autoNode.TextAtis ?? "";
@@ -776,6 +777,7 @@ public class AtisBuilder : IAtisBuilder
             new("WS", windshear.TextAtis, windshear.VoiceAtis),
             new("RWY_COND", runwayCondition.TextAtis, runwayCondition.VoiceAtis, ["RUNWAY_CONDITION"]),
             new("RMK_WIND", remarkWind.TextAtis, remarkWind.VoiceAtis),
+            new("DENSITY_ALT", densityAltitude.TextAtis, densityAltitude.VoiceAtis),
             new("AUTO", autoText, autoVoice),
             new("METAR", metar.RawMetar?.Trim() ?? "", metar.RawMetar?.Trim() ?? "")
         };
