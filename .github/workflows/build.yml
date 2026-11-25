@@ -12,8 +12,23 @@ jobs:
     outputs:
       native: ${{ steps.filter.outputs.native }}
       dotnet: ${{ steps.filter.outputs.dotnet }}
+      docs_only: ${{ steps.incremental.outputs.docs_only }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # On a PR update, only look at what this push changed. A push that only
+      # touches docs (e.g. fixing a changelog conflict) doesn't need a rebuild.
+      # New PRs, reopened PRs, and everything else still use the full PR diff.
+      - name: Check if only docs changed since the last push
+        id: incremental
+        if: github.event.action == 'synchronize'
+        run: |
+          if git cat-file -e "${{ github.event.before }}^{commit}" 2>/dev/null \
+             && ! git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -qvE '\.md$'; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: dorny/paths-filter@v4
         id: filter
@@ -35,7 +50,7 @@ jobs:
   build:
     needs: changes
     runs-on: ${{ matrix.os }}
-    if: ${{ !contains(github.event.pull_request.title, '[skip ci]') && 
+    if: ${{ needs.changes.outputs.docs_only != 'true' && !contains(github.event.pull_request.title, '[skip ci]') && 
         !contains(github.event.pull_request.body, '[skip ci]') && 
         !contains(join(github.event.pull_request.labels.*.name, ','), 'skip ci') }}
     strategy:
