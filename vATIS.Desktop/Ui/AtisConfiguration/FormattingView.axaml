@@ -1559,7 +1559,7 @@
 						</groupBox:GroupBoxControl>
 					</TabItem>
 					<TabItem Header="Transition Levels">
-						<Grid RowDefinitions="*,Auto" RowSpacing="10">
+						<Grid RowDefinitions="*,Auto,Auto" RowSpacing="10">
 							<DataGrid Grid.Row="0" x:Name="TransitionLevels" GridLinesVisibility="All" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#646464" ItemsSource="{Binding TransitionLevels, DataType=vm:FormattingViewModel}">
 								<Interaction.Behaviors>
 									<behaviors:DataGridCellEndEditBehavior Command="{Binding CellEditEndingCommand, DataType=vm:FormattingViewModel}" DataGridName="TransitionLevels"/>
@@ -1578,6 +1578,10 @@
 							<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
 								<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding DeleteTransitionLevelCommand, DataType=vm:FormattingViewModel}" CommandParameter="{Binding #TransitionLevels.SelectedItem}" IsEnabled="{Binding #TransitionLevels.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">Delete</Button>
 								<Button Theme="{StaticResource Dark}" Height="28" MinWidth="80" Command="{Binding AddTransitionLevelCommand, DataType=vm:FormattingViewModel}">Add New</Button>
+							</StackPanel>
+							<StackPanel Grid.Row="2" Spacing="4">
+								<TextBlock Text="Also check QNH at airports (ICAOs separated by spaces or commas). The lowest QNH is used to select the transition level."/>
+								<TextBox Text="{Binding TransitionLevelAirports, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
 							</StackPanel>
 						</Grid>
 					</TabItem>

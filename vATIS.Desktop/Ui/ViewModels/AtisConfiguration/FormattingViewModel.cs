@@ -143,6 +143,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private ObservableCollection<TransitionLevelMeta>? _transitionLevelMetas;
     private string? _transitionLevelTextTemplate;
     private string? _transitionLevelVoiceTemplate;
+    private string? _transitionLevelAirports;
     private ObservableCollection<PresentWeatherMeta>? _presentWeatherTypes;
     private ObservableCollection<CloudTypeMeta>? _cloudTypes;
     private ObservableCollection<ConvectiveCloudTypeMeta>? _convectiveCloudTypes;
@@ -1420,6 +1421,19 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the airports whose QNH is also checked when selecting the transition level.
+    /// </summary>
+    public string? TransitionLevelAirports
+    {
+        get => _transitionLevelAirports;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _transitionLevelAirports, value);
+            _changeTracker.TrackChange(nameof(TransitionLevelAirports), string.Join(" ", ParseIcaos(value)));
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the transition level text template.
     /// </summary>
     public string? TransitionLevelTextTemplate
@@ -2265,6 +2279,8 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.TransitionLevel.Template.Voice = TransitionLevelVoiceTemplate;
         }
 
+        SelectedStation.AtisFormat.TransitionLevel.AirportIcaos = ParseIcaos(TransitionLevelAirports);
+
         if (SelectedStation.AtisFormat.Notams.Template.Text != NotamsTextTemplate)
         {
             SelectedStation.AtisFormat.Notams.Template.Text = NotamsTextTemplate;
@@ -2289,6 +2305,13 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         hasErrors = false;
         return _changeTracker.ApplyChangesIfNeeded();
     }
+
+    private static List<string> ParseIcaos(string? value) =>
+        (value ?? string.Empty)
+        .Split([' ', ',', ';', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries)
+        .Select(x => x.ToUpperInvariant())
+        .Distinct()
+        .ToList();
 
     private static string DescribeRunwayConditionTerm(string key) => key switch
     {
@@ -2640,6 +2663,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
 
         TransitionLevelTextTemplate = station.AtisFormat.TransitionLevel.Template.Text;
         TransitionLevelVoiceTemplate = station.AtisFormat.TransitionLevel.Template.Voice;
+        TransitionLevelAirports = string.Join(" ", station.AtisFormat.TransitionLevel.AirportIcaos);
 
         TransitionLevels = [];
         foreach (var item in station.AtisFormat.TransitionLevel.Values.OrderBy(x => x.Low))
