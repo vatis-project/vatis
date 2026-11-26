@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the update flash on an ATIS published by another controller appearing a second time after it was acknowledged, when the new METAR and the new letter arrived separately.
 - Fixed the mini window shifting left after restoring it from the main window when a voice ATIS recording indicator had appeared or cleared in the meantime.
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
+- Fixed the magnetic variation not being applied to the wind direction in the text ATIS when the wind is calm, or anywhere else the `{wind}` variable is used.
 - Fixed the mini window ATIS tooltip being blank or showing an outdated ATIS after the ATIS letter changed.
 
 ## v4.1.0-beta.23
