@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -318,6 +319,26 @@ public class AtisBuilder : IAtisBuilder
         }, RegexOptions.IgnoreCase);
     }
 
+    /// <summary>
+    /// TTS audio comes back as a WAV file. Its header only describes that one clip, so splicing several together
+    /// would leave the player and voice server stopping after the first piece. Strip it down to raw 48 kHz PCM.
+    /// </summary>
+    private static byte[] ToRawPcm(byte[] audio)
+    {
+        if (audio.Length < 12 || !audio.AsSpan(0, 4).SequenceEqual("RIFF"u8) ||
+            !audio.AsSpan(8, 4).SequenceEqual("WAVE"u8))
+        {
+            return audio;
+        }
+
+        var samples = WavDecoder.Decode(audio);
+        var pcm = new byte[samples.Length * sizeof(short)];
+        for (var i = 0; i < samples.Length; i++)
+            BinaryPrimitives.WriteInt16LittleEndian(pcm.AsSpan(i * 2), samples[i]);
+
+        return pcm;
+    }
+
     private static string RemoveTextParsingCharacters(string text)
     {
         // Remove '+' prefix from airport and navaid identifiers (3-4 uppercase letters/numbers)
@@ -479,7 +500,7 @@ public class AtisBuilder : IAtisBuilder
                 if (synthesized == null)
                     throw new AtisBuilderException("Failed to synthesize voice ATIS audio.");
 
-                audio.Add(synthesized);
+                audio.Add(ToRawPcm(synthesized));
             }
             else if (station.AtisVoice.UseWavPack)
             {

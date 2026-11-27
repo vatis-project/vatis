@@ -4,6 +4,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +76,25 @@ public class AtisBuilderRecordedSectionTests
     }
 
     [Fact]
+    public async Task RecordedNotams_StripWavHeadersFromSynthesizedPieces()
+    {
+        var (builder, tts, station, preset, metar) = Create();
+        var samples = Enumerable.Range(1, 500).Select(i => (short)i).ToArray();
+        tts.Audio = CreateWav(samples);
+        var recording = Enumerable.Repeat((byte)7, 4000).ToArray();
+
+        var result = await builder.BuildVoiceAtis(station, preset, 'P', metar, CancellationToken.None,
+            recordings: new VoiceSectionRecordings(null, recording));
+
+        var audio = result.AudioBytes!;
+        var pcm = samples.SelectMany(s => new[] { (byte)s, (byte)(s >> 8) }).ToArray();
+        Assert.Equal(pcm, audio.Take(pcm.Length).ToArray());
+        Assert.Equal(recording, audio.Skip(pcm.Length + 24000).Take(recording.Length).ToArray());
+        var second = pcm.Length + 24000 + recording.Length + 24000;
+        Assert.Equal(pcm, audio.Skip(second).Take(pcm.Length).ToArray());
+    }
+
+    [Fact]
     public async Task RecordingForEmptySection_IsIgnored()
     {
         var (builder, tts, station, preset, metar) = Create();
@@ -98,11 +118,34 @@ public class AtisBuilderRecordedSectionTests
         Assert.Equal(string.Empty, sections.AirportConditions);
     }
 
+    private static byte[] CreateWav(short[] samples)
+    {
+        using var stream = new MemoryStream();
+        using var w = new BinaryWriter(stream);
+        var dataBytes = samples.Length * 2;
+        w.Write("RIFF"u8.ToArray());
+        w.Write(36 + dataBytes);
+        w.Write("WAVE"u8.ToArray());
+        w.Write("fmt "u8.ToArray());
+        w.Write(16);
+        w.Write((short)1);
+        w.Write((short)1);
+        w.Write(48000);
+        w.Write(48000 * 2);
+        w.Write((short)2);
+        w.Write((short)16);
+        w.Write("data"u8.ToArray());
+        w.Write(dataBytes);
+        foreach (var s in samples)
+            w.Write(s);
+        return stream.ToArray();
+    }
+
     private sealed class FakeTextToSpeech : ITextToSpeechService
     {
         public List<string> Requests { get; } = [];
 
-        public byte[] Audio { get; } = new byte[FrameBytes * 3];
+        public byte[] Audio { get; set; } = new byte[FrameBytes * 3];
 
         public List<VoiceMetaData> VoiceList { get; } = [];
 
