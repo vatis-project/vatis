@@ -17,12 +17,12 @@ public class DesktopServiceErrorsTests
     [InlineData("org.freedesktop.DBus.Error.NameHasNoOwner")]
     public void AMissingService_IsRecognized_AlsoWhenWrapped(string errorName)
     {
-        var error = new DBusException(errorName, "The name is not activatable");
+        var error = new DBusErrorReplyException(errorName, "The name is not activatable");
 
         Assert.True(DesktopServiceErrors.IsMissingDBusService(error));
         Assert.True(DesktopServiceErrors.IsMissingDBusService(new AggregateException(error)));
         Assert.True(DesktopServiceErrors.IsMissingDBusService(
-            new AggregateException(new AggregateException(error), new DBusException(errorName, "other"))));
+            new AggregateException(new AggregateException(error), new DBusErrorReplyException(errorName, "other"))));
     }
 
     [Fact]
@@ -30,8 +30,8 @@ public class DesktopServiceErrorsTests
     {
         Assert.False(DesktopServiceErrors.IsMissingDBusService(new InvalidOperationException("boom")));
         Assert.False(DesktopServiceErrors.IsMissingDBusService(
-            new DBusException("org.freedesktop.DBus.Error.AccessDenied", "denied")));
+            new DBusErrorReplyException("org.freedesktop.DBus.Error.AccessDenied", "denied")));
         Assert.False(DesktopServiceErrors.IsMissingDBusService(new AggregateException(
-            new DBusException("org.freedesktop.DBus.Error.ServiceUnknown", "x"), new InvalidOperationException("boom"))));
+            new DBusErrorReplyException("org.freedesktop.DBus.Error.ServiceUnknown", "x"), new InvalidOperationException("boom"))));
     }
 }

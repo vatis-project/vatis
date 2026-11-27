@@ -10,7 +10,7 @@
 	Height="150" 
 	Width="400" 
 	CanResize="False" 
-	SystemDecorations="None"
+	WindowDecorations="None"
 	TransparencyLevelHint="Transparent"
 	Icon="/Assets/MainIcon.ico" 
 	Background="Transparent" 

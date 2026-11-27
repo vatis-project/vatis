@@ -62,7 +62,7 @@ public static class ComboBoxPopupPlacement
         var comboTop = comboBox.PointToScreen(default).Y;
         var isAbove = false;
 
-        if (host.GetVisualRoot() is PopupRoot root)
+        if (TopLevel.GetTopLevel(host) is PopupRoot root)
         {
             isAbove = root.PointToScreen(default).Y < comboTop;
             if (isAbove)

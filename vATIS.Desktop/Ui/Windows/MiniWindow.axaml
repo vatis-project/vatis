@@ -18,7 +18,7 @@
         SizeToContent="WidthAndHeight"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        SystemDecorations="None"
+        WindowDecorations="None"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
         Topmost="{Binding IsTopMost, DataType=vm:MiniWindowTopMostViewModel,

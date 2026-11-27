@@ -9,7 +9,7 @@
         x:Class="Vatsim.Vatis.Ui.Windows.MainWindow"
 		Height="380"
         Width="850"
-        SystemDecorations="None"
+        WindowDecorations="None"
 		WindowStartupLocation="CenterScreen"
         TransparencyLevelHint="Transparent"
 		CanResize="False"

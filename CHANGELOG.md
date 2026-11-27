@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Refreshed the look of buttons, checkboxes, radio buttons, drop-downs, and menus for a more consistent style.
+- Updated Avalonia to 12.2.
 
 ### Fixed
 - Fixed the update flash on an ATIS published by another controller appearing a second time after it was acknowledged, when the new METAR and the new letter arrived separately.

@@ -8,11 +8,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Media;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Ui.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -28,21 +26,10 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
     /// </summary>
     public SortAtisStationsDialogViewModel()
     {
-        var textColumnLength = new GridLength(1, GridUnitType.Star);
-        Source = new FlatTreeDataGridSource<AtisStation>(AtisStations)
-        {
-            Columns =
-            {
-                new TextColumn<AtisStation, string>("", x => x.ToString(), width: textColumnLength,
-                    new TextColumnOptions<AtisStation> { TextWrapping = TextWrapping.Wrap })
-            }
-        };
-        Source.RowSelection!.SingleSelect = false;
-
-        var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
+        var canMoveUp = this.WhenAnyValue(x => x.Source.SelectedIndex)
             .Select(x => x > 0);
-        var canMoveDown = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
-            .Select(x => x < AtisStations.Count - 1);
+        var canMoveDown = this.WhenAnyValue(x => x.Source.SelectedIndex)
+            .Select(x => x >= 0 && x < AtisStations.Count - 1);
 
         CloseWindowCommand = ReactiveCommand.Create<ICloseable>(HandleCloseWindow);
         MoveStationUpCommand = ReactiveCommand.Create(HandleMoveStationUp, canMoveUp);
@@ -81,9 +68,9 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
     }
 
     /// <summary>
-    /// Gets the data source for the tree data grid used for sorting ATIS stations.
+    /// Gets the rows shown in the list and the selected rows.
     /// </summary>
-    public FlatTreeDataGridSource<AtisStation> Source { get; }
+    public SelectableList<AtisStation> Source { get; } = new();
 
     /// <inheritdoc />
     public void Dispose()
@@ -102,34 +89,34 @@ public class SortAtisStationsDialogViewModel : ReactiveViewModelBase, IDisposabl
 
     private void HandleMoveStationUp()
     {
-        if (Source.RowSelection?.SelectedIndex >= 1)
+        if (Source.SelectedIndex >= 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var definition = Source.SelectedItem;
+            var newIndex = Source.SelectedIndex - 1;
+            var oldIndex = Source.SelectedIndex;
             if (definition != null)
             {
                 AtisStations.Move(oldIndex, newIndex);
                 NormalizeOrdinals();
                 Source.Items = AtisStations.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }
 
     private void HandleMoveStationDown()
     {
-        if (Source.RowSelection?.SelectedIndex < Source.Items.Count() - 1)
+        if (Source.SelectedIndex >= 0 && Source.SelectedIndex < Source.Items.Count - 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
+            var definition = Source.SelectedItem;
+            var oldIndex = Source.SelectedIndex;
+            var newIndex = Source.SelectedIndex + 1;
             if (definition != null)
             {
                 AtisStations.Move(oldIndex, newIndex);
                 NormalizeOrdinals();
                 Source.Items = AtisStations.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }

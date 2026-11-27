@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -274,7 +275,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             .Throttle(TimeSpan.FromSeconds(5))
             .DistinctUntilChanged()
             .WhereNotNull()
-            .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+            .ObserveOn(RxSchedulers.MainThreadScheduler).Subscribe(_ =>
             {
                 // Apply but don't save to profile
                 ApplyAirportConditionsCommand.Execute(false).Subscribe();
@@ -285,7 +286,7 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             .Throttle(TimeSpan.FromSeconds(5))
             .DistinctUntilChanged()
             .WhereNotNull()
-            .ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+            .ObserveOn(RxSchedulers.MainThreadScheduler).Subscribe(_ =>
             {
                 // Apply but don't save to profile
                 ApplyNotamsCommand.Execute(false).Subscribe();

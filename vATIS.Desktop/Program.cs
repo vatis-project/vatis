@@ -7,7 +7,7 @@ using System;
 using System.IO;
 using System.Threading;
 using Avalonia;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using Serilog;
 using Velopack;
 
@@ -74,6 +74,6 @@ internal static class Program
     private static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .UseReactiveUI()
+            .UseReactiveUI(rxui => rxui.WithExceptionHandler(App.ReactiveUIExceptionHandler))
             .LogToTrace();
 }

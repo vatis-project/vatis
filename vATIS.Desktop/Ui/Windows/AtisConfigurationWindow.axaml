@@ -10,7 +10,7 @@
         x:DataType="vm:AtisConfigurationWindowViewModel"
         Height="780"
         Width="1100"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Background="Transparent"
 		WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"

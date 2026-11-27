@@ -9,8 +9,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.ReactiveUI;
 using Avalonia.Threading;
+using ReactiveUI.Avalonia;
 using Serilog;
 using Vatsim.Vatis.Ui.ViewModels;
 

@@ -14,7 +14,7 @@ namespace Vatsim.Vatis.Ui.Controls;
 public class CustomTabControl : TabControl
 {
     /// <inheritdoc/>
-    protected override void OnGotFocus(GotFocusEventArgs e)
+    protected override void OnGotFocus(FocusChangedEventArgs e)
     {
         base.OnGotFocus(e);
 

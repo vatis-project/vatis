@@ -3,7 +3,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:converters="using:Vatsim.Vatis.Ui.Converters"
-	xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels" mc:Ignorable="d" x:Class="Vatsim.Vatis.Ui.Profiles.ProfileListDialog" Title="vATIS Profiles" Height="375" Width="300" WindowStartupLocation="CenterScreen" SystemDecorations="None" Icon="/Assets/MainIcon.ico" CanResize="False" Background="Transparent" TransparencyLevelHint="Transparent">
+	xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels" mc:Ignorable="d" x:Class="Vatsim.Vatis.Ui.Profiles.ProfileListDialog" Title="vATIS Profiles" Height="375" Width="300" WindowStartupLocation="CenterScreen" WindowDecorations="None" Icon="/Assets/MainIcon.ico" CanResize="False" Background="Transparent" TransparencyLevelHint="Transparent">
 	<Window.Resources>
 		<converters:BoolToBrushColorConverter x:Key="BoolToBrushColorConverter" TrueColor="Black" FalseColor="#646464"/>
 	</Window.Resources>

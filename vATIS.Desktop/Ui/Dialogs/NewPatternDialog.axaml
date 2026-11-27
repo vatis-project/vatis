@@ -13,7 +13,7 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
 	<Window.Styles>
@@ -67,7 +67,7 @@
 			<StackPanel Orientation="Vertical" Margin="20" Spacing="15">
 				<StackPanel Spacing="5">
 					<TextBlock Text="Pattern:"/>
-					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Pattern" Text="{Binding Pattern, DataType=vm:NewPatternDialogViewModel}" Classes="wide" Watermark="(ILS|RNAV) ([XYZ])\b">
+					<TextBox FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Pattern" Text="{Binding Pattern, DataType=vm:NewPatternDialogViewModel}" Classes="wide" PlaceholderText="(ILS|RNAV) ([XYZ])\b">
 						<Interaction.Behaviors>
 							<behaviors:FocusOnAttachedToVisualTree/>
 							<behaviors:SelectAllTextOnFocusBehavior/>
@@ -94,7 +94,7 @@
 				<StackPanel Spacing="5">
 					<TextBlock Text="Preview:"/>
 					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
-						<TextBox Grid.Column="0" FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Sample" Text="{Binding SampleText, DataType=vm:NewPatternDialogViewModel}" Watermark="Sample text">
+						<TextBox Grid.Column="0" FontFamily="{StaticResource Monospace}" Theme="{StaticResource DarkTextBox}" Name="Sample" Text="{Binding SampleText, DataType=vm:NewPatternDialogViewModel}" PlaceholderText="Sample text">
 							<Interaction.Behaviors>
 								<behaviors:SelectAllTextOnFocusBehavior/>
 							</Interaction.Behaviors>

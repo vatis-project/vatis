@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Height="560"
         TransparencyLevelHint="Transparent"
         Background="Transparent">

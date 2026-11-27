@@ -14,8 +14,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
@@ -49,38 +47,21 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         _windowFactory = windowFactory;
 
-        var textColumnLength = new GridLength(1, GridUnitType.Star);
-        var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) =>
-        {
-            r.Enabled = v;
-        });
-        var descriptionColumn = StaticDefinitionListColumn.Create(textColumnLength);
-
-        Source = new FlatTreeDataGridSource<StaticDefinition>(Definitions)
-        {
-            Columns =
-            {
-                enabledColumn,
-                descriptionColumn
-            }
-        };
-        Source.RowSelection!.SingleSelect = false;
-
-        var canExecute = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem).Select(x => x != null);
+        var canExecute = this.WhenAnyValue(x => x.Source.SelectedItem).Select(x => x != null);
 
         NewDefinitionCommand = ReactiveCommand.CreateFromTask(HandleNewDefinition);
         NewBlankLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: false));
         NewLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: true));
         DeleteDefinitionCommand = ReactiveCommand.CreateFromTask(HandleDeleteDefinition, canExecute);
-        var canEdit = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem)
+        var canEdit = this.WhenAnyValue(x => x.Source.SelectedItem)
             .Select(x => x is { IsSpacer: false });
         EditDefinitionCommand = ReactiveCommand.CreateFromTask(HandleEditDefinition, canEdit);
         CloseWindowCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
 
-        var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
+        var canMoveUp = this.WhenAnyValue(x => x.Source.SelectedIndex)
             .Select(x => x > 0);
-        var canMoveDown = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
-            .Select(x => x < Definitions.Count - 1);
+        var canMoveDown = this.WhenAnyValue(x => x.Source.SelectedIndex)
+            .Select(x => x >= 0 && x < Definitions.Count - 1);
 
         MoveDefinitionUpCommand = ReactiveCommand.Create(HandleMoveDefinitionUp, canMoveUp);
         MoveDefinitionDownCommand = ReactiveCommand.Create(HandleMoveDefinitionDown, canMoveDown);
@@ -200,15 +181,15 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _definitions, value);
-            Source.Items = _definitions.OrderBy(x => x.Ordinal);
+            Source.Items = _definitions.OrderBy(x => x.Ordinal).ToList();
             HasDefinitions = _definitions.Count != 0;
         }
     }
 
     /// <summary>
-    /// Gets the data source for the static definitions displayed in the grid.
+    /// Gets the rows shown in the list and the selected rows.
     /// </summary>
-    public FlatTreeDataGridSource<StaticDefinition> Source { get; }
+    public SelectableList<StaticDefinition> Source { get; } = new();
 
     /// <inheritdoc />
     public void Dispose()
@@ -227,41 +208,41 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleMoveDefinitionUp()
     {
-        if (Source.RowSelection?.SelectedIndex >= 1)
+        if (Source.SelectedIndex >= 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var definition = Source.SelectedItem;
+            var newIndex = Source.SelectedIndex - 1;
+            var oldIndex = Source.SelectedIndex;
             if (definition != null)
             {
                 Definitions.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
                 Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }
 
     private void HandleMoveDefinitionDown()
     {
-        if (Source.RowSelection?.SelectedIndex <= Source.Items.Count() - 1)
+        if (Source.SelectedIndex >= 0 && Source.SelectedIndex < Source.Items.Count - 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
+            var definition = Source.SelectedItem;
+            var oldIndex = Source.SelectedIndex;
+            var newIndex = Source.SelectedIndex + 1;
             if (definition != null)
             {
                 Definitions.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
                 Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }
 
     private void RemoveSelected()
     {
-        foreach (var selectedItem in Source.RowSelection?.SelectedItems.OfType<StaticDefinition>().ToList() ?? [])
+        foreach (var selectedItem in Source.SelectedItems.ToList())
         {
             Definitions.Remove(selectedItem);
         }
@@ -274,7 +255,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
     {
         // Insert below the selected definition, or at the end when nothing is selected. The position in the list is
         // what determines the order, so the spacer has to be inserted there rather than appended.
-        var selected = Source.RowSelection?.SelectedItem;
+        var selected = Source.SelectedItem;
         var selectedIndex = selected != null ? Definitions.IndexOf(selected) : -1;
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Definitions.Count;
         Definitions.Insert(insertIndex, new StaticDefinition(string.Empty, insertIndex + 1) { NewLineOnly = newLineOnly });
@@ -285,7 +266,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
 
         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
         HasDefinitions = Definitions.Count != 0;
-        Source.RowSelection!.SelectedIndex = insertIndex;
+        Source.SelectedIndex = insertIndex;
     }
 
     private async Task HandleEditDefinition()
@@ -298,7 +279,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
             if (lifetime.MainWindow == null)
                 return;
 
-            if (Source.RowSelection?.SelectedItem is { IsSpacer: false } definition)
+            if (Source.SelectedItem is { IsSpacer: false } definition)
             {
                 var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
                 dlg.Topmost = lifetime.MainWindow.Topmost;
@@ -332,12 +313,12 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
                             if (!conditionsValid || vm.HasErrors)
                                 return;
 
-                            var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault();
+                            var currentIndex = Source.SelectedIndex;
 
                             Definitions.Remove(definition);
-                            Definitions.Insert(currentIndex ?? 0,
+                            Definitions.Insert(currentIndex,
                                 vm.ApplyConditionsTo(new StaticDefinition(
-                                    vm.TextDocument?.Text.ToUpperInvariant() ?? string.Empty, currentIndex ?? 0,
+                                    vm.TextDocument?.Text.ToUpperInvariant() ?? string.Empty, currentIndex,
                                     definition.Enabled) { SeparatorAfter = vm.SeparatorAfter }));
                             Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
                         }
@@ -404,7 +385,7 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         if (Owner == null)
             return;
 
-        var count = Source.RowSelection?.SelectedItems.Count ?? 0;
+        var count = Source.SelectedItems.Count;
         var message = count > 1
             ? $"Are you sure you want to delete the {count} selected NOTAMs?"
             : "Are you sure you want to delete the selected NOTAM?";
@@ -416,6 +397,6 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
             RemoveSelected();
         }
 
-        Source.RowSelection?.Clear();
+        Source.ClearSelection();
     }
 }

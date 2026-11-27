@@ -7,7 +7,7 @@
 		mc:Ignorable="d"
         x:Class="Vatsim.Vatis.Ui.Dialogs.MessageBox.MessageBoxView"
 		x:Name="Window"
-		SystemDecorations="None"
+		WindowDecorations="None"
 		Background="Transparent"
         MinWidth="500"
         MinHeight="150"

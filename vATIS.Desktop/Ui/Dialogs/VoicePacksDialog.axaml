@@ -13,7 +13,7 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
 	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
@@ -44,7 +44,7 @@
 					<Border Grid.Row="0" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10" IsEnabled="{Binding SelectedPack, DataType=vm:VoicePacksDialogViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
 						<StackPanel Spacing="8">
 							<Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
-								<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="Voice pack name" Text="{Binding PackName, DataType=vm:VoicePacksDialogViewModel}"/>
+								<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" PlaceholderText="Voice pack name" Text="{Binding PackName, DataType=vm:VoicePacksDialogViewModel}"/>
 								<Button Grid.Column="1" Theme="{StaticResource Dark}" Height="28" Content="Rename" Command="{Binding RenameCommand, DataType=vm:VoicePacksDialogViewModel}"/>
 								<Button Grid.Column="2" Theme="{StaticResource Dark}" Height="28" Content="Open folder" Command="{Binding OpenFolderCommand, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Show the voice pack's files in your file manager."/>
 								<Button Grid.Column="3" Theme="{StaticResource Dark}" Height="28" Content="Delete" Command="{Binding DeleteCommand, DataType=vm:VoicePacksDialogViewModel}"/>
@@ -79,7 +79,7 @@
 					<Border Grid.Row="2" Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10" IsVisible="{Binding ClipEditor.IsLoaded, DataType=vm:VoicePacksDialogViewModel}">
 						<Grid RowDefinitions="Auto,*" RowSpacing="8">
 							<Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
-								<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="Filter clips by phrase or file" Text="{Binding ClipEditor.Filter, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Each phrase is matched against the spoken ATIS text, longest phrase first. A phrase ending in a comma is used when a comma follows it. Edits apply to every station using this pack."/>
+								<TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" PlaceholderText="Filter clips by phrase or file" Text="{Binding ClipEditor.Filter, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Each phrase is matched against the spoken ATIS text, longest phrase first. A phrase ending in a comma is used when a comma follows it. Edits apply to every station using this pack."/>
 								<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
 									<Button Theme="{StaticResource Dark}" MinWidth="70" Height="28" Command="{Binding ClipEditor.PlayClipCommand, DataType=vm:VoicePacksDialogViewModel}" CommandParameter="{Binding #ClipGrid.SelectedItem}" Content="{Binding ClipEditor.PlayButtonText, DataType=vm:VoicePacksDialogViewModel}" ToolTip.Tip="Play the selected clip, or stop it while it is playing.">
 										<Button.IsEnabled>

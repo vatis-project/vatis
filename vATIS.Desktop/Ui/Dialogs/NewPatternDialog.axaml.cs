@@ -5,8 +5,8 @@
 
 using System;
 using Avalonia.Controls;
-using Avalonia.ReactiveUI;
 using Avalonia.Xaml.Interactivity;
+using ReactiveUI.Avalonia;
 using Vatsim.Vatis.Ui.Behaviors;
 using Vatsim.Vatis.Ui.ViewModels;
 

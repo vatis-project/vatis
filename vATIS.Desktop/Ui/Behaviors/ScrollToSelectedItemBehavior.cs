@@ -3,75 +3,43 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using System;
-using System.Linq;
-using System.Reactive.Disposables;
 using Avalonia.Controls;
-using Avalonia.Xaml.Interactions.Custom;
+using Avalonia.Xaml.Interactivity;
 
 namespace Vatsim.Vatis.Ui.Behaviors;
 
 /// <summary>
-/// Behavior that automatically scrolls a <see cref="TreeDataGrid"/> to ensure the selected item is visible.
+/// Behavior that automatically scrolls a <see cref="DataGrid"/> to ensure the selected item is visible.
 /// </summary>
-public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<TreeDataGrid>
+public class ScrollToSelectedItemBehavior : Behavior<DataGrid>
 {
     /// <inheritdoc />
-    protected override IDisposable OnAttachedToVisualTreeOverride()
+    protected override void OnAttached()
     {
-        if (AssociatedObject?.RowSelection == null)
-        {
-            return Disposable.Empty;
-        }
+        base.OnAttached();
 
-        var rowSelection = AssociatedObject.RowSelection;
-        var subscription = new SelectionChangedSubscription(this);
-        rowSelection.SelectionChanged += subscription.OnSelectionChanged;
-        return Disposable.Create(() => rowSelection.SelectionChanged -= subscription.OnSelectionChanged);
+        if (AssociatedObject != null)
+        {
+            AssociatedObject.SelectionChanged += OnSelectionChanged;
+        }
     }
 
-    private void HandleSelectionChanged()
+    /// <inheritdoc />
+    protected override void OnDetaching()
     {
-        var rowSelection = AssociatedObject?.RowSelection;
-        if (rowSelection == null || AssociatedObject?.Rows == null)
+        if (AssociatedObject != null)
         {
-            return;
+            AssociatedObject.SelectionChanged -= OnSelectionChanged;
         }
 
-        var selectedIndexPath = rowSelection.SelectedIndex.FirstOrDefault();
-        var rowIndex = AssociatedObject.Rows.ModelIndexToRowIndex(selectedIndexPath);
-
-        // Correct the index with the index of child item, in the case when the selected item is a child.
-        if (rowSelection.SelectedIndex.Count > 1)
-        {
-            // Skip 1 because the first index is the parent.
-            // Every other index is the child index.
-            rowIndex += rowSelection.SelectedIndex.Skip(1).Sum();
-
-            // Need to add 1 to get the correct index.
-            rowIndex += 1;
-        }
-
-        ScrollToItemIndex(rowIndex);
+        base.OnDetaching();
     }
 
-    private void ScrollToItemIndex(int index)
+    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        AssociatedObject?.RowsPresenter?.BringIntoView(index);
-    }
-
-    private class SelectionChangedSubscription
-    {
-        private readonly ScrollToSelectedItemBehavior _behavior;
-
-        public SelectionChangedSubscription(ScrollToSelectedItemBehavior behavior)
+        if (AssociatedObject?.SelectedItem is { } item)
         {
-            _behavior = behavior;
-        }
-
-        public void OnSelectionChanged(object? sender, EventArgs e)
-        {
-            _behavior.HandleSelectionChanged();
+            AssociatedObject.ScrollIntoView(item, null);
         }
     }
 }
