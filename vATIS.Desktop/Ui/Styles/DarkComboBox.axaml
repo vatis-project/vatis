@@ -40,7 +40,7 @@
 							Background="{TemplateBinding Background}" />
 					<ContentControl x:Name="ContentPresenter"
 									Content="{TemplateBinding SelectionBoxItem}"
-									ContentTemplate="{TemplateBinding ItemTemplate}"
+									ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
 									Grid.Column="0"
 									Padding="{TemplateBinding Padding}"
 									HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
