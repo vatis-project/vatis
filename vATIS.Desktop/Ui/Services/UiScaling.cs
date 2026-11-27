@@ -174,7 +174,7 @@ public static class UiScaling
         try
         {
             var screen = window.Screens.ScreenFromWindow(window) ?? window.Screens.Primary;
-            if (screen == null || screen.Scaling <= 0)
+            if (screen == null || window.DesktopScaling <= 0)
             {
                 return null;
             }
@@ -182,8 +182,8 @@ public static class UiScaling
             // Leave room for the title bar and borders when the window has them.
             var chrome = window.FrameSize is { } frame ? frame - window.ClientSize : default;
             return new Size(
-                (screen.WorkingArea.Width / screen.Scaling) - chrome.Width,
-                (screen.WorkingArea.Height / screen.Scaling) - chrome.Height);
+                (screen.WorkingArea.Width / window.DesktopScaling) - chrome.Width,
+                (screen.WorkingArea.Height / window.DesktopScaling) - chrome.Height);
         }
         catch (InvalidOperationException)
         {
@@ -206,8 +206,8 @@ public static class UiScaling
 
         var area = screen.WorkingArea;
         var size = window.FrameSize ?? window.ClientSize;
-        var width = (int)Math.Round(size.Width * window.RenderScaling);
-        var height = (int)Math.Round(size.Height * window.RenderScaling);
+        var width = (int)Math.Round(size.Width * window.DesktopScaling);
+        var height = (int)Math.Round(size.Height * window.DesktopScaling);
         var x = Math.Clamp(window.Position.X, area.X, Math.Max(area.X, area.Right - width));
         var y = Math.Clamp(window.Position.Y, area.Y, Math.Max(area.Y, area.Bottom - height));
 
