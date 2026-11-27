@@ -27,7 +27,7 @@
 				</Border>
 				<Grid ColumnDefinitions="1*,10,80" Margin="20">
 					<Border Grid.Column="0" CornerRadius="5" BorderBrush="#646464" BorderThickness="1" Padding="10" MaxHeight="200">
-						<DataGrid x:Name="PresetsGrid" ItemsSource="{Binding Source.Items, DataType=vm:SortPresetsDialogViewModel}" SelectedIndex="{Binding Source.SelectedIndex, DataType=vm:SortPresetsDialogViewModel, Mode=TwoWay}" SelectionMode="Single" HeadersVisibility="None" GridLinesVisibility="None" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="0">
+						<DataGrid Classes="graySelection" x:Name="PresetsGrid" ItemsSource="{Binding Source.Items, DataType=vm:SortPresetsDialogViewModel}" SelectedIndex="{Binding Source.SelectedIndex, DataType=vm:SortPresetsDialogViewModel, Mode=TwoWay}" SelectionMode="Single" HeadersVisibility="None" GridLinesVisibility="None" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="0">
 							<DataGrid.Styles>
 								<Style Selector="DataGridCell">
 									<Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>

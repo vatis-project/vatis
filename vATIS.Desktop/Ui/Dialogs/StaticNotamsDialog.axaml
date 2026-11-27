@@ -83,7 +83,7 @@
 								<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0">No NOTAMs Defined</TextBlock>
 							</Border>
 							<Border Grid.Column="0" VerticalAlignment="Top" CornerRadius="5" BorderBrush="#646464" BorderThickness="1" Padding="10" MinHeight="40" MaxHeight="200" IsVisible="{Binding HasDefinitions, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}">
-								<DataGrid x:Name="Definitions" ItemsSource="{Binding Source.Items, DataType=vm:StaticNotamsDialogViewModel}" SelectedIndex="{Binding Source.SelectedIndex, DataType=vm:StaticNotamsDialogViewModel, Mode=TwoWay}" SelectionMode="Extended" HeadersVisibility="None" GridLinesVisibility="None" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="0">
+								<DataGrid Classes="graySelection" x:Name="Definitions" ItemsSource="{Binding Source.Items, DataType=vm:StaticNotamsDialogViewModel}" SelectedIndex="{Binding Source.SelectedIndex, DataType=vm:StaticNotamsDialogViewModel, Mode=TwoWay}" SelectionMode="Extended" HeadersVisibility="None" GridLinesVisibility="None" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="0">
 									<Interaction.Behaviors>
 										<behaviors:DataGridKeyboardBehavior PassSelectedItem="False"
 																			EditCommand="{Binding EditDefinitionCommand, DataType=vm:StaticNotamsDialogViewModel}"
