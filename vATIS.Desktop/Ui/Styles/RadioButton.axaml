@@ -44,7 +44,7 @@
 								Name="CheckOuterEllipse"
 								Width="20"
 								Height="20"
-								Fill="#1E1E1E"
+								Fill="#0666B2"
 								Opacity="0"
 								Stroke="#0666B2"
 								StrokeThickness="2"
@@ -52,8 +52,8 @@
 
 							<Ellipse
 								Name="CheckGlyph"
-								Width="10"
-								Height="10"
+								Width="8"
+								Height="8"
 								Fill="#FFFFFF"
 								Opacity="0"
 								Stroke="#FFFFFF"
@@ -92,12 +92,12 @@
 
 		<Style Selector="^:pointerover /template/ Ellipse#CheckOuterEllipse">
 			<Setter Property="Stroke" Value="#0C548D" />
-			<Setter Property="Fill" Value="#1E1E1E" />
+			<Setter Property="Fill" Value="#0C548D" />
 		</Style>
 
 		<Style Selector="^:pointerover /template/ Ellipse#CheckGlyph">
-			<Setter Property="Stroke" Value="#E0E0E0" />
-			<Setter Property="Fill" Value="#E0E0E0" />
+			<Setter Property="Stroke" Value="#FFFFFF" />
+			<Setter Property="Fill" Value="#FFFFFF" />
 		</Style>
 
 
@@ -113,12 +113,12 @@
 
 		<Style Selector="^:pressed /template/ Ellipse#CheckOuterEllipse">
 			<Setter Property="Stroke" Value="#0C548D" />
-			<Setter Property="Fill" Value="#1E1E1E" />
+			<Setter Property="Fill" Value="#0C548D" />
 		</Style>
 
 		<Style Selector="^:pressed /template/ Ellipse#CheckGlyph">
-			<Setter Property="Stroke" Value="#E0E0E0" />
-			<Setter Property="Fill" Value="#E0E0E0" />
+			<Setter Property="Stroke" Value="#FFFFFF" />
+			<Setter Property="Fill" Value="#FFFFFF" />
 		</Style>
 
 
