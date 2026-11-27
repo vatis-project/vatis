@@ -22,50 +22,11 @@
         <Style Selector="TabControl.NoStrip /template/ ItemsPresenter#PART_ItemsPresenter">
             <Setter Property="IsVisible" Value="False"/>
         </Style>
-        <!-- The Action menu matches the drop-down lists: a lighter panel with a brighter border, and rounded rows
-             inset from the edge. -->
+        <!-- The Action menu uses the DropDownList menu style from MenuStyles.axaml to match the drop-down lists. -->
         <!-- While the menu is open, the button's border brightens to match the menu, like an open drop-down. From the
              keyboard it keeps its white focus border instead. -->
         <Style Selector="DropDownButton:flyout-open:not(:keynav) /template/ Border#RootBorder">
             <Setter Property="BorderBrush" Value="#9A9A9A"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList">
-            <Setter Property="Background" Value="#2D2D2D"/>
-            <Setter Property="BorderBrush" Value="#9A9A9A"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="3"/>
-            <Setter Property="MinWidth" Value="160"/>
-        </Style>
-        <!-- The template pads this border rather than using the presenter's Padding. With the 1px row margin, the
-             highlighted top and bottom rows sit 4px from the edge, the same as on the sides. -->
-        <Style Selector="MenuFlyoutPresenter.DropDownList /template/ Border#LayoutRoot">
-            <Setter Property="Padding" Value="0,3"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList /template/ ItemsPresenter#PART_ItemsPresenter">
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList MenuItem">
-            <Setter Property="Foreground" Value="Silver"/>
-            <Setter Property="FontSize" Value="{DynamicResource UiFontSize}"/>
-            <Setter Property="Margin" Value="4,1"/>
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="CornerRadius" Value="3"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList MenuItem:selected /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="#454545"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList MenuItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList MenuItem:pressed /template/ Border#PART_LayoutRoot:pointerover">
-            <Setter Property="Background" Value="#505050"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList MenuItem:disabled /template/ ContentPresenter#PART_HeaderPresenter">
-            <Setter Property="Foreground" Value="#646464"/>
-        </Style>
-        <Style Selector="MenuFlyoutPresenter.DropDownList Separator">
-            <Setter Property="Background" Value="#4A4A4A"/>
-            <Setter Property="Margin" Value="4,4"/>
         </Style>
     </UserControl.Styles>
     <Border Background="#1E1E1E" BorderBrush="#646464" BorderThickness="1" CornerRadius="4" Padding="10">

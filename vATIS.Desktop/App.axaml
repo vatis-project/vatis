@@ -11,6 +11,7 @@
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="/Ui/Styles/DarkComboBox.axaml"/>
+        <StyleInclude Source="/Ui/Styles/MenuStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/AvaloniaEditorStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/ScrollViewerStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/DataGridStyles.axaml"/>

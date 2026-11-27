@@ -22,14 +22,11 @@
 		<conv:BoolToBrushColorConverter x:Key="BoolToBrushColorConverter" TrueColor="Black" FalseColor="#646464"/>
 	</Window.Resources>
 	<Window.Styles>
-		<Style Selector="MenuFlyoutPresenter.spacer">
-			<Setter Property="MinWidth" Value="86" />
-			<Setter Property="MaxWidth" Value="100" />
-			<Setter Property="Padding" Value="0" />
-			<Setter Property="Background" Value="#1E1E1E" />
-			<Setter Property="BorderBrush" Value="#646464" />
-			<Setter Property="BorderThickness" Value="1" />
-			<Setter Property="CornerRadius" Value="4" />
+		<!-- The Spacer menu uses the DropDownList menu style. It is a little wider than the buttons, and shifted left by
+		     the difference (HorizontalOffset on the flyout), so their edges do not show past it once it is scaled and rounded. -->
+		<Style Selector="MenuFlyoutPresenter.DropDownList">
+			<Setter Property="MinWidth" Value="0" />
+			<Setter Property="Width" Value="104" />
 		</Style>
 		<Style Selector="DataValidationErrors">
 			<Setter Property="Template">
@@ -130,7 +127,7 @@
 								<Button Theme="{StaticResource Dark}" Command="{Binding NewDefinitionCommand, DataType=vm:StaticAirportConditionsDialogViewModel}">New</Button>
 								<Button Theme="{StaticResource Dark}" Content="Spacer..." ToolTip.Tip="Adds an empty line or a line break between the definitions around it">
 									<Button.Flyout>
-										<MenuFlyout Placement="BottomEdgeAlignedLeft" VerticalOffset="3" FlyoutPresenterClasses="spacer">
+										<MenuFlyout Placement="BottomEdgeAlignedLeft" HorizontalOffset="-2" VerticalOffset="3" FlyoutPresenterClasses="DropDownList">
 											<MenuItem Header="Blank Line" Command="{Binding NewBlankLineCommand, DataType=vm:StaticAirportConditionsDialogViewModel}" />
 											<MenuItem Header="New Line" Command="{Binding NewLineCommand, DataType=vm:StaticAirportConditionsDialogViewModel}" />
 										</MenuFlyout>
