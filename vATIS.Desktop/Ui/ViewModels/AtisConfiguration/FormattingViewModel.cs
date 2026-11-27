@@ -133,6 +133,12 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     private string? _runwayConditionVoice;
     private string? _remarkWindText;
     private string? _remarkWindVoice;
+    private string? _densityAltitudeText;
+    private string? _densityAltitudeVoice;
+    private string _densityAltitudeTextStyle = nameof(NumberStyle.Default);
+    private string? _densityAltitudeTextSuffix;
+    private string _densityAltitudeVoiceStyle = nameof(NumberStyle.Default);
+    private string? _densityAltitudeVoiceSuffix;
     private string? _autoObservationText;
     private string? _autoObservationVoice;
     private string? _runwayWindShearText;
@@ -1333,6 +1339,89 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the text template for the density altitude.
+    /// </summary>
+    public string? DensityAltitudeText
+    {
+        get => _densityAltitudeText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeText, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeText), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the voice template for the density altitude.
+    /// </summary>
+    public string? DensityAltitudeVoice
+    {
+        get => _densityAltitudeVoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeVoice, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeVoice), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets the number styles available for the density altitude.
+    /// </summary>
+    public IReadOnlyList<string> DensityAltitudeStyles { get; } = [nameof(NumberStyle.Default), nameof(NumberStyle.Group)];
+
+    /// <summary>
+    /// Gets or sets the number style of the density altitude in the text ATIS.
+    /// </summary>
+    public string DensityAltitudeTextStyle
+    {
+        get => _densityAltitudeTextStyle;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeTextStyle, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeTextStyle), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the suffix added after the density altitude in the text ATIS.
+    /// </summary>
+    public string? DensityAltitudeTextSuffix
+    {
+        get => _densityAltitudeTextSuffix;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeTextSuffix, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeTextSuffix), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the number style of the density altitude in the voice ATIS.
+    /// </summary>
+    public string DensityAltitudeVoiceStyle
+    {
+        get => _densityAltitudeVoiceStyle;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeVoiceStyle, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeVoiceStyle), value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the suffix added after the density altitude in the voice ATIS.
+    /// </summary>
+    public string? DensityAltitudeVoiceSuffix
+    {
+        get => _densityAltitudeVoiceSuffix;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _densityAltitudeVoiceSuffix, value);
+            _changeTracker.TrackChange(nameof(DensityAltitudeVoiceSuffix), value);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the text template for the automatic observation.
     /// </summary>
     public string? AutoObservationText
@@ -2218,6 +2307,23 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             SelectedStation.AtisFormat.RemarkWind.VoiceTemplate = RemarkWindVoice;
         }
 
+        if (SelectedStation.AtisFormat.DensityAltitude.TextTemplate != DensityAltitudeText)
+        {
+            SelectedStation.AtisFormat.DensityAltitude.TextTemplate = DensityAltitudeText;
+        }
+
+        if (SelectedStation.AtisFormat.DensityAltitude.VoiceTemplate != DensityAltitudeVoice)
+        {
+            SelectedStation.AtisFormat.DensityAltitude.VoiceTemplate = DensityAltitudeVoice;
+        }
+
+        var densityAltitudeFormat = ToFormat(new VariableFormatMeta(
+            "altitude", DensityAltitudeTextStyle, DensityAltitudeTextSuffix ?? string.Empty, DensityAltitudeVoiceStyle, DensityAltitudeVoiceSuffix ?? string.Empty));
+        if (!FormatsEqual(SelectedStation.AtisFormat.DensityAltitude.Format, densityAltitudeFormat))
+        {
+            SelectedStation.AtisFormat.DensityAltitude.Format = densityAltitudeFormat;
+        }
+
         if (SelectedStation.AtisFormat.AutoObservation.TextTemplate != AutoObservationText)
         {
             SelectedStation.AtisFormat.AutoObservation.TextTemplate = AutoObservationText;
@@ -2402,6 +2508,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
             items.Add("Wind Shear");
             items.Add("Runway Condition");
             items.Add("Remark Wind");
+            items.Add("Density Altitude");
             items.Add("Trend Forecast");
             items.Add("Transition Level");
         }
@@ -2524,6 +2631,13 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         _changeTracker.TrackChange(nameof(RunwayConditionTerms), RunwayConditionTerms.ToList());
         RemarkWindText = station.AtisFormat.RemarkWind.TextTemplate;
         RemarkWindVoice = station.AtisFormat.RemarkWind.VoiceTemplate;
+        DensityAltitudeText = station.AtisFormat.DensityAltitude.TextTemplate;
+        DensityAltitudeVoice = station.AtisFormat.DensityAltitude.VoiceTemplate;
+        var densityAltitudeFormat = ToMeta("altitude", station.AtisFormat.DensityAltitude.Format);
+        DensityAltitudeTextStyle = densityAltitudeFormat.TextStyle;
+        DensityAltitudeTextSuffix = densityAltitudeFormat.TextSuffix;
+        DensityAltitudeVoiceStyle = densityAltitudeFormat.VoiceStyle;
+        DensityAltitudeVoiceSuffix = densityAltitudeFormat.VoiceSuffix;
         AutoObservationText = station.AtisFormat.AutoObservation.TextTemplate;
         AutoObservationVoice = station.AtisFormat.AutoObservation.VoiceTemplate;
         RunwayWindShearText = station.AtisFormat.WindShear.RunwayText;
