@@ -32,6 +32,10 @@
 								<Style Selector="DataGridCell">
 									<Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
 								</Style>
+								<!-- The list takes focus when the dialog opens. Only show the focus box once the keyboard is used. -->
+								<Style Selector="DataGrid:not(:keynav) DataGridCell:current /template/ Grid#FocusVisual">
+									<Setter Property="IsVisible" Value="False"/>
+								</Style>
 							</DataGrid.Styles>
 							<Interaction.Behaviors>
 								<behaviors:DataGridKeyboardBehavior FocusFirstRow="True"

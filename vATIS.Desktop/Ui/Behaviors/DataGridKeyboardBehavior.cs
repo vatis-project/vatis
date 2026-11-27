@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -20,7 +21,8 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 /// Makes a list that has Edit and Delete buttons usable from the keyboard. Tabbing into the list selects its first row
 /// when nothing is selected, so the buttons can act on it straight away, and Enter runs the edit command on the
 /// selected row. Space toggles the check box of the selected row, and Alt+Up and Alt+Down run the move commands, for
-/// lists that can be reordered.
+/// lists that can be reordered. While the list is used from the keyboard it has the <c>:keynav</c> pseudo-class, so the
+/// focus box can be shown only then.
 /// </summary>
 public class DataGridKeyboardBehavior : Behavior<DataGrid>
 {
@@ -92,8 +94,8 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the list takes focus when it is shown, so a dialog that is only a list
-    /// can be used from the keyboard straight away.
+    /// Gets or sets a value indicating whether the list takes focus and selects its first row when it is shown, so a
+    /// dialog that is only a list can be used from the keyboard straight away.
     /// </summary>
     public bool FocusFirstRow
     {
@@ -113,6 +115,7 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
 
         grid.AddHandler(InputElement.GotFocusEvent, OnGotFocus);
         grid.AddHandler(InputElement.KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        grid.AddHandler(InputElement.PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
 
         if (FocusFirstRow)
         {
@@ -129,6 +132,7 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
             grid.LayoutUpdated -= OnLayoutUpdatedFocusFirstRow;
             grid.RemoveHandler(InputElement.GotFocusEvent, OnGotFocus);
             grid.RemoveHandler(InputElement.KeyDownEvent, OnKeyDown);
+            grid.RemoveHandler(InputElement.PointerPressedEvent, OnPointerPressed);
         }
 
         base.OnDetaching();
@@ -142,11 +146,37 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
         }
 
         grid.LayoutUpdated -= OnLayoutUpdatedFocusFirstRow;
-        grid.Focus(NavigationMethod.Tab);
+
+        // Focus without the focus box, which only shows once the keyboard is used.
+        grid.Focus();
+        if (grid.SelectedIndex < 0)
+        {
+            grid.SelectedIndex = 0;
+        }
+    }
+
+    // DataGrid shows its focus box whenever it has focus. Keep track of whether the keyboard was last used, so styles
+    // can show the box only for keyboard use.
+    private void SetKeyboardNavigation(bool value)
+    {
+        if (AssociatedObject is { } grid)
+        {
+            ((IPseudoClasses)grid.Classes).Set(":keynav", value);
+        }
+    }
+
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        SetKeyboardNavigation(false);
     }
 
     private void OnGotFocus(object? sender, FocusChangedEventArgs e)
     {
+        if (e.NavigationMethod == NavigationMethod.Tab)
+        {
+            SetKeyboardNavigation(true);
+        }
+
         if (e.NavigationMethod == NavigationMethod.Tab && AssociatedObject is { SelectedItem: null } grid &&
             grid.ItemsSource != null && grid.SelectedIndex < 0)
         {
@@ -174,6 +204,8 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
+        SetKeyboardNavigation(true);
+
         // A text cell being edited still needs its keys.
         if (e.Source is TextBox || AssociatedObject is not { } grid)
         {
