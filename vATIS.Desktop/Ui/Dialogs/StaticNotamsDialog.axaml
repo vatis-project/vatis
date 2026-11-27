@@ -109,7 +109,8 @@
 										<DataGridTemplateColumn Width="Auto">
 											<DataGridTemplateColumn.CellTemplate>
 												<DataTemplate DataType="profiles:StaticDefinition">
-													<CheckBox Theme="{StaticResource CheckBox}" IsChecked="{Binding Enabled}" VerticalAlignment="Center" Margin="4,0"/>
+													<!-- Not a tab stop of its own: the list is, and Space toggles the selected row. -->
+													<CheckBox Theme="{StaticResource CheckBox}" IsChecked="{Binding Enabled}" VerticalAlignment="Center" Margin="4,0" Focusable="False"/>
 												</DataTemplate>
 											</DataGridTemplateColumn.CellTemplate>
 										</DataGridTemplateColumn>
