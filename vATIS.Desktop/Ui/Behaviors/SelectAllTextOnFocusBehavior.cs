@@ -29,7 +29,7 @@ public class SelectAllTextOnFocusBehavior : Behavior<TextBox>
         AssociatedObject?.RemoveHandler(InputElement.GotFocusEvent, OnGotFocusEvent);
     }
 
-    private void OnGotFocusEvent(object? sender, GotFocusEventArgs e)
+    private void OnGotFocusEvent(object? sender, FocusChangedEventArgs e)
     {
         AssociatedObject?.SelectAll();
     }

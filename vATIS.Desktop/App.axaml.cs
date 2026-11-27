@@ -56,6 +56,16 @@ public class App : Application
     private StartupWindow? _startupWindow;
 
     /// <summary>
+    /// Gets the handler for errors that ReactiveUI observables and commands do not handle themselves.
+    /// </summary>
+    internal static IObserver<Exception> ReactiveUIExceptionHandler { get; } = Observer.Create<Exception>(ex =>
+    {
+        Log.Error(ex, "RxAppException");
+
+        ShowErrorAsync(ex.Message);
+    });
+
+    /// <summary>
     /// Initializes the application.
     /// </summary>
     public override void Initialize()
@@ -63,12 +73,6 @@ public class App : Application
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
         Dispatcher.UIThread.UnhandledException += UIThread_UnhandledException;
-        RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
-        {
-            Log.Error(ex, "RxAppException");
-
-            ShowErrorAsync(ex.Message);
-        });
         AvaloniaXamlLoader.Load(this);
         ComboBoxPopupPlacement.Register();
         UiScaling.Register();

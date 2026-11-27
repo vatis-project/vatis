@@ -9,7 +9,7 @@
         x:Class="Vatsim.Vatis.Ui.Windows.MainWindow"
 		Height="380"
         Width="850"
-        SystemDecorations="None"
+        WindowDecorations="None"
 		WindowStartupLocation="CenterScreen"
         TransparencyLevelHint="Transparent"
 		CanResize="False"
@@ -24,7 +24,7 @@
 			ClipToBounds="True">
 		<Grid RowDefinitions="45,*" ColumnDefinitions="1*,1*" ClipToBounds="True">
 			<Grid x:Name="Overlay" Grid.ColumnSpan="2" Grid.RowSpan="2" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:MainWindowViewModel, FallbackValue=False}">
-				<Border Background="#000000" Opacity="0.80"/>
+				<Border Background="#B3000000"/>
 			</Grid>
 			<Border Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0" Background="#1E1E1E" CornerRadius="5,5,0,0" HorizontalAlignment="Stretch" PointerPressed="OnPointerPressed" DoubleTapped="OnDoubleTapped">
 				<Grid>

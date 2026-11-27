@@ -1,11 +1,9 @@
-// <copyright file="StaticDefinitionListColumn.cs" company="Justin Shannon">
+// <copyright file="StaticDefinitionCellTemplate.cs" company="Justin Shannon">
 // Copyright (c) Justin Shannon. All rights reserved.
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using System.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -15,23 +13,16 @@ using Vatsim.Vatis.Profiles.Models;
 namespace Vatsim.Vatis.Ui.Models;
 
 /// <summary>
-/// Builds the message column of the Airport Conditions and NOTAMs lists: the message text, with the conditions it is
+/// Builds the message cell of the Airport Conditions and NOTAMs lists: the message text, with the conditions it is
 /// included under shown below it in muted text.
 /// </summary>
-public static class StaticDefinitionListColumn
+public static class StaticDefinitionCellTemplate
 {
     /// <summary>
-    /// Creates the column.
+    /// Gets the template.
     /// </summary>
-    /// <param name="width">The column width.</param>
-    /// <returns>The column.</returns>
-    public static IColumn<StaticDefinition> Create(GridLength width)
-    {
-        return new TemplateColumn<StaticDefinition>(
-            string.Empty,
-            new FuncDataTemplate<StaticDefinition>((definition, _) => BuildCell(definition)),
-            width: width);
-    }
+    public static IDataTemplate Instance { get; } =
+        new FuncDataTemplate<StaticDefinition>((definition, _) => BuildCell(definition));
 
     private static Control BuildCell(StaticDefinition? definition)
     {

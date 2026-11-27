@@ -8,11 +8,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Media;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
+using Vatsim.Vatis.Ui.Models;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -28,24 +26,10 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
     /// </summary>
     public SortPresetsDialogViewModel()
     {
-        var textColumnLength = new GridLength(1, GridUnitType.Star);
-        Source = new FlatTreeDataGridSource<AtisPreset>(Presets)
-        {
-            Columns =
-            {
-                new TextColumn<AtisPreset, string>("", x => x.ToString(), width: textColumnLength,
-                    new TextColumnOptions<AtisPreset>()
-                    {
-                        TextWrapping = TextWrapping.Wrap
-                    })
-            }
-        };
-        Source.RowSelection!.SingleSelect = false;
-
-        var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
+        var canMoveUp = this.WhenAnyValue(x => x.Source.SelectedIndex)
             .Select(x => x > 0);
-        var canMoveDown = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
-            .Select(x => x < Presets.Count - 1);
+        var canMoveDown = this.WhenAnyValue(x => x.Source.SelectedIndex)
+            .Select(x => x >= 0 && x < Presets.Count - 1);
 
         CloseWindowCommand = ReactiveCommand.Create<ICloseable>(HandleCloseWindow);
         MovePresetUpCommand = ReactiveCommand.Create(HandleMovePresetUp, canMoveUp);
@@ -79,14 +63,14 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
         set
         {
             this.RaiseAndSetIfChanged(ref _presets, value);
-            Source.Items = _presets.OrderBy(x => x.Ordinal);
+            Source.Items = _presets.OrderBy(x => x.Ordinal).ToList();
         }
     }
 
     /// <summary>
-    /// Gets the data source for the tree data grid used in managing and sorting ATIS presets.
+    /// Gets the rows shown in the list and the selected rows.
     /// </summary>
-    public FlatTreeDataGridSource<AtisPreset> Source { get; }
+    public SelectableList<AtisPreset> Source { get; } = new();
 
     /// <inheritdoc />
     public void Dispose()
@@ -105,34 +89,34 @@ public class SortPresetsDialogViewModel : ReactiveViewModelBase, IDisposable
 
     private void HandleMovePresetUp()
     {
-        if (Source.RowSelection?.SelectedIndex >= 1)
+        if (Source.SelectedIndex >= 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var definition = Source.SelectedItem;
+            var newIndex = Source.SelectedIndex - 1;
+            var oldIndex = Source.SelectedIndex;
             if (definition != null)
             {
                 Presets.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
                 Source.Items = Presets.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }
 
     private void HandleMovePresetDown()
     {
-        if (Source.RowSelection?.SelectedIndex <= Source.Items.Count() - 1)
+        if (Source.SelectedIndex >= 0 && Source.SelectedIndex < Source.Items.Count - 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
+            var definition = Source.SelectedItem;
+            var oldIndex = Source.SelectedIndex;
+            var newIndex = Source.SelectedIndex + 1;
             if (definition != null)
             {
                 Presets.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
                 Source.Items = Presets.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }

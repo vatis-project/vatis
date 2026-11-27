@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -50,7 +51,7 @@ public class DatisReplacementsViewModel : ReactiveViewModelBase, IDisposable
         DeleteReplacementCommand = ReactiveCommand.Create<DatisTextReplacement>(HandleDeleteReplacement);
         CellEditEndingCommand = ReactiveCommand.Create(HandleCellEditEnding);
 
-        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxSchedulers.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
         {
             HasUnsavedChanges = hasUnsavedChanges;
         }).DisposeWith(_disposables);

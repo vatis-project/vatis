@@ -8,7 +8,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using Serilog;
 using Vatsim.Vatis.Ui.Controls.Notification;
 using Vatsim.Vatis.Ui.Extensions;

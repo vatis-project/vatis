@@ -89,7 +89,7 @@
 									<TextBlock Name="PART_FloatingWatermark"
 											   Foreground="{DynamicResource SystemAccentColor}"
 											   IsVisible="False"
-											   Text="{TemplateBinding Watermark}"
+											   Text="{TemplateBinding PlaceholderText}"
 											   DockPanel.Dock="Top" />
 									<ScrollViewer Name="PART_ScrollViewer"
 												  HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
@@ -100,7 +100,7 @@
 										<Panel>
 											<TextBlock Name="PART_Watermark"
 													Opacity="0.5"
-													Text="{TemplateBinding Watermark}"
+													Text="{TemplateBinding PlaceholderText}"
 													TextAlignment="{TemplateBinding TextAlignment}"
 													TextWrapping="{TemplateBinding TextWrapping}"
 													HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"

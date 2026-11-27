@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -62,12 +63,13 @@ public static class ComboBoxPopupPlacement
         var comboTop = comboBox.PointToScreen(default).Y;
         var isAbove = false;
 
-        if (host.GetVisualRoot() is PopupRoot root)
+        if (TopLevel.GetTopLevel(host) is PopupRoot root)
         {
             isAbove = root.PointToScreen(default).Y < comboTop;
             if (isAbove)
             {
-                popup.VerticalOffset = host.Padding.Bottom - Gap;
+                // The list and its padding are drawn at the window's UI scale, but the offset is not scaled.
+                popup.VerticalOffset = (host.Padding.Bottom - Gap) * GetScale(comboBox);
             }
         }
         else if (host.TranslatePoint(default, comboBox) is { } position)
@@ -80,6 +82,17 @@ public static class ComboBoxPopupPlacement
         {
             arrow.RenderTransform = new RotateTransform(180);
         }
+    }
+
+    // The scale the combo box is drawn at in its window, which the popup inherits.
+    private static double GetScale(Visual visual)
+    {
+        if (TopLevel.GetTopLevel(visual) is not { } topLevel || visual.TransformToVisual(topLevel) is not { } m)
+        {
+            return 1;
+        }
+
+        return Math.Sqrt((m.M21 * m.M21) + (m.M22 * m.M22));
     }
 
     private static PathIcon? GetArrow(ComboBox comboBox)

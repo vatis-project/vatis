@@ -10,7 +10,7 @@
         x:DataType="vm:AtisConfigurationWindowViewModel"
         Height="780"
         Width="1100"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Background="Transparent"
 		WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
@@ -56,7 +56,7 @@
 	<Border x:Name="TitleBar" CornerRadius="5" BorderBrush="Black" BorderThickness="1" Background="#1E1E1E" ClipToBounds="True" PointerPressed="OnPointerPressed">
 		<Grid RowDefinitions="40,*" ColumnDefinitions="1*,1*" ClipToBounds="True">
 			<Grid x:Name="Overlay" Grid.RowSpan="2" Grid.ColumnSpan="2" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:AtisConfigurationWindowViewModel, FallbackValue=False}">
-				<Border Background="#000000" Opacity="0.80"/>
+				<Border Background="#B3000000"/>
 			</Grid>
 			<Grid Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0" ColumnDefinitions="1*,1*">
 				<TextBlock Grid.Column="0" Padding="8,0" Text="ATIS Configuration" VerticalAlignment="Center" FontSize="{DynamicResource UiFontSize}"/>

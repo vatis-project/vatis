@@ -28,6 +28,6 @@ public static class DesktopServiceErrors
     {
         return exception is AggregateException aggregate
             ? aggregate.Flatten().InnerExceptions.All(IsMissingDBusService)
-            : exception is DBusException { ErrorName: ServiceUnknown or NameHasNoOwner };
+            : exception is DBusErrorReplyException { ErrorName: ServiceUnknown or NameHasNoOwner };
     }
 }

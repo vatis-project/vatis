@@ -4,4 +4,17 @@
     <Style Selector="DataGridCell">
         <Setter Property="FontFamily" Value="{DynamicResource Monospace}"/>
     </Style>
+    <!-- Lists that highlight the selected row in gray instead of the accent color. -->
+    <Style Selector="DataGrid.graySelection">
+        <Style.Resources>
+            <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#505050"/>
+            <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="#5A5A5A"/>
+            <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush" Color="#505050"/>
+            <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundBrush" Color="#5A5A5A"/>
+            <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1</x:Double>
+            <x:Double x:Key="DataGridRowSelectedHoveredBackgroundOpacity">1</x:Double>
+            <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1</x:Double>
+            <x:Double x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundOpacity">1</x:Double>
+        </Style.Resources>
+    </Style>
 </Styles>

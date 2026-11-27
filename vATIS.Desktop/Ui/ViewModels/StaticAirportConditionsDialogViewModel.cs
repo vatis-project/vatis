@@ -14,8 +14,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using ReactiveUI;
 using Vatsim.Vatis.Profiles.Models;
@@ -48,31 +46,24 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     {
         _windowFactory = windowFactory;
 
-        var textColumnLength = new GridLength(1, GridUnitType.Star);
-        var enabledColumn = new CheckBoxColumn<StaticDefinition>("", x => x.Enabled, (r, v) => { r.Enabled = v; });
-        var descriptionColumn = StaticDefinitionListColumn.Create(textColumnLength);
-
-        Source = new FlatTreeDataGridSource<StaticDefinition>(Definitions)
-        {
-            Columns = { enabledColumn, descriptionColumn }
-        };
-        Source.RowSelection!.SingleSelect = false;
-
-        var canExecute = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem).Select(x => x != null);
+        var canExecute = this.WhenAnyValue(x => x.Source.SelectedItem).Select(x => x != null);
 
         NewDefinitionCommand = ReactiveCommand.CreateFromTask(HandleNewDefinition);
         NewBlankLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: false));
         NewLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: true));
         DeleteDefinitionCommand = ReactiveCommand.CreateFromTask(HandleDeleteDefinition, canExecute);
-        var canEdit = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedItem)
-            .Select(x => x is { IsSpacer: false });
+
+        // Only one definition can be edited at a time.
+        var canEdit = this.WhenAnyValue(x => x.Source.SelectedItem, x => x.Source.SelectedItems.Count,
+            (item, count) => item is { IsSpacer: false } && count <= 1);
         EditDefinitionCommand = ReactiveCommand.CreateFromTask(HandleEditDefinition, canEdit);
         CloseWindowCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
 
-        var canMoveUp = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
-            .Select(x => x > 0);
-        var canMoveDown = this.WhenAnyValue(x => x.Source.RowSelection!.SelectedIndex)
-            .Select(x => x < Definitions.Count - 1);
+        // Only one definition can be moved at a time.
+        var canMoveUp = this.WhenAnyValue(x => x.Source.SelectedIndex, x => x.Source.SelectedItems.Count,
+            (index, count) => index > 0 && count <= 1);
+        var canMoveDown = this.WhenAnyValue(x => x.Source.SelectedIndex, x => x.Source.SelectedItems.Count,
+            (index, count) => index >= 0 && index < Definitions.Count - 1 && count <= 1);
 
         MoveDefinitionUpCommand = ReactiveCommand.Create(HandleMoveDefinitionUp, canMoveUp);
         MoveDefinitionDownCommand = ReactiveCommand.Create(HandleMoveDefinitionDown, canMoveDown);
@@ -194,15 +185,15 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         set
         {
             this.RaiseAndSetIfChanged(ref _definitions, value);
-            Source.Items = _definitions.OrderBy(x => x.Ordinal);
+            Source.Items = _definitions.OrderBy(x => x.Ordinal).ToList();
             HasDefinitions = _definitions.Count != 0;
         }
     }
 
     /// <summary>
-    /// Gets the data source for the FlatTreeDataGrid used to manage <see cref="StaticDefinition"/> entries.
+    /// Gets the rows shown in the list and the selected rows.
     /// </summary>
-    public FlatTreeDataGridSource<StaticDefinition> Source { get; }
+    public SelectableList<StaticDefinition> Source { get; } = new();
 
     /// <inheritdoc />
     public void Dispose()
@@ -221,41 +212,41 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
     private void HandleMoveDefinitionUp()
     {
-        if (Source.RowSelection?.SelectedIndex >= 1)
+        if (Source.SelectedIndex >= 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() - 1;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
+            var definition = Source.SelectedItem;
+            var newIndex = Source.SelectedIndex - 1;
+            var oldIndex = Source.SelectedIndex;
             if (definition != null)
             {
                 Definitions.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
                 Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }
 
     private void HandleMoveDefinitionDown()
     {
-        if (Source.RowSelection?.SelectedIndex <= Source.Items.Count() - 1)
+        if (Source.SelectedIndex >= 0 && Source.SelectedIndex < Source.Items.Count - 1)
         {
-            var definition = Source.RowSelection.SelectedItem;
-            var oldIndex = Source.RowSelection.SelectedIndex.FirstOrDefault();
-            var newIndex = Source.RowSelection.SelectedIndex.FirstOrDefault() + 1;
+            var definition = Source.SelectedItem;
+            var oldIndex = Source.SelectedIndex;
+            var newIndex = Source.SelectedIndex + 1;
             if (definition != null)
             {
                 Definitions.Move(oldIndex, newIndex);
                 definition.Ordinal = newIndex;
                 Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
-                Source.RowSelection.SelectedIndex = newIndex;
+                Source.SelectedIndex = newIndex;
             }
         }
     }
 
     private void RemoveSelected()
     {
-        foreach (var selectedItem in Source.RowSelection?.SelectedItems.OfType<StaticDefinition>().ToList() ?? [])
+        foreach (var selectedItem in Source.SelectedItems.ToList())
         {
             Definitions.Remove(selectedItem);
         }
@@ -268,7 +259,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
     {
         // Insert below the selected definition, or at the end when nothing is selected. The position in the list is
         // what determines the order, so the spacer has to be inserted there rather than appended.
-        var selected = Source.RowSelection?.SelectedItem;
+        var selected = Source.SelectedItem;
         var selectedIndex = selected != null ? Definitions.IndexOf(selected) : -1;
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Definitions.Count;
         Definitions.Insert(insertIndex, new StaticDefinition(string.Empty, insertIndex + 1) { NewLineOnly = newLineOnly });
@@ -279,7 +270,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
 
         Source.Items = Definitions.OrderBy(x => x.Ordinal).ToList();
         HasDefinitions = Definitions.Count != 0;
-        Source.RowSelection!.SelectedIndex = insertIndex;
+        Source.SelectedIndex = insertIndex;
     }
 
     private async Task HandleEditDefinition()
@@ -292,7 +283,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
             if (lifetime.MainWindow == null)
                 return;
 
-            if (Source.RowSelection?.SelectedItem is { IsSpacer: false } definition)
+            if (Source.SelectedItem is { IsSpacer: false } definition)
             {
                 var dlg = _windowFactory.CreateStaticDefinitionEditorDialog();
                 dlg.Topmost = lifetime.MainWindow.Topmost;
@@ -326,7 +317,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
                             if (!conditionsValid || vm.HasErrors)
                                 return;
 
-                            var currentIndex = Source.RowSelection?.SelectedIndex.FirstOrDefault() ?? 0;
+                            var currentIndex = Source.SelectedIndex;
                             var text = vm.TextDocument?.Text.ToUpperInvariant() ?? "";
 
                             Definitions.Remove(definition);
@@ -399,7 +390,7 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
         if (Owner == null)
             return;
 
-        var count = Source.RowSelection?.SelectedItems.Count ?? 0;
+        var count = Source.SelectedItems.Count;
         var message = count > 1
             ? $"Are you sure you want to delete the {count} selected airport conditions?"
             : "Are you sure you want to delete the selected airport condition?";
@@ -411,6 +402,6 @@ public class StaticAirportConditionsDialogViewModel : ReactiveViewModelBase, IDi
             RemoveSelected();
         }
 
-        Source.RowSelection?.Clear();
+        Source.ClearSelection();
     }
 }

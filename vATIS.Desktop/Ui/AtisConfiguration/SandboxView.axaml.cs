@@ -7,9 +7,9 @@ using System;
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.ReactiveUI;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using ReactiveUI.Avalonia;
 using Vatsim.Vatis.Ui.Common;
 using Vatsim.Vatis.Ui.ViewModels.AtisConfiguration;
 

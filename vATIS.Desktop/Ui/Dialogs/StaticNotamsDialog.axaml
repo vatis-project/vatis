@@ -3,6 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:models="using:Vatsim.Vatis.Ui.Models"
+        xmlns:profiles="using:Vatsim.Vatis.Profiles.Models"
         xmlns:behaviors="using:Vatsim.Vatis.Ui.Behaviors"
         xmlns:conv="using:Vatsim.Vatis.Ui.Converters"
         mc:Ignorable="d"
@@ -13,22 +15,18 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
 	<Window.Resources>
 		<conv:BoolToBrushColorConverter x:Key="BoolToBrushColorConverter" TrueColor="Black" FalseColor="#646464"/>
-		<SolidColorBrush x:Key="TreeDataGridSelectedCellBackgroundBrush" Color="Black" Opacity="0.3" />
 	</Window.Resources>
 	<Window.Styles>
-		<Style Selector="MenuFlyoutPresenter.spacer">
-			<Setter Property="MinWidth" Value="86" />
-			<Setter Property="MaxWidth" Value="100" />
-			<Setter Property="Padding" Value="0" />
-			<Setter Property="Background" Value="#1E1E1E" />
-			<Setter Property="BorderBrush" Value="#646464" />
-			<Setter Property="BorderThickness" Value="1" />
-			<Setter Property="CornerRadius" Value="4" />
+		<!-- The Spacer menu uses the DropDownList menu style. It is a little wider than the buttons, and shifted left by
+		     the difference (HorizontalOffset on the flyout), so their edges do not show past it once it is scaled and rounded. -->
+		<Style Selector="MenuFlyoutPresenter.DropDownList">
+			<Setter Property="MinWidth" Value="0" />
+			<Setter Property="Width" Value="104" />
 		</Style>
 		<Style Selector="DataValidationErrors">
 			<Setter Property="Template">
@@ -66,7 +64,7 @@
 	<Border VerticalAlignment="Center" BorderBrush="{Binding ShowOverlay, DataType=vm:StaticNotamsDialogViewModel, Converter={StaticResource BoolToBrushColorConverter}, FallbackValue=#646464}" BorderThickness="1" Background="#323232" CornerRadius="5">
 		<Grid>
 			<Grid x:Name="Overlay" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}">
-				<Border Background="#000000" Opacity="0.80"/>
+				<Border Background="#B3000000"/>
 			</Grid>
 			<StackPanel Orientation="Vertical">
 				<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
@@ -81,34 +79,55 @@
 							<Border Grid.Column="0" VerticalAlignment="Top" BorderBrush="#646464" BorderThickness="1" CornerRadius="5" Height="40" IsVisible="{Binding !HasDefinitions, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=True}">
 								<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0">No NOTAMs Defined</TextBlock>
 							</Border>
-							<!--TreeGrid-->
-							<TreeDataGrid Name="Definitions" Grid.Column="0" CornerRadius="5" BorderBrush="#646464" BorderThickness="1" MinHeight="40" MaxHeight="200" Source="{Binding Source, DataType=vm:StaticNotamsDialogViewModel, Mode=OneWay}" CanUserResizeColumns="False" CanUserSortColumns="False" IsVisible="{Binding HasDefinitions, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}">
-								<Interaction.Behaviors>
-									<behaviors:TreeDataGridKeyboardBehavior EditCommand="{Binding EditDefinitionCommand, DataType=vm:StaticNotamsDialogViewModel}"
-																					MoveUpCommand="{Binding MoveDefinitionUpCommand, DataType=vm:StaticNotamsDialogViewModel}"
-																					MoveDownCommand="{Binding MoveDefinitionDownCommand, DataType=vm:StaticNotamsDialogViewModel}"/>
-								</Interaction.Behaviors>
-								<TreeDataGrid.Styles>
-									<Style Selector="TreeDataGrid /template/ Border#ColumnHeadersPresenterBorder">
-										<Setter Property="IsVisible" Value="False"/>
-									</Style>
-									<Style Selector="TreeDataGrid /template/ Border#RootBorder">
-										<Setter Property="Padding" Value="10"/>
-									</Style>
-									<Style Selector="TreeDataGridTextCell">
-										<Setter Property="FontFamily" Value="{StaticResource Monospace}"/>
-									</Style>
-									<Style Selector="TreeDataGridCheckBoxCell /template/ CheckBox">
-										<Setter Property="Theme" Value="{StaticResource CheckBox}"/>
-									</Style>
-								</TreeDataGrid.Styles>
-							</TreeDataGrid>
+							<Border Grid.Column="0" VerticalAlignment="Top" CornerRadius="5" BorderBrush="#646464" BorderThickness="1" Padding="10" MinHeight="40" MaxHeight="200" IsVisible="{Binding HasDefinitions, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}">
+								<DataGrid Classes="graySelection" x:Name="Definitions" ItemsSource="{Binding Source.Items, DataType=vm:StaticNotamsDialogViewModel}" SelectedIndex="{Binding Source.SelectedIndex, DataType=vm:StaticNotamsDialogViewModel, Mode=TwoWay}" SelectionMode="Extended" HeadersVisibility="None" GridLinesVisibility="None" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="0">
+									<Interaction.Behaviors>
+										<behaviors:DataGridKeyboardBehavior PassSelectedItem="False"
+																			EditCommand="{Binding EditDefinitionCommand, DataType=vm:StaticNotamsDialogViewModel}"
+																			MoveUpCommand="{Binding MoveDefinitionUpCommand, DataType=vm:StaticNotamsDialogViewModel}"
+																			MoveDownCommand="{Binding MoveDefinitionDownCommand, DataType=vm:StaticNotamsDialogViewModel}"/>
+										<behaviors:DataGridSelectedItemsBehavior SelectedItems="{Binding Source.SelectedItems, DataType=vm:StaticNotamsDialogViewModel}"/>
+										<behaviors:ScrollToSelectedItemBehavior/>
+									</Interaction.Behaviors>
+									<DataGrid.Styles>
+										<Style Selector="DataGridCell">
+											<Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+										</Style>
+										<!-- Only show the focus box after the list is tabbed into, not when it is clicked. -->
+										<Style Selector="DataGrid:not(:keynav) DataGridCell:current /template/ Grid#FocusVisual">
+											<Setter Property="IsVisible" Value="False"/>
+										</Style>
+										<!-- The headers are hidden, so the line under them is too. -->
+										<Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+											<Setter Property="IsVisible" Value="False"/>
+										</Style>
+									</DataGrid.Styles>
+									<DataGrid.Columns>
+										<DataGridTemplateColumn Width="Auto">
+											<DataGridTemplateColumn.CellTemplate>
+												<DataTemplate DataType="profiles:StaticDefinition">
+													<!-- Not a tab stop of its own: the list is, and Space toggles the selected row. -->
+													<CheckBox Theme="{StaticResource CheckBox}" IsChecked="{Binding Enabled}" VerticalAlignment="Center" Margin="4,0" Focusable="False"/>
+												</DataTemplate>
+											</DataGridTemplateColumn.CellTemplate>
+										</DataGridTemplateColumn>
+										<DataGridTemplateColumn Width="*">
+											<DataGridTemplateColumn.CellTemplate>
+												<DataTemplate DataType="profiles:StaticDefinition">
+													<!-- Rows are reused for other items, so the cell is rebuilt whenever its item changes. -->
+													<ContentControl Content="{Binding}" ContentTemplate="{x:Static models:StaticDefinitionCellTemplate.Instance}"/>
+												</DataTemplate>
+											</DataGridTemplateColumn.CellTemplate>
+										</DataGridTemplateColumn>
+									</DataGrid.Columns>
+								</DataGrid>
+							</Border>
 							<!--Action Buttons-->
 							<StackPanel Grid.Column="2" Orientation="Vertical" Spacing="5" VerticalAlignment="Top">
 								<Button Theme="{StaticResource Dark}" Command="{Binding NewDefinitionCommand, DataType=vm:StaticNotamsDialogViewModel}">New</Button>
 								<Button Theme="{StaticResource Dark}" Content="Spacer..." ToolTip.Tip="Adds an empty line or a line break between the definitions around it">
 									<Button.Flyout>
-										<MenuFlyout Placement="BottomEdgeAlignedLeft" VerticalOffset="3" FlyoutPresenterClasses="spacer">
+										<MenuFlyout Placement="BottomEdgeAlignedLeft" HorizontalOffset="-2" VerticalOffset="3" FlyoutPresenterClasses="DropDownList">
 											<MenuItem Header="Blank Line" Command="{Binding NewBlankLineCommand, DataType=vm:StaticNotamsDialogViewModel}" />
 											<MenuItem Header="New Line" Command="{Binding NewLineCommand, DataType=vm:StaticNotamsDialogViewModel}" />
 										</MenuFlyout>

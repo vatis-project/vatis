@@ -14,7 +14,7 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
 	<Window.Styles>
@@ -114,7 +114,7 @@
 							</Style>
 						</Grid.Styles>
 						<TextBlock Classes="label" Grid.Row="0" Grid.Column="0" Text="Separator after:" ToolTip.Tip="Optional. Text placed after this entry before the next one, used exactly as typed (including spaces). Use \n for a line break. Leave blank to use the list's default separator. Ignored for the last entry." />
-						<TextBox Classes="field" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" FontFamily="{StaticResource Monospace}" Watermark="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
+						<TextBox Classes="field" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" FontFamily="{StaticResource Monospace}" PlaceholderText="Default separator" Theme="{StaticResource DarkTextBox}" Text="{Binding SeparatorAfter, DataType=vm:StaticDefinitionEditorDialogViewModel}" />
 
 						<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
 							<TextBlock Classes="label" Text="Controllers:" />

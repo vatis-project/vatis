@@ -737,7 +737,7 @@
 					<TabItem Header="Weather Descriptors">
 						<Grid RowDefinitions="Auto,*" RowSpacing="10">
                             <Grid Grid.Row="0" HorizontalAlignment="Stretch" ColumnDefinitions="*,5,Auto">
-                                <TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" Watermark="Search..." Text="{Binding PresentWeatherSearchTerm, DataType=vm:FormattingViewModel}">
+                                <TextBox Grid.Column="0" Theme="{StaticResource DarkTextBox}" PlaceholderText="Search..." Text="{Binding PresentWeatherSearchTerm, DataType=vm:FormattingViewModel}">
                                     <Interaction.Behaviors>
                                         <behaviors:TextBoxUppercaseBehavior/>
                                     </Interaction.Behaviors>
@@ -929,9 +929,9 @@
                             <StackPanel Orientation="Vertical" Spacing="5" IsVisible="{Binding !SelectedStation.IsFaaAtis, DataType=vm:FormattingViewModel, FallbackValue=False}">
                                 <TextBlock Text="Automatic CB Detection" Margin="0,10,0,0" ToolTip.Tip="When //////CB is presented in the METAR"/>
                                 <TextBlock ToolTip.Tip="The value presented in the text ATIS">Text:</TextBlock>
-                                <TextBox Text="{Binding AutomaticCbDetectionText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="The value presented in the text ATIS" FontFamily="{StaticResource Monospace}"/>
+                                <TextBox Text="{Binding AutomaticCbDetectionText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}" PlaceholderText="The value presented in the text ATIS" FontFamily="{StaticResource Monospace}"/>
                                 <TextBlock ToolTip.Tip="The spoken value in the voice ATIS">Voice:</TextBlock>
-                                <TextBox Text="{Binding AutomaticCbDetectionVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}" Watermark="The spoken value in the voice ATIS" FontFamily="{StaticResource Monospace}"/>
+                                <TextBox Text="{Binding AutomaticCbDetectionVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}" PlaceholderText="The spoken value in the voice ATIS" FontFamily="{StaticResource Monospace}"/>
                             </StackPanel>
                         </StackPanel>
 					</TabItem>
@@ -1557,8 +1557,8 @@
                         </Grid>
                         <Grid ColumnDefinitions="100,10,*,10,*">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center">Template</TextBlock>
-                            <controls:TemplateVariableTextBox Grid.Column="2" Watermark="Text" Text="{Binding TrendTemplateText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
-                            <controls:TemplateVariableTextBox Grid.Column="4" Watermark="Voice" Text="{Binding TrendTemplateVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                            <controls:TemplateVariableTextBox Grid.Column="2" PlaceholderText="Text" Text="{Binding TrendTemplateText, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
+                            <controls:TemplateVariableTextBox Grid.Column="4" PlaceholderText="Voice" Text="{Binding TrendTemplateVoice, DataType=vm:FormattingViewModel}" Theme="{StaticResource DarkTextBox}"/>
                         </Grid>
                         <WrapPanel Orientation="Horizontal" ItemSpacing="10" LineSpacing="6">
                             <Button

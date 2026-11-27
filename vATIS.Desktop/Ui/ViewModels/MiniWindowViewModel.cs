@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -162,7 +163,7 @@ public class MiniWindowViewModel : ReactiveViewModelBase, IDisposable
             .AutoRefresh(x => x.RecordedAtisState)
             .AutoRefresh(x => x.NetworkConnectionStatus)
             .AutoRefresh(x => x.IsVisibleOnMiniWindow)
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(_ => UpdateHasExpiredRecording(sharedSource))
             .DisposeWith(_disposables);
     }

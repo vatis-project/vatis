@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -192,7 +193,7 @@ public class FormattingViewModel : ReactiveViewModelBase, IDisposable
         DeleteTransitionLevelCommand =
             ReactiveCommand.CreateFromTask<TransitionLevelMeta>(HandleDeleteTransitionLevel);
 
-        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxSchedulers.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
         {
             HasUnsavedChanges = hasUnsavedChanges;
         }).DisposeWith(_disposables);

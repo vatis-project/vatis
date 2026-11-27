@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Vatsim.Vatis.Ui.ViewModels"
+        xmlns:models="using:Vatsim.Vatis.Profiles.Models"
         xmlns:behaviors="clr-namespace:Vatsim.Vatis.Ui.Behaviors"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Vatsim.Vatis.Ui.Dialogs.SortAtisStationsDialog"
@@ -13,12 +14,9 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent">
-    <Window.Resources>
-		<SolidColorBrush x:Key="TreeDataGridSelectedCellBackgroundBrush" Color="Black" Opacity="0.3" />
-	</Window.Resources>
 	<Border BorderBrush="#646464" BorderThickness="1" Background="#323232" CornerRadius="5">
 			<StackPanel Orientation="Vertical">
 				<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">
@@ -28,22 +26,38 @@
 					</Grid>
 				</Border>
 				<Grid ColumnDefinitions="1*,10,100" Margin="20">
-					<TreeDataGrid x:Name="StationsGrid" Grid.Column="0" CornerRadius="5" BorderBrush="#646464" BorderThickness="1" MaxHeight="200" Source="{Binding Source, DataType=vm:SortAtisStationsDialogViewModel, Mode=OneWay}" CanUserResizeColumns="False" CanUserSortColumns="False">
-						<TreeDataGrid.Styles>
-							<Style Selector="TreeDataGrid /template/ Border#ColumnHeadersPresenterBorder">
-								<Setter Property="IsVisible" Value="False"/>
-							</Style>
-							<Style Selector="TreeDataGrid /template/ Border#RootBorder">
-								<Setter Property="Padding" Value="10"/>
-							</Style>
-						</TreeDataGrid.Styles>
-                        <Interaction.Behaviors>
-                            <behaviors:TreeDataGridKeyboardBehavior FocusFirstRow="True"
-                                                                                MoveUpCommand="{Binding MoveStationUpCommand, DataType=vm:SortAtisStationsDialogViewModel}"
-                            															MoveDownCommand="{Binding MoveStationDownCommand, DataType=vm:SortAtisStationsDialogViewModel}"/>
-                            <behaviors:ScrollToSelectedItemBehavior/>
-                        </Interaction.Behaviors>
-					</TreeDataGrid>
+					<Border Grid.Column="0" CornerRadius="5" BorderBrush="#646464" BorderThickness="1" Padding="10" MaxHeight="200">
+						<DataGrid Classes="graySelection" x:Name="StationsGrid" ItemsSource="{Binding Source.Items, DataType=vm:SortAtisStationsDialogViewModel}" SelectedIndex="{Binding Source.SelectedIndex, DataType=vm:SortAtisStationsDialogViewModel, Mode=TwoWay}" SelectionMode="Single" HeadersVisibility="None" GridLinesVisibility="None" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" BorderThickness="0">
+							<DataGrid.Styles>
+								<Style Selector="DataGridCell">
+									<Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+								</Style>
+								<!-- The headers are hidden, so the line under them is too. -->
+								<Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+									<Setter Property="IsVisible" Value="False"/>
+								</Style>
+								<!-- Only show the focus box after the list is tabbed into, not when it is clicked or focused on opening. -->
+								<Style Selector="DataGrid:not(:keynav) DataGridCell:current /template/ Grid#FocusVisual">
+									<Setter Property="IsVisible" Value="False"/>
+								</Style>
+							</DataGrid.Styles>
+							<Interaction.Behaviors>
+								<behaviors:DataGridKeyboardBehavior FocusFirstRow="True"
+																	MoveUpCommand="{Binding MoveStationUpCommand, DataType=vm:SortAtisStationsDialogViewModel}"
+																	MoveDownCommand="{Binding MoveStationDownCommand, DataType=vm:SortAtisStationsDialogViewModel}"/>
+								<behaviors:ScrollToSelectedItemBehavior/>
+							</Interaction.Behaviors>
+							<DataGrid.Columns>
+								<DataGridTemplateColumn Width="*">
+									<DataGridTemplateColumn.CellTemplate>
+										<DataTemplate DataType="models:AtisStation">
+											<TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="4,2"/>
+										</DataTemplate>
+									</DataGridTemplateColumn.CellTemplate>
+								</DataGridTemplateColumn>
+							</DataGrid.Columns>
+						</DataGrid>
+					</Border>
 					<!--Up/Down Buttons-->
 					<StackPanel Grid.Column="2" Orientation="Vertical" Spacing="5">
 						<Button Theme="{StaticResource Dark}" Command="{Binding MoveStationUpCommand, DataType=vm:SortAtisStationsDialogViewModel}">Move Up</Button>

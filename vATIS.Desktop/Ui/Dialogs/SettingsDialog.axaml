@@ -11,7 +11,7 @@
 		Width="300"
 		ShowInTaskbar="False"
 		CanResize="False"
-		SystemDecorations="None"
+		WindowDecorations="None"
 		SizeToContent="Height"
 		WindowStartupLocation="CenterOwner"
 		Background="Transparent"

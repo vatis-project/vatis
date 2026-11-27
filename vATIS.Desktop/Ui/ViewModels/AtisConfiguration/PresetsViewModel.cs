@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,7 +97,7 @@ public class PresetsViewModel : ReactiveViewModelBase, IDisposable, ISpokenTextS
         TemplateVariableClicked = ReactiveCommand.Create<string>(HandleTemplateVariableClicked);
         TestInSandboxCommand = ReactiveCommand.Create(HandleTestInSandbox);
 
-        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxSchedulers.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
         {
             HasUnsavedChanges = hasUnsavedChanges;
         }).DisposeWith(_disposables);

@@ -7,8 +7,8 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.ReactiveUI;
 using Avalonia.Threading;
+using ReactiveUI.Avalonia;
 using Vatsim.Vatis.Ui.Extensions;
 using Vatsim.Vatis.Ui.ViewModels;
 

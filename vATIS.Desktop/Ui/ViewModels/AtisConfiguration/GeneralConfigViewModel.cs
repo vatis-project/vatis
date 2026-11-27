@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using ReactiveUI;
 using Vatsim.Vatis.Events;
@@ -68,7 +69,7 @@ public class GeneralConfigViewModel : ReactiveViewModelBase, IDisposable
 
         AtisStationChanged = ReactiveCommand.Create<AtisStation>(HandleUpdateProperties);
 
-        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
+        _changeTracker.HasUnsavedChangesObservable.ObserveOn(RxSchedulers.MainThreadScheduler).Subscribe(hasUnsavedChanges =>
         {
             HasUnsavedChanges = hasUnsavedChanges;
         }).DisposeWith(_disposables);

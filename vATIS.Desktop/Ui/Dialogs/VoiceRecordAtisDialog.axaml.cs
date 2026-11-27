@@ -7,9 +7,9 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
+using ReactiveUI.Avalonia;
 using Vatsim.Vatis.Ui.ViewModels;
 
 namespace Vatsim.Vatis.Ui.Dialogs;
