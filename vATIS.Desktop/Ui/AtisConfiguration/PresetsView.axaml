@@ -34,8 +34,8 @@
 						</DataTemplate>
 					</ComboBox.ItemTemplate>
 				</ComboBox>
-				<StackPanel Grid.Column="1" Spacing="5" Orientation="Horizontal" VerticalAlignment="Center">
-					<DropDownButton Content="Action..." Theme="{StaticResource DarkDropDownButton}">
+				<StackPanel Grid.Column="1" Spacing="5" Orientation="Horizontal">
+					<DropDownButton Content="Action..." Theme="{StaticResource DarkDropDownButton}" VerticalAlignment="Stretch" VerticalContentAlignment="Center">
 						<DropDownButton.Flyout>
 							<MenuFlyout Placement="BottomEdgeAlignedRight">
 								<MenuItem Header="New..." Command="{Binding NewPresetCommand, DataType=vm:PresetsViewModel}" />
