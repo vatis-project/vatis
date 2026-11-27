@@ -64,7 +64,7 @@
 	<Border VerticalAlignment="Center" BorderBrush="{Binding ShowOverlay, DataType=vm:StaticNotamsDialogViewModel, Converter={StaticResource BoolToBrushColorConverter}, FallbackValue=#646464}" BorderThickness="1" Background="#323232" CornerRadius="5">
 		<Grid>
 			<Grid x:Name="Overlay" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:StaticNotamsDialogViewModel, FallbackValue=False}">
-				<Border Background="#000000" Opacity="0.80"/>
+				<Border Background="#B3000000"/>
 			</Grid>
 			<StackPanel Orientation="Vertical">
 				<Border CornerRadius="5,5,0,0" Background="#282828" Height="40" PointerPressed="OnPointerPressed">

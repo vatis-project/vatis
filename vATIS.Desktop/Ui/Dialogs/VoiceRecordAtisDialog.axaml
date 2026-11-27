@@ -75,7 +75,7 @@
 		ClipToBounds="True">
 		<Grid RowDefinitions="30,*" ClipToBounds="True">
 			<Grid x:Name="Overlay" Grid.ColumnSpan="2" Grid.RowSpan="2" ZIndex="100" IsVisible="{Binding ShowOverlay, DataType=vm:VoiceRecordAtisDialogViewModel, FallbackValue=False}">
-				<Border Background="#000000" Opacity="0.80"/>
+				<Border Background="#B3000000"/>
 			</Grid>
 			<Border Background="#1e1e1e" Grid.Row="0" CornerRadius="5,5,0,0"  PointerPressed="OnPointerPressed">
 				<TextBlock Text="Record ATIS" Padding="5" VerticalAlignment="Center" Foreground="#F0F0F0" FontWeight="Medium" />
