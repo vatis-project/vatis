@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed selected radio buttons to a solid blue circle with a white dot, matching the checked checkboxes.
 - Changed checked checkboxes to the same blue as the selected radio buttons.
 - Updated the drop-downs to look more like drop-downs, with a raised arrow button, a hover state, and a rounded list with a shadow.
+- Updated the Presets tab "Action..." menu to match the drop-down lists, with a lighter background, a brighter border, and rounded, highlighted rows.
 
 ### Fixed
 - Fixed the main window not having focus after double-clicking a profile to open it, which required clicking into it before the controls could be used.
