@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Words/Digits switch next to the Voice switch in the Record ATIS dialog to show numbers, runways and letters in the voice script as digits and letters (e.g., "wind 090 at 8" instead of "wind zero niner zero at eight"). It defaults to Digits. The Text/Voice and Words/Digits switches are remembered between openings and sessions.
 - Added a `[DENSITY_ALT]` variable and a Density Altitude formatting tab for non-FAA stations to read the density altitude from the METAR remarks (e.g., `RMK DENSITY ALT 1100FT`), with Default and Group styles and a suffix for the `{altitude}` value (e.g., "one thousand one hundred feet").
 
+### Changed
+- Refreshed the look of buttons, checkboxes, radio buttons, drop-downs, and menus for a more consistent style.
+
 ### Fixed
 - Fixed the update flash on an ATIS published by another controller appearing a second time after it was acknowledged, when the new METAR and the new letter arrived separately.
 - Fixed the mini window shifting left after restoring it from the main window when a voice ATIS recording indicator had appeared or cleared in the meantime.

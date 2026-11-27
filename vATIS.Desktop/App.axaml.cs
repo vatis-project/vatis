@@ -30,6 +30,7 @@ using Vatsim.Vatis.NavData;
 using Vatsim.Vatis.Profiles;
 using Vatsim.Vatis.Sessions;
 using Vatsim.Vatis.TextToSpeech;
+using Vatsim.Vatis.Ui.Behaviors;
 using Vatsim.Vatis.Ui.Dialogs;
 using Vatsim.Vatis.Ui.Dialogs.MessageBox;
 using Vatsim.Vatis.Ui.Services;
@@ -69,6 +70,7 @@ public class App : Application
             ShowErrorAsync(ex.Message);
         });
         AvaloniaXamlLoader.Load(this);
+        ComboBoxPopupPlacement.Register();
         UiScaling.Register();
     }
 
