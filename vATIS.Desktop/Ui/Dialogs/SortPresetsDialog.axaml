@@ -32,6 +32,10 @@
 								<Style Selector="DataGridCell">
 									<Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
 								</Style>
+								<!-- The headers are hidden, so the line under them is too. -->
+								<Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+									<Setter Property="IsVisible" Value="False"/>
+								</Style>
 								<!-- The list takes focus when the dialog opens. Only show the focus box once the keyboard is used. -->
 								<Style Selector="DataGrid:not(:keynav) DataGridCell:current /template/ Grid#FocusVisual">
 									<Setter Property="IsVisible" Value="False"/>
