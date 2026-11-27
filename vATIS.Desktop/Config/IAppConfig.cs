@@ -114,6 +114,11 @@ public interface IAppConfig
     public bool AutoFetchDatis { get; set; }
 
     /// <summary>
+    /// Gets or sets the UI scale as a percentage, from 100 to 300.
+    /// </summary>
+    public int UiScale { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to suppress the release notes window after updating.
     /// </summary>
     public bool SuppressReleaseNotes { get; set; }

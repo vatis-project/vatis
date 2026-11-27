@@ -86,6 +86,28 @@ public sealed class ProfileRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Update_AfterImportWithIdOfOlderCopy_RestoresRemoteVersion()
+    {
+        var (repository, downloader) = Create();
+        var local = SaveLocalProfile(repository, "Local Name");
+        local.UpdateSerial = 3;
+        repository.Save(local);
+        var shipped = new Profile { Id = local.Id, Name = "Shipped Name", UpdateUrl = UpdateUrl, UpdateSerial = 1 };
+        var path = Path.Combine(_appDataPath, "shipped.json");
+        await File.WriteAllTextAsync(path,
+            JsonSerializer.Serialize(shipped, SourceGenerationContext.NewDefault.Profile));
+        await repository.ImportWithId(path);
+        downloader.RemoteProfile = CreateRemoteProfile("Remote Name", updateSerial: 3);
+
+        await repository.CheckForProfileUpdates();
+
+        var updated = await repository.LoadById(local.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("Remote Name", updated.Name);
+        Assert.Equal(3, updated.UpdateSerial);
+    }
+
+    [Fact]
     public async Task Rename_SetsNameOverrideFlag()
     {
         var (repository, _) = Create();

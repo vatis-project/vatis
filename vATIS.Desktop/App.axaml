@@ -17,6 +17,21 @@
         <StyleInclude Source="/Ui/Styles/DataGridStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/TreeDataGridStyles.axaml"/>
         <StyleInclude Source="/Ui/Styles/KeyboardNavigationStyles.axaml"/>
+        <!--
+            Virtualized lists work out how many rows to create from their visible area, which comes out too small
+            inside the scaled windows and leaves the lower rows missing. These lists are short, so show every row.
+        -->
+        <Style Selector="ListBox, ComboBox">
+            <Setter Property="ItemsPanel">
+                <ItemsPanelTemplate>
+                    <StackPanel />
+                </ItemsPanelTemplate>
+            </Setter>
+        </Style>
+        <!-- Popups (context menus, tooltips, lists) take on the UI scale of the control they open from. -->
+        <Style Selector="Popup">
+            <Setter Property="InheritsTransform" Value="True"/>
+        </Style>
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>

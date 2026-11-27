@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Reactive;
 using ReactiveUI;
 using Vatsim.Network;
@@ -12,6 +13,7 @@ using Vatsim.Vatis.Config;
 using Vatsim.Vatis.Events;
 using Vatsim.Vatis.Events.EventBus;
 using Vatsim.Vatis.Ui.Common;
+using Vatsim.Vatis.Ui.Services;
 
 namespace Vatsim.Vatis.Ui.ViewModels;
 
@@ -30,6 +32,8 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     private bool _muteSharedAtisUpdateSound;
     private bool _autoFetchAtisLetter;
     private bool _autoFetchDatis;
+    private string? _selectedUiScale;
+    private ObservableCollection<ComboBoxItemMeta>? _uiScales;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsDialogViewModel"/> class.
@@ -47,6 +51,13 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
         SelectedNetworkRating = _appConfig.NetworkRating.ToString();
         AutoFetchAtisLetter = _appConfig.AutoFetchAtisLetter;
         AutoFetchDatis = _appConfig.AutoFetchDatis;
+        SelectedUiScale = UiScaling.ClampPercent(_appConfig.UiScale).ToString(CultureInfo.InvariantCulture);
+
+        UiScales = new ObservableCollection<ComboBoxItemMeta>();
+        for (var percent = UiScaling.MinPercent; percent <= UiScaling.MaxPercent; percent += UiScaling.StepPercent)
+        {
+            UiScales.Add(new ComboBoxItemMeta($"{percent}%", percent.ToString(CultureInfo.InvariantCulture)));
+        }
 
         NetworkRatings =
         [
@@ -118,6 +129,24 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Gets or sets the selected UI scale percentage.
+    /// </summary>
+    public string? SelectedUiScale
+    {
+        get => _selectedUiScale;
+        set => this.RaiseAndSetIfChanged(ref _selectedUiScale, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the UI scales available for selection.
+    /// </summary>
+    public ObservableCollection<ComboBoxItemMeta>? UiScales
+    {
+        get => _uiScales;
+        set => this.RaiseAndSetIfChanged(ref _uiScales, value);
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether notification sounds for the user's own ATIS updates should be muted.
     /// </summary>
     public bool MuteOwnAtisUpdateSound
@@ -184,7 +213,13 @@ public class SettingsDialogViewModel : ReactiveViewModelBase, IDisposable
             _appConfig.NetworkRating = selectedNetworkRating;
         }
 
+        if (int.TryParse(SelectedUiScale, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uiScale))
+        {
+            _appConfig.UiScale = UiScaling.ClampPercent(uiScale);
+        }
+
         _appConfig.SaveConfig();
+        UiScaling.SetPercent(_appConfig.UiScale);
 
         EventBus.Instance.Publish(new GeneralSettingsUpdated());
 
