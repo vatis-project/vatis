@@ -53,15 +53,18 @@ public class StaticNotamsDialogViewModel : ReactiveViewModelBase, IDisposable
         NewBlankLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: false));
         NewLineCommand = ReactiveCommand.Create(() => HandleNewSpacer(newLineOnly: true));
         DeleteDefinitionCommand = ReactiveCommand.CreateFromTask(HandleDeleteDefinition, canExecute);
-        var canEdit = this.WhenAnyValue(x => x.Source.SelectedItem)
-            .Select(x => x is { IsSpacer: false });
+
+        // Only one definition can be edited at a time.
+        var canEdit = this.WhenAnyValue(x => x.Source.SelectedItem, x => x.Source.SelectedItems.Count,
+            (item, count) => item is { IsSpacer: false } && count <= 1);
         EditDefinitionCommand = ReactiveCommand.CreateFromTask(HandleEditDefinition, canEdit);
         CloseWindowCommand = ReactiveCommand.Create<ICloseable>(window => window.Close());
 
-        var canMoveUp = this.WhenAnyValue(x => x.Source.SelectedIndex)
-            .Select(x => x > 0);
-        var canMoveDown = this.WhenAnyValue(x => x.Source.SelectedIndex)
-            .Select(x => x >= 0 && x < Definitions.Count - 1);
+        // Only one definition can be moved at a time.
+        var canMoveUp = this.WhenAnyValue(x => x.Source.SelectedIndex, x => x.Source.SelectedItems.Count,
+            (index, count) => index > 0 && count <= 1);
+        var canMoveDown = this.WhenAnyValue(x => x.Source.SelectedIndex, x => x.Source.SelectedItems.Count,
+            (index, count) => index >= 0 && index < Definitions.Count - 1 && count <= 1);
 
         MoveDefinitionUpCommand = ReactiveCommand.Create(HandleMoveDefinitionUp, canMoveUp);
         MoveDefinitionDownCommand = ReactiveCommand.Create(HandleMoveDefinitionDown, canMoveDown);
