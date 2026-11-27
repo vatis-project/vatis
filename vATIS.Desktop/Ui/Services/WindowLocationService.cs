@@ -3,6 +3,7 @@
 // Licensed under the GPLv3 license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -173,6 +174,20 @@ public class WindowLocationService : IWindowLocationService
             return;
         }
 
+        if (window is MiniWindow && _appConfig.MiniWindowPosition?.Width is { } savedWidth)
+        {
+            // The mini window grows leftward when it sits on the right half of the screen, so its right edge
+            // is the anchor. Its width can differ from when it was saved (e.g. the recording indicator
+            // came or went while it was closed), so keep the right edge where it was.
+            var scaling = OperatingSystem.IsMacOS() ? 1.0 : window.RenderScaling;
+            var currentWidth = (int)Math.Round(window.Bounds.Width * scaling);
+            var center = _left.Value + (savedWidth / 2.0);
+            if (currentWidth > 0 && center > screen.Bounds.X + (screen.Bounds.Width / 2.0))
+            {
+                savedPosition = new PixelPoint(_left.Value + savedWidth - currentWidth, _top.Value);
+            }
+        }
+
         window.Position = savedPosition;
     }
 
@@ -188,6 +203,11 @@ public class WindowLocationService : IWindowLocationService
         _top = window.Position.Y;
 
         var savedPosition = new WindowPosition(_left.Value, _top.Value);
+        if (window is MiniWindow)
+        {
+            var scaling = OperatingSystem.IsMacOS() ? 1.0 : window.RenderScaling;
+            savedPosition = savedPosition with { Width = (int)Math.Round(window.Bounds.Width * scaling) };
+        }
 
         if (window.GetType() == typeof(MainWindow))
         {

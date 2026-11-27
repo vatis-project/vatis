@@ -424,11 +424,9 @@ public class AtisStationViewModel : ReactiveViewModelBase, IDisposable, ISpokenT
             {
                 if (NetworkConnectionStatus == NetworkConnectionStatus.Observer)
                 {
-                    var atisLetterChanged = sync.Dto.AtisLetter != AtisLetter;
-                    var metarChanged = !string.IsNullOrEmpty(sync.Dto.Metar) &&
-                                       !string.Equals(sync.Dto.Metar, Metar, StringComparison.OrdinalIgnoreCase);
-
-                    if (atisLetterChanged || metarChanged)
+                    // Only the letter marks a new ATIS. The host can publish the new METAR and the new letter
+                    // separately, which flashed the update again after it was acknowledged.
+                    if (sync.Dto.AtisLetter != AtisLetter)
                     {
                         IsNewAtis = true;
 
