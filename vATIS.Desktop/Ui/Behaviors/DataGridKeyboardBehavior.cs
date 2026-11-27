@@ -21,8 +21,8 @@ namespace Vatsim.Vatis.Ui.Behaviors;
 /// Makes a list that has Edit and Delete buttons usable from the keyboard. Tabbing into the list selects its first row
 /// when nothing is selected, so the buttons can act on it straight away, and Enter runs the edit command on the
 /// selected row. Space toggles the check box of the selected row, and Alt+Up and Alt+Down run the move commands, for
-/// lists that can be reordered. While the list is used from the keyboard it has the <c>:keynav</c> pseudo-class, so the
-/// focus box can be shown only then.
+/// lists that can be reordered. After the list is tabbed into it has the <c>:keynav</c> pseudo-class until it is
+/// clicked, so the focus box can be shown only then.
 /// </summary>
 public class DataGridKeyboardBehavior : Behavior<DataGrid>
 {
@@ -147,7 +147,7 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
 
         grid.LayoutUpdated -= OnLayoutUpdatedFocusFirstRow;
 
-        // Focus without the focus box, which only shows once the keyboard is used.
+        // Focus without the focus box, which only shows once the list is tabbed into.
         grid.Focus();
         if (grid.SelectedIndex < 0)
         {
@@ -155,8 +155,8 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
         }
     }
 
-    // DataGrid shows its focus box whenever it has focus. Keep track of whether the keyboard was last used, so styles
-    // can show the box only for keyboard use.
+    // DataGrid shows its focus box whenever it has focus, including after a click. Keep track of whether the list was
+    // tabbed into, so styles can show the box only then.
     private void SetKeyboardNavigation(bool value)
     {
         if (AssociatedObject is { } grid)
@@ -204,8 +204,6 @@ public class DataGridKeyboardBehavior : Behavior<DataGrid>
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        SetKeyboardNavigation(true);
-
         // A text cell being edited still needs its keys.
         if (e.Source is TextBox || AssociatedObject is not { } grid)
         {

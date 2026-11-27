@@ -96,6 +96,10 @@
 										<Style Selector="DataGridCell">
 											<Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
 										</Style>
+										<!-- Only show the focus box after the list is tabbed into, not when it is clicked. -->
+										<Style Selector="DataGrid:not(:keynav) DataGridCell:current /template/ Grid#FocusVisual">
+											<Setter Property="IsVisible" Value="False"/>
+										</Style>
 										<!-- The headers are hidden, so the line under them is too. -->
 										<Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
 											<Setter Property="IsVisible" Value="False"/>
