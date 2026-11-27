@@ -30,6 +30,7 @@ public partial class SandboxView : ReactiveUserControl<SandboxViewModel>
         InitializeComponent();
         TextAtis.TextArea.TextView.LineTransformers.Add(new ErrorTextTransformer());
         VoiceAtis.TextArea.TextView.LineTransformers.Add(new ErrorTextTransformer());
+        VoiceAtis.TextArea.TextView.LineTransformers.Add(new RecordedMarkerTransformer());
 
         // Don't leave empty space below the last line of the free-text boxes.
         AirportConditions.Options.AllowScrollBelowDocument = false;
